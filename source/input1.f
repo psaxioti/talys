@@ -2,17 +2,18 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : June 28, 2004
+c | Date  : December 13, 2006   
 c | Task  : Read input for first set of variables
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical     projexist,massexist,elemexist,enerexist,lexist
-      character*1 ch
-      integer     i,i2,type,iz
-      real        Ein
+      logical      projexist,massexist,elemexist,enerexist,lexist
+      character*1  ch
+      character*80 word(40),key,value
+      integer      i,i2,inull,type,iz
+      real         Ein
 c
 c ************ Read first set of variables from input lines ************
 c
@@ -36,32 +37,42 @@ c
       eninc(1)=0.
       Ztarget=0
 c
-c 2. The projectile is read
+c nlines     : number of input lines
+c getkeywords: subroutine to retrieve keywords and values from input 
+c              line
+c inline     : input line                 
+c word       : words on input line
+c key        : keyword
+c value      : value or string
+c ch         : character
 c
-c nlines: number of input lines
-c ch    : character
-c inline: input line                 
-c ptype0: type of incident particle
+c The keyword is identified and the corresponding values are read.
+c Erroneous input is immediately checked. The keywords and number of
+c values on each line are retrieved from the input.
 c
       do 10 i=1,nlines
-        if (inline(i)(1:11).eq.'projectile ') then
+        call getkeywords(inline(i),word)
+        key=word(1)
+        value=word(2)
+        ch=word(2)(1:1)
+c
+c 2. The projectile is read
+c
+c ptype0: type of incident particle
+c
+        if (key.eq.'projectile') then
           projexist=.true.
-          do 20 i2=12,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then 
-              ptype0=inline(i)(i2:i2)
-              goto 10
-            endif
-   20     continue
+          ptype0=ch
+          goto 10
         endif
 c
 c 3. The target mass is read
 c
 c Atarget: mass number of target nucleus
 c
-        if (inline(i)(1:5).eq.'mass ') then
+        if (key.eq.'mass') then
           massexist=.true.
-          read(inline(i)(6:80),*,err=400) Atarget
+          read(value,*,err=400) Atarget
           goto 10
         endif
 c
@@ -70,61 +81,107 @@ c
 c numelem: number of elements   
 c Starget: symbol of target nucleus
 c
-        if (inline(i)(1:8).eq.'element ') then
+        if (key.eq.'element') then
           elemexist=.true.
-          do 30 i2=9,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then 
-              if (ch.ge.'0'.and.ch.le.'9') then 
-                read(inline(i)(i2:80),*,err=400) Ztarget 
-                if (Ztarget.lt.1.or.Ztarget.gt.numelem) goto 400
-                goto 10
-              else
-                read(inline(i)(i2:i2+1),'(a2)',err=400) Starget
-                Starget(1:1)=char(ichar(Starget(1:1))-32)
-                goto 10
-              endif
-            endif
-   30     continue
+          if (ch.ge.'0'.and.ch.le.'9') then 
+            read(value,*,err=400) Ztarget 
+            if (Ztarget.lt.1.or.Ztarget.gt.numelem) goto 400
+            goto 10
+          else
+            read(value,'(a2)',err=400) Starget
+            Starget(1:1)=char(ichar(Starget(1:1))-32)
+            goto 10
+          endif
         endif
 c
 c 5. The incident energy or file with incident energies is read
 c
-        if (inline(i)(1:7).eq.'energy ') then
+        if (key.eq.'energy') then
           enerexist=.true.
-          do 40 i2=8,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then 
-              if ((ch.ge.'0'.and.ch.le.'9').or.ch.eq.'.') then 
-                read(inline(i)(i2:80),*,err=400) eninc(1)
-                goto 10
-              else
-                eninc(1)=0.
-                read(inline(i)(i2:80),'(a73)') energyfile
-                goto 10
-              endif
-            endif
-   40     continue
+          if ((ch.ge.'0'.and.ch.le.'9').or.ch.eq.'.') then 
+            read(value,*,err=400) eninc(1)
+            goto 10
+          else
+            eninc(1)=0.
+            energyfile=value
+            goto 10
+          endif
         endif
    10 continue
 c
 c The four main keywords MUST be present in the input file.
 c
       if (.not.projexist) then
-        write(*,'("TALYS-error: projectile must be given")') 
+        write(*,'(" TALYS-error: projectile must be given")') 
         stop
       endif
       if (.not.massexist) then
-        write(*,'("TALYS-error: mass must be given")') 
+        write(*,'(" TALYS-error: mass must be given")') 
         stop
       endif
       if (.not.elemexist) then
-        write(*,'("TALYS-error: element must be given")') 
+        write(*,'(" TALYS-error: element must be given")') 
         stop
       endif
       if (.not.enerexist) then
-        write(*,'("TALYS-error: energy must be given")') 
+        write(*,'(" TALYS-error: energy must be given")') 
         stop
+      endif
+c
+c Manual input of structure path and null device.
+c
+c path   : directory containing structure files to be read
+c lenpath: length of pathname
+c nulldev: null device
+c
+      do 50 i=1,nlines
+        call getkeywords(inline(i),word)
+        key=word(1)
+        value=word(2)
+        ch=word(2)(1:1)
+        if (key.eq.'strucpath') then
+          lenpath=0
+          do 60 i2=11,80
+            ch=inline(i)(i2:i2)
+            if (ch.ne.' ') then
+              lenpath=lenpath+1
+              path(lenpath:lenpath)=ch
+            endif
+   60     continue
+        endif
+        inull=0
+        if (key.eq.'nulldev') then
+          nulldev='             '
+          do 70 i2=9,80
+            ch=inline(i)(i2:i2)
+            if (ch.ne.' ') then
+              inull=inull+1
+              nulldev(inull:inull)=ch
+            endif
+   70     continue
+        endif
+   50 continue
+c
+c Test to check accessibility of structure files and null device
+c
+      if (path(lenpath:lenpath).ne.'/') then
+        lenpath=lenpath+1
+        path(lenpath:lenpath)='/'
+      endif
+      if (lenpath.gt.60) then
+        write(*,'(" TALYS-warning: path name should contain 60",
+     +    " characters or less")')
+      endif
+      inquire (file=path(1:lenpath)//'abundance/z001',exist=lexist)
+      if (.not.lexist) then
+        write(*,'(" TALYS-error: Structure database not installed:",
+     +    " change path in machine.f or strucpath keyword",
+     +    " in input file")')
+        stop
+      endif
+      if (inull.gt.13) then
+        write(*,'(" TALYS-warning: null device should contain 13",
+     +    " characters or less")')
       endif
 c
 c ************* Process first set of input variables *******************
@@ -189,17 +246,17 @@ c
 c A. If no incident energy is given in the input file, incident energies
 c    should be read from a file.
 c
+      eninc(0)=0.
       if (eninc(1).eq.0.) then
         inquire (file=energyfile,exist=lexist)
         if (.not.lexist) then   
-          write(*,'("TALYS-error: give a single incident energy ",$)')
-          write(*,'("in the input file using the energy keyword ")')
-          write(*,'(13x,"or specify a range of incident energies ",$)')
-          write(*,'("in a file ",a73)') energyfile
+          write(*,'(" TALYS-error: give a single incident energy ",
+     +      "in the input file using the energy keyword ")')
+          write(*,'(14x,"or specify a range of incident energies ",
+     +      "in a file ",a73)') energyfile
           stop
         endif
         nin=0
-        eninc(0)=0.
         open (unit=2,status='old',file=energyfile)
  310    read(2,*,end=320,err=410) Ein
         if (Ein.ne.0.) then
@@ -210,9 +267,8 @@ c
 c numenin : maximal number of incident energies 
 c
           if (nin.gt.numenin) then
-            write(*,'("TALYS-error: there are more than",i3,$)') 
-     +        numenin
-            write(*,'(" incident energies in file ",a73)') energyfile
+            write(*,'(" TALYS-error: there are more than",i3,
+     +        " incident energies in file ",a73)') numenin,energyfile
             write(*,'(" numenin in talys.cmb should be increased")')
             stop
           endif
@@ -221,8 +277,8 @@ c
 c Incident energies must be given in ascending order
 c
           if (eninc(nin).le.eninc(nin-1)) then
-            write(*,'("TALYS-error: incident energies must",$)') 
-            write(*,'(" be given in ascending order")')
+            write(*,'(" TALYS-error: incident energies must",
+     +        " be given in ascending order")')
             stop
           endif
         endif
@@ -235,8 +291,8 @@ c numinc: number of incident energies
 c
         numinc=nin
         if (numinc.eq.0) then
-          write(*,'("TALYS-error: there are no",$)') 
-          write(*,'(" incident energies in file ",a73)') energyfile
+          write(*,'(" TALYS-error: there are no",
+     +      " incident energies in file ",a73)') energyfile
           stop
         endif
 c
@@ -261,9 +317,9 @@ c
         enincmax=eninc(1)
       endif
       return
-  400 write(*,'("TALYS-error: Wrong input: ",a80)') inline(i)
+  400 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
       stop
-  410 write(*,'("TALYS-error: Wrong energy in file ",a73)') energyfile
+  410 write(*,'(" TALYS-error: Wrong energy in file ",a73)') energyfile
       write(*,'(" after E= ",e12.5)') Ein
       stop
       end

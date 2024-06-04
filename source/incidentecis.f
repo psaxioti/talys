@@ -2,16 +2,17 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 13, 2004
+c | Date  : October 5, 2006   
 c | Task  : ECIS calculation for incident energy
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical rotational,vibrational
-      integer Zix,Nix,i1,i,ii,Z,A
-      real    Ein
+      logical      rotational,vibrational
+      character*13 inelfile,outfile
+      integer      Zix,Nix,i1,i,ii,Z,A
+      real         Ein
 c
 c ********************** Set ECIS input parameters *********************
 c
@@ -39,14 +40,10 @@ c Zindex          : charge number index for residual nucleus
 c Nindex          : neutron number index for residual nucleus
 c
 c Specific ECIS flags:
-c ecis2(13)=T : output transmission coefficients 
+c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
+c ecis2(13)=T : output of transmission coefficients 
 c ecis2(14)=T : output of elastic angular distribution 
 c ecis2(15)=T : output of Legendre coefficients        
-c Extra ECIS-flags added by A. Koning:
-c ecis2(10)=F : output of polarization or Rutherford cross section
-c ecis2(20)=T : output of reaction cross section 
-c ecis2(30)=T : output of direct inelastic cross section
-c ecis2(40)=T : output of total and total elastic cross section 
 c
       if (flaginccalc) 
      +  open (unit=9,status='unknown',file='ecisinc.inp')
@@ -94,9 +91,10 @@ c              rotational model
 c Elevel     : energy of level   
 c tarspin    : spin of target nucleus
 c tarparity  : parity of target nucleus     
+c inelfile   : file for inelastic scattering cross sections
 c
       ecis1='FFFFFTFFFFFFFFFFFFFFFFFFTFFTFFFFFFFFFFFFFFFFFFFFFF'
-      ecis2='FFFFFFFFFTFFTTTFTTTTFTTFTFFFFTFFFFFFFFFTFFFFFFFFFF'
+      ecis2='FFFFFFFFTFFFTTTFTTTFFTTFTFFFFFFFFFFFFFFFFFFFFFFFFF'
 c
 c 1. Spherical nucleus
 c
@@ -111,6 +109,7 @@ c
         Elevel(1)=0.
         tarspin=0.
         tarparity='+'
+        inelfile='null         '
       else
 c
 c 2. Deformed nucleus
@@ -195,9 +194,11 @@ c model. For rotational nuclei, the switch at 3 MeV needs to be made
 c according to Pascal Romain. 
 c
           if (Ein.le.3.) then
+            ecis1(13:13)='F'
             ecis1(21:21)='T'
             ecis1(42:42)='T'
           else
+            ecis1(13:13)='T'
             ecis1(21:21)='F'
             ecis1(42:42)='F'
           endif
@@ -217,6 +218,7 @@ c
           endif
           iqmax=8
         endif
+        inelfile='ecis03.incin '
       endif
 c
 c ************** Calculate optical potential parameters ****************
@@ -239,14 +241,14 @@ c
       if (flagoutomp) then
         Z=ZZ(0,0,k0)
         A=AA(0,0,k0)
-        write(*,'(/"+++++++++ OPTICAL MODEL PARAMETERS FOR ",$)')
-        write(*,'("INCIDENT CHANNEL ++++++++++")')
-        write(*,'(/10x,a8," on ",i3,a2/)') parname(k0),A,nuc(Z)
-        write(*,'(" Energy",4x,"V",5x,"rv",4x,"av",4x,"W",5x,"rw",$)')
-        write(*,'(4x,"aw",4x,"Vd",3x,"rvd",3x,"avd",4x,"Wd",$)')
-        write(*,'(3x,"rwd",3x,"awd",3x,"Vso",3x,"rvso",2x,"avso",$)')
-        write(*,'(2x,"Wso",3x,"rwso",2x,"awso",2x,"rc",/)')
-        write(*,'(f7.3,1x,6(f6.2,f6.3,f6.3),f6.3)')
+        write(*,'(/" +++++++++ OPTICAL MODEL PARAMETERS FOR ",
+     +    "INCIDENT CHANNEL ++++++++++")')
+        write(*,'(/11x,a8," on ",i3,a2/)') parname(k0),A,nuc(Z)
+        write(*,'("  Energy",4x,"V",5x,"rv",4x,"av",4x,"W",5x,"rw",
+     +    4x,"aw",4x,"Vd",3x,"rvd",3x,"avd",4x,"Wd",
+     +    3x,"rwd",3x,"awd",3x,"Vso",3x,"rvso",2x,"avso",
+     +    2x,"Wso",3x,"rwso",2x,"awso",2x,"rc",/)')
+        write(*,'(1x,f7.3,1x,6(f6.2,f6.3,f6.3),f6.3)')
      +    Ein,v,rv,av,w,rw,aw,vd,rvd,avd,wd,rwd,awd,vso,rvso,
      +    avso,wso,rwso,awso,rc
       endif
@@ -264,16 +266,18 @@ c
 c ************ ECIS calculation for incident energy ********************
 c
 c flagoutecis: flag for output of ECIS results
-c ecis97t    : subroutine ecis97, adapted for TALYS
+c outfile    : output file
+c nulldev    : null device
+c ecis03t    : subroutine ecis03, adapted for TALYS
 c ecisstatus : status of ECIS file  
 c
       if (flagoutecis) then
-        call ecis97t('ecisinc.inp  ','ecisinc.out  ','ecis97.inccs ',
-     +    'ecis97.incres')  
+        outfile='ecisinc.out  '
       else
-        call ecis97t('ecisinc.inp  ','/dev/null    ','ecis97.inccs ',
-     +    'ecis97.incres')  
+        outfile=nulldev
       endif
+      call ecis03t('ecisinc.inp  ',outfile,'ecis03.inccs ',inelfile,
+     +  'ecis03.inctr ','ecis03.incang','ecis03.incleg')  
       open (unit=9,status='unknown',file='ecisinc.inp')
       close (unit=9,status=ecisstatus)
       return

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : August 11, 2004
+c | Date  : September 26, 2006
 c | Task  : Read ECIS results for DWBA for MSD
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       character*72     line
-      integer          nen1,nen2,J,iang
+      integer          nen1,nen2,J,nS,iang,k,itype
       double precision xs
 c
 c ********************** Read DWBA cross sections **********************
@@ -22,25 +22,33 @@ c flagddx   : flag for output of double-differential cross sections
 c nanglecont: number of angles for continuum
 c xsdw      : DWBA angular distribution as a function of incident
 c             energy, outgoing energy, angular momentum and angle
+c nS        : counter
 c
+      read(10,'()') 
       do 10 J=0,maxJmsd
-  20    read(3,'(a72)',end=10) line
-        if(line(1:1).eq.'<') goto 20
-        read(line,*) xs    
+        read(10,'(a72)',end=20) line
+        if(line(1:1).eq.'<') then
+          backspace 10
+          goto 20
+        endif
+        read(line,*) xs
         xsdwin(nen1,nen2,J,0)=real(xs)
    10 continue
-      if (flagddx) then
+   20 if (flagddx) then
+        read(8,'()')
+        read(8,'(12x,i3)') nS
         do 30 iang=0,nanglecont
-   40      read(7,'(a72)') line
-           if(line(1:1).eq.'<') goto 40
+          do 30 k=1,nS
+            read(8,'()')
    30   continue
-        do 50 J=0,maxJmsd
+        do 40 J=0,maxJmsd
+          read(8,'(12x,i3)') nS
           do 50 iang=0,nanglecont
-   60       read(7,'(a72)',end=50) line
-            if(line(1:1).eq.'<') goto 60
-            read(line,'(15x,e12.5)') xs
-            xsdw(nen1,nen2,J,iang,0)=real(xs)
-   50   continue
+            do 50 k=1,nS
+              read(8,'(i3,12x,e12.5)',err=50) itype,xs
+              if (itype.eq.0) xsdw(nen1,nen2,J,iang,0)=real(xs)
+   50     continue
+   40   continue
       endif
       return
       end

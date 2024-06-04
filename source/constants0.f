@@ -60,7 +60,7 @@ c
      +  'Lu','Hf','Ta','W ','Re','Os','Ir','Pt','Au','Hg',
      +  'Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
      +  'Pa','U ','Np','Pu','Am','Cm','Bk','Cf','Es','Fm',
-     +  'Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt'/
+     +  'Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds'/
       data (magic(i),i=1,8) /2,8,20,28,50,82,126,184/
 c
 c **************** Set character symbol for parities *******************

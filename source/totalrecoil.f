@@ -1,8 +1,8 @@
       subroutine totalrecoil
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : September 10, 2004
+c | Author: Arjan Koning and Stephane Hilaire
+c | Date  : July 25, 2005
 c | Task  : Recoil results
 c +---------------------------------------------------------------------
 c
@@ -70,7 +70,6 @@ c
       do 110 Zcomp=0,maxZ
         do 110 Ncomp=0,maxN
           if (xspopnuc(Zcomp,Ncomp).lt.xseps) goto 110   
-          if (maxex(Zcomp,Ncomp).eq.0) goto 110
           sumen=0.
           do 120 ixl=0,maxenrec
             dErecoil=abs(Erecmax(Zcomp,Ncomp,ixl)-

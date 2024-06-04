@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 10, 2004
+c | Date  : June 27, 2005
 c | Task  : Emission rates for exciton model
 c +---------------------------------------------------------------------
 c
@@ -37,6 +37,7 @@ c Esurf       : well depth for surface interaction
 c Efermi      : depth of Fermi well
 c U,Ures      : excitation energy minus pairing energy
 c preeqpair   : pre-equilibrium pairing energy
+c pairmodel   : model for preequilibrium pairing energy
 c phcomp      : particle-hole state density for compound system 
 c phdens      : function for particle-hole state density
 c phcompg     : particle-hole state density for compound system (gamma)
@@ -72,7 +73,7 @@ c
       else
         edepth=Efermi
       endif
-      U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp)
+      U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp,pairmodel)
       phcomp=phdens(p,h,gs,U,edepth,surfwell)
       phcompg=phdens(p,h,gsg,U,edepth,surfwell)
       wemistot(p,h)=0.
@@ -132,8 +133,8 @@ c
           if (type.eq.0) then
             if (primary.and.n.le.7) then
               factor=factor*Eout
-              U=max(Eres-preeqpair(Zcomp,Ncomp,n,Eres),
-     +          preeqpair(Zcomp,Ncomp,n,Eres))
+              U=max(Eres-preeqpair(Zcomp,Ncomp,n,Eres,pairmodel),
+     +          preeqpair(Zcomp,Ncomp,n,Eres,pairmodel))
               surfgam=.false.
               phres1=phdens(p-1,h-1,gsg,U,Efermi,surfgam)
               phres2=phdens(p,h,gsg,U,Efermi,surfgam)
@@ -156,8 +157,8 @@ c phres: particle-hole state density for residual system
 c
             pres=p-aejec
             if (pres.lt.0.or.h.eq.0) goto 30
-            Ures=max(Eres-preeqpair(Zix,Nix,n,Eres),
-     +        preeqpair(Zix,Nix,n,Eres))
+            Ures=max(Eres-preeqpair(Zix,Nix,n,Eres,pairmodel),
+     +        preeqpair(Zix,Nix,n,Eres,pairmodel))
             phres=phdens(pres,h,gs,Ures,Ewell,surfwell)
             phratio=phres/phcomp
             wemission(type,p,h,nen)=factor*phratio*Qfac

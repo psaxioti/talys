@@ -2,15 +2,16 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 14, 2004
+c | Date  : October 19, 2006   
 c | Task  : Read input for fourth set of variables
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*1 ch
-      integer     i,i2,type
+      character*1  ch
+      character*80 word(40),key,value
+      integer      i,type
 c
 c ************** Defaults for fourth set of input variables ************
 c
@@ -48,15 +49,17 @@ c flagadd     : flag for addition of discrete states to spectra
 c flagaddel   : flag for addition of elastic peak to spectra
 c flagelectron: flag for application of electron conversion coefficient
 c flagspher   : flag to force spherical optical model
+c flagcol     : flag for collective enhancement of level density
 c flagpartable: flag for output of model parameters on separate file
 c maxchannel, : maximal number of outgoing particles in individual
 c numchannel    channel description (e.g. this is 3 for (n,2np))
 c Ztarget     : charge number of target nucleus
+c pairmodel   : model for preequilibrium pairing energy
 c fismodel    : fission model
 c fismodelalt : alternative fission model for default barriers 
 c flagendf    : flag for information for ENDF-6 file
 c flagchannels: flag for exclusive channels calculation 
-c k0          : index of incident particle 
+c flagendfdet : flag for detailed ENDF-6 information per channel
 c
       flagmain=.true.
       flagpop=flagbasic
@@ -98,8 +101,14 @@ c
       flagspher=.false.      
       flagpartable=.false.
       maxchannel=4
+      pairmodel=2
       fismodel=1
       fismodelalt=4     
+      if (flagfission) then
+        flagcol=.true.
+      else
+        flagcol=.false.
+      endif
 c
 c If the results of TALYS are used to create ENDF-6 data files,
 c several output flags are automatically set.
@@ -115,7 +124,7 @@ c
         flagspec=.true.
         flagexc=.true.
         flagelectron=.true.
-        if (k0.eq.1) then
+        if (flagendfdet) then
           flaggamdis=.true.
           flagchannels=.true.
         endif
@@ -123,183 +132,122 @@ c
 c
 c **************** Read fourth set of input variables ******************
 c
-c nlines : number of input lines
-c ch     : character
-c inline : input line                 
+c nlines     : number of input lines
+c getkeywords: subroutine to retrieve keywords and values from input 
+c              line
+c inline     : input line                 
+c word       : words on input line
+c key        : keyword
+c value      : value or string
+c ch         : character
+c
+c The keyword is identified and the corresponding values are read.
+c Erroneous input is immediately checked. The keywords and number of
+c values on each line are retrieved from the input.
+c
+      do 10 i=1,nlines
+        call getkeywords(inline(i),word)
+        key=word(1)
+        value=word(2)
+        ch=word(2)(1:1)
+c
+c Test for keywords
+c
 c flagrot: flag for use of rotational optical model per
 c          outgoing particle, if available       
 c
-c First the keyword is identified. Next the corresponding value is read.
-c Erroneous input is immediately checked.
-c  
-      do 10 i=1,nlines
-        if (inline(i)(1:8).eq.'outmain ') then
-          do 20 i2=9,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagmain=.false.
-              if (ch.eq.'y') flagmain=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-   20     continue
+        if (key.eq.'outmain') then
+          if (ch.eq.'n') flagmain=.false.
+          if (ch.eq.'y') flagmain=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:14).eq.'outpopulation ') then
-          do 30 i2=15,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagpop=.false.
-              if (ch.eq.'y') flagpop=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-   30     continue
+        if (key.eq.'outpopulation') then
+          if (ch.eq.'n') flagpop=.false.
+          if (ch.eq.'y') flagpop=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:9).eq.'outcheck ') then
-          do 40 i2=10,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagcheck=.false.
-              if (ch.eq.'y') flagcheck=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-   40     continue
+        if (key.eq.'outcheck') then
+          if (ch.eq.'n') flagcheck=.false.
+          if (ch.eq.'y') flagcheck=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:7).eq.'outomp ') then
-          do 50 i2=8,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagoutomp=.false.
-              if (ch.eq.'y') flagoutomp=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-   50     continue
+        if (key.eq.'outomp') then
+          if (ch.eq.'n') flagoutomp=.false.
+          if (ch.eq.'y') flagoutomp=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:11).eq.'outinverse ') then
-          do 60 i2=12,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flaginverse=.false.
-              if (ch.eq.'y') flaginverse=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-   60     continue
+        if (key.eq.'outinverse') then
+          if (ch.eq.'n') flaginverse=.false.
+          if (ch.eq.'y') flaginverse=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:15).eq.'outtransenergy ') then
-          do 70 i2=16,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagtransen=.false.
-              if (ch.eq.'y') flagtransen=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-   70     continue
+        if (key.eq.'outtransenergy') then
+          if (ch.eq.'n') flagtransen=.false.
+          if (ch.eq.'y') flagtransen=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:9).eq.'outgamma ') then
-          do 80 i2=10,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flaggamma=.false.
-              if (ch.eq.'y') flaggamma=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-   80     continue
+        if (key.eq.'outgamma') then
+          if (ch.eq.'n') flaggamma=.false.
+          if (ch.eq.'y') flaggamma=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:10).eq.'outlevels ') then
-          do 90 i2=11,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flaglevels=.false.
-              if (ch.eq.'y') flaglevels=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-   90     continue
+        if (key.eq.'outlevels') then
+          if (ch.eq.'n') flaglevels=.false.
+          if (ch.eq.'y') flaglevels=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:11).eq.'outdensity ') then
-          do 100 i2=12,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagdensity=.false.
-              if (ch.eq.'y') flagdensity=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  100     continue
+        if (key.eq.'outdensity') then
+          if (ch.eq.'n') flagdensity=.false.
+          if (ch.eq.'y') flagdensity=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:11).eq.'outfission ') then
-          do 110 i2=12,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagfisout=.false.
-              if (ch.eq.'y') flagfisout=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  110     continue
+        if (key.eq.'outfission') then
+          if (ch.eq.'n') flagfisout=.false.
+          if (ch.eq.'y') flagfisout=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:18).eq.'outpreequilibrium ') then
-          do 120 i2=19,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagpeout=.false.
-              if (ch.eq.'y') flagpeout=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  120     continue
+        if (key.eq.'outpreequilibrium') then
+          if (ch.eq.'n') flagpeout=.false.
+          if (ch.eq.'y') flagpeout=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:12).eq.'outdiscrete ') then
-          do 130 i2=13,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagdisc=.false.
-              if (ch.eq.'y') flagdisc=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  130     continue
+        if (key.eq.'outdiscrete') then
+          if (ch.eq.'n') flagdisc=.false.
+          if (ch.eq.'y') flagdisc=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:11).eq.'outspectra ') then
-          do 140 i2=12,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagspec=.false.
-              if (ch.eq.'y') flagspec=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  140     continue
+        if (key.eq.'outspectra') then
+          if (ch.eq.'n') flagspec=.false.
+          if (ch.eq.'y') flagspec=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:9).eq.'outangle ') then
-          do 150 i2=10,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagang=.false.
-              if (ch.eq.'y') flagang=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  150     continue
+        if (key.eq.'outangle') then
+          if (ch.eq.'n') flagang=.false.
+          if (ch.eq.'y') flagang=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:12).eq.'outlegendre ') then
-          do 160 i2=13,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flaglegendre=.false.
-              if (ch.eq.'y') flaglegendre=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  160     continue
+        if (key.eq.'outlegendre') then
+          if (ch.eq.'n') flaglegendre=.false.
+          if (ch.eq.'y') flaglegendre=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:8).eq.'ddxmode ') then
-          read(inline(i)(9:80),*,err=400) ddxmode
+        if (key.eq.'ddxmode') then
+          read(value,*,err=200) ddxmode
           if (ddxmode.eq.0) flagddx=.false.
           if (ddxmode.gt.0) then
             flagddx=.true.
@@ -307,131 +255,96 @@ c
           endif
           goto 10
         endif
-        if (inline(i)(1:8).eq.'outdwba ') then
-          do 170 i2=9,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagoutdwba=.false.
-              if (ch.eq.'y') flagoutdwba=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  170     continue
+        if (key.eq.'outdwba') then
+          if (ch.eq.'n') flagoutdwba=.false.
+          if (ch.eq.'y') flagoutdwba=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:10).eq.'outgamdis ') then
-          do 180 i2=11,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flaggamdis=.false.
-              if (ch.eq.'y') flaggamdis=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  180     continue
+        if (key.eq.'outgamdis') then
+          if (ch.eq.'n') flaggamdis=.false.
+          if (ch.eq.'y') flaggamdis=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:14).eq.'outexcitation ') then
-          do 190 i2=15,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagexc=.false.
-              if (ch.eq.'y') flagexc=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  190     continue
+        if (key.eq.'outexcitation') then
+          if (ch.eq.'n') flagexc=.false.
+          if (ch.eq.'y') flagexc=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:8).eq.'outecis ') then
-          do 200 i2=9,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagoutecis=.false.
-              if (ch.eq.'y') flagoutecis=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  200     continue
+        if (key.eq.'outecis') then
+          if (ch.eq.'n') flagoutecis=.false.
+          if (ch.eq.'y') flagoutecis=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:10).eq.'outdirect ') then
-          do 210 i2=11,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagdirect=.false.
-              if (ch.eq.'y') flagdirect=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  210     continue
+        if (key.eq.'outdirect') then
+          if (ch.eq.'n') flagdirect=.false.
+          if (ch.eq.'y') flagdirect=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:12).eq.'adddiscrete ') then
-          do 220 i2=13,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagadd=.false.
-              if (ch.eq.'y') flagadd=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  220     continue
+        if (key.eq.'adddiscrete') then
+          if (ch.eq.'n') flagadd=.false.
+          if (ch.eq.'y') flagadd=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:11).eq.'addelastic ') then
-          do 230 i2=12,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagaddel=.false.
-              if (ch.eq.'y') flagaddel=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  230     continue
+        if (key.eq.'addelastic') then
+          if (ch.eq.'n') flagaddel=.false.
+          if (ch.eq.'y') flagaddel=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif
-        if (inline(i)(1:13).eq.'electronconv ') then
-          do 240 i2=14,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagelectron=.false.
-              if (ch.eq.'y') flagelectron=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  240     continue
+        if (key.eq.'electronconv') then
+          if (ch.eq.'n') flagelectron=.false.
+          if (ch.eq.'y') flagelectron=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif                    
-        if (inline(i)(1:10).eq.'spherical ') then
-          do 250 i2=11,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagspher=.false.
-              if (ch.eq.'y') then
-                flagspher=.true.
-                do 260 type=1,6
-                  flagrot(type)=.false.
-  260           continue
-              endif
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  250     continue
+        if (key.eq.'spherical') then
+          if (ch.eq.'n') flagspher=.false.
+          if (ch.eq.'y') then
+            flagspher=.true.
+            do 110 type=1,6
+              flagrot(type)=.false.
+  110       continue
+          endif
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif               
-        if (inline(i)(1:9).eq.'partable ') then
-          do 270 i2=10,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') flagpartable=.false.
-              if (ch.eq.'y') flagpartable=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 400
-              goto 10
-            endif
-  270     continue
+        if (key.eq.'colenhance') then
+          if (ch.eq.'n') flagcol=.false.
+          if (ch.eq.'y') flagcol=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
+        if (key.eq.'partable') then
+          if (ch.eq.'n') flagpartable=.false.
+          if (ch.eq.'y') flagpartable=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
         endif                    
-        if (inline(i)(1:11).eq.'maxchannel ') 
-     +    read(inline(i)(12:80),*,err=400) maxchannel
-        if (inline(i)(1:9).eq.'fismodel ')
-     +    read(inline(i)(10:80),*,err=400) fismodel
-        if (inline(i)(1:12).eq.'fismodelalt ')
-     +    read(inline(i)(13:80),*,err=400) fismodelalt   
-        goto 10
-  400   write(*,'("TALYS-error: Wrong input: ",a80)') inline(i)
-        stop
+        if (key.eq.'maxchannel') then
+          read(value,*,err=200) maxchannel
+          goto 10
+        endif                    
+        if (key.eq.'pairmodel') then
+          read(value,*,err=200) pairmodel
+          goto 10
+        endif                    
+        if (key.eq.'fismodel') then
+          read(value,*,err=200) fismodel
+          goto 10
+        endif                    
+        if (key.eq.'fismodelalt') then
+          read(value,*,err=200) fismodelalt   
+          goto 10
+        endif                    
    10 continue
       return
+  200 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
+      stop
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

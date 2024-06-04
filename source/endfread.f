@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 10, 2004
+c | Date  : August 23, 2006
 c | Task  : Read ECIS results for incident particle on ENDF-6 energy 
 c |         grid
 c +---------------------------------------------------------------------
@@ -10,7 +10,6 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*126    linein
       integer          nen,Z,A
       real             tripathi,e,enuc
       double precision xs
@@ -25,27 +24,24 @@ c xsreac6: reaction cross section for ENDF-6 file
 c xsopt6 : optical model reaction cross section for ENDF-6 file
 c xselas6: total elastic cross section (neutrons only) for ENDF-6 file
 c
-      open (unit=3,status='unknown',file='ecis97.endfcs')
+      open (unit=3,status='unknown',file='ecis03.endfcs')
       do 10 nen=1,nen6
+        read(3,'()')
         if (k0.eq.1) then
-   20     read(3,'(a126)') linein
-          if(linein(1:1).eq.'<') goto 20
-          read(linein,*) xs
+          read(3,*) xs
           xstot6(nen)=real(xs)
         endif
-   30   read(3,'(a126)') linein
-        if(linein(1:1).eq.'<') goto 30
-        read(linein,*) xs
+        read(3,*) xs
         xsreac6(nen)=real(xs)
         xsopt6(nen)=real(xs)
         if (k0.eq.1) then
-   40     read(3,'(a126)') linein
-          if(linein(1:1).eq.'<') goto 40
-          read(linein,*) xs
+          read(3,*) xs
           xselas6(nen)=real(xs)
         endif
    10 continue
       close (unit=3)
+      open (unit=10,status='unknown',file='ecis03.endfin')
+      close (unit=10,status=ecisstatus)
 c
 c ************ Normalization with semi-empirical results ***************
 c  

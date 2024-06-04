@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 10, 2004
+c | Date  : December 6, 2006
 c | Task  : Neutron transition rates for n --> n+2
 c +---------------------------------------------------------------------
 c
@@ -10,8 +10,8 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical          surfwell
-      integer          Zcomp,Ncomp,ppi,hpi,pnu,hnu,h,p,n,A,i,j,Zix,Nix,
-     +                 k,nen
+      integer          Zcomp,Ncomp,ppi,hpi,pnu,hnu,h,p,n,A,nexcbins,i,
+     +                 j,Zix,Nix,k,nen
       real             lambdanuplus,edepth,gsp,gsn,damp,ignatyuk,U,
      +                 preeqpair,fac1,factor1,factor2,factor3,term1,
      +                 term2,term12,L1nup,L2nup,L1nuh,L2nuh,L1pip,L2pip,
@@ -54,6 +54,7 @@ c Ecomp       : total energy of composite system
 c alev        : level density parameter
 c U           : excitation energy minus pairing energy
 c preeqpair   : pre-equilibrium pairing energy       
+c pairmodel   : model for preequilibrium pairing energy
 c fac1,lplus  : help variable
 c twopihbar   : 2*pi/hbar
 c factor1-3   : help variables
@@ -86,7 +87,7 @@ c
         gsp=gsp*damp
         gsn=gsn*damp
       endif
-      U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp)
+      U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp,pairmodel)
       if ((preeqmode.ne.2.and.preeqmode.ne.3).or.n.eq.1) then
         fac1=2.*n*(n+1.)
         factor1=twopihbar*gsn*gsn/fac1
@@ -105,8 +106,9 @@ c B. Numerical solution: Transition rates based on either matrix
 c    element (preeqmode=2) or optical model (preeqmode=3).
 c
 c L1nup,...   : integration limits
-c dExnup,...  : integration bin width
+c nexcbins    : number of integration bins
 c nbins       : number of continuum excitation energy bins
+c dExnup,...  : integration bin width
 c sumnunu1p...: help variables
 c uunup,..... : residual excitation energy
 c lambdanunu1p: collision probability for neutron-neutron particle
@@ -134,15 +136,16 @@ c
         L2pip=U-Apauli2(ppi-1,hpi,pnu,hnu)
         L1pih=Apauli2(ppi,hpi,pnu+1,hnu+1)-Apauli2(ppi,hpi-1,pnu,hnu)
         L2pih=U-Apauli2(ppi,hpi-1,pnu,hnu)
-        dExnup=(L2nup-L1nup)/nbins
-        dExnuh=(L2nuh-L1nuh)/nbins
-        dExpip=(L2pip-L1pip)/nbins
-        dExpih=(L2pih-L1pih)/nbins
+        nexcbins=max(nbins/2,2)
+        dExnup=(L2nup-L1nup)/nexcbins
+        dExnuh=(L2nuh-L1nuh)/nexcbins
+        dExpip=(L2pip-L1pip)/nexcbins
+        dExpih=(L2pih-L1pih)/nexcbins
         sumnunu1p=0.
         sumnunu1h=0.
         sumpinu1p=0.
         sumpinu1h=0.
-        do 10 i=1,nbins
+        do 10 i=1,nexcbins
           uunup=L1nup+(i-0.5)*dExnup
           uunuh=L1nuh+(i-0.5)*dExnuh
           uupip=L1pip+(i-0.5)*dExpip
@@ -177,7 +180,7 @@ c
                 k=1
               endif
               eopt=max(uu-S(Zix,Nix,k),-20.)
-              nen=int(eopt*10.)
+              nen=min(10*numen,int(eopt*10.))
               if(j.le.2) then
                 Weff=Wompfac(1)*wvol(k,nen)
               else

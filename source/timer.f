@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 5, 2004
+c | Date  : September 25, 2006   
 c | Task  : Output of execution time 
 c +---------------------------------------------------------------------
 c
@@ -28,10 +28,10 @@ c
       minute=int((time-hour*3600)/60.)
       second=int(time-hour*3600-minute*60)
       hundred=int(100*(time-int(time)))
-      write(*,'(/"Execution time:",i3," hours ",i2,$)') hour,minute
-      write(*,'(" minutes ",i2,".",i2.2," seconds ")') second,hundred
-      write(*,'(/"The TALYS team congratulates you ",$)')
-      write(*,'("with this successful calculation.")')
+      write(*,'(/" Execution time:",i3," hours ",i2," minutes ",i2,".",
+     +  i2.2," seconds ")') hour,minute,second,hundred
+      write(*,'(/" The TALYS team congratulates you with this ",
+     +  "successful calculation.")')
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

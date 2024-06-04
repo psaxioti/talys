@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 10, 2004
+c | Date  : December 6, 2006
 c | Task  : Transition rates for n --> n+2
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical          surfwell
-      integer          Zcomp,Ncomp,p,h,n,A,Zix,Nix,i,j,k,nen
+      integer          Zcomp,Ncomp,p,h,n,A,nexcbins,Zix,Nix,i,j,k,nen
       real             lambdaplus,edepth,gs,ignatyuk,U,preeqpair,
      +                 factor1,term1,term2,term12,finitewell,L1p,L2p,
      +                 L1h,L2h,dExpp,dExhh,uup,uuh,lambda1p,lambda1h,
@@ -43,6 +43,7 @@ c Ecomp      : total energy of composite system
 c alev       : level density parameter
 c U          : excitation energy minus pairing energy
 c preeqpair  : pre-equilibrium pairing energy       
+c pairmodel  : model for preequilibrium pairing energy
 c
       lambdaplus=0.
       n=p+h
@@ -58,7 +59,7 @@ c
       gs=g(Zcomp,Ncomp)
       if (flaggshell) gs=gs*ignatyuk(Zcomp,Ncomp,Ecomp,0)/
      +  alev(Zcomp,Ncomp)
-      U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp)
+      U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp,pairmodel)
 c
 c A. Analytical solution
 c    First we calculate the transition density for the infinite well as 
@@ -88,9 +89,10 @@ c B. Numerical solution: Transition rates based on either matrix
 c    element (preeqmode=2) or optical model (preeqmode=3).
 c
 c L1p,...      : integration limits
+c nexcbins     : number of integration bins
+c nbins        : number of continuum excitation energy bins
 c dExpp....    : integration bin width
 c sum1p,sum1h  : help variables
-c nbins        : number of continuum excitation energy bins
 c uup,uuh      : residual excitation energy
 c lambda1p     : collision probability for particle
 c lambda1h     : collision probability for hole
@@ -116,11 +118,12 @@ c
         L2p=U-Apauli(p-1,h)
         L1h=Apauli(p+1,h+1)-Apauli(p,h-1)
         L2h=U-Apauli(p,h-1)
-        dExpp=(L2p-L1p)/nbins
-        dExhh=(L2h-L1h)/nbins
+        nexcbins=max(nbins/2,2)
+        dExpp=(L2p-L1p)/nexcbins
+        dExhh=(L2h-L1h)/nexcbins
         sum1p=0.
         sum1h=0.
-        do 10 i=1,nbins
+        do 10 i=1,nexcbins
           uup=L1p+(i-0.5)*dExpp
           uuh=L1h+(i-0.5)*dExhh
           if (flaggshell) gs=g(Zcomp,Ncomp)*
@@ -146,7 +149,7 @@ c
                   Nix=0
                 endif
                 eopt=max(uu-S(Zix,Nix,k),-20.)
-                nen=int(eopt*10.)
+                nen=min(10*numen,int(eopt*10.))
                 Weff(k)=0.5*Wompfac(0)*wvol(k,nen)
    30         continue
               ww=Zratio*Weff(2)+Nratio*Weff(1)

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : June 28, 2004
+c | Date  : July 10, 2006
 c | Task  : Read input
 c +---------------------------------------------------------------------
 c
@@ -27,7 +27,8 @@ c
    10 read(*,'(a80)',end=100) inline(i)
       i=i+1
       if (i.gt.numlines) then
-        write(*,'(" Number of input lines exceeds ",i5)') numlines
+        write(*,'(" TALYS-error: Number of input lines exceeds ",i5)') 
+     +    numlines
         write(*,'(" numlines in talys.cmb should be increased")')
         stop
       endif

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
-c | Date  : December 5, 2004
+c | Date  : September 26, 2006
 c | Task  : Initialization of basic recoil information
 c +---------------------------------------------------------------------
 c
@@ -48,7 +48,7 @@ c
       integer   nbbins,numres
       parameter (nbbins=50,numres=5000)
       integer   iang,ierec,iex,in,iz,iej,type,nl
-      real      Erecmaxmax(0:numz,0:numn)
+      real      Erecmaxmax(0:numZ,0:numN)
       real      Enrjlabmax(0:numpar)
       real      dangrec,angval
       real      Emaxinc,Emaxlab
@@ -89,11 +89,18 @@ c
       real      vejeclab,eejeclab
       real      Erecmaxloc(numres),Erecbin
       real      derec
-      integer   irecmaxmax(0:numz,0:numn)
+      integer   irecmaxmax(0:numZ,0:numN)
       real      wnrj
 c
 c **** Initialization of arrays containing the results in the lab ******
 c
+      do iex=0,numenrec
+        do in=0,numN
+          do iz=0,numZ
+            Erec(iz,in,iex)=0.
+          enddo
+        enddo
+      enddo
       do iang=0,numangrec
         do iej=0,numenrec
           do iex=0,numex
@@ -191,7 +198,7 @@ c
           endif
    60   continue
    70   if (maxentype.gt.0) maxentype=max(maxentype,3)
-        nl=nlast(parZ(type),parN(type),0)
+        nl=Nlast(parZ(type),parN(type),0)
         Elast=eoutdis(type,nl)-elwidth
         Elast=max(Elast,0.)
         call locate(egrid,0,maxentype,Elast,nend)
@@ -244,7 +251,7 @@ c *************** Calculate maximum excitation energies ****************
 c ***************   for all possible residual nuclei    ****************
 c
       projectmass=parmass(k0)*amu
-      ekinprojlab=einc
+      ekinprojlab=Einc
       PtotCM=sqrt(ekinprojlab*(ekinprojlab+2.*projectmass))
       compmass=nucmass(0,0)*amu
       Erecinit=sqrt(PtotCM**2+compmass**2)-compmass
@@ -292,7 +299,7 @@ c
           numNres=numNcomp+parN(type)
           if (numNres.gt.maxN+2) go to 140
           if (numNres.gt.Ninit) go to 140
-          EexCMloc=EexCMmax(ires)-s(numZcomp,numNcomp,type)
+          EexCMloc=EexCMmax(ires)-S(numZcomp,numNcomp,type)
           if (EexCMloc.le.0.) go to 140
           do 150 k=1,numrestot
             io1=numZN(k,1)
@@ -397,7 +404,7 @@ c
 c Determine ejectile energy to check if emission can occur
 c
               EejCM=ECMbin-EexCM(ifinal,iexfinal)
-              EejCM=EejCM-s(numZcomp,numNcomp,type)
+              EejCM=EejCM-S(numZcomp,numNcomp,type)
               if (abs(EejCM).le.1.0e-10) EejCM=0.
               if (EejCM.le.0.) go to 230
               if (type.ne.0) then
@@ -463,10 +470,10 @@ c
           derec=Erecmaxmax(iz,in)/(maxenrec+1)
           ires=irecmaxmax(iz,in)
           if (ires.eq.0) go to 470
-          do 480 iexc=0,maxenrec
+          do 480 iexc=0,numenrec
             Erecmin(iz,in,iexc)=iexc*derec
             Erecmax(iz,in,iexc)=(iexc+1)*derec
-            erec(iz,in,iexc)=iexc*derec+0.5*derec
+            Erec(iz,in,iexc)=iexc*derec+0.5*derec
  480      continue
  470    continue
  460  continue

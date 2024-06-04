@@ -12,7 +12,7 @@ c
       real             ald,Eex,P,U,sigma,spincut,denom
       double precision factor
 c
-c *********************** Fermi gas formula ************************
+c *********************** Total level density **********************
 c
 c Zix         : charge number index for residual nucleus
 c Nix         : neutron number index for residual nucleus

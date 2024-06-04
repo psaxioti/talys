@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 10, 2004
+c | Date  : December 6, 2006
 c | Task  : Proton-neutron transition rates for n --> n
 c +---------------------------------------------------------------------
 c
@@ -10,8 +10,8 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical          surfwell       
-      integer          Zcomp,Ncomp,ppi,hpi,pnu,hnu,h,p,n,A,i,Zix,Nix,k,
-     +                 nen
+      integer          Zcomp,Ncomp,ppi,hpi,pnu,hnu,h,p,n,A,nexcbins,i,
+     +                 Zix,Nix,k,nen
       real             lambdapinu,edepth,gsp,gsn,damp,ignatyuk,U,
      +                 preeqpair,factor1,factor2,factor3,factor4,
      +                 factor23,Bfactor,L1,L2,dEx,uu,lambdapinu1p,eopt,
@@ -50,6 +50,7 @@ c Ecomp        : total energy of composite system
 c alev         : level density parameter
 c U            : excitation energy minus pairing energy
 c preeqpair    : pre-equilibrium pairing energy       
+c pairmodel    : model for preequilibrium pairing energy
 c Bfactor,lpinu: help variables
 c twopihbar    : 2*pi/hbar
 c factor1-4    : help variables
@@ -80,7 +81,7 @@ c
         gsp=gsp*damp
         gsn=gsn*damp
       endif
-      U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp)
+      U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp,pairmodel)
       if ((preeqmode.ne.2.and.preeqmode.ne.3).or.n.eq.1) then
         factor1=twopihbar*ppi*hpi*M2pinu/n*gsn*gsn
         Bfactor=Apauli2(ppi,hpi,pnu,hnu)
@@ -102,8 +103,9 @@ c B. Numerical solution: Transition rates based on either matrix
 c    element (preeqmode=2) or optical model (preeqmode=3).
 c
 c L1,L2       : integration limits
-c dEx         : integration bin width
+c nexcbins    : number of integration bins
 c nbins       : number of continuum excitation energy bins
+c dEx         : integration bin width
 c sumpinu1p   : help variable
 c uu          : residual excitation energy
 c lambdapinu1p: collision probability for proton-neutron particle
@@ -124,9 +126,10 @@ c phtot       : total particle-hole state density
 c                       
         L1=Apauli2(ppi,hpi,pnu,hnu)-Apauli2(ppi-1,hpi-1,pnu,hnu)
         L2=U-Apauli2(ppi-1,hpi-1,pnu,hnu)   
-        dEx=(L2-L1)/nbins
+        nexcbins=max(nbins/2,2)
+        dEx=(L2-L1)/nexcbins
         sumpinu1p=0.
-        do 10 i=1,nbins
+        do 10 i=1,nexcbins
           uu=L1+(i-0.5)*dEx   
           if (flaggshell) then
             damp=ignatyuk(Zcomp,Ncomp,uu,0)/alev(Zcomp,Ncomp)
@@ -141,7 +144,7 @@ c
             Nix=0
             k=2      
             eopt=max(uu-S(Zix,Nix,k),-20.)
-            nen=int(eopt*10.)
+            nen=min(10*numen,int(eopt*10.))
             Weff=Wompfac(0)*wvol(k,nen)
             densh=phdens2(0,0,1,1,gsp,gsn,uu,edepth,surfwell)
             densp=phdens2(1,0,1,1,gsp,gsn,uu,edepth,surfwell)

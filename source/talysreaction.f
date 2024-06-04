@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 14, 2004
+c | Date  : October 16, 2005
 c | Task  : Reaction models
 c +---------------------------------------------------------------------
 c
@@ -150,12 +150,12 @@ c
 c
 c Final output
 c
-c finalout: subroutine for output of final results
-c flagendf: flag for information for ENDF-6 file
-c endf    : subroutine for cross sections and information for 
-c           ENDF-6 file
-c flagmain: flag for main output
-c timer   : subroutine for output of execution time
+c finalout   : subroutine for output of final results
+c flagendf   : flag for information for ENDF-6 file
+c endf       : subroutine for cross sections and information for 
+c              ENDF-6 file
+c flagmain   : flag for main output
+c timer      : subroutine for output of execution time
 c
       call finalout
       if (flagendf) call endf

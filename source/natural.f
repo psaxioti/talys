@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 7, 2004
+c | Date  : December 6, 2006
 c | Task  : Calculation for natural elements
 c +---------------------------------------------------------------------
 c
@@ -11,13 +11,12 @@ c
       include "talys.cmb"
       logical      lexist,elexist,specexist,resexist,xsexist,
      +             fissionexist,fyexist
-      character*3  chiso
-      character*12 resfile,xsfile
       character*13 totfile,prodfile
       character*15 fisfile
+      character*16 resfile,xsfile
       character*20 discfile,specfile,fyfile
-      integer      i,system,k,k2,type,iang,lenfile,zbeg,zend,abeg,aend,
-     +             iz,ia,npart,ih,it,id,ip,in,nex,nen
+      integer      i,k,k2,type,iang,lenfile,zbeg,zend,abeg,aend,iz,ia,
+     +             npart,ih,it,id,ip,in,nex,nen
       real         en(numen2),xst(9),xstotnat(9,0:numen2),
      +             xsprodnat(0:numen2),xsyieldnat(0:numen2),
      +             xsnat(0:numen2),xs1nat(0:numen2),xs2nat(0:numen2),xs,
@@ -26,10 +25,7 @@ c
 c **************** Create runs and directories per isotope *************
 c
 c isonum       : number of isotopes
-c chiso        : isotope number as character string
-c isotope      : isotope number of residual nucleus
 c iso          : counter for isotope
-c system       : function for system call to UNIX
 c talysinput   : subroutine for user input and defaults
 c talysinitial : subroutine for initialization of nuclear structure
 c talysreaction: subroutine with reaction models      
@@ -37,23 +33,14 @@ c
 c For mono-isotopic nuclides we are done.
 c
       if (isonum.eq.1) return
-   10 write(chiso(1:3),'(i3.3)') isotope(iso)
-      i=system('mkdir '//chiso)  
-      i=system('mv -f ec* tr* cs* inc* tefal.inf decay.? '//chiso)  
-      i=system('mv -f *gam* xs*.tot sp* rp*.tot *.L?? '//chiso)  
-      i=system('mv -f ?prod.tot *.con ?spec*.tot total.tot '//chiso)  
-      i=system('mv -f endf.tot ??.tot '//chiso)  
-      i=system('mv -f fission.tot *.fis fp*.tot '//chiso)  
-      iso=iso+1
 c
 c Do a full TALYS calculation for each isotope
 c
-      if (iso.le.isonum) then
+      do 10 iso=2,isonum
         call talysinput
         call talysinitial
         call talysreaction
-        goto 10
-      endif
+   10 continue
 c
 c ******** Merge output files in results for natural elements **********
 c
@@ -65,6 +52,7 @@ c xsyieldnat: yields for natural element
 c xstotnat  : total cross sections for natural element
 c filetotal : flag for total cross sections on separate file
 c totfile   : file with total cross sections
+c natstring : string extension for file names
 c en        : incident energy
 c xst       : help variable
 c abun      : isotopic abundance
@@ -79,14 +67,14 @@ c
   110 continue
       if (filetotal) then
         do 120 i=1,isonum
-          write(chiso(1:3),'(i3.3)') isotope(i)
-          totfile=chiso//'/total.tot'
+          totfile='total.tot'//natstring(i)
           inquire (file=totfile,exist=lexist)
           if (lexist) then
             open (2,status='old',file=totfile)
             read(2,'(////)')
             do 130 k=1,numinc
-              read(2,'(f10.3,2x,1p,9e11.4)') en(k),(xst(k2),k2=1,9)
+              read(2,'(f10.3,2x,1p,9e11.4)',err=130) en(k),
+     +          (xst(k2),k2=1,9)
               do 140 k2=1,9
                 xstotnat(k2,k)=xstotnat(k2,k)+abun(i)*xst(k2)
   140         continue
@@ -100,9 +88,9 @@ c
         write(3,'("# ")')
         write(3,'("# ")')
         write(3,'("# # energies =",i3)') numinc
-        write(3,'("#    E      Non-elastic  Elastic     Total",$)')
-        write(3,'("     Comp. el.  Shape el.  Reaction",$)')
-        write(3,'(" Comp. nonel   Direct   Pre-equil.")')              
+        write(3,'("#    E      Non-elastic  Elastic     Total",
+     +    "     Comp. el.  Shape el.  Reaction",
+     +    " Comp. nonel   Direct   Pre-equil.")')              
         do 150 k=1,numinc
           write(3,'(f10.3,2x,1p,9e11.4)') en(k),(xstotnat(k2,k),k2=1,9)
   150   continue
@@ -119,23 +107,21 @@ c
             xsyieldnat(k)=0.
   170     continue
           do 180 i=1,isonum
-            write(chiso(1:3),'(i3.3)') isotope(i)
-            prodfile=chiso//'/ prod.tot'
-            write(prodfile(5:5),'(a1)') parsym(type)
+            prodfile=' prod.tot'//natstring(i)
+            write(prodfile(1:1),'(a1)') parsym(type)
             inquire (file=prodfile,exist=lexist)
             if (lexist) then
               open (2,status='old',file=prodfile)
               read(2,'(////)')
               do 190 k=1,numinc
-                read(2,'(f10.3,2e12.5)') en(k),xs,y
+                read(2,'(f10.3,2e12.5)',err=190) en(k),xs,y
                 xsprodnat(k)=xsprodnat(k)+abun(i)*xs
                 xsyieldnat(k)=xsyieldnat(k)+abun(i)*y
   190         continue
               close (unit=2)
             endif
   180     continue
-          prodfile(11:13)='tot'
-          open (3,status='unknown',file=prodfile(5:13))
+          open (3,status='unknown',file=prodfile(1:9))
           write(3,'("# ",a1," + nat-",a2," Total ",a8," production")')
      +      parsym(k0),nuc(Ztarget),parname(type)
           write(3,'("# ")')
@@ -167,17 +153,16 @@ c
   220   continue
         elexist=.false.
         do 230 i=1,isonum
-          write(chiso(1:3),'(i3.3)') isotope(i)
-          discfile=chiso//'/nn       ang.L00'
-          write(discfile(7:13),'(f7.3)') eninc(k)
-          write(discfile(7:9),'(i3.3)') int(eninc(k))
+          discfile='nn       ang.L00'//natstring(i)
+          write(discfile(3:9),'(f7.3)') eninc(k)
+          write(discfile(3:5),'(i3.3)') int(eninc(k))
           inquire (file=discfile,exist=lexist)
           if (lexist) then
             elexist=.true.
             open (2,status='old',file=discfile)
             read(2,'(////)')
             do 240 iang=0,nangle
-              read(2,'(f5.1,3e16.5)') angle(iang),xs,xs1,xs2
+              read(2,'(f5.1,3e16.5)',err=240) angle(iang),xs,xs1,xs2
               xsnat(iang)=xsnat(iang)+abun(i)*xs
               xs1nat(iang)=xs1nat(iang)+abun(i)*xs1
               xs2nat(iang)=xs2nat(iang)+abun(i)*xs2
@@ -186,14 +171,14 @@ c
           endif
   230   continue
         if (elexist) then
-          open (3,status='unknown',file=discfile(5:20))
-          write(3,'("# ",a1," + nat-",a2,$)') parsym(k0),nuc(Ztarget)
-          write(3,'(" Elastic scattering angular distribution")')
+          open (3,status='unknown',file=discfile(1:16))
+          write(3,'("# ",a1," + nat-",a2," Elastic scattering", 
+     +      " angular distribution")') parsym(k0),nuc(Ztarget)
           write(3,'("# E-incident = ",f7.3)') eninc(k)
           write(3,'("# ")')
           write(3,'("# # angles   =",i3)') nangle+1
-          write(3,'("#   E         xs            Direct",$)')
-          write(3,'("         Compound")')     
+          write(3,'("#   E         xs            Direct",
+     +      "         Compound")')     
           do 250 iang=0,nangle
             write(3,'(f5.1,1p,3e16.5)') angle(iang),xsnat(iang),
      +        xs1nat(iang),xs2nat(iang)
@@ -223,10 +208,9 @@ c
   330     continue
           specexist=.false.
           do 340 i=1,isonum
-            write(chiso(1:3),'(i3.3)') isotope(i)
-            specfile=chiso//'/'//parsym(type)//'spec000.000.tot'
-            write(specfile(10:16),'(f7.3)') eninc(k)
-            write(specfile(10:12),'(i3.3)') int(eninc(k))
+            specfile=parsym(type)//'spec000.000.tot'//natstring(i)
+            write(specfile(6:12),'(f7.3)') eninc(k)
+            write(specfile(6:8),'(i3.3)') int(eninc(k))
             inquire (file=specfile,exist=lexist)
             if (lexist) then
               specexist=.true.
@@ -234,8 +218,8 @@ c
               read(2,'(////)')
               do 350 k2=1,numen2
                 lenfile=k2-1
-                read(2,'(f7.3,5e12.5)',end=360) en(k2),xs,xs1,xs2,xs3,
-     +            xs4
+                read(2,'(f7.3,5e12.5)',err=350,end=360) en(k2),xs,xs1,
+     +            xs2,xs3,xs4
                 xsnat(k2)=xsnat(k2)+abun(i)*xs
                 xs1nat(k2)=xs1nat(k2)+abun(i)*xs1
                 xs2nat(k2)=xs2nat(k2)+abun(i)*xs2
@@ -246,16 +230,15 @@ c
             endif
   340     continue
           if (specexist) then
-            specfile(18:20)='tot'
-            open (3,status='unknown',file=specfile(5:20))
+            open (3,status='unknown',file=specfile(1:16))
             write(3,'("# ",a1," + nat-",a2,": ",a8," spectrum")')
      +        parsym(k0),nuc(Ztarget),parname(type)
             write(3,'("# E-incident = ",f7.3)') eninc(k)
             write(3,'("# ")')
             write(3,'("# # energies =",i3)') 
      +        eendout(type)-ebegin(type)+1
-            write(3,'("# E-out    Total       Direct    Pre-equil.",$)')
-            write(3,'("  Mult. preeq  Compound")')             
+            write(3,'("# E-out    Total       Direct    Pre-equil.",
+     +        "  Mult. preeq  Compound")')             
             do 370 k2=1,lenfile
               write(3,'(f7.3,1p,5e12.5)') en(k2),xsnat(k2),xs1nat(k2),
      +          xs2nat(k2),xs3nat(k2),xs4nat(k2)
@@ -269,6 +252,7 @@ c 5. Residual production cross sections
 c
 c zbeg,..: help variables
 c Ztarget: charge number of target nucleus
+c isotope: isotope number of residual nucleus
 c numZ   : maximal number of protons away from the initial compound 
 c          nucleus
 c numN   : maximal number of neutrons away from the initial compound 
@@ -291,26 +275,24 @@ c
   420     continue
           resexist=.false.
           do 430 i=1,isonum
-            write(chiso(1:3),'(i3.3)') isotope(i)
-            resfile='rp000000.tot'
+            resfile='rp000000.tot'//natstring(i)
             write(resfile(3:8),'(2i3.3)') iz,ia
-            inquire (file=chiso//'/'//resfile,exist=lexist)
+            inquire (file=resfile,exist=lexist)
             if (lexist) then
               resexist=.true.
-              open (2,status='old',file=chiso//'/'//resfile)
+              open (2,status='old',file=resfile)
               read(2,'(////)')
               do 440 k=1,numinc
-                read(2,'(f10.3,e12.5)') en(k),xs
+                read(2,'(f10.3,e12.5)',err=440) en(k),xs
                 xsnat(k)=xsnat(k)+abun(i)*xs
   440         continue
               close (unit=2)
             endif
   430     continue
           if (resexist) then
-            open (3,status='unknown',file=resfile)
-            write(3,'("# ",a1," + nat-",a2,": Production of ",$)')
-     +        parsym(k0),nuc(Ztarget)
-            write(3,'(i3,a2," - Total")') ia,nuc(iz)
+            open (3,status='unknown',file=resfile(1:12))
+            write(3,'("# ",a1," + nat-",a2,": Production of ",i3,a2,
+     +        " - Total")') parsym(k0),nuc(Ztarget),ia,nuc(iz)
             write(3,'("# ")')
             write(3,'("# ")')
             write(3,'("# # energies =",i3)') numinc
@@ -324,7 +306,7 @@ c
 c Per ground state and isomer
 c
           write(resfile(10:12),'("L00")')
-          inquire (file=chiso//'/'//resfile,exist=lexist)
+          inquire (file=resfile,exist=lexist)
           if (.not.lexist) goto 410
           do 460 nex=0,numlev
             do 470 k=1,numinc
@@ -332,25 +314,25 @@ c
   470       continue
             resexist=.false.
             do 480 i=1,isonum
-              write(chiso(1:3),'(i3.3)') isotope(i)
+              resfile='rp000000.L00'//natstring(i)
+              write(resfile(3:8),'(2i3.3)') iz,ia
               write(resfile(11:12),'(i2.2)') nex
-              inquire (file=chiso//'/'//resfile,exist=lexist)
+              inquire (file=resfile,exist=lexist)
               if (lexist) then
                 resexist=.true.
-                open (2,status='old',file=chiso//'/'//resfile)
+                open (2,status='old',file=resfile)
                 read(2,'(////)')
                 do 490 k=1,numinc
-                  read(2,'(f10.3,e12.5)') en(k),xs
+                  read(2,'(f10.3,e12.5)',err=490) en(k),xs
                   xsnat(k)=xsnat(k)+abun(i)*xs
   490           continue
                 close (unit=2)
               endif
   480       continue
             if (resexist) then
-              open (3,status='unknown',file=resfile)
-              write(3,'("# ",a1," + nat-",a2,": Production of ",$)')
-     +          parsym(k0),nuc(Ztarget)
-              write(3,'(i3,a2," - Level",i3)') ia,nuc(iz),nex
+              open (3,status='unknown',file=resfile(1:12))
+              write(3,'("# ",a1," + nat-",a2,": Production of ",i3,a2,
+     +          " - Level",i3)') parsym(k0),nuc(Ztarget),ia,nuc(iz),nex
               write(3,'("# ")')
               write(3,'("# ")')
               write(3,'("# # energies =",i3)') numinc
@@ -384,24 +366,22 @@ c
   520   continue
         xsexist=.false.
         do 530 i=1,isonum
-          write(chiso(1:3),'(i3.3)') isotope(i)
-          xsfile='xs000000.tot'
+          xsfile='xs000000.tot'//natstring(i)
           write(xsfile(3:8),'(6i1)') in,ip,id,it,ih,ia
-          inquire (file=chiso//'/'//xsfile,exist=lexist)
+          inquire (file=xsfile,exist=lexist)
           if (lexist) then
             xsexist=.true.
-            open (2,status='old',file=chiso//'/'//xsfile)
+            open (2,status='old',file=xsfile)
             read(2,'(////)')
             do 540 k=1,numinc
-              read(2,'(f10.3,e12.5)') en(k),xs
+              read(2,'(f10.3,e12.5)',err=540) en(k),xs
               xsnat(k)=xsnat(k)+abun(i)*xs
   540       continue
             close (unit=2)
           endif
   530   continue
         if (xsexist) then
-          xsfile(10:12)='tot'
-          open (3,status='unknown',file=xsfile)
+          open (3,status='unknown',file=xsfile(1:12))
           write(3,'("# ",a1," + nat-",a2)') parsym(k0),nuc(Ztarget)
           write(3,'("# ")') 
           write(3,'("# ")') 
@@ -424,15 +404,14 @@ c
   610 continue
       fissionexist=.false.
       do 620 i=1,isonum
-        write(chiso(1:3),'(i3.3)') isotope(i)
-        fisfile=chiso//'/fission.tot'
+        fisfile='fission.tot'//natstring(i)
         inquire (file=fisfile,exist=lexist)
         if (lexist) then
           fissionexist=.true.
           open (2,status='old',file=fisfile)
           read(2,'(////)')
           do 630 k=1,numinc
-            read(2,'(f10.3,e12.5)') en(k),xs
+            read(2,'(f10.3,e12.5)',err=630) en(k),xs
             xsnat(k)=xsnat(k)+abun(i)*xs
   630     continue
           close (unit=2)
@@ -440,9 +419,8 @@ c
   620 continue
       if (fissionexist) then
         open (3,status='unknown',file='fission.tot')
-        write(3,'("# ",a1," + nat-",a2," Total fission cross ",$)')
-     +    parsym(k0),nuc(Ztarget)
-        write(3,'("section")')
+        write(3,'("# ",a1," + nat-",a2," Total fission cross ",
+     +    "section")') parsym(k0),nuc(Ztarget)
         write(3,'("# ")')
         write(3,'("# ")')
         write(3,'("# # energies =",i3)') numinc
@@ -469,16 +447,15 @@ c
   720     continue
           resexist=.false.
           do 730 i=1,isonum
-            write(chiso(1:3),'(i3.3)') isotope(i)
-            resfile='fp000000.tot'
+            resfile='fp000000.tot'//natstring(i)
             write(resfile(3:8),'(2i3.3)') iz,ia
-            inquire (file=chiso//'/'//resfile,exist=lexist)
+            inquire (file=resfile,exist=lexist)
             if (lexist) then
               resexist=.true.
-              open (2,status='old',file=chiso//'/'//resfile)
+              open (2,status='old',file=resfile)
               read(2,'(////)')
               do 740 k=1,numinc
-                read(2,'(e10.3,e12.4,3x,e12.4)') en(k),xs1,xs2
+                read(2,'(e10.3,e12.4,3x,e12.4)',err=740) en(k),xs1,xs2
                 xs1nat(k)=xs1nat(k)+abun(i)*xs1
                 xs2nat(k)=xs2nat(k)+abun(i)*xs2
   740         continue
@@ -486,10 +463,9 @@ c
             endif
   730     continue
           if (resexist) then
-            open (3,status='unknown',file=resfile)
-            write(3,'("# ",a1," + nat-",a2,": ff yield of ",$)')
-     +        parsym(k0),nuc(Ztarget)
-            write(3,'(i3,a2)') ia,nuc(iz)
+            open (3,status='unknown',file=resfile(1:12))
+            write(3,'("# ",a1," + nat-",a2,": ff yield of ",i3,a2)')
+     +        ia,nuc(iz),parsym(k0),nuc(Ztarget)
             write(3,'("# ")')
             write(3,'("# ")')
             write(3,'("# # energies =",i3)') numinc
@@ -521,17 +497,16 @@ c
   820   continue
         fyexist=.false.
         do 830 i=1,isonum
-          write(chiso(1:3),'(i3.3)') isotope(i)
-          fyfile='yield000.000.fis'
+          fyfile='yield000.000.fis'//natstring(i)
           write(fyfile(6:12),'(f7.3)') eninc(k)
           write(fyfile(6:8),'(i3.3)') int(eninc(k))
-          inquire (file=chiso//'/'//fyfile,exist=lexist)
+          inquire (file=fyfile,exist=lexist)
           if (lexist) then
             fyexist=.true.
-            open (2,status='old',file=chiso//'/'//fyfile)
+            open (2,status='old',file=fyfile)
             read(2,'(////)')
             do 840 ia=1,isotope(i)
-              read(2,'(3x,2e15.4)') xs1,xs2
+              read(2,'(3x,2e15.4)',err=840) xs1,xs2
               xs1nat(ia)=xs1nat(ia)+abun(i)*xs1
               xs2nat(ia)=xs2nat(ia)+abun(i)*xs2
   840       continue
@@ -539,7 +514,7 @@ c
           endif
   830   continue
         if (fyexist) then
-          open (3,status='unknown',file=fyfile)
+          open (3,status='unknown',file=fyfile(1:16))
           write(3,'("# ",a1," +  nat-",a2,": mass yields")')
      +      parsym(k0),nuc(Ztarget)
           write(3,'("# E-incident = ",f7.3)') eninc(k)

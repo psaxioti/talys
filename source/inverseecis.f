@@ -2,16 +2,17 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : November 13, 2004
+c | Date  : December 15, 2006   
 c | Task  : ECIS calculation for outgoing particles and energy grid
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical rotational,vibrational
-      integer Zcomp,Ncomp,type,Zix,Nix,Z,A,i1,i,ii,nen
-      real    e
+      logical      rotational,vibrational
+      character*13 outfile
+      integer      Zcomp,Ncomp,type,Zix,Nix,Z,A,i1,i,ii,nen
+      real         e
 c
 c ********************** Set ECIS input parameters *********************
 c
@@ -34,12 +35,9 @@ c nuc         : symbol of nucleus
 c parname     : name of particle
 c
 c Specific ECIS flags:
-c ecis2(13)=T : output transmission coefficients 
+c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
+c ecis2(13)=T : output of transmission coefficients 
 c ecis2(14)=F : no output of elastic angular distribution 
-c Extra ECIS-flags added by A. Koning:
-c ecis2(10)=T : output of polarization 
-c ecis2(20)=T : output of reaction cross section 
-c ecis2(40)=T : output of total and total elastic cross section 
 c
       legendre=.false.
       rmatch=0.
@@ -49,7 +47,7 @@ c
 c Loop over all particle types and energies on standard energy grid.
 c
       if (flagoutomp) 
-     +  write(*,'(/"######### OPTICAL MODEL PARAMETERS ##########")')
+     +  write(*,'(/" ######### OPTICAL MODEL PARAMETERS ##########")')
       if (flageciscalc) 
      +  open (unit=9,status='unknown',file='ecisinv.inp')
       do 10 type=1,6
@@ -67,11 +65,11 @@ c
 c Output of optical model parameters, if requested.
 c
         if (flagoutomp) then
-          write(*,'(/10x,a8," on ",i3,a2/)') parname(type),A,nuc(Z)
-          write(*,'(" Energy",4x,"V",5x,"rv",4x,"av",4x,"W",5x,"rw",$)')
-          write(*,'(4x,"aw",4x,"Vd",3x,"rvd",3x,"avd",4x,"Wd",$)')
-          write(*,'(3x,"rwd",3x,"awd",3x,"Vso",3x,"rvso",2x,"avso",$)')
-          write(*,'(2x,"Wso",3x,"rwso",2x,"awso",2x,"rc",/)')
+          write(*,'(/11x,a8," on ",i3,a2/)') parname(type),A,nuc(Z)
+          write(*,'("  Energy",4x,"V",5x,"rv",4x,"av",4x,"W",5x,
+     +      "rw",4x,"aw",4x,"Vd",3x,"rvd",3x,"avd",4x,"Wd",
+     +      3x,"rwd",3x,"awd",3x,"Vso",3x,"rvso",2x,"avso",
+     +      2x,"Wso",3x,"rwso",2x,"awso",2x,"rc",/)')
         endif
 c
 c Standard ECIS inputs for phenomenological optical potentials
@@ -83,7 +81,7 @@ c Some input flags for ECIS are energy dependent for the rotational
 c model so ecis1 will be defined inside the energy loop.
 c
         ecis1='FFFFFTFFFFFFFFFFFFFFFFFFTFFTFFFFFFFFFFFFFFFFFFFFFF'
-        ecis2='FFFFFFFFFFFFTFFFTTTTFTTFTFFFFFFFFFFFFFFTFFFFFFFFFF'
+        ecis2='FFFFFFFFTFFFTFFFTTTFFTTFTFFFFFFFFFFFFFFFFFFFFFFFFF'
         Nband=0
 c
 c 1. Spherical nucleus
@@ -253,7 +251,7 @@ c v,rv,..: optical model parameters
 c
           call optical(Zix,Nix,type,e)
           if (flagoutomp) then
-            write(*,'(f7.3,1x,6(f6.2,f6.3,f6.3),f6.3)')
+            write(*,'(1x,f7.3,1x,6(f6.2,f6.3,f6.3),f6.3)')
      +        e,v,rv,av,w,rw,aw,vd,rvd,avd,wd,rwd,awd,vso,rvso,
      +        avso,wso,rwso,awso,rc       
           endif
@@ -269,9 +267,11 @@ c to Pascal Romain.
 c
           if (colltype(Zix,Nix).eq.'R'.and.flagrot(type)) then
             if (e.le.3.) then
+              ecis1(13:13)='F'
               ecis1(21:21)='T'
               ecis1(42:42)='T'
             else
+              ecis1(13:13)='T'
               ecis1(21:21)='F'
               ecis1(42:42)='F'
             endif                         
@@ -289,16 +289,20 @@ c
 c ************ ECIS calculation for outgoing energies ******************
 c
 c flagoutecis: flag for output of ECIS results
-c ecis97t    : subroutine ecis97, adapted for TALYS
-c transfile  : file with transmission coefficients
+c outfile    : output file
+c nulldev    : null device
 c csfile     : file with inverse reaction cross sections 
+c ecis03t    : subroutine ecis03, adapted for TALYS
+c transfile  : file with transmission coefficients
 c ecisstatus : status of ECIS file  
 c
       if (flagoutecis) then
-        call ecis97t('ecisinv.inp  ','ecisinv.out  ',csfile,transfile)
+        outfile='ecisinv.out  '
       else
-        call ecis97t('ecisinv.inp  ','/dev/null    ',csfile,transfile)
+        outfile=nulldev
       endif
+      call ecis03t('ecisinv.inp  ',outfile,csfile,
+     +    'ecis03.invin ',transfile,'null         ','null         ')  
       open (unit=9,status='unknown',file='ecisinv.inp')
       close (unit=9,status=ecisstatus)
       return

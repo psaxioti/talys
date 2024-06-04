@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 5, 2004
+c | Date  : December 15, 2006    
 c | Task  : Main output
 c +---------------------------------------------------------------------
 c
@@ -13,12 +13,12 @@ c
 c
 c *************************** Code and version *************************
 c
-      write(*,'(/"     TALYS-0.64 (Version: December 5, 2004)"/)')
-      write(*,'(" Copyright (C) 2004  A.J. Koning, S. Hilaire ",$)')
-      write(*,'("and M.C. Duijvestijn")')
+      write(*,'(/"    TALYS-0.72      (Version: December 15, 2006)"/)')
+      write(*,'(" Copyright (C) 2004  A.J. Koning, S. Hilaire ",
+     +  "and M.C. Duijvestijn")')
       write(*,'(24x," NRG          CEA              NRG"/)')
-      write(*,'(" Dimensions - Cross sections: mb, Energies: MeV, ",$)')
-      write(*,'("Angles: degrees")')
+      write(*,'(" Dimensions - Cross sections: mb, Energies: MeV, ",
+     +  "Angles: degrees")')
 c
 c ***************** Write input file and default parameters ************
 c
@@ -54,39 +54,39 @@ c
       Ncomp=0
       Zix=Zindex(Zcomp,Ncomp,k0)
       Nix=Nindex(Zcomp,Ncomp,k0)
-      write(*,'(/"########## BASIC REACTION PARAMETERS ##########"/)')
-      write(*,'("Projectile           : ",a8,$)') parname(k0)
-      write(*,'(4x,"Mass in a.m.u.      : ",f10.6)') parmass(k0)
-      write(*,'("Target               : ",i3,a2,$)') Atarget,Starget
-      write(*,'(7x,"Mass in a.m.u.      : ",f10.6)') tarmass
+      write(*,'(/" ########## BASIC REACTION PARAMETERS ##########"/)')
+      write(*,'(" Projectile           : ",a8,4x, 
+     +  "Mass in a.m.u.      : ",f10.6)') parname(k0),parmass(k0)
+      write(*,'(" Target               : ",i3,a2,7x, 
+     +  "Mass in a.m.u.      : ",f10.6)') Atarget,Starget,tarmass
       if (Ltarget.ne.0) then
-        write(*,'(/"Excited target level : Number  Energy  ",$)')
-        write(*,'("Spin Parity Lifetime(sec)")')
-        write(*,'(23x,i3,4x,f7.4,2x,f4.1,3x,a1,4x,1p,e10.3)') 
+        write(*,'(/" Excited target level : Number  Energy  ",
+     +    "Spin Parity Lifetime(sec)")')
+        write(*,'(24x,i3,4x,f7.4,2x,f4.1,3x,a1,4x,1p,e10.3)') 
      +    Ltarget,edis(Zix,Nix,Ltarget),jdis(Zix,Nix,Ltarget),
      +    cparity(parlev(Zix,Nix,Ltarget)),tau(Zix,Nix,Ltarget)
       endif
-      write(*,'(/"Included channels:")')
+      write(*,'(/" Included channels:")')
       do 10 type=-1,6
         if (parskip(type)) goto 10
-        write(*,'(20x,a8)') parname(type)
+        write(*,'(21x,a8)') parname(type)
    10 continue
       if (numinc.eq.1) then
-        write(*,'(/,"1 incident energy (LAB):"/)') 
+        write(*,'(/," 1 incident energy (LAB):"/)') 
       else
-        write(*,'(/,i3," incident energies (LAB):"/)') numinc
+        write(*,'(/,1x,i3," incident energies (LAB):"/)') numinc
       endif
       do 20 i=1,numinc
         if (eninc(i).lt.0.001) then
-          write(*,'(1p,e10.3)') eninc(i)
+          write(*,'(1x,1p,e10.3)') eninc(i)
         else
-          write(*,'(f10.3)') eninc(i)
+          write(*,'(1x,f10.3)') eninc(i)
         endif
    20 continue
-      write(*,'(/"Q-values for binary reactions:"/)') 
+      write(*,'(/" Q-values for binary reactions:"/)') 
       do 30 type=0,6
         if (parskip(type)) goto 30
-        write(*,'("Q(",a1,",",a1,"):",f9.5)') parsym(k0),parsym(type),
+        write(*,'(" Q(",a1,",",a1,"):",f9.5)') parsym(k0),parsym(type),
      +    Q(type)
    30 continue
 c
@@ -105,10 +105,12 @@ c
       if (flagfisout) call fissionparout(Zix,Nix)
       strucwrite(Zix,Nix)=.true.
       if (parskip(0)) return
-      if (flaglevels) call levelsout(Zcomp,Ncomp)
-      if (flagdensity) call densityout(Zcomp,Ncomp)
-      if (flagfisout) call fissionparout(Zcomp,Ncomp)
-      strucwrite(Zcomp,Ncomp)=.true.
+      if (k0.ne.0) then
+        if (flaglevels) call levelsout(Zcomp,Ncomp)
+        if (flagdensity) call densityout(Zcomp,Ncomp)
+        if (flagfisout) call fissionparout(Zcomp,Ncomp)
+        strucwrite(Zcomp,Ncomp)=.true.
+      endif
       return 
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

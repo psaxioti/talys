@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn 
-c | Date  : July 7, 2004
+c | Date  : October 11, 2005
 c | Task  : Determination of effective absorption optical potential
 c +---------------------------------------------------------------------
 c
@@ -12,8 +12,8 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb" 
-      real    dr,emax,e,sum1,sum2,radv,radd,rr,fwsvol,fwssurf,term1,
-     +        term2
+      real    dr,emax,e,sum1,sum2,radv,radd,rr,expo,fwsvol,fwssurf,
+     +        term1,term2
       integer Zix,Nix,nrbins,nenend,k,nen,i
 c
 c ********** Calculation of volume absorptive optical potential ********
@@ -26,7 +26,7 @@ c dr         : integration bin width
 c emax       : maximum excitation energy
 c enincmax   : maximum incident energy
 c S          : separation energy
-c nenend     : help variable
+c nenend,expo: help variables
 c e          : energy 
 c optical    : subroutine for determination of optical potential 
 c radv       : imaginary volume nuclear radius 
@@ -49,9 +49,9 @@ c
       nrbins=50
       dr=20./nrbins
       emax=enincmax+S(0,0,k0)
-      nenend=int(emax+1.)
+      nenend=10*min(numen,int(emax+1.))
       do 10 k=1,2
-        do 20 nen=-200,10*nenend
+        do 20 nen=-200,nenend
           e=0.1*real(nen)
           call optical(Zix,Nix,k,e)
           radv=rw*Atarget**onethird
@@ -60,8 +60,18 @@ c
           sum2=0.
           do 30 i=1,nrbins
             rr=(i-0.5)*dr
-            fwsvol=1./(1.+exp((rr-radv)/aw))
-            fwssurf=-exp((rr-radd)/awd)/(awd*(1.+exp((rr-radd)/awd))**2)
+            expo=(rr-radv)/aw
+            if (expo.le.80.) then
+              fwsvol=1./(1.+exp(expo))
+            else
+              fwsvol=0.
+            endif
+            expo=(rr-radd)/awd
+            if (expo.le.80.) then
+              fwssurf=-exp(expo)/(awd*(1.+exp(expo)**2))
+            else
+              fwssurf=0.
+            endif
             term2=fwsvol*(rr**2)*dr
             term1=term2*(w*fwsvol-4.*awd*wd*fwssurf)
             sum1=sum1+term1

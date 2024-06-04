@@ -1,86 +1,87 @@
-      function density(Zix,Nix,Eex,Rspin,ibar,ldmod)
+      function density(Zix,Nix,Eex,Rspin,parity,ibar,ldmod)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 15, 2004
-c | Task  : Total level density 
+c | Date  : December 14, 2006
+c | Task  : Level density 
 c +---------------------------------------------------------------------
 c
 c ******************* Declarations and common blocks *******************
 c
-c Although the parity is not an argument of this function, it is 
-c included in the level density value, i.e. the final level density is
-c per parity. An equidistant parity distribution is assumed.
+c Note that the parity is not used explicitly for analytical level 
+c densities. For those, an equidistant parity distribution is assumed.
 c
       include "talys.cmb"
-      integer          Zix,Nix,ibar,ldmod,jj,nex2
-      real             Eex,Rspin,ald,ignatyuk,Krot,Kvib,spindis
-      double precision density,gilcam,eb,ee,ldb,lde,ldtab,expo,ctable
+      integer          Zix,Nix,parity,ibar,ldmod,jj,nex2
+      real             Eex,Rspin,ald,ignatyuk,spindis,Eshift
+      double precision density,densitytot,eb,ee,ldb,lde,ldtab,ctable
 c
-c *********************** Total level density **************************
+c ************************** Level density *****************************
 c
-c density : level density
-c Zix     : charge number index for residual nucleus
-c Nix     : neutron number index for residual nucleus
-c Eex     : excitation energy
-c Rspin   : spin
-c ibar    : fission barrier number, zero for states on ground state
-c ldmod   : level density model
-c ldexist : flag for existence of level density table
-c ald     : level density parameter 
-c ignatyuk: function for energy dependent level density parameter a 
+c density   : level density
+c Zix       : charge number index for residual nucleus
+c Nix       : neutron number index for residual nucleus
+c Eex       : excitation energy
+c Rspin     : spin
+c parity    : parity
+c ibar      : fission barrier number, zero for states on ground state
+c ldmod     : level density model
+c ldexist   : flag for existence of level density table
+c ald       : level density parameter 
+c ignatyuk  : function for energy dependent level density parameter a 
+c densitytot: total level density
+c pardis    : parity distribution 
+c spindis   : Wigner spin distribution
 c
-c 1. Gilbert and Cameron: effective
-c 2. Gilbert and Cameron: explicit collective enhancement
+c 1. Gilbert and Cameron
+c 2. Back-shifted Fermi gas
+c 3. Superfluid model
 c
       density=0.
       if (Eex.lt.0.) goto 100
-      if (ldmod.le.2.or..not.ldexist(Zix,Nix,ibar)) then
+      if (ldmod.le.3.or..not.ldexist(Zix,Nix,ibar)) then
         ald=ignatyuk(Zix,Nix,Eex,ibar)
+        density=densitytot(Zix,Nix,Eex,ibar,ldmod)*pardis*
+     +    spindis(Zix,Nix,Eex,ald,Rspin,ibar)
+      else
 c
-c Enhancement only in the Fermi gas region
-c Krot (and Kvib) will be determined.
+c 4. Tabulated level densities     
 c
-c colenhance: subroutine for collective enhancement
-c Kvib      : vibrational enhancement factor
-c Krot      : rotational enhancement factor
-c gilcam    : Gilbert-Cameron level density formula
-c spindis   : Wigner spin distribution
-c pardis    : parity distribution
-c
-        call colenhance(Zix,Nix,Eex,ald,ibar,Krot,Kvib)
-        density=Krot*Kvib*gilcam(Zix,Nix,Eex,ald,ibar)*
-     +    spindis(Zix,Nix,Eex,ald,Rspin,ibar)*pardis
-      endif
-c
-c 3. Tabulated level densities     
-c
+c Eshift             : shifted excitation energy
+c c1table,c2table    : constant to adjust tabulated level densities
+c Edensmax           : maximum energy on level density table
 c locate             : subroutine to find value in ordered table 
 c edens              : energy grid for tabulated level densities
+c nendens            : number of energies for level density grid
 c eb,ee,ldb,lde,ldtab: help variables
 c ldtable            : level density from table
 c expo               : exponent
-c c1table,c2table    : constant to adjust tabulated level densities
+c ctable             : constant to adjust tabulated level densities
 c
-      if (ldmod.eq.3.and.ldexist(Zix,Nix,ibar)) then
         jj=min(29,int(Rspin))
-        if (Eex.le.150.) then
-          call locate(edens,0,55,Eex,nex2) 
+        Eshift=Eex-c1table(Zix,Nix)
+        if (Eshift.le.0.) goto 100
+        if (Eshift.le.Edensmax) then
+          call locate(edens,0,nendens,Eshift,nex2) 
           eb=edens(nex2)
           ee=edens(nex2+1)
-          ldb=ldtable(Zix,Nix,nex2,jj,ibar)
-          lde=ldtable(Zix,Nix,nex2+1,jj,ibar)
-          ldtab=ldb+(Eex-eb)/(ee-eb)*(lde-ldb)
+          ldb=ldtable(Zix,Nix,nex2,jj,parity,ibar)
+          lde=ldtable(Zix,Nix,nex2+1,jj,parity,ibar)
+          if (ldb.le.1..or.lde.le.1.) then
+            ldtab=ldb+(Eshift-eb)/(ee-eb)*(lde-ldb)
+          else
+            ldtab=exp(log(ldb)+(Eshift-eb)/(ee-eb)*
+     +       (log(lde)-log(ldb)))
+          endif
         else
-          eb=edens(54)
-          ee=edens(55)
-          ldb=log(ldtable(Zix,Nix,54,jj,ibar))
-          lde=log(ldtable(Zix,Nix,55,jj,ibar))
-          ldtab=exp(ldb+(Eex-eb)/(ee-eb)*(lde-ldb))
+          eb=edens(nendens-1)
+          ee=edens(nendens)
+          ldb=log(ldtable(Zix,Nix,nendens-1,jj,parity,ibar))
+          lde=log(ldtable(Zix,Nix,nendens,jj,parity,ibar))
+          ldtab=exp(ldb+(Eshift-eb)/(ee-eb)*(lde-ldb))
         endif
-        expo=c2table(Zix,Nix)*sqrt(Eex)
-        ctable=c1table(Zix,Nix)*exp(expo)
-        density=ctable*ldtab*pardis
+        ctable=exp(c2table(Zix,Nix)*sqrt(Eex))
+        density=ctable*ldtab
       endif
   100 density=max(density,1.d-30)
       return

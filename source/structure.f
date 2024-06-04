@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 14, 2004
+c | Date  : February 24, 2006
 c | Task  : Nuclear structure parameters
 c +---------------------------------------------------------------------
 c
@@ -29,10 +29,10 @@ c omppar      : subroutine for optical model parameters
 c flagfission : flag for fission
 c fissionpar  : subroutine for fission parameters
 c densitypar  : subroutine for level density parameters
-c densitymatch: subroutine for level density matching solution
 c ldmodel     : level density model
 c densitytable: subroutine for tabulated level densities
-c D0theory    : subroutine for theoretical calculation of D0
+c densitymatch: subroutine for level density matching solution
+c d0theory    : subroutine for theoretical calculation of D0
 c flagpartable: flag for output of model parameters on separate file
 c partable    : subroutine to write model parameters per nucleus to 
 c               separate file
@@ -50,9 +50,9 @@ c
       if ((Zix.le.2.and.Nix.le.2).or.flagompall) call omppar(Zix,Nix)
       if (flagfission) call fissionpar(Zix,Nix)
       call densitypar(Zix,Nix)
+      if (ldmodel.eq.4.or.ldmodel.eq.5) call densitytable(Zix,Nix)
       call densitymatch(Zix,Nix)
-      if (ldmodel.eq.3) call densitytable(Zix,Nix)
-      call D0theory(Zix,Nix)
+      call d0theory(Zix,Nix)
       if (flagpartable) call partable(Zix,Nix)
       return
       end

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 14, 2004
+c | Date  : December 14, 2006
 c | Task  : Initialization of arrays for various cross sections
 c +---------------------------------------------------------------------
 c
@@ -83,6 +83,8 @@ c          compound nucleus
 c Zix    : charge number index for residual nucleus
 c numZ   : maximal number of protons away from the initial 
 c          compound nucleus
+c Exmax0 : maximum excitation energy for residual nucleus (including
+c          negative energies)
 c Exmax  : maximum excitation energy for residual nucleus
 c maxex  : maximum excitation energy bin for compound nucleus
 c numex  : maximal number of excitation energies 
@@ -93,12 +95,14 @@ c deltaEx: excitation energy bin for population arrays
 c
       do 80 Nix=0,numN
         do 80 Zix=0,numZ
+          Exmax0(Zix,Nix)=0.
           Exmax(Zix,Nix)=0.
           maxex(Zix,Nix)=0.
           do 90 i=0,numex
             Ex(Zix,Nix,i)=0.
    90     continue
    80 continue
+      Exmax0(0,0)=Etotal
       Exmax(0,0)=Etotal
       Exinc=Etotal
       deltaEx(0,0)=0.
@@ -170,6 +174,8 @@ c numparx       : maximum number of particles
 c xsstep        : preequilibrium cross section per particle type, stage
 c                 and outgoing energy   
 c xsstep2       : two-component preequilibrium cross section 
+c wemission     : emission rate
+c wemission2    : two-component emission rate
 c xspreeq       : preequilibrium cross section per particle type and
 c                 outgoing energy
 c xsmpreeq      : multiple pre-equilibrium emission spectrum
@@ -217,8 +223,7 @@ c xspopph2      : population cross section per two-component
 c                 particle-hole configuration
 c xspreeqsum    : total preequilibrium cross section summed over 
 c                 particles
-c wvol          : absorption part of the optical potential averaged over
-c                 the volume
+c Esurf         : well depth for surface interaction
 c
       do 210 nen=0,numen
         do 210 n1=1,numparx
@@ -230,6 +235,10 @@ c
           do 220 n1=0,numparx
             do 220 type=0,numpar
               xsstep2(type,n1,n2,nen)=0.
+              wemission(type,n1,n2,nen)=0.
+              do 220 n4=0,numparx
+                do 220 n3=0,numparx
+                  wemission2(type,n1,n2,n3,n4,nen)=0.
   220 continue
       do 230 nen=0,numen
         do 230 type=0,numpar
@@ -245,7 +254,7 @@ c
               xspreeqJP(type,nen,J,parity)=0.
   240 continue
       do 250 type=0,numpar
-      xspreeqtot(type)=0.
+        xspreeqtot(type)=0.
         xspreeqtotps(type)=0.
         xspreeqtotki(type)=0.
   250 continue
@@ -302,10 +311,7 @@ c
   330   continue
       endif
       xspreeqsum=0.
-      do 340 type=1,2     
-        do 340 nen=-200,10*numen
-          wvol(type,nen)=0.
-  340 continue
+      Esurf=0.
 c
 c Multi-step direct arrays
 c
@@ -317,6 +323,7 @@ c xsdwin    : DWBA cross section as a function of incident energy,
 c             outgoing energy and angular momentum    
 c xsdw      : DWBA angular distribution as a function of incident
 c             energy, outgoing energy, angular momentum and angle
+c Emsd      : MSD energy grid
 c xscont    : continuum one-step direct cross section for MSD
 c xscont1   : continuum one-step direct cross section for MSD
 c             (unnormalized)
@@ -346,14 +353,15 @@ c
                   xsdw(nen1,nen2,J,iang,i)=0.
   420   continue
         do 430 nen2=0,numenmsd
+          Emsd(nen2)=0.
           do 430 nen1=0,numenmsd
-            do 430 j=0,numpar
+            do 430 J=0,numpar
               do 430 i=0,numpar 
-                xscont(i,j,nen1,nen2)=0.
-                xscont1(i,j,nen1,nen2)=0.
+                xscont(i,J,nen1,nen2)=0.
+                xscont1(i,J,nen1,nen2)=0.
                 do 440 iang=0,numangcont
-                  xscontad(i,j,nen1,nen2,iang)=0.
-                  xscontad1(i,j,nen1,nen2,iang)=0.
+                  xscontad(i,J,nen1,nen2,iang)=0.
+                  xscontad1(i,J,nen1,nen2,iang)=0.
   440           continue
   430   continue
         do 450 nen=0,numen
@@ -364,19 +372,19 @@ c
   460       continue
   450   continue
         do 470 nen=0,numen
-          do 470 j=1,nummsd
+          do 470 J=1,nummsd
             do 470 i=0,numpar
-              msdstep(i,j,nen)=0.
+              msdstep(i,J,nen)=0.
               do 480 iang=0,numangcont
-                msdstepad(i,j,nen,iang)=0.
+                msdstepad(i,J,nen,iang)=0.
   480         continue
   470   continue
         do 490 nen=0,numenmsd
-          do 490 j=1,nummsd
+          do 490 J=1,nummsd
             do 490 i=0,numpar
-              msdstep0(i,j,nen)=0.
+              msdstep0(i,J,nen)=0.
               do 500 iang=0,numangcont
-                msdstepad0(i,j,nen,iang)=0.
+                msdstepad0(i,J,nen,iang)=0.
   500         continue
   490   continue
       endif
@@ -400,6 +408,7 @@ c xsdirect   : total direct cross section
 c xsconttot  : total cross section for continuum
 c xscompound : total compound cross section
 c xscompcont : compound cross section for continuum
+c lmaxhf     : maximal l-value for transmission coefficients
 c contrib    : contribution to emission spectrum
 c feedbinary : feeding from first compound nucleus
 c flagspec   : flag for output of spectra
@@ -453,6 +462,7 @@ c
   540 continue
       do 550 nex=0,numex
         do 550 type=0,numpar
+          lmaxhf(type,nex)=0.
           contrib(type,nex)=0.
           feedbinary(type,nex)=0.
   550 continue
@@ -495,9 +505,9 @@ c ************* Initialization of multiple mission arrays **************
 c
 c xsngnsum    : sum over total (projectile,gamma-ejectile) cross 
 c               sections
+c idnum       : counter for exclusive channel
 c flagchannels: flag for exclusive channels calculation 
 c channelsum  : sum over exclusive channel cross sections
-c idnum       : counter for exclusive channel
 c numchannel  : maximal number of outgoing particles in individual
 c               channel description (e.g. this is 3 for (n,2np))   
 c feedexcl    : feeding terms from compound excitation energy bin to
@@ -511,9 +521,9 @@ c xsngn       : total (projectile,gamma-ejectile) cross section
 c xsgamdis    : discrete gamma-ray cross section    
 c
       xsngnsum=0.
+      idnum=-1
       if (flagchannels) then
         channelsum=0.
-        idnum=-1
         do 710 nexout=0,numex+1
           do 710 nex=0,numex+1
             do 710 type=0,numpar
@@ -568,6 +578,7 @@ c xspreeqoutad : preequilibrium angular distribution per particle type
 c xsmpreeqoutad: multiple preequilibrium angular distribution
 c xsbranch     : branching ratio for isomeric cross section 
 c xsparcheck   : total particle production cross section
+c xsspeccheck  : total particle production spectra
 c
       if (nin.eq.1) then
         idnumfull=.false.
@@ -600,6 +611,9 @@ c
   850 continue
       do 860 type=0,numpar
         xsparcheck(type)=0.
+        do 870 nen=0,numen
+          xsspeccheck(type,nen)=0.
+  870   continue
   860 continue
 c
 c ************* Initialization of total cross section arrays ***********
@@ -610,6 +624,10 @@ c multiplicity : particle multiplicity
 c xsparticle   : total particle production cross section
 c xsfistot     : total fission cross section
 c maxA         : maximal number of nucleons away from the initial 
+c                compound nucleus
+c maxZ         : maximal number of protons away from the initial 
+c                compound nucleus
+c maxN         : maximal number of protons away from the initial 
 c                compound nucleus
 c xsresprod    : total residual production (= reaction) cross section 
 c xsmassprod   : residual production cross section per mass unit
@@ -646,7 +664,7 @@ c
         xsparticle(type)=0.
   910 continue
       xsfistot=0.
-      maxA=0
+      maxA=maxZ+maxN
       xsresprod=0.
       do 920 ia=0,numA
         xsmassprod(ia)=0.

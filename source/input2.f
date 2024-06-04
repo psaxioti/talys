@@ -2,15 +2,16 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 2, 2004
+c | Date  : December 8, 2006
 c | Task  : Read input for second set of variables
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*1 ch
-      integer     type,Zix,Nix,i,ip,i2,iz,ia,ivalue,type2
+      character*1  ch
+      character*80 word(40),key,value
+      integer      type,Zix,Nix,i,ip,i2,iz,ia,ivalue,type2
 c
 c ************* Defaults for second set of input variables *************
 c
@@ -35,11 +36,11 @@ c transeps  : absolute limit for transmission coefficient
 c xseps     : limit for cross sections 
 c popeps    : limit for population cross section per nucleus
 c Rfiseps   : ratio for limit for fission cross section per nucleus
-c eninclow  : minimal incident energy for nuclear model calculations
 c nangle    : number of angles
 c numang    : maximum number of angles
 c nanglecont: number of angles for continuum
 c maxenrec  : number of recoil energies
+c massmodel : model for theoretical nuclear mass
 c ldmodel   : level density model
 c wmode     : designator for width fluctuation model
 c preeqmode : designator for pre-equilibrium model
@@ -72,10 +73,10 @@ c
       xseps=1.e-7
       popeps=1.e-3
       Rfiseps=1.e-3
-      eninclow=0.
       nangle=numang
       nanglecont=18
       maxenrec=numenrec
+      massmodel=1
       ldmodel=1
       wmode=1
       preeqmode=2
@@ -87,111 +88,166 @@ c
 c
 c **************** Read second set of input variables ******************
 c
-c nlines: number of input lines
-c ch    : character
-c inline: input line                 
+c nlines     : number of input lines
+c getkeywords: subroutine to retrieve keywords and values from input 
+c              line
+c inline     : input line                 
+c word       : words on input line
+c key        : keyword
+c value      : value or string
+c ch         : character
+c
+c The keyword is identified and the corresponding values are read.
+c Erroneous input is immediately checked. The keywords and number of
+c values on each line are retrieved from the input.
+c
+      do 110 i=1,nlines
+        call getkeywords(inline(i),word)
+        key=word(1)
+        value=word(2)
+        ch=word(2)(1:1)
+c
+c Test for keywords
+c
 c parsym: symbol of particle
 c Zinit : charge number of initial compound nucleus 
 c Ninit : neutron number of initial compound nucleus 
 c
-c First the keyword is identified. Next the corresponding value is read.
-c Erroneous input is immediately checked.
-c
-      do 110 i=1,nlines
-        if (inline(i)(1:10).eq.'ejectiles ') then
+        if (key.eq.'ejectiles') then
           ip=-1
-          do 120 i2=11,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then 
-              do 130 type=0,6
-                if (ch.eq.parsym(type)) then
-                  ip=ip+1
-                  if (ip.gt.6) goto 200
-                  outtype(ip)=ch
-                  goto 120
-                endif
-  130         continue
-              goto 200
-            endif
-  120     continue
+          do 210 i2=2,40
+            ch=word(i2)(1:1)
+            do 220 type=0,6
+              if (ch.eq.parsym(type)) then
+                ip=ip+1
+                if (ip.le.6) outtype(ip)=ch
+                goto 210
+              endif
+  220       continue
+            if (ip.eq.-1) goto 300
+  210     continue
           goto 110
         endif
-        if (inline(i)(1:5).eq.'maxz ') 
-     +    read(inline(i)(6:80),*,err=200) maxZ
-        if (inline(i)(1:5).eq.'maxn ') 
-     +    read(inline(i)(6:80),*,err=200) maxN
-        if (inline(i)(1:5).eq.'bins ') 
-     +    read(inline(i)(6:80),*,err=200) nbins
-        if (inline(i)(1:8).eq.'segment ') 
-     +    read(inline(i)(9:80),*,err=200) segment
-        if (inline(i)(1:13).eq.'maxlevelstar ') 
-     +    read(inline(i)(14:80),*,err=200) nlevmax
-        if (inline(i)(1:13).eq.'maxlevelsres ') 
-     +    read(inline(i)(14:80),*,err=200) nlevmaxres
-        if (inline(i)(1:8).eq.'ltarget ') 
-     +    read(inline(i)(9:80),*,err=200) Ltarget
-        if (inline(i)(1:7).eq.'isomer ') 
-     +    read(inline(i)(8:80),*,err=200) isomer
-        if (inline(i)(1:5).eq.'core ') 
-     +    read(inline(i)(6:80),*,err=200) core
-        if (inline(i)(1:7).eq.'gammax ') 
-     +    read(inline(i)(8:80),*,err=200) gammax
-        if (inline(i)(1:11).eq.'transpower ') 
-     +    read(inline(i)(12:80),*,err=200) transpower
-        if (inline(i)(1:9).eq.'transeps ') 
-     +    read(inline(i)(10:80),*,err=200) transeps
-        if (inline(i)(1:6).eq.'xseps ') 
-     +    read(inline(i)(7:80),*,err=200) xseps
-        if (inline(i)(1:7).eq.'popeps ') 
-     +    read(inline(i)(8:80),*,err=200) popeps
-        if (inline(i)(1:8).eq.'Rfiseps ') 
-     +    read(inline(i)(9:80),*,err=200) Rfiseps
-        if (inline(i)(1:5).eq.'elow ') 
-     +    read(inline(i)(6:80),*,err=200) eninclow
-        if (inline(i)(1:7).eq.'angles ') 
-     +    read(inline(i)(8:80),*,err=200) nangle
-        if (inline(i)(1:11).eq.'anglescont ') 
-     +    read(inline(i)(12:80),*,err=200) nanglecont
-        if (inline(i)(1:9).eq.'maxenrec ') 
-     +    read(inline(i)(10:80),*,err=200) maxenrec
-        if (inline(i)(1:8).eq.'ldmodel ') 
-     +    read(inline(i)(9:80),*,err=200) ldmodel
-        if (inline(i)(1:10).eq.'widthmode ') 
-     +    read(inline(i)(11:80),*,err=200) wmode
-        if (inline(i)(1:10).eq.'preeqmode ') 
-     +    read(inline(i)(11:80),*,err=200) preeqmode
-        if (inline(i)(1:11).eq.'mpreeqmode ') 
-     +    read(inline(i)(12:80),*,err=200) mpreeqmode
-        if (inline(i)(1:8).eq.'nlevels ') then
-          read(inline(i)(9:80),*,err=200) iz,ia,ivalue
+        if (key.eq.'maxz') then
+          read(value,*,err=300) maxZ
+          goto 110
+        endif
+        if (key.eq.'maxn') then
+          read(value,*,err=300) maxN
+          goto 110
+        endif
+        if (key.eq.'bins') then
+          read(value,*,err=300) nbins
+          goto 110
+        endif
+        if (key.eq.'segment') then
+          read(value,*,err=300) segment
+          goto 110
+        endif
+        if (key.eq.'maxlevelstar') then
+          read(value,*,err=300) nlevmax
+          goto 110
+        endif
+        if (key.eq.'maxlevelsres') then
+          read(value,*,err=300) nlevmaxres
+          goto 110
+        endif
+        if (key.eq.'ltarget') then
+          read(value,*,err=300) Ltarget
+          goto 110
+        endif
+        if (key.eq.'isomer') then
+          read(value,*,err=300) isomer
+          goto 110
+        endif
+        if (key.eq.'core') then
+          read(value,*,err=300) core
+          goto 110
+        endif
+        if (key.eq.'gammax') then
+          read(value,*,err=300) gammax
+          goto 110
+        endif
+        if (key.eq.'transpower') then
+          read(value,*,err=300) transpower
+          goto 110
+        endif
+        if (key.eq.'transeps') then
+          read(value,*,err=300) transeps
+          goto 110
+        endif
+        if (key.eq.'xseps') then
+          read(value,*,err=300) xseps
+          goto 110
+        endif
+        if (key.eq.'popeps') then
+          read(value,*,err=300) popeps
+          goto 110
+        endif
+        if (key.eq.'Rfiseps') then
+          read(value,*,err=300) Rfiseps
+          goto 110
+        endif
+        if (key.eq.'angles') then
+          read(value,*,err=300) nangle
+          goto 110
+        endif
+        if (key.eq.'anglescont') then
+          read(value,*,err=300) nanglecont
+          goto 110
+        endif
+        if (key.eq.'maxenrec') then
+          read(value,*,err=300) maxenrec
+          goto 110
+        endif
+        if (key.eq.'massmodel') then
+          read(value,*,err=300) massmodel
+          goto 110
+        endif
+        if (key.eq.'ldmodel') then
+          read(value,*,err=300) ldmodel
+          goto 110
+        endif
+        if (key.eq.'widthmode') then
+          read(value,*,err=300) wmode
+          goto 110
+        endif
+        if (key.eq.'preeqmode') then
+          read(value,*,err=300) preeqmode
+          goto 110
+        endif
+        if (key.eq.'mpreeqmode') then
+          read(value,*,err=300) mpreeqmode
+          goto 110
+        endif
+        if (key.eq.'nlevels') then
+          read(word(2),*,err=300) iz
+          read(word(3),*,err=300) ia
+          read(word(4),*,err=300) ivalue
           Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            write(*,'("TALYS-warning: Z,N index out of range,",$)')
-            write(*,'(" keyword ignored: ",a80)') inline(i)
+            write(*,'(" TALYS-warning: Z,N index out of range,",
+     +        " keyword ignored: ",a80)') inline(i)
           else
             nlev(Zix,Nix)=ivalue
           endif
+          goto 110
         endif           
-        if (inline(i)(1:13).eq.'maxlevelsbin ') then
-          do 140 i2=14,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then       
-              do 150 type=0,6
-                if (ch.eq.parsym(type)) then
-                  type2=type
-                  goto 160
-                endif
-  150         continue
-              goto 200
-  160         read(inline(i)(i2+1:80),*,err=200) nlevbin(type2)
-              goto 110
+        if (key.eq.'maxlevelsbin') then
+          do 230 type=0,6
+            if (ch.eq.parsym(type)) then
+              type2=type
+              goto 240
             endif
-  140     continue
+  230     continue
+          goto 300
+  240     read(word(3),*,err=300) nlevbin(type2)
+          goto 110
         endif           
   110 continue
       return
-  200 write(*,'("TALYS-error: Wrong input: ",a80)') inline(i)
+  300 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
       stop                                                     
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

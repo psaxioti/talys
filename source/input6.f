@@ -2,16 +2,17 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : June 28, 2004
+c | Date  : October 19, 2006   
 c | Task  : Read input for sixth set of variables
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*1 ch
-      integer     type,i,i2,ivalue
-      real        value
+      character*1  ch
+      character*80 word(40),key,value
+      integer      type,i,i2,ivalue
+      real         val
 c
 c ************* Defaults for sixth set of input variables **************
 c
@@ -37,13 +38,14 @@ c filefission : flag for fission cross sections on separate file
 c filegamdis  : flag for gamma-ray intensities on separate file 
 c flagexc     : flag for output of excitation functions
 c flagendf    : flag for information for ENDF-6 file
+c flagendfdet : flag for detailed ENDF-6 information per channel
 c filerecoil  : flag for recoil spectra on separate file 
 c flagfission : flag for fission
-c k0          : index of incident particle 
 c flagchannels: flag for exclusive channels calculation
 c flagrecoil  : flag for calculation of recoils 
 c flaggamdis  : flag for output of discrete gamma-ray intensities
 c flagdisc    : flag for output of discrete state cross sections 
+c filedensity : flag for level densities on separate files
 c
       fileelastic=.false.
       do 10 type=0,6
@@ -73,14 +75,14 @@ c
         fileelastic=.true.
         filetotal=.true.
         fileresidual=.true.
-        if (k0.eq.1) filechannels=.true.
+        if (flagendfdet) filechannels=.true.
         if (flagfission) filefission=.true.
         if (flagrecoil) filerecoil=.true.
-        if (k0.eq.1) filegamdis=.true.
+        if (flagendfdet) filegamdis=.true.
         do 40 type=0,6
           filespectrum(type)=.true.
    40   continue
-        if (k0.eq.1) then
+        if (flagendfdet) then
           do 50 i=0,numlev
             fileangle(i)=.true.
             filediscrete(i)=.true.
@@ -103,173 +105,145 @@ c
    60     continue
         endif
       endif
+      filedensity=.true.
 c
 c ***************** Read sixth set of input variables ******************
 c
-c nlines: number of input lines
-c ch    : character
-c inline: input line                 
-c parsym: symbol of particle
+c nlines     : number of input lines
+c getkeywords: subroutine to retrieve keywords and values from input 
+c              line
+c inline     : input line                 
+c word       : words on input line
+c key        : keyword
+c ch         : character
 c
-c First the keyword is identified. Next the corresponding value is read.
-c Erroneous input is immediately checked.
-c  
+c The keyword is identified and the corresponding values are read.
+c Erroneous input is immediately checked. The keywords and number of
+c values on each line are retrieved from the input.
+c
       do 110 i=1,nlines
-        if (inline(i)(1:13).eq.'filespectrum ') then
-          do 120 i2=14,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then 
-              do 130 type=0,6
-                if (ch.eq.parsym(type)) then
-                  filespectrum(type)=.true.
-                  goto 120
-                endif
-  130         continue
-              goto 300
-            endif
-  120     continue
+        call getkeywords(inline(i),word)
+        key=word(1)
+        value=word(2)
+        ch=word(2)(1:1)
+c
+c Test for keywords
+c  
+c parsym: symbol of particle
+c  
+        if (key.eq.'filespectrum') then
+          do 210 i2=2,40
+            ch=word(i2)(1:1)
+            do 220 type=0,6
+              if (ch.eq.parsym(type)) then
+                filespectrum(type)=.true.
+                goto 210
+              endif
+  220       continue
+  210     continue
           goto 110
         endif
-        if (inline(i)(1:12).eq.'fileelastic ') then
-          do 140 i2=13,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') fileelastic=.false.
-              if (ch.eq.'y') fileelastic=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 300
-              goto 110
-            endif
-  140     continue
+        if (key.eq.'fileelastic') then
+          if (ch.eq.'n') fileelastic=.false.
+          if (ch.eq.'y') fileelastic=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
         endif
-        if (inline(i)(1:10).eq.'filetotal ') then
-          do 150 i2=11,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') filetotal=.false.
-              if (ch.eq.'y') filetotal=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 300
-              goto 110
-            endif
-  150     continue
+        if (key.eq.'filetotal') then
+          if (ch.eq.'n') filetotal=.false.
+          if (ch.eq.'y') filetotal=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
         endif
-        if (inline(i)(1:13).eq.'fileresidual ') then
-          do 160 i2=14,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') fileresidual=.false.
-              if (ch.eq.'y') fileresidual=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 300
-              goto 110
-            endif
-  160     continue
+        if (key.eq.'fileresidual') then
+          if (ch.eq.'n') fileresidual=.false.
+          if (ch.eq.'y') fileresidual=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
         endif
-        if (inline(i)(1:13).eq.'filechannels ') then
-          do 170 i2=14,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') filechannels=.false.
-              if (ch.eq.'y') filechannels=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 300
-              goto 110
-            endif
-  170     continue
+        if (key.eq.'filechannels') then
+          if (ch.eq.'n') filechannels=.false.
+          if (ch.eq.'y') filechannels=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
         endif
-        if (inline(i)(1:11).eq.'filerecoil ') then
-          do 180 i2=12,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') filerecoil=.false.
-              if (ch.eq.'y') filerecoil=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 300
-              goto 110
-            endif
-  180     continue
+        if (key.eq.'filerecoil') then
+          if (ch.eq.'n') filerecoil=.false.
+          if (ch.eq.'y') filerecoil=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
         endif
-        if (inline(i)(1:12).eq.'filefission ') then
-          do 190 i2=13,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') filefission=.false.
-              if (ch.eq.'y') filefission=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 300
-              goto 110
-            endif
-  190     continue
+        if (key.eq.'filefission') then
+          if (ch.eq.'n') filefission=.false.
+          if (ch.eq.'y') filefission=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
         endif
-        if (inline(i)(1:9).eq.'fileddxe ') then
-          do 200 i2=10,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              do 210 type=0,6
-                if (ch.eq.parsym(type)) then
-                  ddxecount(type)=ddxecount(type)+1
-                  if (ddxecount(type).gt.numfile) goto 330
-                  goto 220
-                endif
-  210         continue           
-              goto 300
-  220         read(inline(i)(i2+1:80),*,err=300,end=300) value
-              fileddxe(type,ddxecount(type))=value
-              goto 110
+        if (key.eq.'fileddxe') then
+          do 230 type=0,6
+            if (ch.eq.parsym(type)) then
+              ddxecount(type)=ddxecount(type)+1
+              if (ddxecount(type).gt.numfile) goto 330
+              goto 240
             endif
-  200     continue
+  230     continue           
+          goto 300
+  240     read(word(3),*,err=300,end=300) val
+          fileddxe(type,ddxecount(type))=val
+          goto 110
         endif
-        if (inline(i)(1:9).eq.'fileddxa ') then
-          do 230 i2=10,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              do 240 type=0,6
-                if (ch.eq.parsym(type)) then
-                  ddxacount(type)=ddxacount(type)+1
-                  if (ddxacount(type).gt.numfile) goto 340
-                  goto 250
-                endif
-  240         continue           
-              goto 300
-  250         read(inline(i)(i2+1:80),*,err=300,end=300) value
-              fileddxa(type,ddxacount(type))=value
-              goto 110
+        if (key.eq.'fileddxa') then
+          do 250 type=0,6
+            if (ch.eq.parsym(type)) then
+              ddxacount(type)=ddxacount(type)+1
+              if (ddxacount(type).gt.numfile) goto 340
+              goto 260
             endif
-  230     continue
+  250     continue           
+          goto 300
+  260     read(word(3),*,err=300,end=300) val
+          fileddxa(type,ddxacount(type))=val
+          goto 110
         endif
-        if (inline(i)(1:10).eq.'fileangle ') then
-          read(inline(i)(11:80),*,err=300) ivalue
+        if (key.eq.'fileangle') then
+          read(value,*,err=300) ivalue
           if (ivalue.lt.0.or.ivalue.gt.numlev) goto 310
           fileangle(ivalue)=.true.
           goto 110
         endif
-        if (inline(i)(1:13).eq.'filediscrete ') then
-          read(inline(i)(14:80),*,err=300) ivalue
+        if (key.eq.'filediscrete') then
+          read(value,*,err=300) ivalue
           if (ivalue.lt.0.or.ivalue.gt.numlev) goto 320
           filediscrete(ivalue)=.true.
           goto 110
         endif
-        if (inline(i)(1:11).eq.'filegamdis ') then
-          do 260 i2=12,80
-            ch=inline(i)(i2:i2)
-            if (ch.ne.' ') then
-              if (ch.eq.'n') filegamdis=.false.
-              if (ch.eq.'y') filegamdis=.true.
-              if (ch.ne.'y'.and.ch.ne.'n') goto 300
-              goto 110
-            endif
-  260     continue
+        if (key.eq.'filegamdis') then
+          if (ch.eq.'n') filegamdis=.false.
+          if (ch.eq.'y') filegamdis=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
+        if (key.eq.'filedensity') then
+          if (ch.eq.'n') filedensity=.false.
+          if (ch.eq.'y') filedensity=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
         endif
   110 continue
       return
-  300 write(*,'("TALYS-error: Wrong input: ",a80)') inline(i)
+  300 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
       stop                                                     
-  310 write(*,'("TALYS-error: 0 <= fileangle <=",i3,$)') numlev
-      write(*,'(", fileangle index out of range: ",a80)') inline(i)
+  310 write(*,'(" TALYS-error: 0 <= fileangle <=",i3, 
+     +  ", fileangle index out of range: ",a80)') numlev,inline(i)
       stop         
-  320 write(*,'("TALYS-error: 0 <= filediscrete <=",i3,$)') numlev
-      write(*,'(", filediscrete index out of range: ",a80)') inline(i)
+  320 write(*,'(" TALYS-error: 0 <= filediscrete <=",i3,
+     +  ", filediscrete index out of range: ",a80)') numlev,inline(i)
       stop         
-  330 write(*,'("TALYS-error: number of fileddxe <=",i3,$)') numfile
-      write(*,'(", index out of range: ",a80)') inline(i)
+  330 write(*,'(" TALYS-error: number of fileddxe <=",i3,
+     +  ", index out of range: ",a80)') numfile,inline(i)
       stop         
-  340 write(*,'("TALYS-error: number of fileddxa <=",i3,$)') numfile
-      write(*,'(", index out of range: ",a80)') inline(i)
+  340 write(*,'(" TALYS-error: number of fileddxa <=",i3,
+     +  ", index out of range: ",a80)') numfile,inline(i)
       stop         
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

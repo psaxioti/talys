@@ -6,7 +6,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
-c | Date  : September 12, 2004
+c | Date  : February 26, 2005
 c | Task  : Calculation of the way the surface triangle defined by its
 c |         summits (x1,y1),(x2,y2) and (x3,y3) is distributed in a
 c |         given bidimensional grid depending on ityp.
@@ -140,10 +140,6 @@ c
 c
 c ****************** Ejectile surface calculation **********************
 c
- 111  format(a17,3(1x,f14.10)) 
- 112  format(a17,3(1x,i2)) 
- 113  format(7x,4(1x,f10.6),2(1x,i3),1pe12.5)
- 114  format(9x,a3,3(1x,f9.6),1x,i3)
       if (ityp.ne.0) then
 c
 c determine x and y loop limits

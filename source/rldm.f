@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : July 2, 2004
+c | Date  : November 22, 2006
 c | Task  : Saddle point energies, rotating gs energy
 c +---------------------------------------------------------------------
 c
@@ -56,7 +56,7 @@ c
    10 by=9.
    15 if(by-1.)20,20,25
    20 by=1.
-   25 iy=by
+   25 iy=int(by)
       cy=iy
       dy=by-cy
       h1=(x1h(ix+1,iy)-x1h(ix,iy))*dx+x1h(ix,iy)
@@ -73,7 +73,7 @@ c
    45 if(by-1.)50,50,55
    50 by=1.
    55 ix=ix-5
-      iy=by
+      iy=int(by)
       cy=iy
       dy=by-cy
       h1=(x2h(ix+1,iy)-x2h(ix,iy))*dx+x2h(ix,iy)
@@ -85,14 +85,14 @@ c
       go to 95
    60 if(x-.95)70,70,65
    65 x=.95
-   70 ix=20.*x+1.
+   70 ix=int(20.*x+1.)
       ix=ix-10
       by=100.*y+1.
       if(by-19.)80,80,75
    75 by=19.
    80 if(by-1.)85,85,90
    85 by=1.
-   90 iy=by
+   90 iy=int(by)
       cy=iy
       dy=by-cy
       h1=(x3h(ix+1,iy)-x3h(ix,iy))*dx+x3h(ix,iy)

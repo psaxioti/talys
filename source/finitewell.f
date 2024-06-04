@@ -29,7 +29,7 @@ c Efermi    : maximal depth of Fermi well
 c jbin      : number of bins used in averaging procedure equals 2*jbin+1
 c wtsum     : sum over all contributions to the weight
 c fwtsum    : sum over all weighted contributions to the finite well 
-c             depth correction funtion
+c             depth correction function
 c jwell     : help variable in loop over potential well depth bins
 c Ewellj    : potential well depth used in loop
 c x         : help variable

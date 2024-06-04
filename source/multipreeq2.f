@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 29, 2004
+c | Date  : February 26, 2005
 c | Task  : Two-component multiple preequilibrium model
 c +---------------------------------------------------------------------
 c
@@ -104,13 +104,13 @@ c
       do 110 ipp=0,maxpar
         do 110 ihp=0,maxpar
           do 110 ipn=0,maxpar
-            do 110 ihn=0,maxpar
-              ip=ipp+ipn
+            ip=ipp+ipn
+            if (ip.eq.0.or.ip.gt.maxpar) goto 110
+            do 120 ihn=0,maxpar
               ih=ihp+ihn
-              if (ip.eq.0.or.ip.gt.maxpar) goto 110
-              if (ih.eq.0.or.ih.gt.maxpar) goto 110
+              if (ih.eq.0.or.ih.gt.maxpar) goto 120
               feedph=xspopph2(Zcomp,Ncomp,nex,ipp,ihp,ipn,ihn)
-              if (feedph.le.1.e-10) goto 110
+              if (feedph.le.1.e-10) goto 120
               sumph=0.
               if (mpreeqmode.eq.2) then
                 omegaph=phdens2(ipp,ihp,ipn,ihn,gsp,gsn,Exinc,Efermi,

@@ -1,7 +1,7 @@
 c
-c                            TALYS-0.64
+c                            TALYS-0.72
 c
-c                   (Version: December 5, 2004)
+c                   (Version: December 15, 2006)
 c
 c             Nuclear reactions from 1 keV to 200 MeV. 
 c
@@ -43,7 +43,7 @@ c
 c
 c +---------------------------------------------------------------------
 c | Author : Arjan Koning, Stephane Hilaire and Marieke Duijvestijn
-c | Date   : December 5, 2004
+c | Date   : December 15, 2006
 c | Task   : Main program
 c +---------------------------------------------------------------------
 c

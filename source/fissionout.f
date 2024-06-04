@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 31, 2004
+c | Date  : October 5, 2006   
 c | Task  : Output of fission cross sections
 c +---------------------------------------------------------------------
 c
@@ -25,23 +25,21 @@ c maxN     : maximal number of neutrons away from the initial compound
 c            nucleus
 c nin      : counter for incident energy 
 c numinclow: number of incident energies below Elow 
-c fisexist : flag for existence of fission cross section
 c xsfeed   : cross section from compound to residual nucleus
 c ZZ,Z     : charge number of residual nucleus
 c AA,A     : mass number of residual nucleus
 c nuc      : symbol of nucleus
 c
-      write(*,'(/"4b. Fission cross section per fissioning",$)')
-      write(*,'(" nuclide"/)')
+      write(*,'(/" 4b. Fission cross section per fissioning",
+     +  " nuclide"/)')
       do 10 Acomp=0,maxA
         do 20 Zcomp=0,maxZ
           Ncomp=Acomp-Zcomp
           if (Ncomp.lt.0.or.Ncomp.gt.maxN) goto 20
-          if (nin.eq.numinclow+1) fisexist(Zcomp,Ncomp)=.false.
           if (xsfeed(Zcomp,Ncomp,-1).ne.0.) then
             Z=ZZ(Zcomp,Ncomp,0)
             A=AA(Zcomp,Ncomp,0)
-            write(*,'(2i4," (",i3,a2,")",1p,e12.5)') Z,A,A,
+            write(*,'(1x,2i4," (",i3,a2,")",1p,e12.5)') Z,A,A,
      +        nuc(Z),xsfeed(Zcomp,Ncomp,-1)
           endif
    20   continue
@@ -50,6 +48,7 @@ c
 c Write results to separate file
 c
 c filefission: flag for fission cross sections on separate file
+c fisexist   : flag for existence of fission cross section
 c parsym     : symbol of particle
 c k0         : index of incident particle
 c Atarget    : mass number of target nucleus

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 24, 2004
+c | Date  : March 5, 2006   
 c | Task  : Pre-equilibrium reactions
 c +---------------------------------------------------------------------
 c
@@ -82,7 +82,7 @@ c               transition rates
 c preeqmode= 4: Multi-step direct/Multi-step compound
 c
       if (flagpeout) 
-     +  write(*,'(/,"########## PRE-EQUILIBRIUM ##########")')
+     +  write(*,'(/," ########## PRE-EQUILIBRIUM ##########")')
 c
 c Correct reaction cross section for direct and giant resonance effects
 c

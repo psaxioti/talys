@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 1, 2004
+c | Date  : October 7, 2006
 c | Task  : Output of cross sections for discrete states
 c +---------------------------------------------------------------------
 c
@@ -63,45 +63,45 @@ c xsexclusive  : exclusive single channel cross section
 c
       Zcomp=0
       Ncomp=0
-      write(*,'(/"5. Binary reactions to discrete levels",$)')
-      write(*,'(" and continuum")')
+      write(*,'(/" 5. Binary reactions to discrete levels"
+     +  " and continuum")')
       do 110 type=0,6
         if (parskip(type)) goto 110
         if (xsdisctot(type).eq.0.) goto 110
         Zix=Zindex(Zcomp,Ncomp,type)
         Nix=Nindex(Zcomp,Ncomp,type)
-        write(*,'(/a9," cross sections:"/)') reactionstring(type)
-        write(*,'("Inclusive:"/)') 
-        write(*,'("Level Energy    E-out     J/P       Direct    ",$)')
-        write(*,'("Compound      Total     Origin"/)')
+        write(*,'(/1x,a9," cross sections:"/)') reactionstring(type)
+        write(*,'(" Inclusive:"/)') 
+        write(*,'(" Level Energy    E-out     J/P       Direct    ",
+     +    "Compound      Total     Origin"/)')
         do 120 nex=0,Nlast(Zix,Nix,0)
           if (type.eq.k0.and.nex.eq.Ltarget) goto 120
-          write(*,'(i2,2f10.5,f7.1,a1,3f12.5,4x,a6)') nex,
+          write(*,'(1x,i2,2f10.5,f7.1,a1,3f12.5,4x,a6)') nex,
      +      edis(Zix,Nix,nex),eoutdis(type,nex),jdis(Zix,Nix,nex),
      +      cparity(parlev(Zix,Nix,nex)),xsdirdisc(type,nex),
      +      xscompdisc(type,nex),xsdisc(type,nex),dorigin(type,nex)
   120   continue
-        write(*,'(30x,3("   ---------"))')
-        write(*,'("Discrete  ",a9,":",10x,3f12.5)') 
+        write(*,'(31x,3("   ---------"))')
+        write(*,'(" Discrete  ",a9,":",10x,3f12.5)') 
      +    reactionstring(type),xsdirdisctot(type),xscompdisctot(type),
      +    xsdisctot(type)
-        write(*,'("Continuum ",a9,":",10x,3f12.5)') 
+        write(*,'(" Continuum ",a9,":",10x,3f12.5)') 
      +    reactionstring(type),xsdircont(type),xscompcont(type),
      +    xsconttot(type)
-        write(*,'(30x,3("   ---------"))')
-        write(*,'("Total     ",a9,":",10x,3f12.5/)') 
+        write(*,'(31x,3("   ---------"))')
+        write(*,'(" Total     ",a9,":",10x,3f12.5/)') 
      +    reactionstring(type),xsdirect(type),xscompound(type),
      +    xsbinary(type)
         if (type.ne.0) 
-     +    write(*,'("(",a1,",g",a1,") cross section:",f12.5)')
+     +    write(*,'(" (",a1,",g",a1,") cross section:",f12.5)')
      +      parsym(k0),parsym(type),xsngn(type)
         if (flagchannels) then
-          write(*,'(/"Exclusive"/)')
-          write(*,'("Discrete  ",a9,":",f12.5)') reactionstring(type),
+          write(*,'(/" Exclusive"/)')
+          write(*,'(" Discrete  ",a9,":",f12.5)') reactionstring(type),
      +      xsdisctot(type)
-          write(*,'("Continuum ",a9,":",f12.5)') reactionstring(type),
+          write(*,'(" Continuum ",a9,":",f12.5)') reactionstring(type),
      +      xsexclcont(type)
-          write(*,'("Total     ",a9,":",f12.5)') reactionstring(type),
+          write(*,'(" Total     ",a9,":",f12.5)') reactionstring(type),
      +      xsexclusive(type)
         endif
   110 continue
@@ -130,13 +130,12 @@ c
             write(discfile(5:6),'(i2.2)') nex
             if (nin.eq.numinclow+1) then  
               open (unit=1,status='unknown',file=discfile)
-              write(1,'("# ",a1," + ",i3,a2,": Discrete ",$)')
-     +          parsym(k0),Atarget,nuc(Ztarget)
-              write(1,'(a9," cross section - Level",i3)')
-     +          reactionstring(type),nex
-              write(1,'("# Q-value    =",1p,e12.5,0p," Spin=",f5.1,$)') 
-     +          Qres(Zix,Nix,nex),jdis(Zix,Nix,nex)
-              write(1,'(" Parity= ",a1)') cparity(parlev(Zix,Nix,nex))
+              write(1,'("# ",a1," + ",i3,a2,": Discrete ",a9,
+     +          " cross section - Level",i3)') parsym(k0),Atarget,
+     +          nuc(Ztarget),reactionstring(type),nex
+              write(1,'("# Q-value    =",1p,e12.5,0p," Spin=",f5.1,
+     +          " Parity= ",a1)') Qres(Zix,Nix,nex),jdis(Zix,Nix,nex),
+     +          cparity(parlev(Zix,Nix,nex))
               write(1,'("# E-threshold=",1p,e12.5)')
      +          Ethresh(Zix,Nix,nex)
               write(1,'("# # energies =",i3)') numinc
@@ -173,14 +172,14 @@ c
           write(contfile(1:2),'(2a1)') parsym(k0),parsym(type)
           if (nin.eq.numinclow+1) then  
             open (unit=1,status='unknown',file=contfile)
-            write(1,'("# ",a1," + ",i3,a2,": Continuum ",$)')
-     +        parsym(k0),Atarget,nuc(Ztarget)
-            write(1,'(a9," cross section")') reactionstring(type)
+            write(1,'("# ",a1," + ",i3,a2,": Continuum ",a9,
+     +        " cross section")') parsym(k0),Atarget,nuc(Ztarget),
+     +        reactionstring(type)
             write(1,'("# Q-value    =",1p,e12.5)') Qres(Zix,Nix,0)
             write(1,'("# E-threshold=",1p,e12.5)') Ethresh(Zix,Nix,0)
             write(1,'("# # energies =",i3)') numinc
-            write(1,'("#    E         xs      Continuum      (",$)')
-            write(1,'(a1,",g",a1,")")') parsym(k0),parsym(type)
+            write(1,'("#    E         xs      Continuum      (",a1,
+     +        ",g",a1,")")') parsym(k0),parsym(type)
             do 220 nen=1,numinclow
               write(1,'(1p,e10.3,3e12.5)') eninc(nen),
      +          fxsexclcont(nen,type)+fxsngn(nen,type),
@@ -207,15 +206,14 @@ c
           write(totfile(1:2),'(2a1)') parsym(k0),parsym(type)
           if (nin.eq.numinclow+1) then  
             open (unit=1,status='unknown',file=totfile)
-            write(1,'("# ",a1," + ",i3,a2,": Total exclusive ",$)')
-     +        parsym(k0),Atarget,nuc(Ztarget)
-            write(1,'(a9," cross section")') reactionstring(type)
+            write(1,'("# ",a1," + ",i3,a2,": Total exclusive ",a9,
+     +        " cross section")') parsym(k0),Atarget,nuc(Ztarget),
+     +        reactionstring(type)
             write(1,'("#         ")') 
             write(1,'("#         ")') 
             write(1,'("# # energies =",i3)') numinc
-            write(1,'("#    E       Total     Discrete     ",$)')
-            write(1,'("  Continuum  (",a1,",g",a1,")")') parsym(k0),
-     +        parsym(type)
+            write(1,'("#    E       Total     Discrete     ",
+     +        "  Continuum  (",a1,",g",a1,")")') parsym(k0),parsym(type)
             do 320 nen=1,numinclow
               write(1,'(1p,e10.3,4e12.5)') eninc(nen),
      +          fxsexclusive(nen,type),fxsdisctot(nen,type),

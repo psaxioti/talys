@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : September 3, 2004
+c | Date  : December 8, 2006
 c | Task  : Compound reaction for initial compound nucleus
 c +---------------------------------------------------------------------
 c
@@ -10,10 +10,10 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical          elastic
-      integer          Zcomp,Ncomp,updown,l,parity,J2,J,jj2beg,jj2end,
-     +                 l2beg,l2end,jj2primebeg,jj2primeend,l2primebeg,
-     +                 l2primeend,parspin2i,pspin2i,jj2,l2,ihill,type,
-     +                 parspin2o,pspin2o,Zix,Nix,NL,nexout,l2maxhf,
+      integer          parspin2i,pspin2i,Zcomp,Ncomp,updown,l,parity,J2,
+     +                 J,jj2beg,jj2end,l2beg,l2end,jj2primebeg,
+     +                 jj2primeend,l2primebeg,l2primeend,jj2,l2,ihill,
+     +                 type,parspin2o,pspin2o,Zix,Nix,NL,nexout,l2maxhf,
      +                 Pprimebeg,Pprimeend,Irspin2beg,Irspin2end,J2res,
      +                 Pprime,pardif2,Irspin2,Ir,jj2prime,l2prime,
      +                 lprime,modl,irad,updown2,ielas,LLmax,iphase,LL,
@@ -35,11 +35,17 @@ c
 c
 c *************************** Initialization ***************************
 c
-c Wab: width fluctuation factor
+c Wab          : width fluctuation factor
+c parspin2i    : 2 * particle spin for incident channel
+c parspin      : spin of particle
+c k0           : index of incident particle
+c pspin2i,spin2: 2 * spin of particle (usually) for incident channel
 c
 c Initially, Wab is set to 1 (no width fluctuations).
 c
       Wab=1.
+      parspin2i=int(2.*parspin(k0))
+      pspin2i=spin2(k0)       
 c
 c The level densities and transmission coefficients can be prepared 
 c before the nested loops over all quantum numbers.
@@ -62,12 +68,12 @@ c flagwidth: flag for width fluctuation calculation
 c wmode    : designator for width fluctuation model
 c
       if (flagcheck.and.flagwidth) then 
-        write(*,'(/"++++++++++ CHECK OF FLUX CONSERVATION",$)')
-        write(*,'(" OF TRANSMISSION COEFFICIENTS: ",$)')
-        if (wmode.eq.0) write(*,'("Hauser-Feshbach model ++++++++++"/)')
-        if (wmode.eq.1) write(*,'("Moldauer model ++++++++++"/)')
-        if (wmode.eq.2) write(*,'("HRTW model ++++++++++"/)')
-        if (wmode.eq.3) write(*,'("GOE model ++++++++++"/)')
+        write(*,'(/" ++++++++++ CHECK OF FLUX CONSERVATION",
+     +    " OF TRANSMISSION COEFFICIENTS ++++++++++")')
+        if (wmode.eq.0) write(*,'(" Hauser-Feshbach model"/)')
+        if (wmode.eq.1) write(*,'(" Moldauer model")')
+        if (wmode.eq.2) write(*,'(" HRTW model"/)')
+        if (wmode.eq.3) write(*,'(" GOE model"/)')
       endif
 c
 c ************** Initialization of transmission coefficients ***********
@@ -82,7 +88,6 @@ c lmaxinc    : maximal l-value for transmission coefficients for
 c              incident channel
 c Tjlnex     : transmission coefficients as a function of
 c              particle type, energy, spin and l-value
-c k0         : index of incident particle
 c Ltarget    : excited level of target
 c Tjlinc,Tinc: transmission coefficients as a function of j and l 
 c              for the incident channel
@@ -183,9 +188,6 @@ c 130: Sum over j (jj2) of incident channel
 c
 c flagcompang  : flag for compound angular distribution calculation
 c targetspin2  : 2 * spin of target
-c parspin2i    : 2 * particle spin for incident channel
-c parspin      : spin of particle
-c pspin2i,spin2: 2 * spin of particle (usually) for incident channel
 c jj2          : 2 * j
 c
 c On-set of loop over j in the case of width fluctuations or 
@@ -195,8 +197,6 @@ c
             jj2beg=abs(J2-targetspin2)
             jj2end=J2+targetspin2
           endif
-          parspin2i=int(2.*parspin(k0))
-          pspin2i=spin2(k0)       
           do 130 jj2=jj2beg,jj2end,2
 c
 c 140: Sum over l of incident channel
@@ -365,6 +365,7 @@ c
                     do 190 Irspin2=Irspin2beg,Irspin2end,2
                       Ir=Irspin2/2
                       rho=rho0(type,nexout,Ir,Pprime)
+                      if (rho.lt.1.e-20) goto 190
 c
 c 200: Sum over j (jj2) of outgoing channel
 c
@@ -581,13 +582,11 @@ c calculation.
 c
               if (flagcheck.and.flagwidth) then
                 if (fluxsum.eq.0.) fluxsum=Tinc
-                write(*,'("Parity=",a1,"  J=",f4.1,$)') 
-     +            cparity(parity),0.5*J2
-                write(*,'("  j=",f4.1,"  l=",i2,$)') 0.5*jj2,l
-                write(*,'("  T(j,l)=",1p,e12.5,$)') Tinc
-                write(*,'("  Sum over outgoing channels=",1p,e12.5,$)')
-     +            fluxsum
-                write(*,'("  Ratio=",f8.5)') Tinc/fluxsum
+                write(*,'(" Parity=",a1,"  J=",f4.1,"  j=",f4.1,
+     +            "  l=",i2,"  T(j,l)=",1p,e12.5,
+     +            "  Sum over outgoing channels=",1p,e12.5,0p,
+     +            "  Ratio=",f8.5)') cparity(parity),0.5*J2,0.5*jj2,l,
+     +            Tinc,fluxsum,Tinc/fluxsum
               endif
   140       continue
   130     continue

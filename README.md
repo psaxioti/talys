@@ -1,4 +1,4 @@
-     TALYS-0.64 (Version: December 5, 2004)
+     TALYS-0.72 (Version: December 15, 2006)
 
  Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
                          NRG          CEA              NRG
@@ -6,7 +6,7 @@
 The TALYS package
 -----------------
 
-In what follows we assume TALYS will be installed from a CDROM on a Unix/Linux 
+In what follows we assume TALYS will be installed on a Unix/Linux 
 operating system. The total TALYS package is in the talys/ directory and 
 contains the following directories and files:
 
@@ -14,28 +14,25 @@ contains the following directories and files:
 
 - talys.setup is a script that takes care of the installation.
 
-- source/ contains the source code of TALYS: 254 Fortran subroutines, and the 
+- source/ contains the source code of TALYS: 259 Fortran subroutines, and the 
   file talys.cmb, which contains all variable declarations and common blocks.
-  This includes the file ecis97t.f. This is basically Jacques Raynal's code 
-  ECIS-97, which we have transformed into a subroutine and slightly modified 
+  This includes the file ecis03t.f. This is basically Jacques Raynal's code 
+  ECIS-03, which we have transformed into a subroutine and slightly modified 
   to generate extra output that is not given by the original version of ECIS.
 
 - structure/ contains the nuclear structure database in various subdirectories. 
 
 - doc/ contains the documentation: this manual in postscript and pdf format and 
-  the description of ECIS-97.
+  the description of ECIS-03.
 
 - samples/ contains the input and output files of the sample cases.
 
-In total, you will need about 300 Mb of free disk space to install TALYS.
+In total, you will need about 900 Mb of free disk space to install TALYS.
 
 Installation
 ------------
 
-The installation of TALYS is straightforward. The first step is
-
-- Copy the CDROM to your hard disk.
-
+The installation of TALYS is straightforward.
 For a Unix/Linux system, the installation is expected to be handled by the 
 talys.setup script. This can be activated by
 
@@ -50,8 +47,7 @@ should be taken:
 
 - chmod -R u+rwX talys 
   (to ensure that all directories and files have read and write permission and 
-  the directories have execute permission. These permissions are usually 
-  disabled when reading from a CDROM).
+  the directories have execute permission. 
 
 - cd talys/source
 
@@ -59,11 +55,11 @@ should be taken:
   in subroutine machine.f. If talys.setup has not already replaced the path 
   name in machine.f, do it yourself. We think this is the only Unix/Linux 
   machine dependence of TALYS. Apart from a few trivial warning messages for 
-  ecis97t.f, we expect no complaints from the compiler. 
+  ecis03t.f, we expect no complaints from the compiler. 
 
-- f90 -c *.f
+- f95 -c *.f
 
-- f90 *.o -o talys
+- f95 *.o -o talys
 
 - mv talys /bin 
   (assuming you have a /bin directory which contains all executables that can 
@@ -81,7 +77,7 @@ Verification
 
 - verify
 
-Under Linux/Unix, this should run all sample cases (between 1 and 2 hours on
+Under Linux/Unix, this should run all sample cases (about 1 hour on
 a fast PC).
 
 Should you encounter error messages, upon running TALYS, like 'killed' or

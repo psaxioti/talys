@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 1, 2004
+c | Date  : October 9, 2006
 c | Task  : Output of double-differential cross sections
 c +---------------------------------------------------------------------
 c
@@ -32,11 +32,6 @@ c xsdiscoutad  : smoothed angular distribution for discrete state
 c xspreeqoutad : preequilibrium angular distribution per particle type
 c xsmpreeqoutad: multiple preequilibrium angular distribution
 c xscompoutad  : compound emission angular distribution
-c flagrecoil   : flag for calculation of recoils              
-c flaglabddx   : flag for calculation of DDX in LAB system
-c iejlab       : number of ejectile lab bins  
-c Eejlab       : center of ejectile lab bin                
-c ddxejlab     : LAB ddx array
 c ddxecount    : counter for double-differential cross section files
 c fileddxe     : designator for double-differential cross sections on
 c                separate file: angular distribution
@@ -49,38 +44,26 @@ c
 c 1. Angular distributions per outgoing energy
 c
       if (ddxmode.eq.1.or.ddxmode.eq.3) then
-        write(*,'(/"9. Double-differential cross sections per",$)')
-        write(*,'(" outgoing energy")') 
+        write(*,'(/" 9. Double-differential cross sections per",
+     +    " outgoing energy")') 
         do 10 type=1,6
           if (parskip(type)) goto 10
           if (xsparticle(type).eq.0.) goto 10
           do 20 nen=ebegin(type),eendout(type)
             Eo(nen)=espec(type,nen)
             if (xssumout(type,nen).eq.0.) goto 20
-            write(*,'(/"DDX for outgoing ",a8," at ",f7.3," MeV"/)') 
+            write(*,'(/" DDX for outgoing ",a8," at ",f7.3," MeV"/)') 
      +        parname(type),Eo(nen)
-            write(*,'("Angle   Total      Direct  ",$)')
-            write(*,'("   Pre-equil.  Mult. preeq   Compound"/)')
+            write(*,'(" Angle   Total      Direct  ",
+     +        "   Pre-equil.  Mult. preeq   Compound"/)')
             do 30 iang=0,nanglecont
-              write(*,'(f5.1,1p,5e12.5)') anglecont(iang),
+              write(*,'(1x,f5.1,1p,5e12.5)') anglecont(iang),
      +          xssumoutad(type,nen,iang),xsdiscoutad(type,nen,iang),
      +          xspreeqoutad(type,nen,iang),
      +          xsmpreeqoutad(type,nen,iang),xscompoutad(type,nen,iang)
    30       continue
    20     continue
-          if (flagrecoil.and.flaglabddx) then
-            do 40 nen=1,iejlab(type)
-              write(*,'(/"DDX for outgoing ",a8," at ",f7.3," MeV",$)') 
-     +          parname(type),Eejlab(type,nen)
-              write(*,'(" in LAB frame")')
-              write(*,'("Angle   Cross section"/)')
-              do 50 iang=0,nanglecont   
-                write(*,'(f5.1,1p,e12.5)') anglecont(iang),
-     +            ddxejlab(type,nen,iang)
-   50         continue
-   40       continue
-          endif
-          do 60 i=1,ddxecount(type)
+          do 40 i=1,ddxecount(type)
             enf=fileddxe(type,i)
             call locate(Eo,ebegin(type),eendout(type),enf,nen)
             fac=(enf-Eo(nen))/deltaE(nen)
@@ -94,9 +77,9 @@ c
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
             write(1,'("# # angles =",i3)') nanglecont+1
-            write(1,'("# Angle    Total       Direct    Pre-equil.",$)')
-            write(1,'("  Mult. preeq  Compound")')      
-            do 70 iang=0,nanglecont
+            write(1,'("# Angle    Total       Direct    Pre-equil.",
+     +        "  Mult. preeq  Compound")')      
+            do 50 iang=0,nanglecont
               xsa=xssumoutad(type,nen,iang)
               xsb=xssumoutad(type,nen+1,iang)
               xs1=xsa+fac*(xsb-xsa)
@@ -114,9 +97,48 @@ c
               xs5=xsa+fac*(xsb-xsa)
               write(1,'(f5.1,1p,5e12.5)') anglecont(iang),xs1,xs2,xs3,
      +          xs4,xs5
-   70       continue
+   50       continue
             close (unit=1)
-   60     continue
+   40     continue
+c
+c Results in LAB frame
+c
+c flagrecoil   : flag for calculation of recoils              
+c flaglabddx   : flag for calculation of DDX in LAB system
+c iejlab       : number of ejectile lab bins  
+c Eejlab       : center of ejectile lab bin                
+c ddxejlab     : LAB ddx array
+c
+          if (flagrecoil.and.flaglabddx) then
+            do 60 nen=1,iejlab(type)
+              write(*,'(/" DDX for outgoing ",a8," at ",f7.3," MeV",
+     +          " in LAB frame")') parname(type),Eejlab(type,nen)
+              write(*,'(" Angle   Cross section"/)')
+              do 70 iang=0,nanglecont   
+                write(*,'(1x,f5.1,1p,e12.5)') anglecont(iang),
+     +            ddxejlab(type,nen,iang)
+   70         continue
+   60       continue
+            do 80 i=1,ddxecount(type)
+              enf=fileddxe(type,i)
+              ddxfile=' ddx000_0.lab'
+              write(ddxfile(1:1),'(a1)') parsym(type)
+              write(ddxfile(5:9),'(f5.1)') enf
+              write(ddxfile(5:7),'(i3.3)') int(enf)
+              open (unit=1,status='unknown',file=ddxfile)     
+              write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum",
+     +          " in LAB system")') parsym(k0),Atarget,nuc(Ztarget),
+     +          parname(type)
+              write(1,'("# E-incident = ",f7.3)') Einc
+              write(1,'("# ")')
+              write(1,'("# # angles =",i3)') nanglecont+1
+              write(1,'("# Angle    Total")')
+              do 90 iang=0,nanglecont
+                write(1,'(f5.1,1p,e12.5)') anglecont(iang),
+     +            ddxejlab(type,nen,iang)
+   90         continue
+   80       continue
+          endif
    10   continue
       endif
 c
@@ -129,37 +151,25 @@ c            separate file: spectrum per angle
 c
       if (ddxmode.eq.2.or.ddxmode.eq.3) then
         anginc=180./nanglecont
-        write(*,'(/"9. Double-differential cross sections per",$)')
-        write(*,'(" outgoing angle")') 
+        write(*,'(/" 9. Double-differential cross sections per",
+     +    " outgoing angle")') 
         do 110 type=1,6
           if (parskip(type)) goto 110
           if (xsparticle(type).eq.0.) goto 110
           do 120 iang=0,nanglecont
-            write(*,'(/"DDX for outgoing ",a8," at ",f7.3," degrees")') 
+            write(*,'(/" DDX for outgoing ",a8," at ",f7.3," degrees")')
      +        parname(type),anglecont(iang)
-            write(*,'(/"  E-out    Total      Direct  ",$)')
-            write(*,'("   Pre-equil. Mult. preeq   Compound"/)')
+            write(*,'(/"   E-out    Total      Direct  ",
+     +        "   Pre-equil. Mult. preeq   Compound"/)')
             do 130 nen=ebegin(type),eendout(type)
               Eout=espec(type,nen)
-              write(*,'(f7.3,1p,5e12.5)') Eout,
+              write(*,'(1x,f7.3,1p,5e12.5)') Eout,
      +          xssumoutad(type,nen,iang),xsdiscoutad(type,nen,iang),
      +          xspreeqoutad(type,nen,iang),
      +          xsmpreeqoutad(type,nen,iang),xscompoutad(type,nen,iang)
   130       continue
   120     continue
-          if (flagrecoil.and.flaglabddx) then
-            do 140 iang=0,nanglecont
-              write(*,'(/"DDX for outgoing ",a8," at ",f7.3,$)') 
-     +          parname(type),anglecont(iang)
-              write(*,'(" degrees in LAB frame"/)')
-              write(*,'("Energy  Cross section"/)')
-              do 150 nen=1,iejlab(type)
-                write(*,'(f7.3,1p,e12.5)') Eejlab(type,nen),
-     +            ddxejlab(type,nen,iang)
-  150         continue
-  140       continue
-          endif
-          do 160 i=1,ddxacount(type)
+          do 140 i=1,ddxacount(type)
             angf=fileddxa(type,i)
             call locate(anglecont,0,nanglecont,angf,iang)
             fac=(angf-anglecont(iang))/anginc
@@ -174,9 +184,9 @@ c
             write(1,'("# ")')
             write(1,'("# # energies =",i3)')
      +        eendout(type)-ebegin(type)+1
-            write(1,'("# E-out    Total       Direct    Pre-equil.",$)')
-            write(1,'("  Mult. preeq  Compound")')      
-            do 170 nen=ebegin(type),eendout(type)
+            write(1,'("# E-out    Total       Direct    Pre-equil.",
+     +        "  Mult. preeq  Compound")')      
+            do 150 nen=ebegin(type),eendout(type)
               Eout=espec(type,nen)
               xsa=xssumoutad(type,nen,iang)
               xsb=xssumoutad(type,nen,iang+1)
@@ -194,9 +204,44 @@ c
               xsb=xscompoutad(type,nen,iang+1)
               xs5=xsa+fac*(xsb-xsa)
               write(1,'(f7.3,1p,5e12.5)') Eout,xs1,xs2,xs3,xs4,xs5
-  170       continue
+  150       continue
             close (unit=1)
-  160     continue
+  140     continue
+c
+c Results in LAB frame
+c
+          if (flagrecoil.and.flaglabddx) then
+            do 160 iang=0,nanglecont
+              write(*,'(/" DDX for outgoing ",a8," at ",f7.3,
+     +          " degrees in LAB frame"/)') parname(type),
+     +          anglecont(iang)
+              write(*,'(" Energy  Cross section"/)')
+              do 170 nen=1,iejlab(type)
+                write(*,'(1x,f7.3,1p,e12.5)') Eejlab(type,nen),
+     +            ddxejlab(type,nen,iang)
+  170         continue
+  160       continue
+            do 180 i=1,ddxacount(type)
+              angf=fileddxa(type,i)
+              ddxfile=' ddx000_0.lab'
+              write(ddxfile(1:1),'(a1)') parsym(type)
+              write(ddxfile(5:9),'(f5.1)') angf
+              write(ddxfile(5:7),'(i3.3)') int(angf)
+              open (unit=1,status='unknown',file=ddxfile)     
+              write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum",
+     +          " in LAB system")') parsym(k0),Atarget,nuc(Ztarget),
+     +          parname(type)
+              write(1,'("# E-incident = ",f7.3)') Einc
+              write(1,'("# ")')
+              write(1,'("# # energies =",i3)') iejlab(type)
+              write(1,'("# E-out    Total")')
+              do 190 nen=1,iejlab(type)
+                write(1,'(f7.3,1p,e12.5)') Eejlab(type,nen),
+     +            ddxejlab(type,nen,iang)
+  190         continue
+  180       continue
+            close (unit=1)
+          endif
   110   continue
       endif
       return

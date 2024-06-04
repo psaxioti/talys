@@ -1,8 +1,8 @@
       subroutine tfission(Zcomp,Ncomp,J2,parity)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire, Pascal Romain
-c | Date  : August 22, 2004
+c | Author: Stephane Hilaire and Pascal Romain
+c | Date  : July 13, 2006
 c | Task  : Fission transmission coefficients
 c +---------------------------------------------------------------------
 c
@@ -13,7 +13,8 @@ c
       real             Eex,term1,term2,damper,ec2,wo2,diffnrj,wo2damp,
      +                 boost,boostmax,Ecut,Ecut1,Ecut2,term11,term21,
      +                 term12,term22,damper1,damper2,wo2damp1,wo2damp2
-      double precision tf,tfb1,rnfb1,tfb2,rnfb2,tfb3,rnfb3,tf12,tsum123
+      double precision tf,tfb1,rnfb1,tfb2,rnfb2,tfb3,rnfb3,tfii,addnrj,
+     +                 tf12,tsum123,tfiii
 c
 c ********** Calculation of fission transmission coefficients **********
 c
@@ -90,8 +91,8 @@ c Emaxclass2 : maximum energy for class2 states
 c widthc2    : width of class2 states
 c flagclass2 : flag for class2 states in fission
 c term1,term2: help variables
-c efisc2rot  : energy of rotational class2 states
 c damper     : damping factor
+c efisc2rot  : energy of rotational class2 states
 c nfisc2rot  : number of rotational class2 states per set
 c nc2,ic2,ec2: help variables
 c wo2,jc2,pc2: help variables
@@ -104,11 +105,12 @@ c
             term2=efisc2rot(Zcomp,Ncomp,1,nfisc2rot(Zcomp,Ncomp,1))-
      +        efisc2rot(Zcomp,Ncomp,1,1)
             damper=term1/term2
+            wo2=0.5*widthc2(Zcomp,Ncomp,1)
+            wo2damp=wo2*damper
+            tfii=0.
             do 40 ic2=nfisc2rot(Zcomp,Ncomp,1),1,-1
               ec2=efisc2rot(Zcomp,Ncomp,1,ic2)
-              wo2=0.5*widthc2(Zcomp,Ncomp,1)
               diffnrj=abs(Eex-ec2)
-              wo2damp=wo2*damper
               if (diffnrj.le.wo2damp) then
                 jc2=int(2.*jfisc2rot(Zcomp,Ncomp,1,ic2))
                 pc2=pfisc2rot(Zcomp,Ncomp,1,ic2)
@@ -116,11 +118,13 @@ c
                   boostmax=4./(tfb1+tfb2)
                   boost=boostmax+diffnrj*diffnrj/wo2damp/wo2damp*
      +              (1.-boostmax)
-                  tf=tf*boost
-                  goto 30
+                  addnrj=(Eex+ec2)*diffnrj/wo2damp/2./Eex
+                  boost=boostmax/(1.+addnrj**2)
+                  tfii=tfii+tf*boost
                 endif
               endif
    40       continue
+            if(tfii.gt.0.) tf=tfii
           endif
         endif
 c      
@@ -131,7 +135,7 @@ c
           if (tfb1.lt.transeps) goto 30
           call t1barrier(Zcomp,Ncomp,J2,parity,2,tfb2,rnfb2,Eex,iloop)
           if (tfb2.lt.transeps) goto 30
-          call t1barrier(Zcomp,Ncomp,J2,parity,2,tfb3,rnfb3,Eex,iloop)
+          call t1barrier(Zcomp,Ncomp,J2,parity,3,tfb3,rnfb3,Eex,iloop)
           if (tfb3.lt.transeps) goto 30
           tf12=tfb1*tfb2/(tfb1+tfb2)
           tsum123=tf12+tfb3
@@ -151,42 +155,46 @@ c
      +        efisc2rot(Zcomp,Ncomp,2,1)
             damper1=term11/term21
             damper2=term12/term22
+            wo2=0.5*widthc2(Zcomp,Ncomp,1)
+            wo2damp1=wo2*damper1
+            tfii=0.
             do 50 ic2=nfisc2rot(Zcomp,Ncomp,1),1,-1
               ec2=efisc2rot(Zcomp,Ncomp,1,ic2)
-              wo2=0.5*widthc2(Zcomp,Ncomp,1)
               diffnrj=abs(Eex-ec2)
-              wo2damp1=wo2*damper1
               if (diffnrj.le.wo2damp1) then
                 jc2=int(2.*jfisc2rot(Zcomp,Ncomp,1,ic2))
                 pc2=pfisc2rot(Zcomp,Ncomp,1,ic2)
                 if ((jc2.eq.J2).and.(pc2.eq.parity)) then
                   boostmax=4./(tfb1+tfb2)
-                  boost=boostmax+diffnrj*diffnrj/wo2damp1/wo2damp1*
-     +              (1.-boostmax)
-                  tf12=tf12*boost
-                  tsum123=tf12+tfb3
-                  tf=tf12*tfb3/tsum123
-                  goto 60
+                  addnrj=(Eex+ec2)*diffnrj/wo2damp1/2./Eex
+                  boost=boostmax/(1.+addnrj**2)
+                  tfii=tfii+tfb1*tfb2/(tfb1+tfb2)*boost
                 endif
               endif
    50       continue
-   60       do 70 ic2=nfisc2rot(Zcomp,Ncomp,2),1,-1
+            if (tfii.gt.0.) then
+               tf12=tfii
+               tsum123=tf12+tfb3
+               tf=tf12*tfb3/tsum123
+            endif
+            wo2=0.5*widthc2(Zcomp,Ncomp,2)
+            wo2damp2=wo2*damper2
+            tfiii=0.
+            do 60 ic2=nfisc2rot(Zcomp,Ncomp,2),1,-1
               ec2=efisc2rot(Zcomp,Ncomp,2,ic2)
-              wo2=0.5*widthc2(Zcomp,Ncomp,2)
               diffnrj=abs(Eex-ec2)
-              wo2damp2=wo2*damper2
               if (diffnrj.le.wo2damp2) then
                 jc2=int(2.*jfisc2rot(Zcomp,Ncomp,2,ic2))
                 pc2=pfisc2rot(Zcomp,Ncomp,2,ic2)
                 if ((jc2.eq.J2).and.(pc2.eq.parity)) then
                   boostmax=4./tsum123
-                  boost=boostmax+diffnrj*diffnrj/wo2damp2/wo2damp2*
-     +              (1.-boostmax)
-                  tf=tf*boost
-                  goto 30
+                  addnrj=(Eex+ec2)*diffnrj/wo2damp2/2./Eex
+                  boost=boostmax/(1.+addnrj**2)
+                  tfiii=tfiii+tf*boost
                 endif
               endif
-   70       continue
+   60       continue
+            if (tfiii.gt.0.) tf=tfiii
           endif
         endif
    30   if (iloop.eq.1) tfisdown(J,parity)=tf

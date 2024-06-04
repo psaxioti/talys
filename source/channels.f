@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : September 10, 2004
+c | Date  : September 26, 2006
 c | Task  : Exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -19,24 +19,8 @@ c
 c
 c ************************ Initialization ******************************
 c
-c flagcheck  : flag for output of numerical checks
-c xsparcheck : total particle production cross section
-c flagspec   : flag for output of spectra
-c ebegin     : first energy point of energy grid
-c eend       : last energy point of energy grid
-c xsspeccheck: total particle production spectra
-c channelsum : sum over exclusive channel cross sections
+c channelsum: sum over exclusive channel cross sections
 c
-      if (flagcheck) then
-        do 10 type=0,6
-          xsparcheck(type)=0.
-          if (flagspec) then
-            do 20 nen=ebegin(type),eend(type)
-              xsspeccheck(type,nen)=0.
-   20       continue
-          endif
-   10   continue
-      endif
       channelsum=0.
 c
 c Initially, all the flux is in the initial compound state.
@@ -160,7 +144,6 @@ c k0            : index of incident particle
 c targetE       : energy of target 
 c numex         : maximal number of excitation energies 
 c                 (set in talys.cmb)
-c parskip       : logical to skip outgoing particle
 c Eavchannel    : channel average energy 
 c xschannelsp   : channel cross section spectra
 c xsfischannelsp: fission channel cross section spectra
@@ -187,7 +170,6 @@ c
   140       continue
             if (flagspec) then
               do 150 type=0,6
-                if (parskip(type)) goto 150
                 Eavchannel(idnum,type)=0.
                 do 160 nen=0,numen
                   xschannelsp(idnum,type,nen)=0.
@@ -201,6 +183,7 @@ c
 c
 c 4. Determine source paths for exclusive channel.
 c
+c parskip       : logical to skip outgoing particle
 c identorg,idorg: identifier for previous channel
 c Zcomp         : charge number index for compound nucleus
 c parZ          : charge number of particle 
@@ -273,6 +256,8 @@ c 5. Exclusive cross sections per excitation energy
 c
 c feedexcl: feeding terms from compound excitation energy bin to
 c           residual excitation energy bin     
+c ebegin  : first energy point of energy grid
+c eend    : last energy point of energy grid
 c binemis : emission spectra from initial compound nucleus
 c
 c The inclusive cross section per excitation energy S is 
@@ -455,9 +440,13 @@ c The result will appear in the output, if requested. Also the
 c exclusive spectra are integrated so that they can be compared
 c with the exclusive cross sections.
 c
+c flagcheck  : flag for output of numerical checks
+c xsparcheck : total particle production cross section
+c flagspec   : flag for output of spectra
 c fissum     : help variable
 c emissum    : integrated emission spectrum
 c Eaveragesum: help variable
+c xsspeccheck: total particle production spectra
 c deltaE     : energy bin around outgoing energies    
 c egrid      : outgoing energy grid 
 c eoutdis    : outgoing energy of discrete state reaction
@@ -494,8 +483,8 @@ c
                       frac=Etop(nendisc(type))-eoutdis(type,NL)
                       emissum=emissum-
      +                  xschannelsp(idnum,type,nendisc(type))*frac
-                      Eaveragesum=Eaveragesum-egrid(nen)*
-     +                  xschannelsp(idnum,type,nen)*frac
+                      Eaveragesum=Eaveragesum-egrid(nendisc(type))*
+     +                  xschannelsp(idnum,type,nendisc(type))*frac
                       if (flagfission) fissum=fissum-
      +                  xsfischannelsp(idnum,type,nendisc(type))*frac
                     endif

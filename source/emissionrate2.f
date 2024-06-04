@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 10, 2004
+c | Date  : June 22, 2005
 c | Task  : Two-component emission rates for exciton model
 c +---------------------------------------------------------------------
 c
@@ -43,6 +43,7 @@ c Esurf      : well depth for surface interaction
 c Efermi     : depth of Fermi well
 c U,Ures     : excitation energy minus pairing energy
 c preeqpair  : pre-equilibrium pairing energy       
+c pairmodel  : model for preequilibrium pairing energy
 c phcomp     : particle-hole state density for compound system 
 c phdens2    : function for two-component particle-hole state density
 c wemistot2  : total two-component emission rate per exciton number
@@ -82,7 +83,7 @@ c
       else
         edepth=Efermi
       endif             
-      U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp)
+      U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp,pairmodel)
       phcomp=phdens2(ppi,hpi,pnu,hnu,gsp,gsn,U,edepth,surfwell)
       wemistot2(ppi,hpi,pnu,hnu)=0.
       do 10 type=0,6
@@ -142,8 +143,8 @@ c
           if (type.eq.0) then
             if (primary.and.n.le.7) then
               factor=factor*Eout
-              U=max(Eres-preeqpair(Zcomp,Ncomp,n,Eres),
-     +          preeqpair(Zcomp,Ncomp,n,Eres))
+              U=max(Eres-preeqpair(Zcomp,Ncomp,n,Eres,pairmodel),
+     +          preeqpair(Zcomp,Ncomp,n,Eres,pairmodel))
               surfgam=.false.           
               phres1=0.5*
      +          (phdens2(ppi-1,hpi-1,pnu,hnu,gsp,gsn,U,Efermi,surfgam)+
@@ -169,8 +170,8 @@ c
             ppires=ppi-zejec
             pnures=pnu-nejec
             if (ppires.lt.0.or.pnures.lt.0.or.h.eq.0) goto 30
-            Ures=max(Eres-preeqpair(Zix,Nix,n,Eres),
-     +        preeqpair(Zix,Nix,n,Eres))
+            Ures=max(Eres-preeqpair(Zix,Nix,n,Eres,pairmodel),
+     +        preeqpair(Zix,Nix,n,Eres,pairmodel))
             phres=phdens2(ppires,hpi,pnures,hnu,gsp,gsn,Ures,Ewell,
      +        surfwell)
             phratio=phres/phcomp

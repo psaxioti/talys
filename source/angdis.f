@@ -50,7 +50,7 @@ c For some unknown reason, compound inelastic inelastic scattering
 c to 0+ states can have a L=2 Legendre coefficient that is larger
 c than the L=0 Legendre coefficient. This only happens for high 
 c incident energies, typically above 10 MeV, i.e. for cases that 
-c compound inelastic scattering to indvidual states is negligible. 
+c compound inelastic scattering to individual states is negligible. 
 c Nevertheless, to avoid complaints by ENDF6 checking codes we put 
 c the L=2 Legendre coefficient equal to the L=0 coefficient for these
 c rare cases.

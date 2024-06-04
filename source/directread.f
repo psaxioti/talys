@@ -2,15 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : August 4, 2004
+c | Date  : August 23, 2006
 c | Task  : Read ECIS results for direct cross section
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*72     line
-      integer          type,Zix,Nix,NL,i,l,iang,itype
+      integer          type,Zix,Nix,NL,i,iS,nS,k,nleg,l,iang,itype
       real             levelenergy,xsdwbatot
       double precision xs,dl
 c
@@ -31,8 +30,9 @@ c xs              : help variable
 c xsdirdisc       : direct cross section for discrete state    
 c dorigin         : origin of direct cross section (Direct or Preeq)
 c
-      open (unit=3,status='unknown',file='ecis97.dircs')
-      open (unit=7,status='unknown',file='ecis97.dirres')
+      open (unit=8,status='unknown',file='ecis03.dirang')
+      open (unit=9,status='unknown',file='ecis03.dirleg')
+      open (unit=10,status='unknown',file='ecis03.dirin')
       do 10 type=k0,k0
         if (parskip(type)) goto 10
         Zix=Zindex(0,0,type)
@@ -47,9 +47,8 @@ c
           if (eoutdis(type,i).le.0.) goto 20 
           levelenergy=edis(Zix,Nix,i)
           if (eninccm.le.levelenergy+0.1*parA(type)) goto 20
-  30      read(3,'(a72)',end=120) line
-          if (line(1:1).eq.'<') goto 30
-          read(line,*) xs       
+          read(10,'()') 
+          read(10,*) xs       
           xsdirdisc(type,i)=real(xs)
           if (i.le.NL) dorigin(type,i)='Direct'
 c
@@ -59,20 +58,28 @@ c We read the Legendre coefficients for the direct component of the
 c reaction only, the compound nucleus coefficients are calculated by 
 c TALYS later on.
 c
+c nS     : number of states
+c nleg   : number of Legendre coefficients
 c i      : level
 c l      : l-value
 c dleg,dl: direct reaction Legendre coefficient
 c
         
-  110     read(7,'(a72)',end=120) line
-          if (line(1:1).eq.'<') goto 110
-          if (line(5:5).eq.'0') goto 120
-          if (line(5:5).eq.'2') then
-            read(line,'(5x,i5,e20.10)') l,dl
-            if (i.le.NL) dleg(type,i,l)=real(dl)
-          endif
-          goto 110
-  120     backspace 7
+          read(9,'(45x,i5)') nS
+          do 110 iS=1,nS
+            if (iS.eq.1) then
+              read(9,'(5x,i5)')  nleg
+              do 120 k=1,nleg
+                read(9,'()') 
+  120         continue
+            else
+              read(9,'(5x,i5)')  nleg
+              do 130 k=1,nleg
+                read(9,'(5x,i5,e20.10)') l,dl
+                if (i.le.NL) dleg(type,i,l)=real(dl)
+  130         continue
+            endif
+  110     continue
 c
 c ************************ Angular distributions ***********************
 c
@@ -82,32 +89,28 @@ c directad: direct angular distribution
 c
 c We first skip the elastic angular distribution
 c
-          iang=-1
-  210     read(7,'(a72)') line
-          if (line(1:1).eq.'<') goto 210
-          read(line,'(i3,12x,e12.5)') itype,xs         
-          if (itype.eq.0) iang=iang+1
-          if (iang.lt.nangle) goto 210
-          iang=-1
-  220     read(7,'(a72)') line
-          if (line(1:1).eq.'<') goto 220
-          read(line,'(i3,12x,e12.5)') itype,xs    
-          if (itype.eq.0) then
-            iang=iang+1
-            directad(type,i,iang)=real(xs)
-          endif
-          if (iang.lt.nangle) goto 220
-  230     read(7,'(a72)',end=240) line
-          if (line(1:1).eq.'<') goto 230
-          if (line(3:3).ne.'0'.and.line(3:3).ne.' ') goto 230
-          backspace 7
+          read(8,'()')
+          read(8,'(12x,i3)') nS
+          do 210 iang=0,nangle
+            do 210 k=1,nS
+              read(8,'()')
+  210     continue
+c
+c Read direct angular distribution
+c
+          read(8,'(12x,i3)') nS
+          do 220 iang=0,nangle
+            do 220 k=1,nS
+            read(8,'(i3,12x,e12.5)') itype,xs
+            if (itype.eq.0) directad(type,i,iang)=real(xs)
+  220     continue
    20   continue
 c
 c 2. Giant resonance states
 c 
 c Egrcoll: energy of giant resonance  
 c
-  240   if (type.eq.k0) then
+        if (type.eq.k0) then
           do 310 l=0,3
             do 310 i=1,2
               if (betagr(l,i).eq.0.) goto 310
@@ -118,43 +121,27 @@ c Giant resonance cross section
 c
 c xsgrcoll: giant resonance cross section
 c
-  320         read(3,'(a72)') line
-              if (line(1:1).eq.'<') goto 320
-              read(line,*) xs      
+              read(10,'()') 
+              read(10,*) xs      
               xsgrcoll(k0,l,i)=real(xs)
-c
-c Skip the Legendre coefficients
-c
-  330         read(7,'(a72)',end=340) line
-              if (line(1:1).eq.'<') goto 330
-              if (line(5:5).eq.'0') goto 340
-              goto 330
-  340         backspace 7
 c
 c Giant resonance angular distribution
 c
 c nanglecont: number of angles for continuum
 c grcollad  : giant resonance angular distribution
 c
-              iang=-1
-  350         read(7,'(a72)') line
-              if (line(1:1).eq.'<') goto 350
-              read(line,'(i3,12x,e12.5)') itype,xs       
-              if (itype.eq.0) iang=iang+1
-              if (iang.lt.nanglecont) goto 350
-              iang=-1
-  360         read(7,'(a72)')line
-              if (line(1:1).eq.'<') goto 360
-              read(line,'(i3,12x,e12.5)') itype,xs   
-              if (itype.eq.0) then
-                iang=iang+1
-                grcollad(k0,l,i,iang)=real(xs)
-              endif
-              if (iang.lt.nanglecont) goto 360
-  370         read(7,'(a72)',end=310) line
-              if (line(1:1).eq.'<') goto 370
-              if (line(3:3).ne.'0'.and.line(3:3).ne.' ') goto 370
-              backspace 7
+              read(8,'()') 
+              read(8,'(12x,i3)') nS
+              do 330 iang=0,nanglecont
+                do 330 k=1,nS
+                  read(8,'()')
+  330         continue
+              read(8,'(12x,i3)') nS
+              do 340 iang=0,nanglecont
+                do 340 k=1,nS
+                  read(8,'(i3,12x,e12.5)') itype,xs
+                  if (itype.eq.0) grcollad(k0,l,i,iang)=real(xs)
+  340         continue
   310     continue
         endif
 c
@@ -180,8 +167,11 @@ c
         xsdirdisctot(type)=xsdirdisctot(type)+xsdwbatot
         xsdirdiscsum=xsdirdiscsum+xsdwbatot
    10 continue
+      close (unit=8,status=ecisstatus)
+      close (unit=9,status=ecisstatus)
+      close (unit=10,status=ecisstatus)
+      open (unit=3,status='unknown',file='ecis03.dircs')
       close (unit=3,status=ecisstatus)
-      close (unit=7,status=ecisstatus)
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

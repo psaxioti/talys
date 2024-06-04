@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : November 13, 2004
+c | Date  : September 26, 2006
 c | Task  : ECIS calculation of compound cross sections (reference only)
 c +---------------------------------------------------------------------
 c
@@ -19,13 +19,12 @@ c
 c ********************** Set ECIS input parameters *********************
 c
 c Specific ECIS flags:
+c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
+c ecis2(64)=T : output of angular distributions
 c ecis2(65)=T : output of Legendre coefficients
 c ecis2(81)=T : compound
 c ecis2(83)=T : No Engelbrecht-Weidenmuller transformation
 c ecis2(84)=T : compound
-c Extra ECIS-flags added by A. Koning:
-c ecis2(10)=T : output of polarization 
-c ecis2(30)=T : output of direct inelastic cross section 
 c
 c title      : title of ECIS input file
 c ecis1,ecis2: 100 input flags ('T' or 'F') for ECIS
@@ -35,7 +34,7 @@ c
       open (unit=1,status='unknown',file='eciscomp.inp')
       title='Compound cross sections by ECIS                   '
       ecis1='FFTFFTFFFFFFFFTFFFFFFFFFFFFTFFFFFFFFFFFFFFFFFFFFFF'
-      ecis2='FFFFFFFFFFFFFTTFTTTFFTTFTFFFFTTFTTFFFFFFFTFFFFFFFF'
+      ecis2='FFFFFFFFTFFFFTTFTTTFFTTFTFFFFFTFTTFFFFFFFTFFFFFFFF'
       if (flagrel) ecis1(8:8)='T'
 c
 c Gamma emission
@@ -124,6 +123,7 @@ c
         Umcomp(0)=Exmatch(Zix,Nix,0)-pair(Zix,Nix)
         tempcomp(0)=T(Zix,Nix,0)
         E0comp(0)=E0(Zix,Nix,0)
+        Excomp(0)=Umcomp(0)+pair(Zix,Nix)
         tgo=swaveth 
       endif
 c
@@ -231,14 +231,17 @@ c
 c ************************** ECIS calculation **************************
 c
 c flagoutecis: flag for output of ECIS results
-c ecis97t    : subroutine ecis97, adapted for TALYS
+c ecis03t    : subroutine ecis03, adapted for TALYS
+c nulldev    : null device
 c
       if (flagoutecis) then
-        call ecis97t('eciscomp.inp ','eciscomp.out ','ecis97.comcs ',
-     +    'ecis97.comres')          
+        call ecis03t('eciscomp.inp ','eciscomp.out ',
+     +    'ecis03.comcs ','ecis03.comin ','null         ',
+     +    'ecis03.comang','ecis03.comleg')  
       else
-        call ecis97t('eciscomp.inp ','/dev/null    ','ecis97.comcs ',
-     +    'ecis97.comres')          
+        call ecis03t('eciscomp.inp ',nulldev,
+     +    'ecis03.comcs ','ecis03.comin ','null         ',
+     +    'ecis03.comang','ecis03.comleg')  
       endif
       return
       end

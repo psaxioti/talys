@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 2, 2004
+c | Date  : November 10, 2006
 c | Task  : Write input parameters
 c +---------------------------------------------------------------------
 c
@@ -18,16 +18,17 @@ c
 c nlines: number of input lines
 c inline: input line
 c
-      write(*,'(/"########## USER INPUT ##########")')
-      write(*,'(/"USER INPUT FILE"/)')
+      write(*,'(/" ########## USER INPUT ##########")')
+      write(*,'(/" USER INPUT FILE"/)')
       do 10 i=1,nlines
-        write(*,'(a80)') inline(i)
+        write(*,'(1x,a80)') inline(i)
    10 continue
 c
 c ********* All possible input parameters including defaults ***********
 c
-      write(*,'(/"USER INPUT FILE + DEFAULTS"/)')
-      write(*,'("Keyword           Value   Variable     Explanation"/)')
+      write(*,'(/" USER INPUT FILE + DEFAULTS"/)')
+      write(*,'(" Keyword           Value   Variable",
+     +  "     Explanation"/)')
 c
 c 1. Four main keywords
 c
@@ -38,19 +39,19 @@ c numinc    : number of incident energies
 c eninc     : incident energy in MeV
 c energyfile: file with incident energies
 c
-      write(*,'("#"/"# Four main keywords"/"#")')
-      write(*,'("projectile          ",a1,"     ptype0",$)') ptype0
-      write(*,'("       type of incident particle")') 
-      write(*,'("element            ",a2,"     Starget",$)') Starget
-      write(*,'("      symbol of target nucleus")')
-      write(*,'("mass              ",i3,"     mass        ",$)') Atarget
-      write(*,'(" mass number of target nucleus")')
+      write(*,'(" #"/" # Four main keywords"/" #")')
+      write(*,'(" projectile          ",a1,"     ptype0",
+     +  "       type of incident particle")') ptype0
+      write(*,'(" element            ",a2,"     Starget",
+     +  "      symbol of target nucleus")') Starget
+      write(*,'(" mass              ",i3,"     mass     ",
+     +  "    mass number of target nucleus")') Atarget
       if (numinc.eq.1) then
-        write(*,'("energy            ",f7.3," eninc",$)') eninc(1)
-        write(*,'("        incident energy in MeV")') 
+        write(*,'(" energy            ",f7.3," eninc",
+     +    "        incident energy in MeV")') eninc(1)
       else
-        write(*,'("energy ",a14,"     energyfile",$)') energyfile
-        write(*,'("   file with incident energies")') 
+        write(*,'(" energy ",a14,"     energyfile",
+     +    "   file with incident energies")') energyfile
       endif
 c
 c 2. Basic physical and numerical parameters
@@ -89,86 +90,81 @@ c flagrecoil  : flag for calculation of recoils
 c flaglabddx  : flag for calculation of DDX in LAB system
 c flagrecoilav: flag for average velocity in recoil calculation
 c flagEchannel: flag for channel energy for emission spectrum
+c flagreaction: flag for calculation of nuclear reactions
+c massmodel   : model for theoretical nuclear mass
+c flagexpmass : flag for using experimental nuclear mass if available
 c
-      write(*,'("#"/"# Basic physical and numerical parameters"/"#")')
-      write(*,'("ejectiles ",7(1x,a1),"  outtype      ",$)') 
-     +  (outtype(type),type=0,6)
-      write(*,'("outgoing particles")')
-      write(*,'("maxz              ",i3,"     maxZ         ",$)') maxZ
-      write(*,'("maximal number of protons away from the initial",$)')
-      write(*,'(" compound nucleus")')
-      write(*,'("maxn              ",i3,"     maxN         ",$)') maxN
-      write(*,'("maximal number of neutrons away from the initial",$)')
-      write(*,'(" compound nucleus")')
-      write(*,'("bins              ",i3,"     nbins        ",$)') nbins
-      write(*,'("number of continuum excitation energy bins")')
-      write(*,'("segment           ",i3,"     segment     ",$)') segment
-      write(*,'(" number of segments to divide emission energy grid")')
-      write(*,'("maxlevelstar      ",i3,"     nlevmax",$)') nlevmax
-      write(*,'("      maximum number of included discrete levels",$)')
-      write(*,'(" for target")')
-      write(*,'("maxlevelsres      ",i3,"     nlevmaxres",$)') 
-     +  nlevmaxres
-      write(*,'("   maximum number of included discrete levels",$)')
-      write(*,'(" for residual nucleus")')
+      write(*,'(" #"/" # Basic physical and numerical parameters")')
+      write(*,'(" #")')
+      write(*,'(" ejectiles ",7(1x,a1),"  outtype      ",
+     +  "outgoing particles")') (outtype(type),type=0,6)
+      write(*,'(" maxz              ",i3,"     maxZ         ",
+     +  "maximal number of protons away from the initial",
+     +  " compound nucleus")') maxZ
+      write(*,'(" maxn              ",i3,"     maxN         ",
+     +  "maximal number of neutrons away from the initial",
+     +  " compound nucleus")') maxN
+      write(*,'(" bins              ",i3,"     nbins        ",
+     +  "number of continuum excitation energy bins")') nbins
+      write(*,'(" segment           ",i3,"     segment    ",
+     +  "  number of segments to divide emission energy grid")') segment
+      write(*,'(" maxlevelstar      ",i3,"     nlevmax",
+     +  "      maximum number of included discrete levels for target")')
+     +  nlevmax
+      write(*,'(" maxlevelsres      ",i3,"     nlevmaxres",
+     +  "   maximum number of included discrete levels",
+     +  " for residual nucleus")') nlevmaxres
       do 20 type=0,6
-        write(*,'("maxlevelsbin ",a1,"    ",i3,"     nlevbin   ",$)') 
-     +    parsym(type),nlevbin(type)
-        write(*,'("   maximum number of included discrete levels",$)')
-        write(*,'(" for ",a8," channel")') parname(type)
+        write(*,'(" maxlevelsbin ",a1,"    ",i3,"     nlevbin   ",
+     +    "   maximum number of included discrete levels for ",
+     +    a8," channel")') parsym(type),nlevbin(type),parname(type)
    20 continue
-      write(*,'("ltarget           ",i3,"     ltarget",$)') Ltarget
-      write(*,'("      excited level of target")')
-      write(*,'("isomer          ",1p,e9.2," isomer ",$)') isomer 
-      write(*,'("      definition of isomer in seconds")')
-      write(*,'("transpower        ",i3,"     transpower",$)') 
-     +  transpower
-      write(*,'("   power for transmission coefficient limit")')
-      write(*,'("transeps        ",1p,e9.2," transeps",$)') transeps
-      write(*,'("     limit for transmission coefficient")')
-      write(*,'("xseps           ",1p,e9.2," xseps   ",$)') xseps
-      write(*,'("     limit for cross sections")')
-      write(*,'("popeps          ",1p,e9.2," popeps  ",$)') popeps
-      write(*,'("     limit for population cross section per nucleus")')
-      write(*,'("Rfiseps         ",1p,e9.2," Rfiseps ",$)') Rfiseps
-      write(*,'("     ratio for limit for fission cross section",$)')
-      write(*,'(" per nucleus")')
-      write(*,'("elow            ",1p,e9.2," elow    ",$)') eninclow
-      write(*,'("     minimal incident energy for nuclear model",$)')
-      write(*,'(" calculations")')
-      write(*,'("angles            ",i3,"     nangle",$)') nangle
-      write(*,'("       number of angles")')
-      write(*,'("anglescont        ",i3,"     nanglecont",$)') 
-     +  nanglecont
-      write(*,'("   number of angles for continuum")')
-      write(*,'("anglesrec         ",i3,"     nanglerec ",$)') 
-     +  nanglerec
-      write(*,'("   number of recoil angles")')
-      write(*,'("maxenrec          ",i3,"     maxenrec  ",$)') 
-     +  maxenrec
-      write(*,'("   number of recoil energies")')
-      write(*,'("channels            ",a1,"     flagchannels",$)') 
-     +  yesno(flagchannels)
-      write(*,'(" flag for exclusive channels calculation")')
-      write(*,'("maxchannel         ",i2,"     maxchannel",$)') 
-     +  maxchannel
-      write(*,'("   maximal number of outgoing particles in",$)')
-      write(*,'(" individual channel description")')
-      write(*,'("relativistic        ",a1,"     flagrel",$)') 
-     +  yesno(flagrel)
-      write(*,'("      flag for relativistic kinematics")')
-      write(*,'("recoil              ",a1,"     flagrecoil",$)') 
-     +  yesno(flagrecoil)
-      write(*,'("   flag for calculation of recoils")')
-      write(*,'("labddx              ",a1,"     flaglabddx",$)') 
-     +  yesno(flaglabddx)
-      write(*,'("   flag for calculation of DDX in LAB system")')
-      write(*,'("recoilaverage       ",a1,"     flagrecoilav",$)') 
-     +  yesno(flagrecoilav)
-      write(*,'(" flag for average velocity in recoil calculation")')
-      write(*,'("channelenergy       ",a1,"     flagEchannel",$)') 
-     +  yesno(flagEchannel)
-      write(*,'(" flag for channel energy for emission spectrum")')
+      write(*,'(" ltarget           ",i3,"     ltarget",
+     +  "      excited level of target")') Ltarget
+      write(*,'(" isomer          ",1p,e9.2," isomer ",
+     +  "      definition of isomer in seconds")') isomer 
+      write(*,'(" transpower        ",i3,"     transpower",
+     +  "   power for transmission coefficient limit")') transpower
+      write(*,'(" transeps        ",1p,e9.2," transeps",
+     +  "     limit for transmission coefficient")') transeps
+      write(*,'(" xseps           ",1p,e9.2," xseps   ",
+     +  "     limit for cross sections")') xseps
+      write(*,'(" popeps          ",1p,e9.2," popeps  ",
+     +  "     limit for population cross section per nucleus")') popeps
+      write(*,'(" Rfiseps         ",1p,e9.2," Rfiseps      ratio",
+     +  " for limit for fission cross section per nucleus")') Rfiseps
+      write(*,'(" elow            ",1p,e9.2," elow         minimal",
+     +  " incident energy for nuclear model calculations")') eninclow
+      write(*,'(" angles            ",i3,"     nangle"
+     +  "       number of angles")') nangle
+      write(*,'(" anglescont        ",i3,"     nanglecont",
+     +  "   number of angles for continuum")') nanglecont
+      write(*,'(" anglesrec         ",i3,"     nanglerec ",
+     +  "   number of recoil angles")') nanglerec
+      write(*,'(" maxenrec          ",i3,"     maxenrec  ",
+     +  "   number of recoil energies")') maxenrec
+      write(*,'(" channels            ",a1,"     flagchannels flag",
+     +  " for exclusive channels calculation")') yesno(flagchannels)
+      write(*,'(" maxchannel         ",i2,"     maxchannel",
+     +  "   maximal number of outgoing particles in",
+     +  " individual channel description")') maxchannel
+      write(*,'(" relativistic        ",a1,"     flagrel",
+     +  "      flag for relativistic kinematics")') yesno(flagrel)
+      write(*,'(" recoil              ",a1,"     flagrecoil",
+     +  "   flag for calculation of recoils")') yesno(flagrecoil)
+      write(*,'(" labddx              ",a1,"     flaglabddx   flag",
+     +  " for calculation of DDX in LAB system")') yesno(flaglabddx)
+      write(*,'(" recoilaverage       ",a1,"     flagrecoilav flag for",
+     +  " average velocity in recoil calculation")') yesno(flagrecoilav)
+      write(*,'(" channelenergy       ",a1,"     flagEchannel flag for",
+     +  " channel energy for emission spectrum")') yesno(flagEchannel)
+      write(*,'(" reaction            ",a1,"     flagreaction flag",
+     +  " for calculation of nuclear reactions")') yesno(flagreaction)
+      write(*,'(" massmodel          ",i2,"     massmodel",
+     +  "    model for theoretical nuclear mass")') massmodel
+      write(*,'(" expmass             ",a1,"     flagexpmass ",
+     +  " flag for using experimental nuclear mass if available")')
+     +  yesno(flagexpmass)
 c
 c 3. Optical model
 c
@@ -192,31 +188,24 @@ c flageciscalc: flag for new ECIS calculation for outgoing particles
 c               and energy grid
 c flaginccalc : flag for new ECIS calculation for incident channel
 c
-      write(*,'("#"/"# Optical model"/"#")')
-      write(*,'("localomp            ",a1,"     flaglocalomp",$)') 
-     +  yesno(flaglocalomp)
-      write(*,'(" flag for local (y) or global (n) optical model")')
-      write(*,'("optmodall           ",a1,"     flagompall  ",$)') 
+      write(*,'(" #"/" # Optical model"/" #")')
+      write(*,'(" localomp            ",a1,"     flaglocalomp flag for",
+     +  " local (y) or global (n) optical model")') yesno(flaglocalomp)
+      write(*,'(" optmodall           ",a1,"     flagompall   flag for",
+     +  " new optical model calculation for all residual nuclei")')
      +  yesno(flagompall)
-      write(*,'(" flag for new optical model calculation for ",$)')
-      write(*,'("all residual nuclei")')
-      write(*,'("autorot             ",a1,"     flagautorot ",$)') 
-     +  yesno(flagautorot)
-      write(*,'(" flag for automatic rotational coupled channels ",$)')
-      write(*,'("calculations for A > 150")')
-      write(*,'("spherical           ",a1,"     flagspher   ",$)') 
-     +  yesno(flagspher)
-      write(*,'(" flag to force spherical optical model")')
-      write(*,'("statepot            ",a1,"     flagstate   ",$)') 
+      write(*,'(" autorot             ",a1,"     flagautorot ",
+     +  " flag for automatic rotational coupled channels ",
+     +  "calculations for A > 150")') yesno(flagautorot)
+      write(*,'(" spherical           ",a1,"     flagspher   ",
+     +  " flag to force spherical optical model")') yesno(flagspher)
+      write(*,'(" statepot            ",a1,"     flagstate   ",
+     +  " flag for optical model potential for each excited state")')
      +  yesno(flagstate)
-      write(*,'(" flag for optical model potential for each",$)')
-      write(*,'(" excited state")')
-      write(*,'("maxband           ",i3,"     maxband     ",$)') 
-     +  maxband
-      write(*,'(" highest vibrational band added to rotational model")')
-      write(*,'("maxrot            ",i3,"     maxrot      ",$)') 
-     +  maxrot
-      write(*,'(" number of included excited rotational levels")')
+      write(*,'(" maxband           ",i3,"     maxband      highest",
+     +  " vibrational band added to rotational model")') maxband
+      write(*,'(" maxrot            ",i3,"     maxrot      ",
+     +  " number of included excited rotational levels")') maxrot
       sysstring='            '
       i=-1
       do 110 type=1,6
@@ -225,9 +214,8 @@ c
           write(sysstring(i:i),'(a1)') parsym(type)
         endif
   110 continue
-      write(*,'("sysreaction  ",a12," sysreaction  ",$)') sysstring
-      write(*,'("particles with reaction cross section from ",$)')
-      write(*,'("systematics")')
+      write(*,'(" sysreaction  ",a12," sysreaction  particles",
+     +  " with reaction cross section from systematics")') sysstring
       rotstring='            '
       i=-1
       do 120 type=1,6
@@ -236,20 +224,18 @@ c
           write(rotstring(i:i),'(a1)') parsym(type)
         endif
   120 continue
-      write(*,'("rotational   ",a12," rotational   ",$)') rotstring
-      write(*,'("particles with possible rotational optical model")')
-      write(*,'("core              ",i3,"     core   ",$)') core
-      write(*,'("      even-even core for weakcoupling (-1 or 1)")')
-      write(*,'("ecissave            ",a1,"     flagecissave",$)') 
-     +  yesno(flagecissave)
-      write(*,'(" flag for saving ECIS input and output files")')
-      write(*,'("eciscalc            ",a1,"     flageciscalc",$)') 
-     +  yesno(flageciscalc)
-      write(*,'(" flag for new ECIS calculation for outgoing ",$)')
-      write(*,'("particles and energy grid")')
-      write(*,'("inccalc             ",a1,"     flaginccalc ",$)') 
+      write(*,'(" rotational   ",a12," rotational   ",
+     +  "particles with possible rotational optical model")') rotstring
+      write(*,'(" core              ",i3,"     core   ",
+     +  "      even-even core for weakcoupling (-1 or 1)")') core
+      write(*,'(" ecissave            ",a1,"     flagecissave flag", 
+     +  " for saving ECIS input and output files")') yesno(flagecissave)
+      write(*,'(" eciscalc            ",a1,"     flageciscalc",
+     +  " flag for new ECIS calculation for outgoing particles and"
+     +  " energy grid")') yesno(flageciscalc)
+      write(*,'(" inccalc             ",a1,"     flaginccalc ",
+     +  " flag for new ECIS calculation for incident channel")')
      +  yesno(flaginccalc)
-      write(*,'(" flag for new ECIS calculation for incident channel")')
 c
 c 4. Compound nucleus
 c
@@ -264,45 +250,38 @@ c flagfullhf  : flag for full spin dependence of transmission
 c               coefficients         
 c flageciscomp: flag for compound nucleus calculation by ECIS
 c
-      write(*,'("#"/"# Compound nucleus"/"#")')
+      write(*,'(" #"/" # Compound nucleus"/" #")')
       if (numinc.gt.1.and.enincmin.lt.ewfc.and.enincmax.ge.ewfc) then
-        write(*,'("widthfluc         ",f7.3," ewfc         ",$)') ewfc
-        write(*,'("off-set incident energy for width fluctuation",$)')
-        write(*,'(" calculation")')
+        write(*,'(" widthfluc         ",f7.3," ewfc         off-set",
+     +    " incident energy for width fluctuation calculation")') ewfc
       else
-        write(*,'("widthfluc           ",a1,"     flagwidth  ",$)') 
-     +    yesno(flagwidth)
-        write(*,'("  flag for width fluctuation calculation")')
+        write(*,'(" widthfluc           ",a1,"     flagwidth  ",
+     +    "  flag for width fluctuation calculation")') yesno(flagwidth)
       endif
-      write(*,'("widthmode          ",i2,"     wmode      ",$)') wmode
-      write(*,'("  designator for width fluctuation model")')
-      write(*,'("compound            ",a1,"     flagcomp     ",$)') 
-     +  yesno(flagcomp)
-      write(*,'("flag for compound nucleus model")')
-      write(*,'("fullhf              ",a1,"     flagfullhf   ",$)') 
+      write(*,'(" widthmode          ",i2,"     wmode      ",
+     +  "  designator for width fluctuation model")') wmode
+      write(*,'(" compound            ",a1,"     flagcomp     ",
+     +  "flag for compound nucleus model")') yesno(flagcomp)
+      write(*,'(" fullhf              ",a1,"     flagfullhf   ",
+     +  "flag for full spin dependence of transmission coefficients")')
      +  yesno(flagfullhf)
-      write(*,'("flag for full spin dependence of transmission ",$)')
-      write(*,'("coefficients")')
-      write(*,'("eciscompound        ",a1,"     flageciscomp",$)') 
-     +  yesno(flageciscomp)
-      write(*,'(" flag for compound nucleus calculation by ECIS")')
+      write(*,'(" eciscompound        ",a1,"     flageciscomp flag for",
+     +  " compound nucleus calculation by ECIS")') yesno(flageciscomp)
 c
 c 5. Gamma emission    
 c
 c gammax      : number of l-values for gamma multipolarity
-c strength    : strength function of Kopecky-Uhl (1) or Brink-Axel (2)
+c strength    : model for E1 gamma-ray strength function
 c flagelectron: flag for application of electron conversion coefficient
 c
-      write(*,'("#"/"# Gamma emission"/"#")')
-      write(*,'("gammax             ",i2,"     gammax",$)') gammax
-      write(*,'("       number of l-values for gamma multipolarity")')
-      write(*,'("strength           ",i2,"     strength",$)') strength
-      write(*,'("     strength function of Kopecky-Uhl (1) or ",$)')
-      write(*,'("Brink-Axel (2)")')
-      write(*,'("electronconv        ",a1,"     flagelectron",$)') 
+      write(*,'(" #"/" # Gamma emission"/" #")')
+      write(*,'(" gammax             ",i2,"     gammax",
+     +  "       number of l-values for gamma multipolarity")') gammax
+      write(*,'(" strength           ",i2,"     strength",
+     +  "     model for E1 gamma-ray strength function")') strength
+      write(*,'(" electronconv        ",a1,"     flagelectron",
+     +  " flag for application of electron conversion coefficient")')
      +  yesno(flagelectron)
-      write(*,'(" flag for application of electron conversion",$)') 
-      write(*,'(" coefficient")')
 c
 c 6. Pre-equilibrium   
 c
@@ -312,6 +291,7 @@ c preeqmode   : designator for pre-equilibrium model
 c flagmulpre  : flag for multiple pre-equilibrium calculation 
 c mpreeqmode  : designator for multiple pre-equilibrium model 
 c emulpre     : on-set incident energy for multiple preequilibrium
+c pairmodel   : model for preequilibrium pairing energy
 c flagpespin  : flag for pre-equilibrium spin distribution or compound
 c               spin distribution for pre-equilibrium cross section   
 c flaggiant0  : flag for collective contribution from giant resonances
@@ -321,81 +301,80 @@ c flag2comp   : flag for two-component pre-equilibrium model
 c flagecisdwba: flag for new ECIS calculation for DWBA for MSD
 c flagonestep : flag for continuum one-step direct only
 c
-      write(*,'("#"/"# Pre-equilibrium"/"#")')
+      write(*,'(" #"/" # Pre-equilibrium"/" #")')
       if (numinc.gt.1.and.enincmin.lt.epreeq.and.enincmax.ge.epreeq) 
      +  then
-        write(*,'("preequilibrium    ",f7.3," epreeq   ",$)') epreeq
-        write(*,'("    on-set incident energy for preequilibrium",$)')
-        write(*,'(" calculation")')
+        write(*,'(" preequilibrium    ",f7.3," epreeq       on-set",
+     +    " incident energy for preequilibrium calculation")') epreeq
       else
-        write(*,'("preequilibrium      ",a1,"     flagpreeq  ",$)') 
-     +    yesno(flagpreeq)
-        write(*,'("  flag for pre-equilibrium calculation")')
+        write(*,'(" preequilibrium      ",a1,"     flagpreeq  ",
+     +    "  flag for pre-equilibrium calculation")') yesno(flagpreeq)
       endif
-      write(*,'("preeqmode          ",i2,"     preeqmode",$)') preeqmode
-      write(*,'("    designator for pre-equilibrium model")')
+      write(*,'(" preeqmode          ",i2,"     preeqmode",
+     +  "    designator for pre-equilibrium model")') preeqmode
       if (numinc.gt.1.and.enincmin.lt.emulpre.and.enincmax.ge.emulpre) 
      +  then
-        write(*,'("multipreeq        ",f7.3," emulpre",$)') emulpre
-        write(*,'("      on-set incident energy for multiple",$)')
-        write(*,'(" preequilibrium")')
+        write(*,'(" multipreeq        ",f7.3," emulpre      on-set",
+     +    " incident energy for multiple preequilibrium")') emulpre
       else
-        write(*,'("multipreeq          ",a1,"     flagmulpre   ",$)') 
+        write(*,'(" multipreeq          ",a1,"     flagmulpre   ",
+     +    "flag for multiple pre-equilibrium calculation")')
      +    yesno(flagmulpre)
-        write(*,'("flag for multiple pre-equilibrium calculation")')
       endif
-      write(*,'("mpreeqmode         ",i2,"     mpreeqmode",$)') 
+      write(*,'(" mpreeqmode         ",i2,"     mpreeqmode",
+     +  "   designator for multiple pre-equilibrium model")')
      +  mpreeqmode
-      write(*,'("   designator for multiple pre-equilibrium model")')
-      write(*,'("preeqspin           ",a1,"     flagpespin",$)') 
+      write(*,'(" pairmodel          ",i2,"     pairmodel",
+     +  "    designator for pre-equilibrium pairing model")') pairmodel
+      write(*,'(" preeqspin           ",a1,"     flagpespin",
+     +  "   flag for pre-equilibrium spin distribution")')
      +  yesno(flagpespin)
-      write(*,'("   flag for pre-equilibrium spin distribution")')
-      write(*,'("giantresonance      ",a1,"     flaggiant    ",$)') 
+      write(*,'(" giantresonance      ",a1,"     flaggiant    ",
+     +  "flag for collective contribution from giant resonances")')
      +  yesno(flaggiant0)
-      write(*,'("flag for collective contribution from giant",$)')
-      write(*,'(" resonances")')
-      write(*,'("preeqsurface        ",a1,"     flagsurface",$)') 
-     +  yesno(flagsurface)
-      write(*,'("  flag for surface effects in exciton model")')
-      write(*,'("preeqcomplex        ",a1,"     flagpecomp",$)') 
+      write(*,'(" preeqsurface        ",a1,"     flagsurface  flag",
+     +  " for surface effects in exciton model")') yesno(flagsurface)
+      write(*,'(" preeqcomplex        ",a1,"     flagpecomp",
+     +  "   flag for Kalbach complex particle emission model")')
      +  yesno(flagpecomp)
-      write(*,'("   flag for Kalbach complex particle emission model")')
-      write(*,'("twocomponent        ",a1,"     flag2comp",$)') 
+      write(*,'(" twocomponent        ",a1,"     flag2comp",
+     +  "    flag for two-component pre-equilibrium model")')
      +  yesno(flag2comp)
-      write(*,'("    flag for two-component pre-equilibrium model")')
-      write(*,'("ecisdwba            ",a1,"     flagecisdwba",$)') 
+      write(*,'(" ecisdwba            ",a1,"     flagecisdwba",
+     +  " flag for new ECIS calculation for DWBA for MSD")')
      +  yesno(flagecisdwba)
-      write(*,'(" flag for new ECIS calculation for DWBA for MSD")')
-      write(*,'("onestep             ",a1,"     flagonestep ",$)') 
-     +  yesno(flagonestep)
-      write(*,'(" flag for continuum one-step direct only")')
+      write(*,'(" onestep             ",a1,"     flagonestep  flag",
+     +  " for continuum one-step direct only")') yesno(flagonestep)
 c
 c 7. Level densities   
 c
 c ldmodel     : level density model
+c spincutmodel: model for spin cutoff factor for ground state
+c shellmodel  : model for shell correction energies
 c flagasys    : flag for all level density parameters a from 
 c               systematics
-c flagcolldamp: flag for damping of collective effects
+c flagparity  : flag for non-equal parity distribution
+c flagcol     : flag for collective enhancement of level density
 c flaggshell  : flag for energy dependence of single particle level
 c               density parameter g
-
 c
-      write(*,'("#"/"# Level densities"/"#")')
-      write(*,'("ldmodel            ",i2,"     ldmodel    ",$)') ldmodel
-      write(*,'("  level density model")')
-      write(*,'("asys                ",a1,"     flagasys    ",$)') 
+      write(*,'(" #"/" # Level densities"/" #")')
+      write(*,'(" ldmodel            ",i2,"     ldmodel    ",
+     +  "  level density model")') ldmodel
+      write(*,'(" shellmodel         ",i2,"     shellmodel  ",
+     +  " model for shell correction energies")') shellmodel
+      write(*,'(" spincutmodel       ",i2,"     spincutmodel",
+     +  " model for spin cutoff factor for ground state")') spincutmodel
+      write(*,'(" asys                ",a1,"     flagasys     flag",
+     +  " for all level density parameters a from systematics")') 
      +  yesno(flagasys)
-      write(*,'(" flag for all level density parameters a from ",$)')
-      write(*,'("systematics")')
-      write(*,'("colldamp            ",a1,"     flagcolldamp",$)') 
-     +  yesno(flagcolldamp)
-      write(*,'(" flag for damping of collective effects")')
-      write(*,'(" flag for coupling of single particle level ",$)')
-      write(*,'("density parameter g to level density parameter a")')
-      write(*,'("gshell              ",a1,"     flaggshell  ",$)') 
-     +  yesno(flaggshell)
-      write(*,'(" flag for energy dependence of single particle",$)')
-      write(*,'(" level density parameter g")')
+      write(*,'(" parity              ",a1,"     flagparity  ",
+     +  " flag for non-equal parity distribution")') yesno(flagparity)
+      write(*,'(" colenhance          ",a1,"     flagcol     ",
+     +  " flag for damping of collective effects")') yesno(flagcol)
+      write(*,'(" gshell              ",a1,"     flaggshell  ",
+     +  " flag for energy dependence of single particle",
+     +  " level density parameter g")') yesno(flaggshell)
 c
 c 8. Fission           
 c
@@ -407,27 +386,21 @@ c flagmassdis: flag for calculation of fission fragment mass yields
 c flagffevap : flag for calculation of particle evaporation from
 c              fission fragment mass yields 
 c
-      write(*,'("#"/"# Fission"/"#")')
-      write(*,'("fission             ",a1,"     flagfission",$)') 
-     +  yesno(flagfission)
-      write(*,'("  flag for fission")')
-      write(*,'("fismodel           ",i2,"     fismodel   ",$)') 
-     +  fismodel  
-      write(*,'("  fission model")')
-      write(*,'("fismodelalt        ",i2,"     fismodelalt ",$)') 
-     +  fismodelalt
-      write(*,'(" alternative fission model for default barriers")')
-      write(*,'("class2              ",a1,"     flagclass2 ",$)') 
-     +  yesno(flagclass2)
-      write(*,'("  flag for class2 states in fission")')
-      write(*,'("massdis             ",a1,"     flagmassdis",$)') 
+      write(*,'(" #"/" # Fission"/" #")')
+      write(*,'(" fission             ",a1,"     flagfission",
+     +  "  flag for fission")') yesno(flagfission)
+      write(*,'(" fismodel           ",i2,"     fismodel   ",
+     +  "  fission model")') fismodel  
+      write(*,'(" fismodelalt        ",i2,"     fismodelalt ",
+     +  " alternative fission model for default barriers")') fismodelalt
+      write(*,'(" class2              ",a1,"     flagclass2 ",
+     +  "  flag for class2 states in fission")') yesno(flagclass2)
+      write(*,'(" massdis             ",a1,"     flagmassdis",
+     +  "  flag for calculation of fission fragment mass yields")')
      +  yesno(flagmassdis)
-      write(*,'("  flag for calculation of fission fragment",$)')
-      write(*,'(" mass yields")')
-      write(*,'("ffevaporation       ",a1,"     flagffevap  ",$)') 
-     +  yesno(flagffevap)
-      write(*,'(" flag for calculation of particle evaporation",$)')
-      write(*,'(" from fission fragment mass yields")')
+      write(*,'(" ffevaporation       ",a1,"     flagffevap  ",
+     +  " flag for calculation of particle evaporation",
+     +  " from fission fragment mass yields")') yesno(flagffevap)
 c
 c 9. Output
 c
@@ -439,8 +412,8 @@ c flaglevels  : flag for output of discrete level information
 c flagdensity : flag for output of level densities
 c flagoutomp  : flag for output of optical model parameters
 c flagdirect  : flag for output of direct reaction results
-c flaginverse : flag for output of transmission coefficients and inverse
-c               reaction cross sections
+c flaginverse : flag for output of transmission coefficients and 
+c               inverse reaction cross sections
 c flagtransen : flag for output of transmission coefficients per energy
 c flagoutecis : flag for output of ECIS results
 c flaggamma   : flag for output of gamma-ray information
@@ -458,94 +431,77 @@ c flagoutdwba : flag for output of DWBA cross sections for MSD
 c flaggamdis  : flag for output of discrete gamma-ray intensities
 c flagexc     : flag for output of excitation functions
 c flagendf    : flag for information for ENDF-6 file
+c flagendfdet : flag for detailed ENDF-6 information per channel
 c flagpartable: flag for output of model parameters on separate file
 c
-      write(*,'("#"/"# Output"/"#")')
-      write(*,'("outmain             ",a1,"     flagmain     ",$)') 
-     +  yesno(flagmain)
-      write(*,'("flag for main output")')
-      write(*,'("outbasic            ",a1,"     flagbasic    ",$)') 
-     +  yesno(flagbasic)
-      write(*,'("flag for output of basic information and results")')
-      write(*,'("outpopulation       ",a1,"     flagpop",$)') 
-     +  yesno(flagpop)
-      write(*,'("      flag for output of population")')
-      write(*,'("outcheck            ",a1,"     flagcheck",$)') 
-     +  yesno(flagcheck)
-      write(*,'("    flag for output of numerical checks")')
-      write(*,'("outlevels           ",a1,"     flaglevels",$)') 
-     +  yesno(flaglevels)
-      write(*,'("   flag for output of discrete level information")')
-      write(*,'("outdensity          ",a1,"     flagdensity",$)') 
-     +  yesno(flagdensity)
-      write(*,'("  flag for output of level densities")')
-      write(*,'("outomp              ",a1,"     flagoutomp ",$)') 
-     +  yesno(flagoutomp)
-      write(*,'("  flag for output of optical model parameters")')
-      write(*,'("outdirect           ",a1,"     flagdirect ",$)') 
-     +  yesno(flagdirect)
-      write(*,'("  flag for output of direct reaction results")')
-      write(*,'("outinverse          ",a1,"     flaginverse",$)') 
-     +  yesno(flaginverse)
-      write(*,'("  flag for output of transmission coefficients",$)')
-      write(*,'(" and inverse reaction cross sections")')
-      write(*,'("outtransenergy      ",a1,"     flagtransen",$)') 
+      write(*,'(" #"/" # Output"/" #")')
+      write(*,'(" outmain             ",a1,"     flagmain     ",
+     +  "flag for main output")') yesno(flagmain)
+      write(*,'(" outbasic            ",a1,"     flagbasic    flag for",
+     +  " output of basic information and results")') yesno(flagbasic)
+      write(*,'(" outpopulation       ",a1,"     flagpop",
+     +  "      flag for output of population")') yesno(flagpop)
+      write(*,'(" outcheck            ",a1,"     flagcheck",
+     +  "    flag for output of numerical checks")') yesno(flagcheck)
+      write(*,'(" outlevels           ",a1,"     flaglevels   flag",
+     +  " for output of discrete level information")') yesno(flaglevels)
+      write(*,'(" outdensity          ",a1,"     flagdensity",
+     +  "  flag for output of level densities")') yesno(flagdensity)
+      write(*,'(" outomp              ",a1,"     flagoutomp   flag",
+     +  " for output of optical model parameters")') yesno(flagoutomp)
+      write(*,'(" outdirect           ",a1,"     flagdirect   flag",
+     +  " for output of direct reaction results")') yesno(flagdirect)
+      write(*,'(" outinverse          ",a1,"     flaginverse",
+     +  "  flag for output of transmission coefficients",
+     +  " and inverse reaction cross sections")') yesno(flaginverse)
+      write(*,'(" outtransenergy      ",a1,"     flagtransen",
+     +  "  flag for output of transmission coefficients per energy")')
      +  yesno(flagtransen)
-      write(*,'("  flag for output of transmission coefficients",$)')
-      write(*,'(" per energy")')
-      write(*,'("outecis             ",a1,"     flagoutecis ",$)') 
-     +  yesno(flagoutecis)
-      write(*,'(" flag for output of ECIS results")')
-      write(*,'("outgamma            ",a1,"     flaggamma",$)') 
-     +  yesno(flaggamma)
-      write(*,'("    flag for output of gamma-ray information")')
-      write(*,'("outpreequilibrium   ",a1,"     flagpeout",$)') 
+      write(*,'(" outecis             ",a1,"     flagoutecis ",
+     +  " flag for output of ECIS results")') yesno(flagoutecis)
+      write(*,'(" outgamma            ",a1,"     flaggamma    flag",
+     +  " for output of gamma-ray information")') yesno(flaggamma)
+      write(*,'(" outpreequilibrium   ",a1,"     flagpeout",
+     +  "    flag for output of pre-equilibrium results ")')
      +  yesno(flagpeout)
-      write(*,'("    flag for output of pre-equilibrium results ")')
-      write(*,'("outfission          ",a1,"     flagfisout",$)') 
-     +  yesno(flagfisout)
-      write(*,'("   flag for output of fission information")')
-      write(*,'("outdiscrete         ",a1,"     flagdisc",$)') 
+      write(*,'(" outfission          ",a1,"     flagfisout   flag",
+     +  " for output of fission information")') yesno(flagfisout)
+      write(*,'(" outdiscrete         ",a1,"     flagdisc",
+     +  "     flag for output of discrete state cross sections")')
      +  yesno(flagdisc)
-      write(*,'("     flag for output of discrete state cross",$)')
-      write(*,'(" sections")')
-      write(*,'("outspectra          ",a1,"     flagspec",$)') 
-     +  yesno(flagspec)
-      write(*,'("     flag for output of double-differential cross",$)')
-      write(*,'(" sections")')
-      write(*,'("adddiscrete         ",a1,"     flagadd ",$)') 
+      write(*,'(" outspectra          ",a1,"     flagspec",
+     +  "     flag for output of double-differential cross",
+     +  " sections")') yesno(flagspec)
+      write(*,'(" adddiscrete         ",a1,"     flagadd ",
+     +  "     flag for addition of discrete states to spectra")')
      +  yesno(flagadd)
-      write(*,'("     flag for addition of discrete states to",$)')
-      write(*,'(" spectra")')
-      write(*,'("addelastic          ",a1,"     flagaddel",$)') 
+      write(*,'(" addelastic          ",a1,"     flagaddel",
+     +  "    flag for addition of elastic peak to spectra")')
      +  yesno(flagaddel)
-      write(*,'("    flag for addition of elastic peak to spectra")')
-      write(*,'("outangle            ",a1,"     flagang",$)') 
+      write(*,'(" outangle            ",a1,"     flagang",
+     +  "      flag for output of angular distributions")')
      +  yesno(flagang)
-      write(*,'("      flag for output of angular distributions")')
-      write(*,'("outlegendre         ",a1,"     flaglegendre",$)') 
-     +  yesno(flaglegendre)
-      write(*,'(" flag for output of Legendre coefficients")')
-      write(*,'("ddxmode             ",i1,"     ddxmode      ",$)') 
-     +  ddxmode
-      write(*,'("mode for double-differential cross sections")')
-      write(*,'("outdwba             ",a1,"     flagoutdwba  ",$)') 
+      write(*,'(" outlegendre         ",a1,"     flaglegendre flag",
+     +  " for output of Legendre coefficients")') yesno(flaglegendre)
+      write(*,'(" ddxmode             ",i1,"     ddxmode      ",
+     +  "mode for double-differential cross sections")') ddxmode
+      write(*,'(" outdwba             ",a1,"     flagoutdwba  ",
+     +  "flag for output of DWBA cross sections for MSD")')
      +  yesno(flagoutdwba)
-      write(*,'("flag for output of DWBA cross sections for MSD")')
-      write(*,'("outgamdis           ",a1,"     flaggamdis  ",$)') 
+      write(*,'(" outgamdis           ",a1,"     flaggamdis  ",
+     +  " flag for output of discrete gamma-ray intensities")')
      +  yesno(flaggamdis)
-      write(*,'(" flag for output of discrete gamma-ray ",$)')
-      write(*,'("intensities")')
-      write(*,'("outexcitation       ",a1,"     flagexc",$)') 
+      write(*,'(" outexcitation       ",a1,"     flagexc",
+     +  "      flag for output of excitation functions")') 
      +  yesno(flagexc)
-      write(*,'("      flag for output of excitation functions")')
-      write(*,'("endf                ",a1,"     flagendf",$)') 
-     +  yesno(flagendf)
-      write(*,'("     flag for information for ENDF-6 file")')
-      write(*,'("partable            ",a1,"     flagpartable",$)') 
+      write(*,'(" endf                ",a1,"     flagendf",
+     +  "     flag for information for ENDF-6 file")') yesno(flagendf)
+      write(*,'(" endfdetail          ",a1,"     flagendfdet",
+     +  "  flag for detailed ENDF-6 information per channel")') 
+     +  yesno(flagendfdet)
+      write(*,'(" partable            ",a1,"     flagpartable",
+     +  " flag for output of model parameters on separate file")')
      +  yesno(flagpartable)
-      write(*,'(" flag for output of model parameters on",$)')
-      write(*,'(" separate file")')
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : September 9, 2004
+c | Date  : September 26, 2006
 c | Task  : Fission fragment mass yields per fission mode based on RNRM
 c +---------------------------------------------------------------------
 c
@@ -21,11 +21,12 @@ c
      +     sform,s12,x1,x2,b1,b2,de,vr3,ve1,ve2,a1,a2,zriss,zo,zu,
      +     vr2,vr1,amin,fmin,fimin,delt,tmp,d,dum,
      +     bcom,at,gam,zda,zstepsize,astepsize,astepnum,r0,xnu,
-     +     rayl,psh(7),pd(7),pa(7),pe(7),af1(4000),rn1(4000,100),
-     +     rn2(4000,100),zdis(4000,100),af2(4000),zf2(4000,100),
-     +     sumtmp(4000),wgt(4000),wlog(4000),fmass(260),rtbis,
-     +     fmasscor(260),crel,aloop,elt,edefo,ap,ztot,atot,
-     +     fmzcor(260,100),fmz(260,100),zf1(4000,100),ald,ignatyuk,dumm
+     +     rayl,psh(7),pd(7),pa(7),pe(7),af1(4000),rn1(4000,numelem),
+     +     rn2(4000,numelem),zdis(4000,numelem),af2(4000),
+     +     zf2(4000,numelem),sumtmp(4000),wgt(4000),wlog(4000),
+     +     fmass(nummass),rtbis,fmasscor(nummass),crel,aloop,elt,edefo,
+     +     ap,ztot,atot,fmzcor(nummass,numelem),fmz(nummass,numelem),
+     +     zf1(4000,numelem),ald,ignatyuk,dumm
       external fi,rpoint,evap
       data r0,xnu,rayl/1.15,1.0,11.00/
 c
@@ -95,7 +96,7 @@ c
       pe(i)=1.
  30   pd(i)=.35
       do 31 i=5,6
-      Psh(i)=.8
+      psh(i)=.8
       pa(i)=.6
       pe(i)=1.
  31   pd(i)=.2
@@ -190,7 +191,7 @@ c
       es1=bind1-bind01+es1
       es2=bind2-bind02+es2
       wlog(jmx)=es1+es2
- 204  amm=am1
+      amm=am1
       zee=ze1
       ess=es1
       rnmi=-1.
@@ -239,13 +240,13 @@ c
       do 71 k=1,jimax
          sumw=sumw+wgt(k)
          sumtmp(k)=0.
-         do 72 I=1,izmax
+         do 72 i=1,izmax
             sumtmp(k)=sumtmp(k)+zdis(k,i)
  72      continue
  71   continue
       do 74 k=1, jimax
          wgt(k)=wgt(k)/sumw
-         do 73, I=1,izmax
+         do 73, i=1,izmax
             zdis(k,i)=zdis(k,i)/sumtmp(k)
             fmz(int(af1(k)+0.5),int(zf1(k,i)+0.5))=
      +           wgt(k)*zdis(k,i)
@@ -268,8 +269,8 @@ c
          fmass(int(af1(k)+0.5))=fmass(int(af1(k)+0.5))+wgt(k)
          fmass(int(af2(k)+0.5))=fmass(int(af2(k)+0.5))+wgt(k)
  74   continue
-      do 76 k=1,260
-         do 75 i=1,100
+      do 76 k=1,nummass
+         do 75 i=1,numelem
             fmasscor(k)=fmasscor(k)+fmzcor(k,i)
  75      continue
  76   continue

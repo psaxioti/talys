@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 10, 2004
+c | Date  : November 19, 2005
 c | Task  : Deformation parameters
 c +---------------------------------------------------------------------
 c
@@ -63,6 +63,7 @@ c
    20   continue
         goto 10
       endif
+c
 c Initialization
 c
 c numrotcc: number of rotational deformation parameters        
@@ -220,8 +221,8 @@ c
         rotpar(Zix,Nix,1)=beta2f
         rotpar(Zix,Nix,2)=beta4f
         deftype(Zix,Nix)='B' 
-        close (unit=2)
-  200   if (odd.eq.0) goto 400
+  200   close (unit=2)
+        if (odd.eq.0) goto 400
       endif
 c
 c Number of rotational levels should remain below maxrot
@@ -321,20 +322,21 @@ c
   410 read(2,'(4x,i4,f12.6)',end=500) ia,beta2f
       if (ia.ne.A) goto 410 
       beta2(Zix,Nix,0)=beta2f
-      close (unit=2)
+  500 close (unit=2)
 c
 c ************** Rigid body value for moment of inertia ****************
 c
 c R       : radius
 c onethird: 1/3
 c Irigid0 : undeformed rigid body value of moment of inertia
+c parmass : mass of particle in a.m.u.
 c amu     : atomic mass unit in MeV  
 c hbarc   : hbar.c in MeV.fm
 c Irigid  : rigid body value of moment of inertia
 c
 
-  500 R=1.25*A**onethird
-      Irigid0(Zix,Nix)=0.4*R*R*A*amu/(hbarc**2)
+      R=1.2*A**onethird
+      Irigid0(Zix,Nix)=0.4*R*R*A*parmass(1)*amu/(hbarc**2)
       do 510 ibar=0,numbar
         Irigid(Zix,Nix,ibar)=(1+beta2(Zix,Nix,ibar)/3.)*Irigid0(Zix,Nix)
   510 continue

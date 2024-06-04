@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 14, 2004
+c | Date  : July 21, 2005
 c | Task  : Estimate of thermal cross sections
 c +---------------------------------------------------------------------
 c
@@ -25,7 +25,7 @@ c For non-threshold channels, the cross sections are extrapolated
 c down to 1.e-5 eV. Capture values at thermal energies are used.
 c For energies up to 1 eV, the 1/sqrt(E) law is used. Between 1 eV
 c and the first energy at which TALYS performs the statistical model
-c calculation, we use logarithmical interpolation.
+c calculation, we use logarithmic interpolation.
 c
 c xscaptherm  : thermal capture cross section
 c xsptherm    : thermal (n,p) cross section

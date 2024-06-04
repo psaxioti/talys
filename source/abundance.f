@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 28, 2004
+c | Date  : October 5, 2006
 c | Task  : Natural abundances
 c +---------------------------------------------------------------------
 c
@@ -77,16 +77,25 @@ c
       do 140 i=1,isonum
         abun(i)=abun(i)/abtot
   140 continue
-      write(*,'(/"Calculation for multi-isotope case"/)')
-      write(*,'(" Isotope Abundance"/)')
+      write(*,'(/" Calculation for multi-isotope case"/)')
+      write(*,'("  Isotope Abundance"/)')
       do 150 i=1,isonum
-        write(*,'(1x,i3,a2,f11.6)') isotope(i),nuc(Ztarget),abun(i)
+        write(*,'(2x,i3,a2,f11.6)') isotope(i),nuc(Ztarget),abun(i)
   150 continue
+c
+c Create file name extensions
+c
+c numiso   : maximum number of isotopes per element
+c natstring: string extension for file names
+c
+      do 160 i=1,isonum
+        write(natstring(i)(1:4),'(".",i3.3)') isotope(i)
+  160 continue
       return
-  200 write(*,'("TALYS-error: No natural isotopes for this",$)')
-      write(*,'(" element, the mass keyword must be different from 0")')
+  200 write(*,'(" TALYS-error: No natural isotopes for this",
+     +  " element, the mass keyword must be different from 0")')
       stop    
-  210 write(*,'("TALYS-error: Format error in abundance file ",a72)') 
+  210 write(*,'(" TALYS-error: Format error in abundance file ",a72)') 
      +  abfile
       stop    
       end

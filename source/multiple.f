@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : September 10, 2004
+c | Date  : October 9, 2006     
 c | Task  : Multiple emission
 c +---------------------------------------------------------------------
 c
@@ -35,7 +35,7 @@ c
       primary=.false.
       maxchannel2=2*maxchannel
       if (flagpop) 
-     +  write(*,'(/"########## MULTIPLE EMISSION ##########")')
+     +  write(*,'(/" ########## MULTIPLE EMISSION ##########")')
       do 10 Zcomp=0,maxZ
         do 10 Ncomp=0,maxN
 c
@@ -64,6 +64,7 @@ c Nindex,Nix: neutron number index for residual nucleus
 c strucexist: flag to determine whether structure info for this nucleus
 c             already exists
 c structure : subroutine for nuclear structure parameters 
+c Dmulti    : depletion factor for multiple preequilibrium
 c exgrid    : subroutine to set excitation energy grid
 c
           if (xspopnuc(Zcomp,Ncomp).lt.popeps) then
@@ -93,6 +94,9 @@ c
               strucexist(Zix,Nix)=.true.
             endif
    20     continue
+          do 50 nex=0,numex
+            Dmulti(nex)=0.       
+   50     continue
           call exgrid(Zcomp,Ncomp)
 c
 c If a new set of transmission coefficients for each residual 
@@ -141,32 +145,33 @@ c
               if (flagfisout) call fissionparout(Zcomp,Ncomp)
               strucwrite(Zcomp,Ncomp)=.true.
             endif
-            write(*,'(/"Population of Z=",i3," N=",i3,$)') Z,N
-            write(*,'(" (",i3,a2,") before decay:",1p,e12.5)')
-     +        A,nuc(Z),xspopnuc(Zcomp,Ncomp)
-            write(*,'("Maximum excitation energy:",f8.3,$)') 
-     +        Exmax(Zcomp,Ncomp)
+            write(*,'(/" Population of Z=",i3," N=",i3," (",i3,a2,
+     +        ") before decay:",1p,e12.5)') Z,N,A,nuc(Z),
+     +        xspopnuc(Zcomp,Ncomp)
             NL=Nlast(Zcomp,Ncomp,0)
-            write(*,'(" Discrete levels:",i3,$)') NL
             if (maxex(Zcomp,Ncomp).gt.NL) then
-              write(*,'(" Continuum bins:",i3,$)') maxex(Zcomp,Ncomp)-NL
-              write(*,'(" Continuum bin size:",f8.3/)') dExinc
+              write(*,'(" Maximum excitation energy:",f8.3,
+     +          " Discrete levels:",i3," Continuum bins:",i3,
+     +          " Continuum bin size:",f8.3/)') Exmax(Zcomp,Ncomp),NL,
+     +          maxex(Zcomp,Ncomp)-NL,dExinc
             else
-              write(*,'()')
+              write(*,'(" Maximum excitation energy:",f8.3,
+     +        " Discrete levels:",i3)') Exmax(Zcomp,Ncomp),NL
             endif
-            write(*,'("bin    Ex    Popul.",$)')
-            write(*,'(10("    J=",f4.1)/)') (J+0.5*odd,J=0,9)
-            do 50 nex=0,maxex(Zcomp,Ncomp)
-              write(*,'(i3,f8.3,1p,e10.3,$)') nex,Ex(Zcomp,Ncomp,nex),
-     +          xspopex(Zcomp,Ncomp,nex)
+            write(*,'(" bin    Ex    Popul.",10("    J=",f4.1)/)') 
+     +        (J+0.5*odd,J=0,9)
+            do 60 nex=0,maxex(Zcomp,Ncomp)
               if (nex.le.NL) then 
-                write(*,'(1p,10e10.3)') (max(xspop(Zcomp,Ncomp,nex,J,1),
+                write(*,'(1x,i3,f8.3,1p,e10.3,1p,10e10.3)') nex,
+     +            Ex(Zcomp,Ncomp,nex),xspopex(Zcomp,Ncomp,nex),
+     +            (max(xspop(Zcomp,Ncomp,nex,J,1),
      +            xspop(Zcomp,Ncomp,nex,J,-1)),J=0,9)
               else
-                write(*,'(1p,10e10.3)') (xspop(Zcomp,Ncomp,nex,J,1),
-     +            J=0,9)
+                write(*,'(1x,i3,f8.3,1p,e10.3,1p,10e10.3)') nex,
+     +            Ex(Zcomp,Ncomp,nex),xspopex(Zcomp,Ncomp,nex),
+     +            (xspop(Zcomp,Ncomp,nex,J,1),J=0,9)
               endif
-   50       continue
+   60       continue
           endif
 c 
 c Loop 110: De-excitation of nucleus, starting at the highest excitation
@@ -253,13 +258,11 @@ c
 c
 c Deplete excitation energy bin by multiple pre-equilibrium.
 c
-c Dmulti     : depletion factor for multiple preequilibrium
 c mulpreZN   : logical for multiple pre-equilibrium per nucleus
 c flag2comp  : flag for two-component pre-equilibrium model
 c multipreeq2: subroutine for two-component multiple preequilibrium
 c multipreeq : subroutine for multiple preequilibrium
 c
-            Dmulti(nex)=0.       
             if (mulpreZN(Zcomp,Ncomp)) then
               if (flag2comp) then
                 call multipreeq2(Zcomp,Ncomp,nex)
@@ -427,13 +430,12 @@ c
           N=NN(Zcomp,Ncomp,0)
           A=AA(Zcomp,Ncomp,0)
           if (flagpop) then
-            write(*,'(/"Emitted flux per excitation energy bin of ",$)')
-            write(*,'("Z=",i3," N=",i3," (",i3,a2,"):"/)') 
-     +        Z,N,A,nuc(Z)
-            write(*,'("bin    Ex    ",$)')
-            write(*,'(7(2x,a8,2x)/)') (parname(type),type=0,6)
+            write(*,'(/" Emitted flux per excitation energy bin of",
+     +        " Z=",i3," N=",i3," (",i3,a2,"):"/)') Z,N,A,nuc(Z)
+            write(*,'(" bin    Ex    ",7(2x,a8,2x)/)') 
+     +        (parname(type),type=0,6)
             do 410 nex=0,maxex(Zcomp,Ncomp)
-              write(*,'(i3,f8.3,1p,7e12.5)') nex,Ex(Zcomp,Ncomp,nex),
+              write(*,'(1x,i3,f8.3,1p,7e12.5)') nex,Ex(Zcomp,Ncomp,nex),
      +          (xspartial(type,nex),type=0,6)
   410       continue
 c
@@ -442,11 +444,11 @@ c
 c fisfeedex: fission contribution from excitation energy bin
 c
             if (flagfission) then
-              write(*,'(/"Fission contribution from Z=",$)')
-              write(*,'(i3," N=",i3," (",i3,a2,"):"/)') Z,N,A,nuc(Z)
-              write(*,'("  Ex    Popul. "/)')
+              write(*,'(/" Fission contribution from Z=",i3,
+     +          " N=",i3," (",i3,a2,"):"/)') Z,N,A,nuc(Z)
+              write(*,'("   Ex    Popul. "/)')
               do 420 nex=0,maxex(Zcomp,Ncomp)
-                write(*,'(f8.3,1p,e12.5)') Ex(Zcomp,Ncomp,nex),
+                write(*,'(1x,f8.3,1p,e12.5)') Ex(Zcomp,Ncomp,nex),
      +            fisfeedex(Zcomp,Ncomp,nex)
   420         continue
             endif
@@ -460,30 +462,30 @@ c xspopph2: population cross section per two-component particle-hole
 c           configuration
 c
             if (mulpreZN(Zcomp,Ncomp)) then
-              write(*,'(/"Multiple preequilibrium emission from Z=",$)')
-              write(*,'(i3," N=",i3," (",i3,a2,"):"/)') Z,N,A,nuc(Z)
-              write(*,'(60x,"Feeding terms from previous ",$)')
-              write(*,'("particle-hole configuration"/)')
+              write(*,'(/" Multiple preequilibrium emission from ",
+     +          "Z=",i3," N=",i3," (",i3,a2,"):"/)') Z,N,A,nuc(Z)
+              write(*,'(61x,"Feeding terms from previous ",
+     +          "particle-hole configuration"/)')
               if (.not.flag2comp) then
-                write(*,'("bin    Ex  Mpe ratio  neutron   proton",$)')
-                write(*,'("  ",10("  ",i1,"p",i1,"h    "))') 
+                write(*,'(" bin    Ex  Mpe ratio  neutron   proton",
+     +            "  ",10("  ",i1,"p",i1,"h    "))') 
      +            ((p,h,p=1,h),h=1,4)
-                write(*,'("                     emission  emission"/)')
+                write(*,'("                      emission  emission"/)')
                 do 430 nex=Nlast(Zcomp,Ncomp,0)+1,maxex(Zcomp,Ncomp)
-                  write(*,'(i3,f8.3,f8.5,1p,12e10.3)') nex,
+                  write(*,'(1x,i3,f8.3,f8.5,1p,12e10.3)') nex,
      +              Ex(Zcomp,Ncomp,nex),Dmulti(nex),xsmpe(1,nex),
      +              xsmpe(2,nex),
      +              ((xspopph(Zcomp,Ncomp,nex,p,h),p=1,h),h=1,4)
                   Dmulti(nex)=0.
   430           continue
               else
-                write(*,'("bin    Ex  Mpe ratio  neutron   proton",$)')
-                write(*,'(11(2x,4i2))') 1,1,0,0, 0,0,1,1, 1,0,0,1,
-     +             0,1,1,0, 1,1,1,0, 1,0,1,1, 2,1,0,0, 0,0,2,1, 2,2,0,0,
-     +             0,0,2,2, 1,1,1,1 
-                write(*,'("                     emission  emission"/)')
+                write(*,'(" bin    Ex  Mpe ratio  neutron   proton",
+     +            11(2x,4i2))') 1,1,0,0, 0,0,1,1, 1,0,0,1,
+     +            0,1,1,0, 1,1,1,0, 1,0,1,1, 2,1,0,0, 0,0,2,1, 2,2,0,0,
+     +            0,0,2,2, 1,1,1,1 
+                write(*,'("                      emission  emission"/)')
                 do 440 nex=Nlast(Zcomp,Ncomp,0)+1,maxex(Zcomp,Ncomp)
-                  write(*,'(i3,f8.3,f8.5,1p,13e10.3)') nex,
+                  write(*,'(1x,i3,f8.3,f8.5,1p,13e10.3)') nex,
      +              Ex(Zcomp,Ncomp,nex),Dmulti(nex),xsmpe(1,nex),
      +              xsmpe(2,nex),
      +              xspopph2(Zcomp,Ncomp,nex,1,1,0,0),
@@ -500,7 +502,7 @@ c
                   Dmulti(nex)=0.
   440           continue
               endif
-              write(*,'(/" Total             ",1p,2e10.3)') 
+              write(*,'(/"  Total             ",1p,2e10.3)') 
      +          xsmpetot(1),xsmpetot(2)
             endif
 c
@@ -508,20 +510,20 @@ c Total decay from mother nucleus
 c
 c xsfeed: cross section from compound to residual nucleus
 c
-            write(*,'(/"Emission cross sections to residual ",$)')
-            write(*,'("nuclei from Z=",i3," N=",i3," (",i3,a2,"):"/)')
+            write(*,'(/" Emission cross sections to residual ",
+     +        "nuclei from Z=",i3," N=",i3," (",i3,a2,"):"/)')
      +        Z,N,A,nuc(Z)
             if (flagfission)
-     +        write(*,'("fission  channel",23x,":",1p,e12.5)') 
+     +        write(*,'(" fission  channel",23x,":",1p,e12.5)') 
      +        xsfeed(Zcomp,Ncomp,-1)
             do 450 type=0,6
               if (parskip(type)) goto 450
               Z=ZZ(Zcomp,Ncomp,type)
               N=NN(Zcomp,Ncomp,type)
               A=AA(Zcomp,Ncomp,type)
-              write(*,'(a8," channel to Z=",i3," N=",i3," (",i3,a2,$)')
-     +          parname(type),Z,N,A,nuc(Z)
-              write(*,'("):",1p,e12.5)') xsfeed(Zcomp,Ncomp,type)
+              write(*,'(1x,a8," channel to Z=",i3," N=",i3," (",i3,a2,
+     +          "):",1p,e12.5)') parname(type),Z,N,A,nuc(Z),
+     +          xsfeed(Zcomp,Ncomp,type)
   450       continue
 c
 c Total emission spectra from mother nucleus.
@@ -533,23 +535,22 @@ c
             N=NN(Zcomp,Ncomp,0)
             A=AA(Zcomp,Ncomp,0)
             if (flagspec) then
-              write(*,'(/"Emission spectra from Z=",i3," N=",i3,$)') 
-     +          Z,N
-              write(*,'(" (",i3,a2,"):"/)') A,nuc(Z)
-              write(*,'(" Energy ",7(2x,a8,2x)/)') (parname(type),
+              write(*,'(/" Emission spectra from Z=",i3," N=",i3,
+     +          " (",i3,a2,"):"/)') Z,N,A,nuc(Z)
+              write(*,'("  Energy ",7(2x,a8,2x)/)') (parname(type),
      +          type=0,6)
               do 460 nen=ebegin(0),eendhigh
-                write(*,'(f8.3,1p,7e12.5)') egrid(nen),
+                write(*,'(1x,f8.3,1p,7e12.5)') egrid(nen),
      +            (xsemis(type,nen)+xsmpeemis(type,nen),type=0,6)
   460         continue
               if (flagcheck) then
-                write(*,'(/"++++++++++ CHECK OF INTEGRATED ",$)')
-                write(*,'("EMISSION SPECTRA ++++++++++"/)')
-                write(*,'(12x,"Cross section   Integrated spectrum",$)')
-                write(*,'("  Average emission energy"/)')
+                write(*,'(/" ++++++++++ CHECK OF INTEGRATED ",
+     +            "EMISSION SPECTRA ++++++++++"/)')
+                write(*,'(13x,"Cross section   Integrated spectrum",
+     +           "  Average emission energy"/)')
                 do 470 type=0,6
                   if (parskip(type)) goto 470
-                  write(*,'(a8,1p,2(4x,e12.5),0p,10x,f8.3)') 
+                  write(*,'(1x,a8,1p,2(4x,e12.5),0p,10x,f8.3)') 
      +              parname(type),xsfeed(Zcomp,Ncomp,type),
      +              emissum(type),Eaverage(type)
   470           continue
@@ -559,13 +560,14 @@ c
 c Final production cross section for ground state and isomer of nucleus
 c after decay.
 c
-            write(*,'(/"Final production cross section of Z=",i3,$)') Z
-            write(*,'(" N=",i3," (",i3,a2,"):"/)') N,A,nuc(Z)
-            write(*,'("Total       :",1p,e12.5)') xspopnuc(Zcomp,Ncomp)
-            write(*,'("Ground state:",1p,e12.5)') xspopex(Zcomp,Ncomp,0)
+            write(*,'(/" Final production cross section of Z=",i3,
+     +        " N=",i3," (",i3,a2,"):"/)') Z,N,A,nuc(Z)
+            write(*,'(" Total       :",1p,e12.5)') xspopnuc(Zcomp,Ncomp)
+            write(*,'(" Ground state:",1p,e12.5)') 
+     +        xspopex(Zcomp,Ncomp,0)
             do 480 nex=1,Nlast(Zcomp,Ncomp,0)
               if (tau(Zcomp,Ncomp,nex).ne.0.) 
-     +          write(*,'("Level",i3,"    :",1p,e12.5)') nex,
+     +          write(*,'(" Level",i3,"    :",1p,e12.5)') nex,
      +            xspopex(Zcomp,Ncomp,nex)
   480       continue
           endif

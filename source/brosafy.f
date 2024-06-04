@@ -1,35 +1,36 @@
-      subroutine brosafy(Z,A)
+      subroutine brosafy(Zix,Nix)
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : October 14, 2004
+c | Date  : September 26, 2006
 c | Task  : Fission fragment yields based on Brosa model
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist
-      character*4  gschar
-      character*8  filen
-      character*80 gsfile,precfile,barfile
-      integer Z,A,Zix,Nix,amassmax,numoff,k,i,massdif,index1,
-     +  index2,amassar(1:7),amassdum,iloop,numtempsl,numtempst,
-     +  numtempst2
-      real mn,mp,noff(8),bindgs(1:9,1:2),binddum,bar,width,rmass,
-     +     temps(9),Tmax,Tmp,crel,elsc,
-     +     hm,et,bft,hmt,elt,fraction,edefo,somtot,bindsc,ignatyuk,ald
-      real bfinter(1:9,1:2),hwinter(1:9,1:2),bf_sl(9),bf_st(9),
-     +     bf_st2(9),bfsplin_sl(9),bfsplin_st(9),bfsplin_st2(9),
-     +     hw_sl(9),hw_st(9)
+      logical          lexist
+      character*4      gschar
+      character*8      filen
+      character*90     gsfile,precfile,barfile
+      integer          Zix,Nix,Z,A,Zbrosa,amassmax,numoff,k,i,massdif,
+     +                 index1,index2,amassar(1:7),amassdum,iloop,
+     +                 numtempsl,numtempst,numtempst2
       double precision transm,sl,st,st2,stot,trcof
+      real             mn,mp,noff(8),bindgs(1:9,1:2),binddum,bar,width,
+     +                 rmass,temps(9),Tmax,Tmp,crel,elsc,hm,ET,BFT,HMT,
+     +                 ELT,fraction,Edefo,somtot,bindsc,ignatyuk,ald
+      real             bfinter(1:9,1:2),hwinter(1:9,1:2),bf_sl(9),
+     +                 bf_st(9),bf_st2(9),bfsplin_sl(9),bfsplin_st(9),
+     +                 bfsplin_st2(9),hw_sl(9),hw_st(9)
       logical dont
-      real fmass(260), fmass_sl(260), fmass_st(260),
-     +     fmass_st2(260),fmasscor_sl(260),fmasscor_st(260),
-     +     fmasscor_st2(260),fmasscor(260)
-      real fmz(260,100), fmzcor(260,100), fmz_sl(260,100)
-     +     , fmz_st(260,100), fmz_st2(260,100), fmzcor_sl(260,100)
-     +     , fmzcor_st(260,100), fmzcor_st2(260,100)
+      real fmass(nummass), fmass_sl(nummass), fmass_st(nummass),
+     +     fmass_st2(nummass),fmasscor_sl(nummass),fmasscor_st(nummass),
+     +     fmasscor_st2(nummass),fmasscor(nummass)
+      real fmz(nummass,numelem),fmzcor(nummass,numelem),
+     +     fmz_sl(nummass,numelem),fmz_st(nummass,numelem),
+     +     fmz_st2(nummass,numelem),fmzcor_sl(nummass,numelem),
+     +     fmzcor_st(nummass,numelem),fmzcor_st2(nummass,numelem)
       real hmsplin(9),elsplin(9), Esplin(9)
       real hmneck_sl(9),hmneck_st(9), elneck_sl(9),elneck_st(9),
      +     Eneck_sl(9), Eneck_st(9)
@@ -39,8 +40,9 @@ c
 c
 c Zix            : charge number index for residual nucleus
 c Nix            : neutron number index for residual nucleus
-c Zinit          : charge number of initial compound nucleus
-c Ninit          : neutron number of initial compound nucleus
+c ZZ,Z           : charge number of residual nucleus
+c AA,A           : mass number of residual nucleus
+c Zbrosa         : charge number within range of Brosa tables
 c parmass        : mass of particle in a.m.u.
 c mn             : neutron mass in MeV
 c mp             : proton mass in MeV
@@ -57,8 +59,9 @@ c gsfile         : full path for structure database file
 c
 c     constants
 c
-      Zix=Zinit-Z
-      Nix=Ninit-(A-Z)
+      Z=ZZ(Zix,Nix,0)
+      A=AA(Zix,Nix,0)
+      Zbrosa=max(72,min(Z,96))
       mn=parmass(1)*amu
       mp=parmass(2)*amu
 c
@@ -69,27 +72,27 @@ c
       noff(3)=4
       noff(4)=6
       noff(5)=8
-      if(Z.lt.94)then
-         noff(6)=11
-         noff(7)=14
-         noff(8)=0
-         numoff=7
+      if (Z.lt.94) then
+        noff(6)=11
+        noff(7)=14
+        noff(8)=0
+        numoff=7
       else
-         noff(6)=10
-         noff(7)=0
-         noff(8)=0
-         numoff=6
+        noff(6)=10
+        noff(7)=0
+        noff(8)=0
+        numoff=6
       endif
 c
 c     initialize
 c
       do 5, k=1,9
-         bf_sl(k)=0.
-         bf_st(k)=0.
-         bf_st2(k)=0.
-         bfsplin_sl(k)=0.
-         bfsplin_st(k)=0.
-         bfsplin_st2(k)=0.
+        bf_sl(k)=0.
+        bf_st(k)=0.
+        bf_st2(k)=0.
+        bfsplin_sl(k)=0.
+        bfsplin_st(k)=0.
+        bfsplin_st2(k)=0.
  5    continue
       do 7, k=1,9
          do 7, i=1,2
@@ -99,7 +102,7 @@ c
 c     reading ground state binding energies
 c
       gschar='z000'
-      write(gschar(2:4),'(i3.3)') Z
+      write(gschar(2:4),'(i3.3)') Zbrosa
       gsfile=path(1:lenpath)//'fission/brosa/groundstate/'//gschar
       open(unit=2,status='old',file=gsfile)
 c
@@ -113,7 +116,7 @@ c
       read(2,'(4x,i4)') amassmax
       rewind(2)
       do 8,k=1,numoff
-         amassar(k)=amassmax-noff(k)
+        amassar(k)=amassmax-noff(k)
  8    continue
       massdif=amassmax-A
       do 9, k=1,numoff
@@ -205,7 +208,7 @@ c
                filen='z000.st2'
             endif
          endif
-         write(filen(2:4),'(i3.3)') Z
+         write(filen(2:4),'(i3.3)') Zbrosa
          barfile=path(1:lenpath)//'fission/brosa/barrier/'//filen
          inquire (file=barfile,exist=lexist)
          if (lexist)then
@@ -286,7 +289,7 @@ c
             hw(numtemp+1)=hw_st(numtemp+1)
             numtemp=numtemp+1
          endif
-         Tmax=TEMPS(numtemp)
+         Tmax=temps(numtemp)
          if(bf(1).eq.0)numtemp=9
          call spline(temps,bf,numtemp,2.e+30,2.e+30,bfsplin)
          call spline(temps,hw,numtemp,2.e+30,2.e+30,hwsplin)
@@ -348,7 +351,7 @@ c      end first loop over fission modes sl, st, st2
 c
  1000 continue
 c
-c      final transmission coef<ficients
+c      final transmission coefficients
 c
       stot=sl+st+st2
       if(stot.EQ.0.)then
@@ -381,9 +384,9 @@ c elsplin    : nucleus half length at scission point splin
 c              fit parameters
 c Esplin     : prescission energy splin fit parameters
 c precfile   : path with prescission shape info in structure data base
-c edefo      : excitation energy at scission
+c Edefo      : excitation energy at scission
 c et         : energy gain at scission with respect to ground state 
-c bft        : temperature-dependent barrier height
+c BFT        : temperature-dependent barrier height
 c fraction   : fraction of potential energy gain available as internal
 c              excitation energy at scission
 c neck       : subroutine to determine mass and isotope yield per 
@@ -431,14 +434,14 @@ c
                filen='z000.st2'
             endif
          endif
-         write(filen(2:4),'(i3.3)') Z
+         write(filen(2:4),'(i3.3)') Zbrosa
 c
 c      initialize arrays for mass and charge yields
 c
-         do 400, k=1,260
+         do 400, k=1,nummass
             fmass(k)=0.
             fmasscor(k)=0.
-            do 400, i=1,100
+            do 400, i=1,numelem
                fmz(k,i)=0.
                fmzcor(k,i)=0.
  400     continue
@@ -543,7 +546,7 @@ c
          call spline(temps,Eneck,numtemp,2.e+30,2.e+30,Esplin)         
 c
 c      calculate excitation energy at scission (including an iteration
-c      to calculate EDEFO and ET consistently, one iteration suffices)
+c      to calculate Edefo and ET consistently, one iteration suffices)
 c
          ald=ignatyuk(Zix,Nix,excfis,0)
          Tmp=sqrt(excfis/ald)
@@ -551,49 +554,49 @@ c
          call splint(temps, bf, bfsplin,numtemp,Tmp,BFT)
          fraction=1.
          if(excfis.GT.BFT)then
-            EDEFO=fraction*(ET+BFT)+excfis-BFT
-            if(ET.LE.0.)edefo=excfis
-            ald=ignatyuk(Zix,Nix,edefo,0)
-            Tmp=sqrt(edefo/ald)
+            Edefo=fraction*(ET+BFT)+excfis-BFT
+            if(ET.LE.0.)Edefo=excfis
+            ald=ignatyuk(Zix,Nix,Edefo,0)
+            Tmp=sqrt(Edefo/ald)
             call splint(temps,Eneck, Esplin,numtemp,Tmp,ET)
-            EDEFO=fraction*(ET+BFT)+excfis-BFT
-            if(ET.LE.0.)edefo=excfis
+            Edefo=fraction*(ET+BFT)+excfis-BFT
+            if(ET.LE.0.)Edefo=excfis
          else
-            EDEFO=(ET+excfis)*fraction
-            if(ET.LE.0.)edefo=excfis
-            ald=ignatyuk(Zix,Nix,edefo,0)
-            Tmp=sqrt(edefo/ald)
+            Edefo=(ET+excfis)*fraction
+            if(ET.LE.0.)Edefo=excfis
+            ald=ignatyuk(Zix,Nix,Edefo,0)
+            Tmp=sqrt(Edefo/ald)
             call splint(temps,Eneck, Esplin,numtemp,Tmp,ET)
-            EDEFO=(ET+excfis)*fraction
-            if(ET.LE.0.)edefo=excfis
+            Edefo=(ET+excfis)*fraction
+            if(ET.LE.0.)Edefo=excfis
          endif
 c
-c    check if Tmp(edefo) does not exceed the highest value for which the
+c    check if Tmp(Edefo) does not exceed the highest value for which the
 c    barrier is defined
 c
-         ald=ignatyuk(Zix,Nix,edefo,0)
-         Tmp=sqrt(edefo/ald)
+         ald=ignatyuk(Zix,Nix,Edefo,0)
+         Tmp=sqrt(Edefo/ald)
          if(Tmp.GT.temps(numtemp))then
             ald=ignatyuk(Zix,Nix,excfis,0)
             Tmp=sqrt(excfis/ald)
             if(Tmp.LT.temps(numtemp))then
                call splint(temps,hmneck, hmsplin,numtemp,Tmp,HMT)
                call splint(temps,elneck, elsplin,numtemp,Tmp,ELT)
-               call neck(Z,A,fmass,fmasscor,fmz,fmzcor,hmt
-     +              ,EDEFO,ELT,CREL)
+               call neck(Z,A,fmass,fmasscor,fmz,fmzcor,HMT
+     +              ,Edefo,ELT,crel)
             endif
          else
             call splint(temps,hmneck, hmsplin,numtemp,Tmp,HMT)
             call splint(temps,elneck, elsplin,numtemp,Tmp,ELT)
-            call neck(Z,A,fmass,fmasscor,fmz,fmzcor,hmt
-     +           ,EDEFO,ELT,CREL)
+            call neck(Z,A,fmass,fmasscor,fmz,fmzcor,HMT
+     +           ,Edefo,ELT,crel)
          endif
 17998    continue
          if(iloop.EQ.1)then
-            do 500,k=1,260
+            do 500,k=1,nummass
                fmass_sl(k)=fmass(k)*sl
                fmasscor_sl(k)=fmasscor(k)*sl
-               do 500, i=1,100
+               do 500, i=1,numelem
                   fmz_sl(k,i)=fmz(k,i)*sl
                   fmzcor_sl(k,i)=fmzcor(k,i)*sl
  500        continue
@@ -604,10 +607,10 @@ c
  501        continue
          else
             if(iloop.EQ.2)then
-               do 505,k=1,260
+               do 505,k=1,nummass
                   fmass_st(k)=fmass(k)*st
                   fmasscor_st(k)=fmasscor(k)*st
-               do 505, i=1,100
+               do 505, i=1,numelem
                   fmz_st(k,i)=fmz(k,i)*st
                   fmzcor_st(k,i)=fmzcor(k,i)*st
  505           continue
@@ -617,10 +620,10 @@ c
                   Eneck_st(k)=Eneck(k)
  506           continue
             else
-               do 510,k=1,260
+               do 510,k=1,nummass
                   fmass_st2(k)=fmass(k)*st2
                   fmasscor_st2(k)=fmasscor(k)*st2
-               do 510, i=1,100
+               do 510, i=1,numelem
                   fmz_st2(k,i)=fmz(k,i)*st2
                   fmzcor_st2(k,i)=fmzcor(k,i)*st2
  510           continue
@@ -643,7 +646,7 @@ c flagffevap: flag for calculation of particle evaporation from
 c             fission fragment mass yields    
 c
       somtot=1.
-      do 4000,k=1,260
+      do 4000,k=1,nummass
          disa(k)=(fmass_sl(k)+fmass_st(k)+fmass_st2(k))/somtot
          if (flagffevap) then
             disacor(k)=(fmasscor_sl(k)+fmasscor_st(k)+
@@ -651,7 +654,7 @@ c
          else
             disacor(k)=0.
          endif
-         do 4000, i=1,100
+         do 4000, i=1,numelem
          disaz(k,i)=(fmz_sl(k,i)+fmz_st(k,i)+fmz_st2(k,i))/somtot
          if(flagffevap)then
             disazcor(k,i)=(fmzcor_sl(k,i)+fmzcor_st(k,i)+

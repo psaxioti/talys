@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 26, 2004
+c | Date  : July 17, 2006
 c | Task  : Write model parameters per nucleus to separate file
 c +---------------------------------------------------------------------
 c ****************** Declarations and common blocks ********************
@@ -31,7 +31,9 @@ c pair        : total pairing correction
 c D0          : experimental s-wave resonance spacing in eV
 c ibar        : fission barrier
 c nfisbar     : number of fission barrier parameters
+c Pshift      : adjustable pairing shift
 c deltaW      : shell correction in nuclear mass 
+c ldmodel     : level density model
 c T           : nuclear temperature
 c E0          : constant of temperature formula
 c Exmatch     : matching point for Ex
@@ -51,12 +53,17 @@ c
       if (D0(Zix,Nix).ne.0.) write(11,'("D0      ",2i4,f10.2)') Z,A,
      +  0.001*D0(Zix,Nix)
       do 10 ibar=0,nfisbar(Zix,Nix)
+        write(11,'("Pshift  ",2i4,f10.5,i4)') Z,A,Pshift(Zix,Nix,ibar),
+     +    ibar
         write(11,'("deltaW  ",2i4,f10.5,i4)') Z,A,deltaW(Zix,Nix,ibar),
      +    ibar
-        write(11,'("T       ",2i4,f10.5,i4)') Z,A,T(Zix,Nix,ibar),ibar
-        write(11,'("E0      ",2i4,f10.5,i4)') Z,A,E0(Zix,Nix,ibar),ibar
-        write(11,'("Exmatch ",2i4,f10.5,i4)') Z,A,Exmatch(Zix,Nix,ibar),
-     +    ibar
+        if (ldmodel.eq.1) then
+          write(11,'("T       ",2i4,f10.5,i4)') Z,A,T(Zix,Nix,ibar),ibar
+          write(11,'("E0      ",2i4,f10.5,i4)') Z,A,E0(Zix,Nix,ibar),
+     +      ibar
+          write(11,'("Exmatch ",2i4,f10.5,i4)') Z,A,
+     +      Exmatch(Zix,Nix,ibar),ibar
+        endif
         write(11,'("Ntop    ",2i4,2i4)') Z,A,Ntop(Zix,Nix,ibar),ibar
         write(11,'("Nlow    ",2i4,2i4)') Z,A,Nlow(Zix,Nix,ibar),ibar
         write(11,'("Krotconstant ",2i4,f10.5,i4)') Z,A,

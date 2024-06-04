@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 1, 2004
+c | Date  : October 9, 2006
 c | Task  : Output of binary cross sections
 c +---------------------------------------------------------------------
 c
@@ -18,11 +18,11 @@ c parskip : logical to skip outgoing particle
 c parname : name of particle
 c xsbinary: cross section from initial compound to residual nucleus
 c
-      write(*,'(/"2. Binary non-elastic cross sections ",$)')
-      write(*,'("(non-exclusive)"/)') 
+      write(*,'(/" 2. Binary non-elastic cross sections ",
+     +  "(non-exclusive)"/)') 
       do 10 type=-1,6
         if (parskip(type)) goto 10
-        write(*,'(a8,"=",1p,e12.5)') parname(type),xsbinary(type)
+        write(*,'(1x,a8,"=",1p,e12.5)') parname(type),xsbinary(type)
    10 continue
 c
 c Write results to separate file

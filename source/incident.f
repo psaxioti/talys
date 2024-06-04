@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 1, 2004
+c | Date  : October 5, 2006    
 c | Task  : Main settings and basic cross sections for incident energy
 c +---------------------------------------------------------------------
 c
@@ -28,14 +28,19 @@ c
 c Write the energy dependent flags to the output file.
 c
       if (flagmain) then
-        write(*,'(/,"########## RESULTS FOR E=",f9.5," ##########"/)') 
-     +    Einc       
-        write(*,'("Energy dependent input flags"/)')
-        write(*,'("Width fluctuations (flagwidth)      : ",a1)') 
+        if (Einc.ge.0.001) then
+          write(*,'(/," ########## RESULTS FOR E=",f9.5,
+     +      " ##########"/)') Einc       
+        else
+          write(*,'(/," ########## RESULTS FOR E=",1p,e12.5,
+     +      " ##########"/)') Einc        
+        endif
+        write(*,'(" Energy dependent input flags"/)')
+        write(*,'(" Width fluctuations (flagwidth)      : ",a1)') 
      +    yesno(flagwidth)
-        write(*,'("Preequilibrium (flagpreeq)          : ",a1)') 
+        write(*,'(" Preequilibrium (flagpreeq)          : ",a1)') 
      +    yesno(flagpreeq)
-        write(*,'("Multiple preequilibrium (flagmulpre): ",a1)') 
+        write(*,'(" Multiple preequilibrium (flagmulpre): ",a1)') 
      +    yesno(flagmulpre)
       endif
 c

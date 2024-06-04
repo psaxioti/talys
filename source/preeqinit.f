@@ -193,9 +193,9 @@ c
         Rblann(2,2,5)=0.484
       endif
       do 310 i=1,2
-        do 310 j=1,2
+        do 310 J=1,2
           do 310 k=6,numparx
-            Rblann(i,j,k)=0.5
+            Rblann(i,J,k)=0.5
   310 continue
       return
       end

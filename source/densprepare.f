@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 10, 2004
+c | Date  : April 26, 2006
 c | Task  : Prepare energy grid, level density and transmission 
 c |         coefficient information for compound nucleus
 c +---------------------------------------------------------------------
@@ -192,13 +192,11 @@ c
 c
 c For decay to the continuum we use a spin and parity dependent level 
 c density.
-c See subroutine exgrid for change in case of non-equiprobable parities.
 c
-            do 110 Pprime=1,1
+            do 110 Pprime=-1,1,2
               do 120 Ir=0,maxJ(Zix,Nix,nexout)
                 rho0(type,nexout,Ir,Pprime)=
      +            Rboundary*rhogrid(Zix,Nix,nexout,Ir,Pprime)
-                rho0(type,nexout,Ir,-1)=rho0(type,nexout,Ir,1)
   120         continue
   110       continue
           endif
@@ -356,9 +354,9 @@ c
                 do 340 J=0,numJ
                   Rspin=J+Rodd
                   rhofis(ibk,J,parity,ibar)=
-     +              density(Zcomp,Ncomp,elow,Rspin,ibar,ldmodel)
+     +              density(Zcomp,Ncomp,elow,Rspin,parity,ibar,ldmodel)
                   rhofis(ibk+1,J,parity,ibar)=
-     +              density(Zcomp,Ncomp,emid,Rspin,ibar,ldmodel)
+     +              density(Zcomp,Ncomp,emid,Rspin,parity,ibar,ldmodel)
   340           continue
   330         continue
               ibk=ibk+2

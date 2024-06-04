@@ -2,15 +2,16 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 13, 2004
+c | Date  : September 15, 2006
 c | Task  : ECIS calculation of direct cross section
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical rotational,vibrational
-      integer type,Zix,Nix,A,odd,i,l
+      logical      rotational,vibrational
+      character*13 outfile
+      integer      type,Zix,Nix,A,odd,i,l
 c
 c ********************** Set ECIS input parameters *********************
 c
@@ -43,11 +44,10 @@ c angbeg          : first angle
 c angend          : last angle
 c
 c Specific ECIS flags:
+c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
 c ecis2(14)=T : output of inelastic angular distribution 
+c ecis2(15)=T : output of Legendre coefficients        
 c ecis2(42)=T : DWBA
-c Extra ECIS-flags added by A. Koning:
-c ecis2(10)=T : output of polarization 
-c ecis2(30)=T : output of direct inelastic cross section 
 c
       open (unit=9,status='unknown',file='ecisdisc.inp')
       rotational=.false.
@@ -55,7 +55,7 @@ c
       legendre=.true.
       title='Direct discrete cross sections by DWBA            '
       ecis1='FFFFFTFFFFFFFFFFFFFFFFFFFFFTFFFFFFFFFFFFFFFFFFFFFF'
-      ecis2='FFFFFFFFFFFFFTTFTTTFFTTFTFFFFTFFFFFFFFFFFTFFFFFFFF'
+      ecis2='FFFFFFFFTFFFFTTFTTTFFTTFTFFFFFFFFFFFFFFFFTFFFFFFFF'
       if (flagrel) ecis1(8:8)='T'
       ncoll=2
       iterm=1
@@ -195,16 +195,18 @@ c
 c ************ ECIS calculation for discrete levels ********************
 c
 c flagoutecis: flag for output of ECIS results
-c ecis97t    : subroutine ecis97, adapted for TALYS
+c outfile    : output file
+c nulldev    : null device
+c ecis03t    : subroutine ecis03, adapted for TALYS
 c ecisstatus : status of ECIS file  
 c
       if (flagoutecis) then
-        call ecis97t('ecisdisc.inp ','ecisdisc.out ','ecis97.dircs ',
-     +    'ecis97.dirres')
+        outfile='ecisdisc.out '
       else
-        call ecis97t('ecisdisc.inp ','/dev/null    ','ecis97.dircs ',
-     +    'ecis97.dirres')
+        outfile=nulldev
       endif
+      call ecis03t('ecisdisc.inp ',outfile,'ecis03.dircs ',
+     +  'ecis03.dirin ','null         ','ecis03.dirang','ecis03.dirleg')
       open (unit=9,status='unknown',file='ecisdisc.inp')
       close (unit=9,status=ecisstatus)
       return

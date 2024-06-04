@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire, Marieke Duijvestijn and Arjan Koning
-c | Date  : October 14, 2004
+c | Date  : July 13, 2006
 c | Task  : Fission parameters
 c +---------------------------------------------------------------------
 c
@@ -80,7 +80,7 @@ c
         if (fwidth(Zix,Nix,1).eq.0.) fwidth(Zix,Nix,1)=hw1
         if (fbarrier(Zix,Nix,2).eq.0.) fbarrier(Zix,Nix,2)=bar2
         if (fwidth(Zix,Nix,2).eq.0.) fwidth(Zix,Nix,2)=hw2
-        nfisbar(Zix,Nix)=2
+        if (nfisbar(Zix,Nix).ne.3) nfisbar(Zix,Nix)=2
         close (unit=2)
 c
 c Read fission states
@@ -145,12 +145,12 @@ c jfisc2hb: spin of class2 states
 c pfisc2hb: parity of class2 states 
 c
         open (unit=2,status='old',file=c2file)
-        n2=1
+        n2=nfisbar(Zix,Nix)-1
         nclass2(Zix,Nix)=n2
         do 230 i=1,n2
-          read(2,'(4x,i4)') nfisc2hb(Zix,Nix,i)
+          read(2,'(4x,i4)',end=230) nfisc2hb(Zix,Nix,i)
           do 240 j=1,nfisc2hb(Zix,Nix,i)
-            read(2,'(4x,f11.6,f6.1,i5)') efisc2hb(Zix,Nix,i,j),
+            read(2,'(4x,f11.6,f6.1,i5)',end=230) efisc2hb(Zix,Nix,i,j),
      +        jfisc2hb(Zix,Nix,i,j),pfisc2hb(Zix,Nix,i,j)
   240     continue
   230   continue

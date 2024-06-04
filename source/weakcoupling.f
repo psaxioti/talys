@@ -89,7 +89,7 @@ c
             endif
    20     continue
 c
-c 40: Loop over possible splitted levels
+c 40: Loop over possible split levels
 c
 c spinbeg   : begin of possible spin values
 c spinend   : end of possible spin values

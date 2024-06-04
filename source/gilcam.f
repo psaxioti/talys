@@ -1,8 +1,8 @@
-      double precision function gilcam(Zix,Nix,Eex,ald,ibar)
+      double precision function gilcam(Zix,Nix,ald,Eex,P,ibar)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 7, 2004
+c | Date  : July 7, 2005
 c | Task  : Gilbert-Cameron level density formula
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ******************* Declarations and common blocks *******************
 c
       include "talys.cmb"
       integer          Zix,Nix,ibar
-      real             Eex,ald
+      real             ald,Eex,P
       double precision fermi,expo
 c
 c *********************** Level density formula ************************
@@ -18,8 +18,9 @@ c
 c gilcam : level density
 c Zix    : charge number index for residual nucleus
 c Nix    : neutron number index for residual nucleus
-c Eex    : excitation energy
 c ald    : level density parameter
+c Eex    : excitation energy
+c P      : pairing energy
 c ibar   : fission barrier number, zero for states on ground state
 c Exmatch: matching point for Ex
 c fermi  : function for Fermi gas level density formula    
@@ -32,7 +33,7 @@ c
 c
 c 1. Fermi Gas
 c
-        gilcam=fermi(Zix,Nix,ald,Eex,pair(Zix,Nix),ibar)     
+        gilcam=fermi(Zix,Nix,ald,Eex,P,ibar)     
       else
 c
 c 2. Constant temperature

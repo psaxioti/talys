@@ -2,16 +2,17 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 11, 2004
+c | Date  : October 7, 2006
 c | Task  : ECIS calculations of DWBA for MSD
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical lexist
-      integer ii,itype,type,Zix,Nix,nen1end,nen1,nen2
-      real    QQ
+      logical      lexist
+      character*13 outfile
+      integer      ii,itype,type,Zix,Nix,nen1end,nen1,nen2
+      real         QQ
 c
 c ********************** Set ECIS input parameters *********************
 c
@@ -27,7 +28,7 @@ c
       open (unit=9,status='unknown',file='ecisdwba.inp')
       title='DWBA cross sections for MSD                       '
       ecis1='FFFFFFFFFFFTFFFFFFFFFFFFFFFTFFFFFFFFFFFFFFFFFFFFFF'
-      ecis2='FFFFFFFFFFFFFTFFTTTFFTTFTFFFFTFFFFFFFFFFFTFFFFFFFF'    
+      ecis2='FFFFFFFFTFFFFTFFTTTFFTTFTFFFFFFFFFFFFFFFFTFFFFFFFF'    
       if (flagrel) ecis1(8:8)='T'
       ncoll=maxJmsd+2
       iterm=1
@@ -92,7 +93,7 @@ c onestepA     : subroutine for unnormalized one-step direct cross
 c                sections for outgoing energy grid
 c
       if (flagoutdwba) write(*,
-     +  '(/"++++++++++ DWBA CROSS SECTIONS FOR MSD ++++++++++")')
+     +  '(/" ++++++++++ DWBA CROSS SECTIONS FOR MSD ++++++++++")')
 c
 c *************************** Macroscopic MSD **************************
 c
@@ -100,15 +101,14 @@ c 2. First exchange one-step reaction for multi-step
 c
       do 10 ii=1,2
         if (ii.eq.2) then
-          inquire (file='ecis97.msdcs',exist=lexist)
+          inquire (file='ecis03.msdin',exist=lexist)
           if (.not.lexist) then
-            write(*,'("TALYS-error: The first calculation of a",$)')
-            write(*,'(" run should always be done with",$)')
-            write(*,'(" ecissave y and ecisdwba y")')
+            write(*,'(" TALYS-error: The first calculation of a run",
+     +        " should always be done with ecissave y and ecisdwba y")')
             stop
           endif      
-          open (unit=3,status='unknown',file='ecis97.msdcs')
-          open (unit=7,status='unknown',file='ecis97.msdres')
+          open (unit=8,status='unknown',file='ecis03.msdang')
+          open (unit=10,status='unknown',file='ecis03.msdin')
         endif
         itype=k0
         do 20 type=1,2
@@ -203,22 +203,25 @@ c
 c **************** ECIS calculation for DWBA for MSD *******************
 c
 c flagoutecis: flag for output of ECIS results
-c ecis97t    : subroutine ecis97, adapted for TALYS
+c outfile    : output file
+c nulldev    : null device
+c ecis03t    : subroutine ecis03, adapted for TALYS
 c ecisstatus : status of ECIS file  
 c
           if (flagoutecis) then
-            call ecis97t('ecisdwba.inp ','ecisdwba.out ',
-     +        'ecis97.msdcs ','ecis97.msdres')
+            outfile='ecisdwba.out '
           else
-            call ecis97t('ecisdwba.inp ','/dev/null    ',
-     +        'ecis97.msdcs ','ecis97.msdres')
+            outfile=nulldev
           endif
+          call ecis03t('ecisdwba.inp ',outfile,
+     +      'ecis03.msdcs ','ecis03.msdin ','null         ',
+     +      'ecis03.msdang','null         ')  
           open (unit=9,status='unknown',file='ecisdwba.inp')
           close (unit=9,status=ecisstatus)
         endif
         if (ii.eq.2) then
-          close (unit=3,status=ecisstatus)
-          close (unit=7,status=ecisstatus)
+          close (unit=8,status=ecisstatus)
+          close (unit=10,status=ecisstatus)
         endif
   10  continue
       return

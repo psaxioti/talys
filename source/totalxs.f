@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 2, 2004
+c | Date  : February 27, 2005
 c | Task  : Total cross sections
 c +---------------------------------------------------------------------
 c
@@ -39,7 +39,7 @@ c
    30     if (xsconttot(type).eq.0.) then
             xsexclcont(type)=0.
           else
-            xsexclcont(type)=xsexclusive(type)-xsdisctot(type)
+            xsexclcont(type)=max(xsexclusive(type)-xsdisctot(type),0.)
           endif
    10   continue
       endif

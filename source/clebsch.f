@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire (adapted from O. Bersillon)
-c | Date  : August 25, 2004
+c | Date  : November 22, 2006
 c | Task  : Calculation of Clebsch-Gordan coefficients
 c +---------------------------------------------------------------------
 c
@@ -95,7 +95,7 @@ c
         if((il - 2*(il/2)) .ne. 0) c = -c
         if(n .lt. 0) return
         if(n .eq. 0) then
-          clebsch = c
+          clebsch = real(c)
           return
         else
 c
@@ -114,7 +114,7 @@ c
             s = 1. - s*t
             q = q - 1.
           end do
-          clebsch = c*s
+          clebsch = real(c*s)
           return
         endif
       else

@@ -7,7 +7,7 @@ c | Task  : Form factor for the Coulomb interaction energy between two
 c |         spheroids. 
 c +---------------------------------------------------------------------
 c
-c *************************** Comments ********************************
+c *************************** Comments *********************************
 c
 c This function is based on the function sform originally developed by
 c U. Brosa.
@@ -23,8 +23,8 @@ c
 c
 c ph. quentin, j. de physique 30 (1969) 497.                            
 c
-        z1loc=x                                                           
-        z2loc=y                                                           
+        z1loc=x
+        z2loc=y
       else                                                              
         z1loc=y                               
         z2loc=x                              
@@ -53,4 +53,4 @@ c
  20   continue
       if (abs(sn).lt.1.e-5) go to 25                                    
  25   return                                                            
-      end                                                               
+      end

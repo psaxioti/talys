@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 13, 2004
+c | Date  : October 5, 2006   
 c | Task  : Discrete levels
 c +---------------------------------------------------------------------
 c
@@ -58,7 +58,7 @@ c
         inquire (file=levfile,exist=lexist)
         if (.not.lexist) return
       endif
-      open (unit=2,status='old',file=levfile)
+      open (unit=2,status='unknown',file=levfile)
 c
 c 2. Search for the isotope under consideration
 c
@@ -148,8 +148,8 @@ c
       if (Ltarget.ne.0) then
         if (Zix.eq.parZ(k0).and.Nix.eq.parN(k0).and.
      +    Ltarget.gt.nlev(Zix,Nix)) then
-          write(*,'("TALYS-error: excited level of target does",$)')
-          write(*,'(" not exist")')
+          write(*,'(" TALYS-error: excited level of target does",
+     +      " not exist")')
           stop
         endif
       endif

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : October 13, 2004
+c | Date  : December 13, 2006   
 c | Task  : Energy and angle grid
 c +---------------------------------------------------------------------
 c
@@ -171,6 +171,11 @@ c
       numinclow=0
       do 330 nen=1,numinc
         if (eninc(nen).lt.eninclow) numinclow=numinclow+1      
+        if (numinclow.gt.numenlow) then
+          write(*,'(" TALYS-error: The number of incident energies",
+     +      " below Elow should not exceed",i3)') numenlow
+          stop
+        endif
   330 continue
 c
 c ************** Set limit for transmission coefficients ***************
@@ -279,13 +284,15 @@ c
       if (.not.flaginccalc) then
         inquire (file='incident.cs',exist=lexist)
         if (.not.lexist) then
-          write(*,'("TALYS-error: The first calculation of a run",$)')
-          write(*,'(" should always be done with ecissave y and",$)')
-          write(*,'(" inccalc y")')
+          write(*,'(" TALYS-error: The first calculation of a run",
+     +      " should always be done with ecissave y and inccalc y")')
           stop
         endif     
         open (unit=13,status='old',file='incident.cs')
-        open (unit=17,status='old',file='incident.res')
+        open (unit=17,status='old',file='incident.tr')
+        open (unit=18,status='old',file='incident.ang')
+        open (unit=19,status='old',file='incident.leg')
+        open (unit=20,status='old',file='incident.in')
       endif
       return
       end

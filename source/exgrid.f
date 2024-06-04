@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 4, 2004
+c | Date  : February 24, 2006
 c | Task  : Set excitation energy grid
 c +---------------------------------------------------------------------
 c
@@ -10,8 +10,8 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer          Zcomp,Ncomp,Zdeep,Ndeep,type,Zix,Nix,Zmother,
-     +                 Nmother,NL,A,odd,nex,Aix,nexbins,Pprime,Ir
-      real             exm,excont,dEx,Rodd,Exout,Ex1min,Ex1plus,ald,
+     +                 Nmother,NL,A,odd,nex,Aix,nexbins,Pbeg,Pprime,Ir
+      real             excont,dEx,Rodd,Exout,Ex1min,Ex1plus,ald,
      +                 spincut,Rspin
       double precision rho1,rho2,rho3,density,r1log,r2log,r3log        
 c
@@ -29,7 +29,8 @@ c Zmother: charge number index for mother nucleus
 c parZ   : charge number of particle
 c Nmother: neutron number index for mother nucleus
 c parN   : neutron number of particle
-c exm    : help variable
+c Exmax0 : maximum excitation energy for residual nucleus (including
+c          negative energies)
 c S      : separation energy per particle
 c
 c All possible routes to all residual nuclei are followed, to
@@ -55,8 +56,9 @@ c
             if (Zmother.lt.0) goto 40
             Nmother=Nix-parN(type)
             if (Nmother.lt.0) goto 40
-            exm=Exmax(Zmother,Nmother)-S(Zmother,Nmother,type)
-            Exmax(Zix,Nix)=max(exm,0.)
+            Exmax0(Zix,Nix)=Exmax0(Zmother,Nmother)-
+     +        S(Zmother,Nmother,type)
+            Exmax(Zix,Nix)=max(Exmax0(Zix,Nix),0.)
    40     continue
    30   continue
    20 continue              
@@ -100,7 +102,7 @@ c
         if (maxex(Zix,Nix).ne.0) goto 110
         deltaEx(Zix,Nix)=0.
         if (Qres(Zix,Nix,0).eq.0.) 
-     +    Qres(Zix,Nix,0)=targetE+S(0,0,k0)+Exmax(Zix,Nix)-Etotal
+     +    Qres(Zix,Nix,0)=targetE+S(0,0,k0)+Exmax0(Zix,Nix)-Etotal
         do 120 nex=0,NL
           if (Ethresh(Zix,Nix,nex).eq.0.) then
             Qres(Zix,Nix,nex)=Qres(Zix,Nix,0)-edis(Zix,Nix,nex)
@@ -184,16 +186,6 @@ c
          maxJ(Zix,Nix,nex)=max(3.*sqrt(spincut(Zix,Nix,ald,Exout,0)),5.)
          maxJ(Zix,Nix,nex)=min(maxJ(Zix,Nix,nex),numJ)
 c
-c ATTENTION: The present version of TALYS contains an equiprobable
-c parity distribution for level densities. Therefore the loop over
-c Pprime only needs to be performed once and the result for the
-c level density is equal for both parities. If in future releases
-c non-equiprobable parity distributions are used, the following
-c should be changed:
-c
-c - Loop 220 should be replaced by "do 220 Pprime=-1,1,2
-c - The line just before "230 continue" should be removed
-c
 c In the compound nucleus subroutines, the particle widths are
 c determined by means of products of level densities and transmission
 c coefficients. Instead of taking this product exactly at the middle of
@@ -201,20 +193,32 @@ c the excitation energy bins, we get a better numerical result by
 c performing a logarithmic average over the bin for the level density,
 c using the middle, top and bottom.
 c             
-c Pprime  : parity
-c Ir,Rspin: residual spin
-c rho1-3  : help variables
-c density : level density
-c ldmodel : level density model
-c r1log,..: help variables             
-c rhogrid : integrated level density            
+c flagparity: flag for non-equal parity distribution
+c Pbeg      : help variable
+c Pprime    : parity
+c Ir,Rspin  : residual spin
+c rho1-3    : help variables
+c density   : level density
+c ldmodel   : level density model
+c r1log,..  : help variables             
+c rhogrid   : integrated level density            
 c
-          do 220 Pprime=1,1       
+c For an equiprobable parity distribution for level densities, the loop 
+c over Pprime only needs to be performed once and the result for the
+c level density is equal for both parities.
+c
+          if (flagparity) then
+            Pbeg=-1
+          else
+            Pbeg=1
+          endif
+          do 220 Pprime=Pbeg,1,2
             do 230 Ir=0,maxJ(Zix,Nix,nex)
               Rspin=real(Ir)+Rodd
-              rho1=density(Zix,Nix,Ex1min,Rspin,0,ldmodel)+1.e-30
-              rho2=density(Zix,Nix,Exout,Rspin,0,ldmodel)
-              rho3=density(Zix,Nix,Ex1plus,Rspin,0,ldmodel)+1.e-30
+              rho1=density(Zix,Nix,Ex1min,Rspin,Pprime,0,ldmodel)+1.e-30
+              rho2=density(Zix,Nix,Exout,Rspin,Pprime,0,ldmodel)
+              rho3=density(Zix,Nix,Ex1plus,Rspin,Pprime,0,ldmodel)+
+     +          1.e-30
               r1log=log(rho1)
               r2log=log(rho2)
               r3log=log(rho3)
@@ -225,11 +229,8 @@ c
               else
                 rhogrid(Zix,Nix,nex,Ir,Pprime)=dEx*rho2
               endif
-c
-c The following line should be removed when non-equiprobable parity
-c distributions are used.
-c
-              rhogrid(Zix,Nix,nex,Ir,-1)=rhogrid(Zix,Nix,nex,Ir,1)
+              if (.not.flagparity)
+     +          rhogrid(Zix,Nix,nex,Ir,-1)=rhogrid(Zix,Nix,nex,Ir,1)
   230       continue                                  
   220     continue                                  
   210   continue

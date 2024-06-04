@@ -2,30 +2,33 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 29, 2004
+c | Date  : October 27, 2006
 c | Task  : Info for ENDF-6 file           
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      character*1  yesno
       character*40 endfenergyfile
       integer      nen
 c
 c ****************** Reaction information for ENDF-6 file **************
 c
-c k0        : index of incident particle
-c Ztarget   : charge number of target nucleus
-c Atarget   : mass number of target nucleus
-c tarmass   : mass of target nucleus
-c targetspin: spin of target
-c targetE   : energy of target
-c Ltarget   : excited level of target
-c Liso      : isomeric number of target
-c numinc    : number of incident energies 
-c eninc     : incident energy in MeV
-c nlevmax   : maximum number of included discrete levels for target
-c energyfile: file with incident energies 
+c k0         : index of incident particle
+c Ztarget    : charge number of target nucleus
+c Atarget    : mass number of target nucleus
+c tarmass    : mass of target nucleus
+c targetspin : spin of target
+c targetE    : energy of target
+c Ltarget    : excited level of target
+c Liso       : isomeric number of target
+c numinc     : number of incident energies 
+c eninc      : incident energy in MeV
+c nlevmax    : maximum number of included discrete levels for target
+c energyfile : file with incident energies 
+c yesno      : y or n function
+c flagendfdet: flag for detailed ENDF-6 information per channel
 c
       open (unit=1,status='unknown',file='tefal.inf')
       write(1,'(i3,"       : projectile type")') k0
@@ -45,6 +48,8 @@ c
       write(1,'(i3,"       : number of incident energies")') numinc
       write(1,'(i3,"       : number of discrete levels")') nlevmax
       write(1,'(a40,": file with incident energies")') endfenergyfile
+      write(1,'(a1,"         : detailed ENDF-6 information",
+     + " per channel")') yesno(flagendfdet)
       close (unit=1)
       return
       end

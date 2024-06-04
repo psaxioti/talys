@@ -1,9 +1,9 @@
 c
-c                          TALYS.CMB
+c                      TALYS.CMB for TALYS-0.72
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning, Stephane Hilaire and Marieke Duijvestijn
-c | Date  : December 5, 2004
+c | Date  : December 15, 2006
 c | Task  : File with common blocks and declarations for TALYS
 c +---------------------------------------------------------------------
 c
@@ -17,14 +17,15 @@ c Consult the various subroutines for an explanation of the variables.
 c To enable optimal calculations on computers of different size, we
 c introduce the variable memorypar. 
 c
-      integer   memorypar,numpar,numelem,numl,numlines,numenin,numZ,
-     +          numN,numbar,numgam,numlev,numfile,numlev2,numrotcc,
-     +          numomp,numrot,numen,numang,numangcont,numexc,numJph,
-     +          numparx,numfact,numbins,numex,numJ,numenrec,numangrec,
-     +          numendisc,numen2,numenmsd,numJmsd,nummsd,numZph,numNph,
-     +          numbinfis,numhill,numtrans,nummold,numgoe,numcomp,
-     +          numchannel,numin,numip,numid,numit,numih,numia,
-     +          numchantot,nummass,numA,numenlow,numen6
+      integer   memorypar,numpar,numiso,numelem,numl,numlines,numenin,
+     +          numZ,numN,numZph,numNph,numbar,numgam,numlev,numfile,
+     +          numlev2,numrotcc,numgamqrpa,numomp,numrot,numdens,numen,
+     +          numang,numangcont,numexc,numJph,numparx,numfact,numbins,
+     +          numex,numJ,numenrec,numangrec,numendisc,numen2,numenmsd,
+     +          numJmsd,nummsd,numbinfis,numhill,numtrans,
+     +          nummold,numgoe,numcomp,numchannel,numin,numip,
+     +          numid,numit,numih,numia,numchantot,nummass,numA,
+     +          numenlow,numen6
 c
 c Use memorypar=2 for a 64 Mb machine
 c Use memorypar=5 for a 256 (or more) Mb machine
@@ -33,20 +34,26 @@ c
 c    +           memorypar=2,
      +           memorypar=5,
      +           numpar=6,
-     +           numelem=109,
+     +           numiso=20,
+     +           numelem=110,
      +           numl=60,
      +           numlines=5000,
-     +           numenin=125,
+     +           numenin=200,
      +           numZ=2+2*memorypar,
      +           numN=2+5*memorypar,
+     +           numZph=4,
+     +           numNph=8,
      +           numbar=3,
      +           numgam=6,
-     +           numlev=25,
+     +           numlev=25)
+      parameter (
      +           numfile=100,
      +           numlev2=200,
      +           numrotcc=4,
+     +           numgamqrpa=300,
      +           numomp=1000,
      +           numrot=400,
+     +           numdens=60,
      +           numen=360,
      +           numang=90,
      +           numangcont=36,
@@ -54,7 +61,8 @@ c    +           memorypar=2,
      +           numJph=30,
      +           numparx=numexc/2,
      +           numfact=6*numl,
-     +           numbins=20*memorypar,
+     +           numbins=20*memorypar)
+      parameter (
      +           numex=numlev+numbins,
      +           numJ=numJph,
      +           numenrec=5*memorypar,
@@ -64,13 +72,12 @@ c    +           memorypar=2,
      +           numenmsd=18,
      +           numJmsd=8,
      +           nummsd=6,
-     +           numZph=4,
-     +           numNph=8,
      +           numbinfis=1000,
      +           numhill=20,
      +           numtrans=numl*12*(numex+1)+numhill+1,
      +           nummold=32,
-     +           numgoe=50,
+     +           numgoe=50)
+      parameter (
      +           numcomp=100,
      +           numchannel=3+memorypar,
      +           numin=numchannel,
@@ -102,22 +109,25 @@ c
 c
 c ************************* subroutine machine *************************
 c
-      common /machinec/ path
+      common /machinec/ nulldev,path
       common /machinei/ lenpath
+      character*13 nulldev
       character*60 path
       integer      lenpath
 c
 c *********************** subroutine constants *************************
 c
+      common /constantsc/ natstring(numiso)
       common /constantsi/ iso
       common /constantsr/ twopi,pi2,sqrttwopi,fourpi,deg2rad,rad2deg,
      +                    onethird,twothird,twopihbar,hbarc,pi2h2c2,
      +                    pi2h3c2,amupi2h3c2,amu4pi2h2c2,sgn(0:2*numl),
      +                    pardis
-      integer      iso
-      real         twopi,pi2,sqrttwopi,fourpi,deg2rad,rad2deg,onethird,
-     +             twothird,twopihbar,hbarc,pi2h2c2,pi2h3c2,amupi2h3c2,
-     +             amu4pi2h2c2,sgn,pardis
+      character*4 natstring
+      integer     iso
+      real        twopi,pi2,sqrttwopi,fourpi,deg2rad,rad2deg,onethird,
+     +            twothird,twopihbar,hbarc,pi2h2c2,pi2h3c2,amupi2h3c2,
+     +            amu4pi2h2c2,sgn,pardis
 c
 c ************************ subroutine readinput ************************
 c
@@ -136,7 +146,7 @@ c
       logical      flagnatural
       character*1  ptype0
       character*2  Starget
-      character*73 energyfile
+      character*72 energyfile
       integer      Ztarget,k0,Atarget,Ntarget,Zinit,Ninit,Ainit,nin,
      +             numinc
       real         eninc,enincmin,enincmax
@@ -146,15 +156,15 @@ c
       common /input2c/ outtype(0:numpar)
       common /input2i/ maxZ,maxN,nbins,segment,nlevmax,nlevmaxres,
      +                 Ltarget,core,gammax,transpower,nangle,nanglecont,
-     +                 maxenrec,ldmodel,wmode,preeqmode,mpreeqmode,
-     +                 nlev(0:numZ,0:numN),nlevbin(0:numpar)
+     +                 maxenrec,massmodel,ldmodel,wmode,preeqmode,
+     +                 mpreeqmode,nlev(0:numZ,0:numN),nlevbin(0:numpar)
       common /input2r/ isomer,xseps,popeps,Rfiseps,eninclow
       common /input2d/ transeps
       character*1      outtype
       integer          maxZ,maxN,nbins,segment,nlevmax,nlevmaxres,
      +                 Ltarget,core,gammax,transpower,nangle,
-     +                 nanglecont,maxenrec,ldmodel,wmode,preeqmode,
-     +                 mpreeqmode,nlev,nlevbin
+     +                 nanglecont,maxenrec,massmodel,ldmodel,wmode,
+     +                 preeqmode,mpreeqmode,nlev,nlevbin
       real             isomer,xseps,popeps,Rfiseps,eninclow
       double precision transeps
 c
@@ -163,25 +173,26 @@ c
       common /input3l/ flagecissave,flageciscalc,flaginccalc,flagrel,
      +                 flagcomp,flagfullhf,flagpespin,flaggiant0,
      +                 flagpecomp,flagsurface,flag2comp,flagchannels,
-     +                 flagfission,flagcolldamp,flagclass2,flagbasic,
+     +                 flagfission,flagparity,flagclass2,flagbasic,
      +                 flageciscomp,flagecisdwba,flagonestep,
-     +                 flaglocalomp,flagompall,flagautorot,
-     +                 flagstate,flagsys(0:numpar),flagrot(0:numpar),
-     +                 flagasys,flaggshell,flagmassdis,flagffevap,
-     +                 flagendf,flagrecoil,flaglabddx,flagrecoilav,
-     +                 flagEchannel
-      common /input3c/ optmod(0:numZ,0:numN,numpar)
+     +                 flaglocalomp,flagompall,flagautorot,flagstate,
+     +                 flagsys(0:numpar),flagrot(0:numpar),flagasys,
+     +                 flaggshell,flagmassdis,flagffevap,flagendf,
+     +                 flagendfdet,flagrecoil,flaglabddx,
+     +                 flagrecoilav,flagEchannel,flagreaction,
+     +                 flagexpmass
+      common /input3c/ optmod(0:numZph,0:numNph,numpar)
       common /input3i/ maxband,maxrot,strength
       common /input3r/ ewfc,epreeq,emulpre
       logical      flagecissave,flageciscalc,flaginccalc,flagrel,
      +             flagcomp,flagfullhf,flagpespin,flaggiant0,
      +             flagpecomp,flagsurface,flag2comp,flagchannels,
-     +             flagfission,flagcolldamp,flagclass2,flagbasic,
+     +             flagfission,flagparity,flagclass2,flagbasic,
      +             flageciscomp,flagecisdwba,flagonestep,flaglocalomp,
-     +             flagompall,flagautorot,flagstate,flagsys,
-     +             flagrot,flagasys,flaggshell,flagmassdis,flagffevap,
-     +             flagendf,flagrecoil,flaglabddx,flagrecoilav,
-     +             flagEchannel
+     +             flagompall,flagautorot,flagstate,flagsys,flagrot,
+     +             flagasys,flaggshell,flagmassdis,flagffevap,flagendf,
+     +             flagendfdet,flagrecoil,flaglabddx,flagrecoilav,
+     +             flagEchannel,flagreaction,flagexpmass
       character*72 optmod
       integer      maxband,maxrot,strength
       real         ewfc,epreeq,emulpre
@@ -193,80 +204,100 @@ c
      +                 flagdisc,flagfisout,flagtransen,flagpeout,
      +                 flagang,flaglegendre,flagspec,flagddx,
      +                 flagoutdwba,flaggamdis,flagoutecis,flagexc,
-     +                 flagadd,flagaddel,flagelectron,flagspher,
+     +                 flagadd,flagaddel,flagelectron,flagspher,flagcol,
      +                 flagpartable
-      common /input4i/ maxchannel,ddxmode,fismodel,fismodelalt
+      common /input4i/ maxchannel,ddxmode,pairmodel,fismodel,fismodelalt
       logical flagmain,flagpop,flagcheck,flagoutomp,flagdirect,
      +        flaginverse,flaggamma,flaglevels,flagdensity,flagdisc,
      +        flagfisout,flagtransen,flagpeout,flagang,flaglegendre,
      +        flagspec,flagddx,flagoutdwba,flaggamdis,flagoutecis,
-     +        flagexc,flagadd,flagaddel,flagelectron,flagspher,
+     +        flagexc,flagadd,flagaddel,flagelectron,flagspher,flagcol,
      +        flagpartable
-      integer maxchannel,ddxmode,fismodel,fismodelalt
+      integer maxchannel,ddxmode,pairmodel,fismodel,fismodelalt
 c
 c ************************ subroutine input5 ***************************
 c
-      common /input5c/ levelfile(0:numZ),deformfile(0:numZ),
-     +                 hbtransfile(0:numZ,0:numN),
-     +                 class2file(0:numZ,0:numN),optmodfileN(0:numZ),
-     +                 optmodfileP(0:numZ)
-      common /input5i/ Nlow(0:numZ,0:numN,0:numbar),
-     +                 Ntop(0:numZ,0:numN,0:numbar),msdbins,nanglerec,
-     +                 axtype(0:numZ,0:numN,numbar)
-      common /input5r/ gnorm,Rspincut,alphald,betald,gammashell1,
-     +                 gammashell2,Ufermi,cfermi,Ufermibf,cfermibf,Kph,
-     +                 M2constant,M2limit,M2shift,Rpinu,Esurf0,Rgamma,
-     +                 elwidth,alev(0:numZ,0:numN),
-     +                 alimit(0:numZ,0:numN),gammald(0:numZ,0:numN),
-     +                 pair(0:numZ,0:numN),
-     +                 deltaW(0:numZ,0:numN,0:numbar),
-     +                 Exmatch(0:numZ,0:numN,0:numbar),
-     +                 T(0:numZ,0:numN,0:numbar),
-     +                 E0(0:numZ,0:numN,0:numbar),
-     +                 Krotconstant(0:numZ,0:numN,0:numbar),
-     +                 beta2(0:numZ,0:numN,0:numbar),
-     +                 c1table(0:numZ,0:numN),c2table(0:numZ,0:numN),
-     +                 g(0:numZ,0:numN),gp(0:numZ,0:numN),
-     +                 gn(0:numZ,0:numN),gamgam(0:numZ,0:numN),
-     +                 D0(0:numZ,0:numN),S0(0:numZ,0:numN),
-     +                 egr(0:numZ,0:numN,0:1,numgam,2),
-     +                 ggr(0:numZ,0:numN,0:1,numgam,2),
-     +                 sgr(0:numZ,0:numN,0:1,numgam,2),
-     +                 fbarrier(0:numZ,0:numN,numbar),
-     +                 fwidth(0:numZ,0:numN,numbar),
-     +                 Rtransmom(0:numZ,0:numN,numbar),
-     +                 Rclass2mom(0:numZ,0:numN,numbar),
-     +                 widthc2(0:numZ,0:numN,numbar),Emsdmin
+      common /input5c/  levelfile(0:numZ),deformfile(0:numZ),
+     +                  hbtransfile(0:numZ,0:numN),
+     +                  class2file(0:numZ,0:numN),optmodfileN(0:numZ),
+     +                  optmodfileP(0:numZ)
+      common /input5i/  spincutmodel,shellmodel,
+     +                  Nlow(0:numZ,0:numN,0:numbar),
+     +                  Ntop(0:numZ,0:numN,0:numbar),msdbins,nanglerec,
+     +                  axtype(0:numZ,0:numN,numbar)
+      common /input5rA/ gnorm,Rspincut,alphald,betald,gammashell1,
+     +                  gammashell2,pairconstant,Pshiftconstant,Ufermi,
+     +                  cfermi,Ufermibf,cfermibf,Kph,M2constant,M2limit,
+     +                  M2shift,Rpipi,Rnunu,Rpinu,Rnupi,Esurf0,Rgamma,
+     +                  elwidth,massnucleus(0:numZ+4,0:numN+4),
+     +                  massexcess(0:numZ+4,0:numN+4),
+     +                  alev(0:numZ,0:numN),alimit(0:numZ,0:numN),
+     +                  gammald(0:numZ,0:numN),pair(0:numZ,0:numN),
+     +                  deltaW(0:numZ,0:numN,0:numbar),
+     +                  Exmatch(0:numZ,0:numN,0:numbar),
+     +                  T(0:numZ,0:numN,0:numbar),
+     +                  E0(0:numZ,0:numN,0:numbar),
+     +                  Krotconstant(0:numZ,0:numN,0:numbar),
+     +                  beta2(0:numZ,0:numN,0:numbar),
+     +                  c1table(0:numZ,0:numN),c2table(0:numZ,0:numN),
+     +                  g(0:numZ,0:numN),gp(0:numZ,0:numN)
+      common /input5rB/ gn(0:numZ,0:numN),gamgam(0:numZ,0:numN),
+     +                  D0(0:numZ,0:numN),S0(0:numZ,0:numN),
+     +                  egr(0:numZ,0:numN,0:1,numgam,2),
+     +                  ggr(0:numZ,0:numN,0:1,numgam,2),
+     +                  sgr(0:numZ,0:numN,0:1,numgam,2),
+     +                  fbarrier(0:numZ,0:numN,numbar),
+     +                  fwidth(0:numZ,0:numN,numbar),
+     +                  Rtransmom(0:numZ,0:numN,numbar),
+     +                  Rclass2mom(0:numZ,0:numN,numbar),
+     +                  widthc2(0:numZ,0:numN,numbar),Emsdmin,
+     +                  Cstrip(0:numpar),Cknock(0:numpar),
+     +                  v1adjust(numpar),v2adjust(numpar),
+     +                  v3adjust(numpar),v4adjust(numpar),
+     +                  rvadjust(numpar),avadjust(numpar),
+     +                  w1adjust(numpar),w2adjust(numpar),
+     +                  d1adjust(numpar),d2adjust(numpar)
+      common /input5rC/ d3adjust(numpar),rvdadjust(numpar),
+     +                  avdadjust(numpar),rvsoadjust(numpar),
+     +                  avsoadjust(numpar),vso1adjust(numpar),
+     +                  vso2adjust(numpar),wso1adjust(numpar),
+     +                  wso2adjust(numpar),rcadjust(numpar)
       character*72 levelfile,deformfile,hbtransfile,class2file,
      +             optmodfileN,optmodfileP
-      integer      Nlow,Ntop,msdbins,nanglerec,axtype
+      integer      spincutmodel,shellmodel,Nlow,Ntop,msdbins,nanglerec,
+     +             axtype
       real         gnorm,Rspincut,alphald,betald,gammashell1,
-     +             gammashell2,Ufermi,cfermi,Ufermibf,cfermibf,Kph,
-     +             M2constant,M2limit,M2shift,Rpinu,Esurf0,Rgamma,
-     +             elwidth,alev,alimit,gammald,pair,deltaW,Exmatch,T,E0,
-     +             Krotconstant,beta2,c1table,c2table,g,gp,gn,gamgam,D0,
-     +             S0,egr,ggr,sgr,fbarrier,fwidth,Rtransmom,Rclass2mom,
-     +             widthc2,Emsdmin
+     +             gammashell2,pairconstant,Pshiftconstant,Ufermi,
+     +             cfermi,Ufermibf,cfermibf,Kph,M2constant,M2limit,
+     +             M2shift,Rpipi,Rnunu,Rpinu,Rnupi,Esurf0,Rgamma,
+     +             elwidth,massnucleus,massexcess,alev,alimit,gammald,
+     +             pair,deltaW,Exmatch,T,E0,Krotconstant,beta2,c1table,
+     +             c2table,g,gp,gn,gamgam,D0,S0,egr,ggr,sgr,fbarrier,
+     +             fwidth,Rtransmom,Rclass2mom,widthc2,Emsdmin,Cstrip,
+     +             Cknock,v1adjust,v2adjust,v3adjust,v4adjust,rvadjust,
+     +             avadjust,w1adjust,w2adjust,d1adjust,d2adjust,
+     +             d3adjust,rvdadjust,avdadjust,rvsoadjust,avsoadjust,
+     +             vso1adjust,vso2adjust,wso1adjust,wso2adjust,rcadjust
 c
 c ************************ subroutine input6 ***************************
 c
       common /input6l/ fileelastic,filespectrum(0:numpar),
      +                 fileangle(0:numlev),filediscrete(0:numlev),
      +                 filetotal,fileresidual,filechannels,filerecoil,
-     +                 filefission,filegamdis
+     +                 filefission,filegamdis,filedensity
       common /input6i/ ddxecount(0:numpar),ddxacount(0:numpar) 
       common /input6r/ fileddxe(0:numpar,numfile),
      +                 fileddxa(0:numpar,numfile) 
       logical fileelastic,filespectrum,fileangle,filediscrete,filetotal,
      +        fileresidual,filechannels,filerecoil,filefission,
-     +        filegamdis
+     +        filegamdis,filedensity
       integer ddxecount,ddxacount
       real    fileddxe,fileddxa
 c
 c ************************ subroutine abundance ************************
 c
-      common /abundancei/ isotope(20),isonum
-      common /abundancer/ abun(20)
+      common /abundancei/ isotope(numiso),isonum
+      common /abundancer/ abun(numiso)
       integer isotope,isonum
       real    abun
 c
@@ -360,36 +391,41 @@ c
 c
 c ************************* subroutine gammapar ************************
 c
+      common /gammaparl/ qrpaexist(0:numZ,0:numN)
       common /gammapari/ ngr(0:numZ,0:numN,0:1,numgam)
-      common /gammaparr/ kgr(0:numZ,0:numN,0:1,numgam)
+      common /gammaparr/ kgr(0:numZ,0:numN,0:1,numgam),
+     +                   eqrpa(0:numgamqrpa),
+     +                   fe1qrpa(0:numZ,0:numN,0:numgamqrpa)
+      logical qrpaexist
       integer ngr
-      real    kgr
+      real    kgr,eqrpa,fe1qrpa
 c
 c ************************* subroutine omppar **************************
 c
-      common /ompparl/ ompglobal(0:numZ,0:numN,numpar)
-      common /omppari/ omplines(numpar)
-      common /ompparr/ ef(0:numZ,0:numN,numpar),
-     +                 rc0(0:numZ,0:numN,numpar),
-     +                 rv0(0:numZ,0:numN,numpar),
-     +                 av0(0:numZ,0:numN,numpar),
-     +                 v1(0:numZ,0:numN,numpar),
-     +                 v2(0:numZ,0:numN,numpar),
-     +                 v3(0:numZ,0:numN,numpar),
-     +                 w1(0:numZ,0:numN,numpar),
-     +                 w2(0:numZ,0:numN,numpar),
-     +                 rvd0(0:numZ,0:numN,numpar),
-     +                 avd0(0:numZ,0:numN,numpar),
-     +                 d1(0:numZ,0:numN,numpar),
-     +                 d2(0:numZ,0:numN,numpar),
-     +                 d3(0:numZ,0:numN,numpar),
-     +                 rvso0(0:numZ,0:numN,numpar),
-     +                 avso0(0:numZ,0:numN,numpar),
-     +                 vso1(0:numZ,0:numN,numpar),
-     +                 vso2(0:numZ,0:numN,numpar),
-     +                 wso1(0:numZ,0:numN,numpar),
-     +                 wso2(0:numZ,0:numN,numpar),
-     +                 eomp(numpar,0:numomp),vomp(numpar,0:numomp,19)
+      common /ompparl/  ompglobal(0:numZ,0:numN,numpar)
+      common /omppari/  omplines(numpar)
+      common /ompparrA/ ef(0:numZ,0:numN,numpar),
+     +                  rc0(0:numZ,0:numN,numpar),
+     +                  rv0(0:numZ,0:numN,numpar),
+     +                  av0(0:numZ,0:numN,numpar),
+     +                  v1(0:numZ,0:numN,numpar),
+     +                  v2(0:numZ,0:numN,numpar),
+     +                  v3(0:numZ,0:numN,numpar),
+     +                  w1(0:numZ,0:numN,numpar),
+     +                  w2(0:numZ,0:numN,numpar),
+     +                  rvd0(0:numZ,0:numN,numpar),
+     +                  avd0(0:numZ,0:numN,numpar),
+     +                  d1(0:numZ,0:numN,numpar),
+     +                  d2(0:numZ,0:numN,numpar),
+     +                  d3(0:numZ,0:numN,numpar),
+     +                  rvso0(0:numZ,0:numN,numpar),
+     +                  avso0(0:numZ,0:numN,numpar)
+      common /ompparrB/ vso1(0:numZ,0:numN,numpar),
+     +                  vso2(0:numZ,0:numN,numpar),
+     +                  wso1(0:numZ,0:numN,numpar),
+     +                  wso2(0:numZ,0:numN,numpar),
+     +                  eomp(0:numZph,0:numNph,numpar,0:numomp),
+     +                  vomp(0:numZph,0:numNph,numpar,0:numomp,19)
       logical ompglobal
       integer omplines
       real    ef,rc0,rv0,av0,v1,v2,v3,w1,w2,rvd0,avd0,d1,d2,d3,
@@ -443,25 +479,37 @@ c
 c *********************** subroutine densitypar ************************
 c
       common /densitypari/ Nlast(0:numZ,0:numN,0:numbar)
+      common /densityparr/ delta0(0:numZ,0:numN),
+     +                     delta(0:numZ,0:numN,0:numbar),
+     +                     Pshift(0:numZ,0:numN,0:numbar),
+     +                     Tcrit(0:numZ,0:numN),aldcrit(0:numZ,0:numN),
+     +                     Econd(0:numZ,0:numN),Ucrit(0:numZ,0:numN),
+     +                     Scrit(0:numZ,0:numN),Dcrit(0:numZ,0:numN)
       integer Nlast
+      real    delta0,delta,Pshift,Tcrit,aldcrit,Econd,Ucrit,Scrit,Dcrit
 c
 c *********************** subroutine densitymatch **********************
 c
       common /densitymatchi/ NP,NLo
-      common /densitymatchr/ EL,EP,scutoffdisc(0:numZ,0:numN,0:numbar),
+      common /densitymatchr/ EL,EP,Ediscrete(0:numZ,0:numN,0:numbar),
+     +                       scutoffdisc(0:numZ,0:numN,0:numbar),
      +                       logrho(4000),temprho(4000)
       integer NP,NLo
-      real    EL,EP,scutoffdisc,logrho,temprho
+      real    EL,EP,Ediscrete,scutoffdisc,logrho,temprho
 c
 c *********************** subroutine densitytable **********************
 c
       common /densitytablel/ ldexist(0:numZ,0:numN,0:numbar)
-      common /densitytabler/ edens(0:55)
-      common /densitytabled/ ldtable(0:numZ,0:numN,0:55,0:29,0:numbar),
-     +                       ldtottable(0:numZ,0:numN,0:55,0:numbar)
+      common /densitytablei/ nendens
+      common /densitytabler/ edens(0:numdens),Edensmax
+      common /densitytabled/ 
+     +              ldtable(0:numZ,0:numN,0:numdens,0:29,-1:1,0:numbar),
+     +              ldtottableP(0:numZ,0:numN,0:numdens,-1:1,0:numbar),
+     +              ldtottable(0:numZ,0:numN,0:numdens,0:numbar)
       logical          ldexist
-      real             edens
-      double precision ldtable,ldtottable
+      integer          nendens
+      real             edens,Edensmax
+      double precision ldtable,ldtottableP,ldtottable
 c
 c *********************** subroutine D0theory **************************
 c
@@ -572,8 +620,8 @@ c
 c
 c ************************* subroutine gammanorm ***********************
 c
-      common /gammanormr/ Dth,swaveth
-      real Dth,swaveth
+      common /gammanormr/ swaveth
+      real swaveth
 c
 c ********************** subroutine preeqinit **************************
 c
@@ -634,19 +682,20 @@ c *********************** subroutine exgrid ****************************
 c
       common /exgridi/ maxex(0:numZ,0:numN),nexmax(0:numpar),
      +                 maxJ(0:numZ,0:numN,0:numex)
-      common /exgridr/ Exmax(0:numZ,0:numN),deltaEx(0:numZ,0:numN),
+      common /exgridr/ Exmax0(0:numZ,0:numN),Exmax(0:numZ,0:numN),
+     +                 deltaEx(0:numZ,0:numN),
      +                 Qres(0:numZ,0:numN,0:numlev),
      +                 Ex(0:numZ,0:numN,0:numex)
       common /exgridd/ Ethresh(0:numZ,0:numN,0:numlev),
      +                 rhogrid(0:numZ,0:numN,0:numex,0:numJ,-1:1)
       integer          maxex,nexmax,maxJ
-      real             Exmax,deltaEx,Qres,Ex
+      real             Exmax0,Exmax,deltaEx,Qres,Ex
       double precision Ethresh,rhogrid
 c
 c ********************* subroutine recoilinit **************************
 c
       common /recoiliniti/ iejlab(0:numpar),irecinit
-      common /recoilinitr/ 
+      common /recoilinitrA/ 
      +         ddxrec(0:numZ,0:numN,0:numex,0:numenrec,0:numangrec),
      +         ddxrectot(0:numZ,0:numN,0:numex),
      +         specrecoil(0:numZ,0:numN,0:numex),
@@ -661,7 +710,8 @@ c
      +         Eejlabmax(0:numpar,0:numen2),
      +         dEejlab(0:numpar,0:numen2),
      +         areaejlab(0:numpar,0:numen2,0:2*numangcont+1),
-     +         Erecinit,Erec(0:numZ,0:numN,0:numenrec),
+     +         Erecinit,Erec(0:numZ,0:numN,0:numenrec)
+      common /recoilinitrB/
      +         Erecmin(0:numZ,0:numN,0:numenrec),
      +         Erecmax(0:numZ,0:numN,0:numenrec),
      +         areareclab(0:numZ,0:numN,0:numenrec,0:2*numangrec+1),
@@ -896,10 +946,10 @@ c
 c *********************** subroutine compprepare ***********************
 c
       common /comppreparei/ tnum,tnuminc
-      common /compprepared/ denomhf,feed,transjl(0:5,numtrans),
+      common /compprepared/ denomhf,feed,transjl(0:5,numtrans),fiswidth,
      +                      enumhf(0:numpar,0:numex,0:numJ,-1:1)
       integer          tnum,tnuminc
-      double precision denomhf,feed,transjl,enumhf
+      double precision denomhf,feed,transjl,fiswidth,enumhf
 c
 c *********************** subroutine widthprepare **********************
 c
@@ -1090,9 +1140,11 @@ c
 c
 c ************************ subroutine massdis **************************
 c
+      common /massdisl/ fpexist(numelem,nummass)
       common /massdisr/ excfis,disa,disacor,disaz,disazcor
-      real excfis,disa(nummass),disacor(nummass),disaz(nummass,numelem),
-     +     disazcor(nummass,numelem)
+      logical fpexist
+      real    excfis,disa(nummass),disacor(nummass),
+     +        disaz(nummass,numelem),disazcor(nummass,numelem)
 c
 c ************************ subroutine brosafy **************************
 c

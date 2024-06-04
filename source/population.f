@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 16, 2004
+c | Date  : March 5, 2006   
 c | Task  : Processing of pre-equilibrium spectra into population bins
 c +---------------------------------------------------------------------
 c
@@ -269,13 +269,13 @@ c The difference that was already corrected above is illustrated by the
 c following table.
 c
       if (flagcheck) then
-        write(*,'(/"########## POPULATION CHECK ##########"/)')
-        write(*,'("Particle Pre-equilibrium Population"/)')
+        write(*,'(/" ########## POPULATION CHECK ##########"/)')
+        write(*,'(" Particle Pre-equilibrium Population"/)')
         do 210 type=0,6
           if (parskip(type)) goto 210
           xs=xspreeqtot(type)
           if (flaggiant) xs=xs+xsgrtot(type)
-          write(*,'(a8,2(f12.5))') parname(type),xs,xscheck(type)
+          write(*,'(1x,a8,2(f12.5))') parname(type),xs,xscheck(type)
   210   continue
       endif
       return

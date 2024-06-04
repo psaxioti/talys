@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : October 14, 2004
+c | Date  : October 9, 2006
 c | Task  : Binary reaction results
 c +---------------------------------------------------------------------
 c
@@ -244,43 +244,43 @@ c Exmax      : maximum excitation energy for residual nucleus
 c deltaEx    : excitation energy bin for population arrays
 c
       if (flagpop) then
-        write(*,'(/"########## BINARY CHANNELS ###########")')
-        write(*,'(/"++++++++++ BINARY CROSS SECTIONS ++++++++++"/)')
+        write(*,'(/" ########## BINARY CHANNELS ###########")')
+        write(*,'(/" ++++++++++ BINARY CROSS SECTIONS ++++++++++"/)')
         if (flagfission) 
-     +    write(*,'("fission  channel",23x,":",1p,e12.5)') 
+     +    write(*,'(" fission  channel",23x,":",1p,e12.5)') 
      +    xsbinary(-1)
         do 310 type=0,6
           if (parskip(type)) goto 310
           Z=ZZ(0,0,type)
           N=NN(0,0,type)
           A=AA(0,0,type)
-          write(*,'(a8," channel to Z=",i3," N=",i3," (",i3,a2,$)')
-     +      parname(type),Z,N,A,nuc(Z)
-          write(*,'("):",1p,e12.5)') xsbinary(type)
+          write(*,'(1x,a8," channel to Z=",i3," N=",i3," (",i3,a2,
+     +      "):",1p,e12.5)') parname(type),Z,N,A,nuc(Z),xsbinary(type)
   310   continue
         if (flagspec) then
-          write(*,'(/"Binary emission spectra"/)')
-          write(*,'(" Energy ",7(2x,a8,2x)/)') (parname(type),type=0,6)
+          write(*,'(/" Binary emission spectra"/)')
+          write(*,'("  Energy ",7(2x,a8,2x)/)') (parname(type),type=0,6)
           do 320 nen=ebegin(0),eendhigh
-            write(*,'(f8.3,1p,7e12.5)') egrid(nen),
+            write(*,'(1x,f8.3,1p,7e12.5)') egrid(nen),
      +        (xsbinemis(type,nen),type=0,6)
   320     continue
         endif
         if (flagspec.and.flagcheck) then
-          write(*,'(/"++++++++++ CHECK OF INTEGRATED ",$)')
-          write(*,'("BINARY EMISSION SPECTRA ++++++++++"/)')
-          write(*,'(12x,"Continuum cross section  Integrated",$)')
-          write(*,'(" spectrum  Compound normalization",$)')
-          write(*,'(" Average emission energy"/)')
+          write(*,'(/" ++++++++++ CHECK OF INTEGRATED ",
+     +      "BINARY EMISSION SPECTRA ++++++++++"/)')
+          write(*,'(13x,"Continuum cross section  Integrated",
+     +      " spectrum  Compound normalization",
+     +      " Average emission energy"/)')
           do 330 type=0,6
             if (parskip(type)) goto 330
-            write(*,'(a8,1p,3(10x,e12.5),0p,10x,f8.3)') parname(type),
+            write(*,'(1x,a8,1p,3(10x,e12.5),0p,10x,f8.3)') 
+     +        parname(type),
      +        xscompcont(type)+xspreeqtot(type)+xsgrtot(type),
      +        binemissum(type),binnorm(type),Eaverage(type)
   330     continue
         endif
-        write(*,'(/"++++++++++ POPULATION AFTER BINARY EMISSION",$)')
-        write(*,'(" ++++++++++")')
+        write(*,'(/" ++++++++++ POPULATION AFTER BINARY EMISSION",
+     +    " ++++++++++")')
         do 340 type=0,6
           if (parskip(type)) goto 340
           Zix=Zindex(0,0,type)
@@ -291,24 +291,22 @@ c
           A=AA(0,0,type)
           if (xspopnuc(Zix,Nix).eq.0.) goto 340
           odd=mod(A,2)
-          write(*,'(/"Population of Z=",i3," N=",i3,$)') Z,N
-          write(*,'(" (",i3,a2,") after binary ",$)') A,nuc(Z)
-          write(*,'(a8," emission:",1p,e12.5)') parname(type),
-     +      xspopnuc(Zix,Nix)
-          write(*,'("Maximum excitation energy:",f8.3,$)')
-     +      Exmax(Zix,Nix)
-          write(*,'(" Discrete levels:",i3,$)') NL
+          write(*,'(/" Population of Z=",i3," N=",i3,
+     +      " (",i3,a2,") after binary ",a8," emission:",1p,e12.5)') 
+     +      Z,N,A,nuc(Z),parname(type),xspopnuc(Zix,Nix)
           if (maxex(Zix,Nix).gt.NL) then
-            write(*,'(" Continuum bins:",i3,$)') maxex(Zix,Nix)-NL
-            write(*,'(" Continuum bin size:",f8.3/)') deltaEx(Zix,Nix)
+            write(*,'(" Maximum excitation energy:",f8.3,
+     +        " Discrete levels:",i3," Continuum bins:",i3,
+     +        " Continuum bin size:",f8.3/)') Exmax(Zix,Nix),NL,
+     +        maxex(Zix,Nix)-NL,deltaEx(Zix,Nix)
           else
-            write(*,'(/)')
+            write(*,'(" Maximum excitation energy:",f8.3,
+     +        " Discrete levels:",i3/)') Exmax(Zix,Nix),NL
           endif
-          write(*,'("bin    Ex    Popul. ",$)')
-          write(*,'(5("   J=",f4.1,"-   J=",f4.1,"+")/)') 
-     +      (J+0.5*odd,J+0.5*odd,J=0,4)
+          write(*,'(" bin    Ex    Popul. ",5("   J=",f4.1,"-   J=",
+     +      f4.1,"+")/)') (J+0.5*odd,J+0.5*odd,J=0,4)
           do 350 nex=0,maxex(Zix,Nix)
-            write(*,'(i3,f8.3,1p,11e10.3)') nex,Ex(Zix,Nix,nex),
+            write(*,'(1x,i3,f8.3,1p,11e10.3)') nex,Ex(Zix,Nix,nex),
      +        xspopex(Zix,Nix,nex),((xspop(Zix,Nix,nex,J,parity),
      +        parity=-1,1,2),J=0,4)
   350     continue

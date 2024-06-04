@@ -1,17 +1,17 @@
       function spincut(Zix,Nix,ald,Eex,ibar)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : October 14, 2004
+c | Author: Arjan Koning and Stephane Hilaire
+c | Date  : July 4, 2006
 c | Task  : Spin cutoff factor
 c +---------------------------------------------------------------------
 c
 c ******************* Declarations and common blocks *******************
 c
       include "talys.cmb"
-      integer Zix,Nix,ibar,A,Ns2d
-      real    spincut,ald,Eex,scutconst,b2,aldm,ignatyuk,Umatch,s2m,s2d,
-     +        Es2m,Es2d,ascutoff,bscutoff,U
+      integer Zix,Nix,ibar
+      real    spincut,ald,Eex,scutconst,Em,aldm,ignatyuk,Umatch,s2m,s2d,
+     +        Ed,U
 c
 c *********************** Spin cutoff parameter ************************
 c
@@ -22,90 +22,98 @@ c ald         : level density parameter
 c Eex         : excitation energy 
 c ibar        : fission barrier
 c
+c Models for spin cutoff factor:
+c
+c spincutmodel 1: s.c. = I0 * (a/alimit) * sqrt (U/a) = 
+c                        I0/alimit * sqrt (a.U)
+c spincutmodel 2: s.c. = I0 * sqrt (U/a)
+c                 where I0 = 0.01389 * A^(5/3)
+c
 c We interpolate between the discrete level spin cutoff factor and 
 c the value at the matching energy.
 c
 c 1. Below the matching energy
 c
-c AA,A        : mass number of nucleus
-c ldmodel     : level density model
+c spincutmodel: model for spin cutoff factor for ground state
 c scutconst   : constant for spin cutoff factor
 c Rspincut    : adjustable constant for spin cutoff factor 
-c b2,beta2    : deformation parameter
+c Irigid0     : undeformed rigid body value of moment of inertia
+c alimit      : asymptotic level density parameter
+c Em          : matching energy
 c Exmatch     : matching point for Ex
-c Umatch      : Exmatch - pairing       
+c ldmodel     : level density model
+c S           : separation energy per particle
+c Ucrit       : critical U
+c pair        : pairing energy
+c Pshift      : adjustable pairing shift
 c aldm        : level density parameter at matching energy
 c ignatyuk    : function for energy dependent level density parameter a 
-c s2m,Es2d,...: help variables
-c twothird    : 2/3
-c pair        : pairing energy
+c Umatch      : Exmatch - pairing       
+c aldcrit     : critical level density parameter
+c Tcrit       : critical temperature
+c Ediscrete0  : energy of start of discrete level region
+c Ediscrete   : energy of middle of discrete level region
+c s2m,s2d,Ed  : help variables
+c scutoffdisc : spin cutoff factor for discrete level region 
 c
-      A=AA(Zix,Nix,0)
-      if (ldmodel.eq.1) then
-        scutconst=0.0888*Rspincut
+      spincut=1.
+      if (spincutmodel.eq.1) then
+        scutconst=Rspincut*Irigid0(Zix,Nix)/alimit(Zix,Nix)
       else
-        scutconst=0.01389*Rspincut
+        scutconst=Rspincut*Irigid0(Zix,Nix)
       endif
-      b2=beta2(Zix,Nix,ibar)
-      if (Eex.le.Exmatch(Zix,Nix,ibar)) then
-        aldm=ignatyuk(Zix,Nix,Exmatch(Zix,Nix,ibar),ibar)
-        Umatch=Exmatch(Zix,Nix,ibar)-pair(Zix,Nix)
+      Em=Exmatch(Zix,Nix,ibar)
+      if (ldmodel.eq.2) Em=S(Zix,Nix,1)
+      if (ldmodel.eq.3) 
+     +  Em=Ucrit(Zix,Nix)-pair(Zix,Nix)-Pshift(Zix,Nix,ibar)
+      if (Eex.le.Em) then
+        aldm=ignatyuk(Zix,Nix,Em,ibar)
+        Umatch=Em-pair(Zix,Nix)-Pshift(Zix,Nix,ibar)
         if (Umatch.gt.0.) then
-          if (ldmodel.eq.1) then
-            s2m=scutconst*A**twothird*sqrt(aldm*Umatch)
+          if (spincutmodel.eq.1) then
+            if (ldmodel.eq.3) then
+              s2m=scutconst*aldcrit(Zix,Nix)*Tcrit(Zix,Nix)
+            else
+              s2m=scutconst*sqrt(aldm*Umatch)
+            endif
           else
-            s2m=scutconst*A**twothird*A*sqrt(Umatch/aldm)
+            if (ldmodel.eq.3) then
+              s2m=scutconst*Tcrit(Zix,Nix)
+            else
+              s2m=scutconst*sqrt(Umatch/aldm)
+            endif
           endif
         else
-c
-c von Egidy et al systematics, Nuc. Phys. A481, 189 (1988)
-c
-
-          s2m=(0.98*(A**0.29))**2
+          s2m=scutoffdisc(Zix,Nix,ibar)
         endif
-        if (ibar.ne.0) s2m=(1.+b2/3.)*s2m
-c
-c Discrete spin cutoff-factor may not be zero (this is the case if e.g.
-c only the 0+ ground state is known).
-c
-c scutoffdisc : spin cutoff factor for discrete level region 
-c edis        : energy of level
-c Ntop        : highest discrete level for temperature matching
-c ascutoff,...: help variables
-c efistrrot   : energy of rotational transition states
-c
-        if (scutoffdisc(Zix,Nix,ibar).eq.0.) 
-     +    scutoffdisc(Zix,Nix,ibar)=s2m
         s2d=scutoffdisc(Zix,Nix,ibar)
-        if (s2d.ge.s2m) s2d=s2m
-        Es2m=Exmatch(Zix,Nix,ibar)
-        Es2d=0.5*edis(Zix,Nix,max(Ntop(Zix,Nix,0),1))
-        if (ibar.ne.0) then
-          Ns2d=max(Ntop(Zix,Nix,ibar),1)
-          Es2d=0.5*efistrrot(Zix,Nix,ibar,Ns2d)
-        endif
-        ascutoff=(s2m-s2d)/(Es2m-Es2d)
-        bscutoff=s2d-ascutoff*Es2d
-        spincut=ascutoff*Eex+bscutoff
-        if (spincut.le.0) spincut=s2m
+        Ed=Ediscrete(Zix,Nix,ibar)
+        spincut=s2d
+        if (Em.ne.Ed.and.Eex.gt.Ed) 
+     +    spincut=s2d+(Eex-Ed)/(Em-Ed)*(s2m-s2d)
       else
 c
 c 2. Above the matching energy
 c
-c U: excitation energy minus pairing energy
+c U       : excitation energy minus pairing energy
+c delta   : energy shift
+c beta2   : deformation parameter
+c flagcol : flag for collective enhancement of level density
+c twothird: 2/3
 c
-        U=Eex-pair(Zix,Nix)
+        U=Eex-delta(Zix,Nix,ibar)
         if (U.gt.0.) then
-          if (ldmodel.eq.1) then
-            spincut=scutconst*A**twothird*sqrt(ald*U)
+          if (spincutmodel.eq.1) then
+            spincut=scutconst*sqrt(ald*U)
           else
-            spincut=scutconst*A**twothird*A*sqrt(U/ald)
+            spincut=scutconst*sqrt(U/ald)
           endif
         else
-          spincut=(0.98*(A**0.29))**2
+          spincut=scutoffdisc(Zix,Nix,ibar)
         endif
-        if (ibar.ne.0) spincut=(1.+b2/3.)*spincut
       endif
+      spincut=max(scutoffdisc(Zix,Nix,ibar),spincut)
+      if (flagcol) spincut=(1.-twothird*beta2(Zix,Nix,ibar))*spincut
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

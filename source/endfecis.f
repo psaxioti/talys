@@ -2,16 +2,17 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 13, 2004
+c | Date  : September 15, 2006
 c | Task  : ECIS calculation for incident particle on ENDF-6 energy grid
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical rotational,vibrational                      
-      integer Zix,Nix,i1,i,ii,nen
-      real    e
+      logical      rotational,vibrational                      
+      character*13 outfile
+      integer      Zix,Nix,i1,i,ii,nen
+      real         e
 c
 c ********************** Set ECIS input parameters *********************
 c
@@ -32,12 +33,9 @@ c Zindex          : charge number index for residual nucleus
 c Nindex          : neutron number index for residual nucleus
 c
 c Specific ECIS flags:
-c ecis2(13)=F : output transmission coefficients 
+c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
+c ecis2(13)=F : output of transmission coefficients 
 c ecis2(14)=F : no output of elastic angular distribution 
-c Extra ECIS-flags added by A. Koning:
-c ecis2(10)=F : output of polarization 
-c ecis2(20)=T : output of reaction cross section 
-c ecis2(40)=T : output of total and total elastic cross section 
 c
       legendre=.false.
       rmatch=0.
@@ -78,7 +76,7 @@ c Some input flags for ECIS are energy dependent for the rotational
 c model so ecis1 will be defined inside the energy loop.
 c
       ecis1='FFFFFTFFFFFFFFFFFFFFFFFFTFFTFFFFFFFFFFFFFFFFFFFFFF'
-      ecis2='FFFFFFFFFFFFTFFFTTTTFTTFTFFFFFFFFFFFFFFTFFFFFFFFFF'
+      ecis2='FFFFFFFFTFFFFFFFTTTFFTTFTFFFFFFFFFFFFFFFFFFFFFFFFF'
 c
 c 1. Spherical nucleus
 c
@@ -229,9 +227,11 @@ c to Pascal Romain.
 c
         if (colltype(Zix,Nix).eq.'R'.and.k0.le.2) then
           if (e.le.3.) then
+            ecis1(13:13)='F'
             ecis1(21:21)='T'
             ecis1(42:42)='T'
           else
+            ecis1(13:13)='T'
             ecis1(21:21)='F'
             ecis1(42:42)='F'
           endif                               
@@ -247,16 +247,18 @@ c
 c ************ ECIS calculation for outgoing energies ******************
 c
 c flagoutecis: flag for output of ECIS results
-c ecis97t    : subroutine ecis97, adapted for TALYS
+c outfile    : output file
+c nulldev    : null device
+c ecis03t    : subroutine ecis03, adapted for TALYS
 c ecisstatus : status of ECIS file
 c
       if (flagoutecis) then
-        call ecis97t('ecisendf.inp  ','ecisendf.out  ','ecis97.endfcs',
-     +    'ecis97.endfrs')
+        outfile='ecisendf.out '
       else
-        call ecis97t('ecisendf.inp  ','/dev/null     ','ecis97.endfcs',
-     +    'ecis97.endfrs')
+        outfile=nulldev
       endif
+      call ecis03t('ecisendf.inp ',outfile,'ecis03.endfcs',
+     +  'ecis03.endfin','null         ','null         ','null         ')
       open (unit=9,status='unknown',file='ecisendf.inp')
       close (unit=9,status=ecisstatus)
       return

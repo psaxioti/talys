@@ -208,7 +208,7 @@ c
 c
 c calculate lab bins occupation for the ejectile in the LAB
 c We assume the image in the LAB of a CM triangle is a triangle
-c This is theoretically wrong but shoul be a good approximation
+c This is theoretically wrong but should be a good approximation
 c
 c labsurf1   : total surface covered in the LAB by the ejectile image
 c              in the LAB of the first CM triangle (Eejcm1,angejcm1),
@@ -291,7 +291,7 @@ c
 c
 c calculate lab bins occupation for the recoil in the LAB
 c We assume the image in the LAB of a CM triangle is a triangle
-c This is theoretically wrong but shoul be a good approximation
+c This is theoretically wrong but should be a good approximation
 c
 c labsurf1   : total surface covered in the LAB by the recoil image
 c              in the LAB of the first CM triangle (Eejcm1,angejcm1),

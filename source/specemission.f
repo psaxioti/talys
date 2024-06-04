@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 7, 2004
+c | Date  : September 26, 2006
 c | Task  : Exclusive emission cross sections for continuum
 c +---------------------------------------------------------------------
 c
@@ -20,6 +20,7 @@ c ****************** Smearing into emission spectra ********************
 c
 c Zcomp      : charge number index for compound nucleus
 c Ncomp      : neutron number index for compound nucleus
+c specemis   : exclusive emission contribution
 c popexcl    : population cross section of bin just before decay  
 c speceps    : limit for cross section spectra
 c Exinc      : excitation energy of entrance bin
@@ -53,6 +54,9 @@ c residual excitation energy Exm is obtained by subtracting the
 c separation energy from this. The bin in which this Exm falls
 c is denoted by nexmax.        
 c
+      do 10 nen=0,numen
+        specemis(nen)=0.
+   10 continue
       if (popexcl(Zcomp,Ncomp,nex).le.speceps) return
       Exinc=Ex(Zcomp,Ncomp,nex)
       dExinc=deltaEx(Zcomp,Ncomp)
@@ -64,19 +68,17 @@ c
       Zix=Zindex(Zcomp,Ncomp,type)
       Nix=Nindex(Zcomp,Ncomp,type)
       dEx=deltaEx(Zix,Nix)
-      do 10 nexout2=maxex(Zix,Nix),0,-1
+      do 20 nexout2=maxex(Zix,Nix),0,-1
         Exmin=Ex(Zix,Nix,nexout)-0.5*dEx
         if (Exmin.lt.Exm) then
           nexmax(type)=nexout2
           goto 100
         endif
-   10 continue
+   20 continue
       return
 c
 c 2. Determine the widths over which the decay must be spread.
 c
-c eend    : last energy point of energy grid
-c specemis: exclusive emission contribution
 c NL,Nlast: last discrete level
 c Ex1min  : lower boundary of residual bin
 c Ex1plus : upper boundary of residual bin
@@ -84,10 +86,7 @@ c emax    : maximal emission energy within bin decay
 c emin    : minimal emission energy within bin decay
 c Eout    : emission energy
 c
-  100 do 110 nen=ebegin(type),eend(type)
-        specemis(nen)=0.
-  110 continue
-      Exout=Ex(Zix,Nix,nexout)
+  100 Exout=Ex(Zix,Nix,nexout)
       NL=Nlast(Zix,Nix,0)
 c
 c Decay from continuum to continuum. For most residual continuum
@@ -139,6 +138,7 @@ c spectrum are located.
 c     
 c locate       : subroutine to find value in ordered table
 c Ebottom      : bottom of outgoing energy bin
+c eend         : last energy point of energy grid
 c nenbeg,nenend: help variables
 c dE           : emission bin
 c dEhalf       : half of emission bin

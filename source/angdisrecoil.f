@@ -347,7 +347,7 @@ c
 c
 c calculate lab bins occupation for the recoil in the LAB
 c We assume the image in the LAB of a CM triangle is a triangle
-c This is theoretically wrong but shoul be a good approximation
+c This is theoretically wrong but should be a good approximation
 c
             call labsurface(Zcomp,Ncomp,type,0,
      +                      Ereclab11,cosreclab11,sinreclab11,

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire, Marieke Duijvestijn and Arjan Koning 
-c | Date  : August 17, 2004
+c | Date  : April 7, 2006
 c | Task  : Effective level density parameter
 c +---------------------------------------------------------------------
 c
@@ -11,8 +11,8 @@ c
       include "talys.cmb"
       integer          Zix,Nix,ibar,A,jmax,j
       real             aldmatch,Eex,rjbegin,rj,aldref,ignatyuk,spindis,
-     +                 sigma,spincut,Krot,Kvib,aldacc,ald1,ald2,dald,
-     +                 aldmid,sigmamid
+     +                 sigma,spincut,Krot,Kvib,Kcoll,aldacc,ald1,ald2,
+     +                 dald,aldmid,sigmamid
       double precision rhosum,factor,fermi,rhoref,fdiff,fmid
       parameter (jmax=40)
 c
@@ -49,10 +49,11 @@ c
 c colenhance: subroutine for collective enhancement
 c Krot      : rotational enhancement factor
 c Kvib      : vibrational enhancement factor
+c Kcoll     : total collective enhancement
 c rhoref    : help variable
 c
-      call colenhance(Zix,Nix,Eex,aldref,ibar,Krot,Kvib)
-      rhoref=Krot*Kvib*rhosum      
+      call colenhance(Zix,Nix,Eex,aldref,ibar,Krot,Kvib,Kcoll)
+      rhoref=Kcoll*rhosum      
 c 
 c 3. Determine effective level density parameter by equating the 
 c    rotational enhanced level density by a new effective

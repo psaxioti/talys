@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 11, 2004
+c | Date  : October 7, 2006   
 c | Task  : Output of ECIS results for DWBA for MSD
 c +---------------------------------------------------------------------
 c
@@ -28,27 +28,25 @@ c              energy, outgoing energy, angular momentum and angle
 c xsdwin     : DWBA cross section as a function of incident energy,
 c              outgoing energy and angular momentum
 c
-      ofor1='(/," Angle",3x,n(" J =",i2,7x))'
-      ofor2='(/,9x,n(" J =",i2,7x))'
-      write(ofor1(16:16),'(i1)') min(maxJmsd+1,8)
-      write(ofor2(7:7),'(i1)') min(maxJmsd+1,8)
-      write(*,'(/,"(",a1,",",a1,") DWBA cross sections ",$)')
-     +  parsym(itype),parsym(type)
-      write(*,'("(mb/Sr) for E-in=",f6.2," MeV, Ex=",f6.2,$)')
-     +  Emsdin,Exmsd
-      write(*,'(" MeV, E-out=",f6.2," MeV")') Emsdout
+      ofor1='(/,"  Angle",3x,n(" J =",i2,7x))'
+      ofor2='(/,10x,n(" J =",i2,7x))'
+      write(ofor1(17:17),'(i1)') min(maxJmsd+1,8)
+      write(ofor2(8:8),'(i1)') min(maxJmsd+1,8)
+      write(*,'(/," (",a1,",",a1,") DWBA cross sections ",
+     +  "(mb/Sr) for E-in=",f6.2," MeV, Ex=",f6.2," MeV, E-out=",f6.2,
+     +  " MeV")') parsym(itype),parsym(type),Emsdin,Exmsd,Emsdout
       if (flagddx) then
         write(*,fmt=ofor1) (J,J=0,min(maxJmsd,7))
         write(*,'()')
         do 10 iang=0,nanglecont
-          write(*,'(f5.1,1p,8e13.5)') anglecont(iang),
+          write(*,'(1x,f5.1,1p,8e13.5)') anglecont(iang),
      +      (xsdw(nen1,nen2,J,iang,0),J=0,min(maxJmsd,7))
    10   continue
       endif
       write(*,fmt=ofor2) (J,J=0,min(maxJmsd,7))
-      write(*,'(/,"Angle",1p,8e13.5)') (xsdwin(nen1,nen2,J,0),
+      write(*,'(/," Angle",1p,8e13.5)') (xsdwin(nen1,nen2,J,0),
      +  J=0,min(maxJmsd,7))
-      write(*,'("integr.")')
+      write(*,'(" integr.")')
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

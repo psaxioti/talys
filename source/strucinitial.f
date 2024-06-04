@@ -2,33 +2,38 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 14, 2004
+c | Date  : December 13, 2006
 c | Task  : Initialization of arrays for various structure parameters
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer Zix,Nix,type,i,k,l,irad,nen,nex
+      integer Zix,Nix,type,i,k,l,irad,nen,nex,ipar,j,in,ip,id,it,ih,ia
 c
 c *********** Initialization of nuclear structure arrays ***************
 c
 c Masses and separation energies
 c
-c Nix     : neutron number index for residual nucleus
-c numN    : maximal number of neutrons away from the initial 
-c           compound nucleus
-c Zix     : charge number index for residual nucleus
-c numZ    : maximal number of protons away from the initial 
-c           compound nucleus
-c nucmass : mass of nucleus
-c expmexc : experimental mass excess
-c thmexc  : theoretical mass excess           
-c numpar  : number of particles
-c specmass: specific mass for target nucleus
-c redumass: reduced mass
-c S       : separation energy per particle
+c flagreaction: flag for calculation of nuclear reactions
+c Nix         : neutron number index for residual nucleus
+c numN        : maximal number of neutrons away from the initial 
+c               compound nucleus
+c Zix         : charge number index for residual nucleus
+c numZ        : maximal number of protons away from the initial 
+c               compound nucleus
+c nucmass     : mass of nucleus
+c expmexc     : experimental mass excess
+c thmexc      : theoretical mass excess           
+c numpar      : number of particles
+c specmass    : specific mass for target nucleus
+c redumass    : reduced mass
+c S           : separation energy per particle
 c
+c If no nuclear reaction calculation is requested, we skip a large
+c part of this subroutine to speed up the calculation.
+c
+      if (.not.flagreaction) goto 600
       do 10 Nix=0,numN+4
         do 10 Zix=0,numZ+4
           nucmass(Zix,Nix)=0.
@@ -71,6 +76,7 @@ c deftype    : deformation length (D) or parameter (B)
 c nlevmax2   : maximum number of levels  
 c ndef       : number of collective levels           
 c nrot       : number of deformation parameters
+c deltaEx    : excitation energy bin for population arrays
 c numrotcc   : number of rotational deformation parameters
 c rotpar     : deformation parameters for rotational nucleus
 c
@@ -113,6 +119,7 @@ c
           nlevmax2(Zix,Nix)=0
           ndef(Zix,Nix)=0
           nrot(Zix,Nix)=0.
+          deltaEx(Zix,Nix)=0.
   140 continue
       do 150 i=0,numrotcc
         do 150 Nix=0,numN
@@ -135,9 +142,13 @@ c
 c
 c Gamma parameters
 c
-c gammax: number of l-values for gamma multipolarity
-c ngr   : number of GR  
-c kgr   : constant for gamma-ray strength function         
+c gammax    : number of l-values for gamma multipolarity
+c ngr       : number of GR  
+c kgr       : constant for gamma-ray strength function         
+c qrpaexist : flag for existence of tabulated QRPA strength functions
+c numgamqrpa: number of energies for QRPA strength function
+c eqrpa     : energy grid for QRPA strength function
+c fe1qrpa   : tabulated QRPA strength function
 c
       do 310 l=1,gammax
         do 310 irad=0,1
@@ -146,6 +157,17 @@ c
               ngr(Zix,Nix,irad,l)=1
               kgr(Zix,Nix,irad,l)=0.
   310 continue                         
+      do 320 Nix=0,numN
+        do 320 Zix=0,numZ
+          qrpaexist(Zix,Nix)=.false.
+  320 continue                         
+      do 330 nen=0,numgamqrpa
+        eqrpa(nen)=0.
+        do 340 Nix=0,numN
+          do 340 Zix=0,numZ
+            fe1qrpa(Zix,Nix,nen)=0.
+  340   continue                         
+  330 continue                         
 c
 c Optical model parameters
 c
@@ -154,6 +176,13 @@ c rc0,rv0,...: optical model parameters
 c numomp     : number of energies on optical model file
 c eomp       : energies on optical model file
 c vomp       : optical model parameters from file
+c numNph     : maximal number of neutrons away from the initial 
+c              compound nucleus for multiple pre-equilibrium emission
+c numZph     : maximal number of protons away from the initial 
+c              compound nucleus for multiple pre-equilibrium emission
+c numen      : maximum number of outgoing energies
+c wvol       : absorption part of the optical potential averaged over
+c              the volume
 c
       do 410 k=1,numpar
         do 410 Nix=0,numN
@@ -179,15 +208,18 @@ c
             wso1(Zix,Nix,k)=0.
             wso2(Zix,Nix,k)=0.
   410 continue
-      do 420 nen=0,numomp
-        do 420 k=1,numpar
-          eomp(k,nen)=0.
+      do 420 i=1,19
+        do 420 nen=0,numomp
+          do 420 k=1,numpar
+            do 420 Nix=0,numNph
+              do 420 Zix=0,numZph
+                eomp(Zix,Nix,k,nen)=0.
+                vomp(Zix,Nix,k,nen,i)=0.
   420 continue
-      do 430 i=1,19
-        do 430 nen=0,numomp
-          do 430 k=1,numpar
-            vomp(k,nen,i) =0.
-  430 continue
+      do 440 type=1,2
+        do 440 nen=-200,10*numen
+          wvol(type,nen)=0.
+  440 continue
 c
 c Fission parameters
 c
@@ -260,11 +292,17 @@ c
 c Nlast      : last discrete level
 c scutoffdisc: spin cutoff factor for discrete level region 
 c ldexist    : flag for existence of level density table  
-c ldmodel    : level density model       
 c edens      : energy grid for tabulated level densities
+c ldmodel    : level density model       
+c nendens    : number of energies for level density grid
+c Edensmax   : maximum energy on level density table
 c Dtheo      : theoretical s-wave resonance spacing 
+c ldtable    : level density from table
+c ldtottableP: total level density per parity from table
+c ldtottable : total level density from table
+c rhogrid    : integrated level density
 c
-      do 610 i=0,numbar
+  600 do 610 i=0,numbar
         do 610 Nix=0,numN
           do 610 Zix=0,numZ
             Nlast(Zix,Nix,i)=0.
@@ -274,40 +312,65 @@ c
 c
 c Set energy grid for tabulated level densities 
 c
-      if (ldmodel.eq.3) then
-        edens(0)=0.
-        do 620 nex=1,20
-          edens(nex)=0.25*nex
-  620   continue
-        do 630 nex=21,30
-          edens(nex)=5.+0.5*(nex-20)
-  630   continue
-        do 640 nex=31,40
-          edens(nex)=10.+nex-30
-  640   continue
-        edens(41)=22.5
-        edens(42)=25.
-        edens(43)=30.
-        do 650 nex=44,55
-          edens(nex)=30.+10.*(nex-43)
-  650   continue                                
+      edens(0)=0.
+      do 620 nex=1,20
+        edens(nex)=0.25*nex
+  620 continue
+      do 630 nex=21,30
+        edens(nex)=5.+0.5*(nex-20)
+  630 continue
+      do 640 nex=31,40
+        edens(nex)=10.+nex-30
+  640 continue
+      edens(41)=22.5
+      edens(42)=25.
+      edens(43)=30.
+      do 650 nex=44,60
+        edens(nex)=30.+10.*(nex-43)
+  650 continue                                
+      if (ldmodel.le.3) nendens=60
+      if (ldmodel.eq.4) then
+        nendens=55
+        Edensmax=150.
       endif
-      do 660 Nix=0,numN
-        do 660 Zix=0,numZ
+      if (ldmodel.eq.5) then
+        nendens=60
+        Edensmax=200.
+      endif
+      if (.not.flagreaction) return
+      do 710 Nix=0,numN
+        do 710 Zix=0,numZ
           Dtheo(Zix,Nix)=0.
-  660 continue
+  710 continue
+      do 720 i=0,numbar
+        do 720 ipar=-1,1,2
+          do 720 j=0,29
+            do 720 nex=0,numdens
+              do 720 Nix=0,numN
+                do 720 Zix=0,numZ
+                  ldtottable(Zix,Nix,nex,i)=0.
+                  ldtottableP(Zix,Nix,nex,ipar,i)=0.
+                  ldtable(Zix,Nix,nex,j,ipar,i)=0.
+  720 continue
+      do 730 ipar=-1,1,2
+        do 730 j=0,numJ
+          do 730 nex=0,numdens
+            do 730 Nix=0,numN
+              do 730 Zix=0,numZ
+                rhogrid(Zix,Nix,nex,j,ipar)=0.
+  730 continue
 c
 c Weak coupling parameters
 c
 c jcore: spin of level of core nucleus
 c pcore: parity of level of core nucleus      
 c
-      do 710 i=0,numlev2
-        do 710 Nix=0,numN
-          do 710 Zix=0,numZ
+      do 740 i=0,numlev2
+        do 740 Nix=0,numN
+          do 740 Zix=0,numZ
             jcore(Zix,Nix,i)=0.
             pcore(Zix,Nix,i)=1
-  710 continue
+  740 continue
 c
 c Giant resonance sum rules
 c
@@ -333,6 +396,67 @@ c
             Qres(Zix,Nix,i)=0.
             Ethresh(Zix,Nix,i)=0.
   910 continue    
+c
+c Reaction flags
+c
+c flagwidth  : flag for width fluctuation calculation
+c flagpreeq  : flag for pre-equilibrium calculation
+c flagcompang: flag for compound angular distribution calculation
+c flaggiant  : flag for collective contribution from giant resonances
+c flagmulpre : flag for multiple pre-equilibrium calculation
+c
+c These flags will be reset later in subroutine energies.f, depending
+c on the incident energy.
+c
+      flagwidth=.false.
+      flagpreeq=.false.
+      flagcompang=.false.
+      flaggiant=.false.
+      flagmulpre=.false.
+c
+c Flags for existence of files
+c
+c rpexist     : flag for existence of residual production cross section
+c fisexist    : flag for existence of fission cross section
+c rpisoexist  : flag for existence of isomeric residual production cross
+c               section   
+c gamexist    : flag for existence of gamma production cross section
+c numin,....  : maximal number of ejectile in channel description 
+c chanexist   : flag for existence of exclusive cross section
+c gamchanexist: flag for existence of exclusive discrete gamma-rays
+c chanfisexist: flag for existence of exclusive fission cross section
+c chanisoexist: flag for existence of exclusive isomeric cross section
+c fpexist     : flag for existence of fission product
+c
+      do 1010 Nix=0,numN
+        do 1010 Zix=0,numZ
+          rpexist(Zix,Nix)=.false.
+          fisexist(Zix,Nix)=.false.
+          do 1020 nex=0,numlev
+            rpisoexist(Zix,Nix,nex)=.false.
+ 1020     continue
+          do 1030 i=0,numlev
+            do 1030 j=0,i
+              gamexist(Zix,Nix,i,j)=.false.
+ 1030     continue
+ 1010 continue
+      do 1040 in=0,numin
+        do 1040 ip=0,numip
+          do 1040 id=0,numid
+            do 1040 it=0,numit
+              do 1040 ih=0,numih
+                do 1040 ia=0,numia
+                  chanexist(in,ip,id,it,ih,ia)=.false.
+                  gamchanexist(in,ip,id,it,ih,ia)=.false.
+                  chanfisexist(in,ip,id,it,ih,ia)=.false.
+                  do 1050 nex=0,numlev
+                    chanisoexist(in,ip,id,it,ih,ia,nex)=.false.
+ 1050             continue
+ 1040 continue
+      do 1060 i=1,numelem
+        do 1060 j=1,nummass
+          fpexist(i,j)=.false.
+ 1060 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

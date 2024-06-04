@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Arjan Koning 
-c | Date  : December 1, 2004
+c | Date  : September 13, 2005
 c | Task  : Normalization of gamma ray strength functions 
 c +---------------------------------------------------------------------
 c
@@ -14,7 +14,7 @@ c
      +                 Irspin2,l2beg,l2end,l2,l,modl,irad,nen
       real             Sn,Exgam(0:10*numex),dEx,gamsum,Exmid,Egamma,
      +                 Exmin,Explus,dE1,dE2,Rspin,Tgamma,fstrength,
-     +                 rhosum,gammaxs
+     +                 gammaxs
       double precision density,rho1,rho2,rho3,r1log,r2log,r3log,rho
 c
 c We normalize the gamma-ray strength functions by imposing the 
@@ -27,7 +27,6 @@ c *************** Initialization of excitation energies ****************
 c
 c Zcomp       : charge number index for compound nucleus
 c Ncomp       : neutron number index for compound nucleus
-c Dth         : theoretical s-wave resonance spacing
 c swaveth     : theoretical strength function for s-wave
 c gnorm       : gamma normalization factor
 c Sn          : neutron separation energy
@@ -41,9 +40,8 @@ c
 c If the gamma normalization factor has been given in the input, we
 c do not need to calculate it.
 c
-      Dth=0.
       swaveth=0.
-      if (gnorm.ne.-1..or.gnorm.eq.1.) goto 220
+      if (gnorm.ne.-1..or.gnorm.eq.1.) goto 210
       Sn=S(Zcomp,Ncomp,1)
       NL=Nlast(Zcomp,Ncomp,0)
       do 10 nex=0,NL
@@ -158,11 +156,12 @@ c
             do 140 Irspin2=Irspin2beg,Irspin2end,2
               Rspin=0.5*Irspin2
               if (nexout.gt.NL) then
-                rho1=real(density(Zcomp,Ncomp,Exmin,Rspin,0,ldmodel))+
-     +            1.e-30
-                rho2=real(density(Zcomp,Ncomp,Exmid,Rspin,0,ldmodel))
-                rho3=real(density(Zcomp,Ncomp,Explus,Rspin,0,ldmodel))+
-     +            1.e-30
+                rho1=real(density(Zcomp,Ncomp,Exmin,Rspin,Pprime,0,
+     +            ldmodel))+1.e-30
+                rho2=real(density(Zcomp,Ncomp,Exmid,Rspin,Pprime,0,
+     +            ldmodel))
+                rho3=real(density(Zcomp,Ncomp,Explus,Rspin,Pprime,0,
+     +            ldmodel))+1.e-30
                 r1log=log(rho1)
                 r2log=log(rho2)
                 r3log=log(rho3)
@@ -214,8 +213,8 @@ c
 c
 c ************** Normalization of transmission coefficients ***********
 c
-c rhosum: help variable
 c gamgam: total radiative width
+c Dtheo : theoretical s-wave resonance spacing
 c ebegin: first energy point of energy grid
 c eend  : last energy point of energy grid
 c egrid : outgoing energy grid
@@ -224,25 +223,20 @@ c Tjl   : transmission coefficients as a function of particle type,
 c         energy, spin and l-value
 c
       if (gamsum.ne.0.) then
-        rhosum=0.
-        do 210 J2=J2b,J2e,2 
-          rhosum=rhosum+real(density(Zcomp,Ncomp,Sn,0.5*J2,0,ldmodel))
-  210   continue
-        Dth=1.e6/rhosum
-        swaveth=gamgam(Zcomp,Ncomp)/Dth
+        swaveth=gamgam(Zcomp,Ncomp)/Dtheo(Zcomp,Ncomp)
         gnorm=twopi*swaveth/gamsum
       else
         gnorm=1.
       endif
-  220 do 230 nen=ebegin(0),eend(0)
+  210 do 220 nen=ebegin(0),eend(0)
         Egamma=egrid(nen)
         lmax(0,nen)=gammax
-        do 240 l=1,gammax
-          do 240 irad=0,1
+        do 230 l=1,gammax
+          do 230 irad=0,1
             Tgamma=twopi*(Egamma**(2*l+1))*
      +        fstrength(Zcomp,Ncomp,Egamma,irad,l)
             Tjl(0,nen,irad,l)=Tgamma*gnorm
-  240   continue
+  230   continue
 c
 c Photo-absorption cross section
 c
@@ -250,7 +244,7 @@ c xsreac : reaction cross section
 c gammaxs: function for gamma ray cross sections 
 c
         xsreac(0,nen)=gammaxs(Zcomp,Ncomp,Egamma)
-  230 continue
+  220 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 18, 2004
+c | Date  : December 8, 2006
 c | Task  : Normalization of compound nucleus cross section
 c +---------------------------------------------------------------------
 c
@@ -38,6 +38,7 @@ c J2end      : 2 * end of J summation
 c lmaxinc    : maximal l-value for transmission coefficients for
 c              incident channel                                        
 c numJ       : maximal J-value 
+c flagwidth  : flag for width fluctuation calculation
 c
       xsreacsum=0.
       pik2=10.*pi/(wavenum*wavenum)
@@ -138,15 +139,15 @@ c
       endif
       CNfactor=CNfactor*cfratio/norm
       if (flagcheck) then
-        write(*,'(/"++++++++++ Normalization of reaction cross",$)')
-        write(*,'(" section ++++++++++"/)')
-        write(*,'("Reaction cross section          :",f11.5," (A)")') 
+        write(*,'(/" ++++++++++ Normalization of reaction cross",
+     +    " section ++++++++++"/)')
+        write(*,'(" Reaction cross section          :",f11.5," (A)")') 
      +    xsreacinc
-        write(*,'("Sum over T(j,l)                 :",f11.5," (B)")') 
+        write(*,'(" Sum over T(j,l)                 :",f11.5," (B)")') 
      +    xsreacsum
-        write(*,'("Compound nucleus formation c.s. :",f11.5," (C)")') 
+        write(*,'(" Compound nucleus formation c.s. :",f11.5," (C)")') 
      +    xsflux
-        write(*,'("Ratio C/B                       :",f11.5)') 
+        write(*,'(" Ratio C/B                       :",f11.5)') 
      +    cfratio
       endif
       return

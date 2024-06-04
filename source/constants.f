@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : November 13, 2004
+c | Date  : June 17, 2005
 c | Task  : Constants and initialization
 c +---------------------------------------------------------------------
 c
@@ -71,9 +71,14 @@ c
 c
 c ************************ Set counter for isotope *********************
 c
-c iso: counter for isotope
+c iso      : counter for isotope
+c numiso   : maximum number of isotopes per element
+c natstring: string extension for file names
 c
       iso=1
+      do 110 i=1,numiso
+        natstring(i)='    '
+  110 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

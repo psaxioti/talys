@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 13, 2004
+c | Date  : October 11, 2006   
 c | Task  : Output of discrete levels 
 c +---------------------------------------------------------------------
 c
@@ -37,33 +37,32 @@ c
       Z=ZZ(Zix,Nix,0)
       N=NN(Zix,Nix,0)
       A=AA(Zix,Nix,0)       
-      write(*,'(/"NUCLEAR STRUCTURE INFORMATION FOR Z=",i3," N=",i3,$)')
-     +   Z,N
-      write(*,'(" (",i3,a2,") ")') A,nuc(Z)
-      write(*,'(/"Separation energies:")') 
-      write(*,'(/"Particle        S         "/)')
+      write(*,'(/" NUCLEAR STRUCTURE INFORMATION FOR Z=",i3," N=",i3,
+     +  " (",i3,a2,") ")') Z,N,A,nuc(Z)
+      write(*,'(/" Separation energies:")') 
+      write(*,'(/" Particle        S         "/)')
       do 10 type=1,6
         if (parskip(type)) goto 10
-        write(*,'(a8,3x,f9.5)') parname(type),S(Zix,Nix,type)
+        write(*,'(1x,a8,f12.5)') parname(type),S(Zix,Nix,type)
    10 continue
-      write(*,'(/"Discrete levels of Z=",i3," N=",i3,$)') Z,N
-      write(*,'(" (",i3,a2,") ")') A,nuc(Z)
-      write(*,'(/"Number Energy  Spin Parity  Branching  Ratio (%)",$)')
-      write(*,'(" Lifetime(sec) Assignment        ENSDF"/)')
+      write(*,'(/" Discrete levels of Z=",i3," N=",i3," (",i3,a2,") ")')
+     +   Z,N,A,nuc(Z)
+      write(*,'(/" Number  Energy Spin Parity  Branching  ",
+     +  "Ratio (%) Lifetime(sec) Assignment        ENSDF"/)')
       do 20 i=0,nlev(Zix,Nix)
-        write(*,'(i3,4x,f7.4,1x,f4.1,3x,a1,$)') i,edis(Zix,Nix,i),
-     +    jdis(Zix,Nix,i),cparity(parlev(Zix,Nix,i))
-        write(*,'(24(" "),$)')
         if (tau(Zix,Nix,i).ne.0.) then
-          write(*,'(2x,1p,e10.3,$)') tau(Zix,Nix,i)
+          write(*,'(1x,i3,4x,f7.4,1x,f4.1,3x,a1,24(" "),2x,1p,e10.3,
+     +      7x,2a1,a18)') i,edis(Zix,Nix,i),jdis(Zix,Nix,i),
+     +      cparity(parlev(Zix,Nix,i)),tau(Zix,Nix,i),
+     +      jassign(Zix,Nix,i),passign(Zix,Nix,i),ENSDF(Zix,Nix,i)
         else
-          write(*,'(12(" "),$)')
+          write(*,'(1x,i3,4x,f7.4,1x,f4.1,3x,a1,36(" "),7x,2a1,a18)') i,
+     +      edis(Zix,Nix,i),jdis(Zix,Nix,i),cparity(parlev(Zix,Nix,i)),
+     +      jassign(Zix,Nix,i),passign(Zix,Nix,i),ENSDF(Zix,Nix,i)
         endif
-        write(*,'(7x,2a1,a18)') jassign(Zix,Nix,i),passign(Zix,Nix,i),
-     +    ENSDF(Zix,Nix,i)
         do 40 k=0,i
           if (branchratio(Zix,Nix,i,k).ne.0.) then
-            write(*,'(30x,"--->",i3,2x,f8.4,18x,a1)') k,
+            write(*,'(31x,"--->",i3,2x,f8.4,18x,a1)') k,
      +        branchratio(Zix,Nix,i,k)*100.,bassign(Zix,Nix,i,k)
           endif
    40   continue

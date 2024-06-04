@@ -2,19 +2,19 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : October 14, 2004
+c | Date  : October 5, 2006
 c | Task  : Fission fragment yields
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      fpexist(nummass,numelem)
-      character*80 yieldfile,fpfile
+      character*90 yieldfile,fpfile
       real         fiseps,yielda(nummass),yieldacor(nummass),
      +             yieldaz(nummass,numelem),yieldazcor(nummass,numelem),
      +             fisepsA,partfisxs
-      integer      k,i,Zcomp,Ncomp,Z,A,nexend,iskip,istep,nex,nen
+      integer      k,i,Zcomp,Ncomp,Z,A,Zix,Nix,nexend,iskip,istep,nex,
+     +             nen
 c
 c ************************** Mass yields *******************************
 c
@@ -27,8 +27,6 @@ c yieldacor : corrected mass yield
 c numelem   : number of elements  
 c yieldaz   : isotopic yield
 c yieldazcor: corrected isotopic yield
-c numinclow : number of incident energies below Elow       
-c fpexist   : flag for existence of fission product
 c
 c Initialization
 c
@@ -39,7 +37,6 @@ c
         do 10 i=1,numelem
           yieldaz(k,i)=0.
           yieldazcor(k,i)=0.
-          if (nin.eq.numinclow+1) fpexist(k,i)=.false.
    10 continue
 c
 c Loop over nuclides
@@ -52,6 +49,8 @@ c maxN       : maximal number of neutrons away from the initial
 c              compound nucleus 
 c ZZ,Z       : charge number of residual nucleus  
 c AA,A       : mass number of residual nucleus  
+c Zindex,Zix : charge number index for residual nucleus
+c Nindex,Nix : neutron number index for residual nucleus
 c maxex      : maximum excitation energy bin for compound nucleus
 c fiseps     : limit for fission cross section per excitation energy bin
 c iskip,istep: help variables
@@ -77,8 +76,9 @@ c Brosa parameters available between Z=72 and Z=96, outside this range
 c we adopt the values of the boundary nuclides
 c
           Z=ZZ(Zcomp,Ncomp,0)
-          Z=max(72,min(Z,96))
           A=AA(Zcomp,Ncomp,0)
+          Zix=Zindex(Zcomp,Ncomp,0)
+          Nix=Nindex(Zcomp,Ncomp,0)
           if(xsfeed(Zcomp,Ncomp,-1).lt.fiseps) goto 20
           if (Zcomp.eq.0.and.Ncomp.eq.0) then
             nexend=maxex(Zcomp,Ncomp)+1
@@ -118,7 +118,7 @@ c
               endif
             endif
             if (partfisxs.gt.fisepsA) then
-              call brosafy(Z,A)
+              call brosafy(Zix,Nix)
               do 60 k=1,A
                 yielda(k)=yielda(k)+disa(k)*partfisxs
                 yieldacor(k)=yieldacor(k)+disacor(k)*partfisxs
@@ -134,6 +134,8 @@ c
 c Write results to separate files
 c
 c yieldfile: file with fission yields
+c natstring: string extension for file names
+c iso      : counter for isotope
 c Einc     : incident energy in MeV
 c parsym   : symbol of particle
 c k0       : index of incident particle
@@ -141,7 +143,7 @@ c Atarget  : mass number of target nucleus
 c nuc      : symbol of nucleus
 c Ztarget  : charge number of target nucleus    
 c
-      yieldfile='yield000.000.fis'
+      yieldfile='yield000.000.fis'//natstring(iso)
       write(yieldfile(6:12),'(f7.3)') Einc
       write(yieldfile(6:8),'(i3.3)') int(Einc)
       open(unit=1,status='unknown',file=yieldfile)
@@ -158,6 +160,7 @@ c
 c
 c Write ff/fp residual production
 c
+c fpexist   : flag for existence of fission product
 c fpfile    : file with fission product
 c numinc    : number of incident energies   
 c flagffevap: flag for calculation of particle evaporation from
@@ -166,15 +169,14 @@ c eninc     : incident energy in MeV
 c
       do 80 k=1,Atarget
         do 90 i=1,Ztarget
-          if (yieldaz(k,i).lt.1.e-3.and..not.fpexist(k,i)) goto 90
-          fpfile='fp000000.tot'
+          if (yieldaz(k,i).lt.1.e-3.and..not.fpexist(i,k)) goto 90
+          fpfile='fp000000.tot'//natstring(iso)
           write(fpfile(3:8),'(2i3.3)') i,k
-          if (.not.fpexist(k,i)) then
-            fpexist(k,i)=.true.
+          if (.not.fpexist(i,k)) then
+            fpexist(i,k)=.true.
             open(unit=1,status='unknown',file=fpfile)
-            write(1,'("# ",a1," + ",i3,a2,": ff yield of ",$)')
-     +        parsym(k0),Atarget,nuc(Ztarget)
-            write(1,'(i3,a2)') k,nuc(i)
+            write(1,'("# ",a1," + ",i3,a2,": ff yield of ",i3,a2)')
+     +        parsym(k0),Atarget,nuc(Ztarget),k,nuc(i)
             write(1,'("# ")')
             write(1,'("# # energies =",i3)') numinc  
             write(1,'("# ")')

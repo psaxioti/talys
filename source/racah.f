@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire (adapted from O. Bersillon)
-c | Date  : August 25, 2004
+c | Date  : November 22, 2006
 c | Task  : Calculation of Racah coefficients
 c +---------------------------------------------------------------------
 c
@@ -88,7 +88,7 @@ c
       if((j5 - 2*(j5/2)) .ne. 0) h = -h
       if(n .lt. 0) return
       if(n .eq. 0) then
-        racah = h
+        racah = real(h)
         return
       else
         s = 1.
@@ -106,7 +106,7 @@ c
           s = 1. - s*t
           q = q   - 1.
         end do
-        racah = h*s
+        racah = real(h*s)
       endif
       return
       end  

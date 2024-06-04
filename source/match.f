@@ -15,7 +15,7 @@ c
 c
 c *********************** Matching function ****************************
 c
-c match       : matching funtion
+c match       : matching function
 c Eex         : excitation energy
 c pol1        : subroutine for interpolation of first order
 c temp,temprho: nuclear temperature

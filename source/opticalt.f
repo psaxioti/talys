@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : July 7, 2004
+c | Date  : December 8, 2005
 c | Task  : Optical potential for tritons
 c +---------------------------------------------------------------------
 c
@@ -12,15 +12,18 @@ c
       character*72 optmodfile
       integer      Zix,Nix,nen,i
       real         eopt,elow,eup,eint,vloc(19),vn,rvn,avn,wn,rwn,awn,
-     +             vdn,rvdn,avdn,wdn,rwdn,awdn,vp,rvp,avp,wp,rwp,awp,
-     +             vdp,rvdp,avdp,wdp,rwdp,awdp,vson,rvson,avson,wson,
-     +             rwson,awson,vsop,rvsop,avsop,wsop,rwsop,awsop    
+     +             vdn,rvdn,avdn,wdn,vp,rvp,avp,wp,rwp,awp,vdp,rvdp,
+     +             avdp,wdp,vson,rvson,avson,wson,vsop,rvsop,avsop,wsop
 c
 c ******************* Optical model input file *************************
 c
 c Zix          : charge number index for residual nucleus
 c Nix          : neutron number index for residual nucleus
 c eopt         : incident energy 
+c numNph       : maximal number of neutrons away from the initial 
+c                compound nucleus for multiple pre-equilibrium emission
+c numZph       : maximal number of protons away from the initial 
+c                compound nucleus for multiple pre-equilibrium emission
 c optmodfile   : file with optical model parameters
 c optmod       : file with optical model parameters
 c eomp         : energies on optical model file
@@ -39,16 +42,19 @@ c
 c 1 In case of an optical model file, we interpolate between the
 c   tabulated values.
 c
-      optmodfile=optmod(Zix,Nix,4)
+      optmodfile='                                                     '
+      if (Zix.le.numZph.and.Nix.le.numNph) optmodfile=optmod(Zix,Nix,4)
       if (optmodfile(1:1).ne.' ') then
-        if (eopt.lt.eomp(4,1).or.eopt.gt.eomp(4,omplines(4))) goto 100
+        if (eopt.lt.eomp(Zix,Nix,4,1).or.
+     +    eopt.gt.eomp(Zix,Nix,4,omplines(4))) goto 100
         do 20 nen=1,omplines(4)-1
-          elow=eomp(4,nen)
-          eup=eomp(4,nen+1)
+          elow=eomp(Zix,Nix,4,nen)
+          eup=eomp(Zix,Nix,4,nen+1)
           if (elow.le.eopt.and.eopt.le.eup) then
             eint=(eopt-elow)/(eup-elow)
             do 30 i=1,19
-              vloc(i)=vomp(4,nen,i)+eint*(vomp(4,nen+1,i)-vomp(4,nen,i))
+              vloc(i)=vomp(Zix,Nix,4,nen,i)+
+     +          eint*(vomp(Zix,Nix,4,nen+1,i)-vomp(Zix,Nix,4,nen,i))
    30       continue
             v=vloc(1)
             rv=vloc(2)
@@ -108,8 +114,6 @@ c
       rvdn=rvd
       avdn=avd
       wdn=wd
-      rwdn=rwd
-      awdn=awd     
 c
 c 2. Proton potential for E/3.
 c
@@ -127,8 +131,6 @@ c
       rvdp=rvd
       avdp=avd
       wdp=wd
-      rwdp=rwd
-      awdp=awd            
 c
 c 3. Another 2 calls to opticaln for eopt=E to determine Vso and Wso.
 c
@@ -141,36 +143,34 @@ c
       rvson=rvso
       avson=avso
       wson=wso
-      rwson=rwso
-      awson=awso       
       call opticalp(Zix,Nix,eopt)
       vsop=vso
       rvsop=rvso
       avsop=avso
       wsop=wso
-      rwsop=rwso
-      awsop=awso    
 c
 c 4. Final potential depths: construct V, W, Wd, Vso and Wso.
 c
-      v=2.*vn+vp
-      rv=(2.*rvn+rvp)*onethird
-      av=(2.*avn+avp)*onethird
-      w=2.*wn+wp
-      rw=(2.*rwn+rwp)*onethird
-      aw=(2.*awn+awp)*onethird
-      vd=2.*vdn+vdp
-      rvd=(2.*rvdn+rvdp)*onethird
-      avd=(2.*avdn+avdp)*onethird
-      wd=2.*wdn+wdp
-      rwd=(2.*rwdn+rwdp)*onethird
-      awd=(2.*awdn+awdp)*onethird
-      vso=0.5*(vson+vsop)*onethird
-      rvso=(2.*rvson+rvsop)*onethird
-      avso=(2.*avson+avsop)*onethird
-      wso=0.5*(wson+wsop)*onethird
-      rwso=(2.*rwson+rwsop)*onethird
-      awso=(2.*awson+awsop)*onethird
+c v1adjust..: adjustable factors for OMP (default 1.)
+c
+      v=v1adjust(4)*(2.*vn+vp)
+      rv=rvadjust(4)*(2.*rvn+rvp)*onethird
+      av=avadjust(4)*(2.*avn+avp)*onethird
+      w=w1adjust(4)*(2.*wn+wp)
+      rw=rvadjust(4)*(2.*rwn+rwp)*onethird
+      aw=avadjust(4)*(2.*awn+awp)*onethird
+      vd=d1adjust(4)*(2.*vdn+vdp)
+      rvd=rvdadjust(4)*(2.*rvdn+rvdp)*onethird
+      avd=avdadjust(4)*(2.*avdn+avdp)*onethird
+      wd=d1adjust(4)*(2.*wdn+wdp)
+      rwd=rvd
+      awd=avd
+      vso=vso1adjust(4)*0.5*(vson+vsop)*onethird
+      rvso=rvsoadjust(4)*(2.*rvson+rvsop)*onethird
+      avso=avsoadjust(4)*(2.*avson+avsop)*onethird
+      wso=wso1adjust(4)*0.5*(wson+wsop)*onethird
+      rwso=rvso
+      awso=rwso
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

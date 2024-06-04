@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : September 9, 2004
+c | Date  : February 26, 2005
 c | Task  : Searches the minimal value fmin of the function extern. 
 c |         If eps positive the Tchebychev accuracy within the p is 
 c |         controlled, if it is negative, the standard deviation of 
@@ -156,7 +156,6 @@ c
       if (icall.gt.ncall) go to 80                                      
       fex=abs(fmax)*(1.+abs((pex(i)-pc(i))/pd(i)))                      
  34   if (fex.gt.fmin)  goto 44
- 47   format(10x,i5,10x,6hexpand)                                       
  45   do 46  i=1,k                                                      
         ssh(i,maxf)=pex(i)                             
  46   continue
@@ -166,7 +165,6 @@ c
         ssh(i,maxf)=pr(i)                             
  48   continue
       f(maxf)=fr                                                        
- 41   format(10x,i5," reflect")                                         
       goto 17                                                           
  50   if(fr.gt.fmax)  goto 54                                           
       do 52  i=1,k                                                      
@@ -182,7 +180,6 @@ c
       icall=icall+1                                                     
       if (icall.gt.ncall) go to 80                                      
       fex=extern(pex,k)                                                 
- 59   format(10x,i5,20x,8hcontract)                                     
       if (fex.lt.fmax)  goto 45
 c
 c halve.                                                                
@@ -197,6 +194,5 @@ c
         if (icall.gt.ncall) go to 80         
         f(jk)=extern(psh,k)                 
  62   continue                                                          
- 65   format(10x,i5,30x,7h  halve)                                      
       go to 17                                                          
       end                                                               

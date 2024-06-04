@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 7, 2004
+c | Date  : September 13, 2004
 c | Task  : Gamma ray parameters 
 c +---------------------------------------------------------------------
 c
@@ -12,8 +12,8 @@ c
       logical      lexist
       character*4  gamchar
       character*90 gamfile
-      integer      Zix,Nix,Z,A,N,ia,irad,l
-      real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom
+      integer      Zix,Nix,Z,A,N,ia,irad,l,nen
+      real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom,fe1
 c
 c ***************** Default giant resonance parameters *****************
 c
@@ -47,7 +47,7 @@ c
       N=A-Z
       gamchar='z   '
       write(gamchar(2:4),'(i3.3)') Z
-      gamfile=path(1:lenpath)//'gamma/'//gamchar
+      gamfile=path(1:lenpath)//'gamma/gdr/'//gamchar
       inquire (file=gamfile,exist=lexist)
       if (.not.lexist) goto 20
       open (unit=2,status='old',file=gamfile)
@@ -136,8 +136,9 @@ c
 c Check whether number of giant resonances is two (in which case
 c all parameters must be specified)
 c
-c irad: variable to indicate M(=0) or E(=1) radiation
-c ngr : number of GR
+c irad    : variable to indicate M(=0) or E(=1) radiation
+c ngr     : number of GR
+c strength: model for E1 gamma-ray strength function
 c
       do 130 irad=0,1   
         do 130 l=1,gammax
@@ -145,6 +146,40 @@ c
      +      sgr(Zix,Nix,irad,l,2).ne.0..and.
      +      egr(Zix,Nix,irad,l,2).ne.0.)  ngr(Zix,Nix,irad,l)=2
   130 continue
+      if (strength.le.2) return
+c
+c
+c ***************** HFbcs or HFB QRPA strength functions ***************
+c
+c For Goriely's HFbcs or HFB QRPA strength function we overwrite the
+c E1 strength function with tabulated results, if available.
+c
+c numgamqrpa : number of energies for QRPA strength function
+c eqrpa      : energy grid for QRPA strength function
+c fe1qrpa,fe1: tabulated QRPA strength function
+c qrpaexist  : flag for existence of tabulated QRPA strength functions
+c
+      if (strength.eq.3) 
+     +  gamfile=path(1:lenpath)//'gamma/hfbcs/'//gamchar
+      if (strength.eq.4) 
+     +  gamfile=path(1:lenpath)//'gamma/hfb/'//gamchar
+      inquire (file=gamfile,exist=lexist)
+      if (.not.lexist) goto 210
+      open (unit=2,status='old',file=gamfile)
+  220 read(2,'(10x,i4)',end=210) ia
+      read(2,*)
+      if (ia.ne.A) then
+        do 230 nen=1,numgamqrpa+1
+          read(2,*)
+  230   continue
+        goto 220
+      endif
+      do 240 nen=1,numgamqrpa
+        read(2,'(f9.3,1p,e12.3)') eqrpa(nen),fe1
+        fe1qrpa(Zix,Nix,nen)=onethird*pi2h2c2*fe1
+  240 continue
+      qrpaexist(Zix,Nix)=.true.
+  210 close(unit=2)
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

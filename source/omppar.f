@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 2, 2004
+c | Date  : March 5, 2006   
 c | Task  : Optical model parameters
 c +---------------------------------------------------------------------
 c
@@ -176,25 +176,33 @@ c
 c
 c ************** Optical model file from user input file ***************
 c
-c optmod,optmodfile: file with optical model parameters
-c omplines         : number of lines on optical model file
-c eomp             : energies on optical model file
-c vomp             : optical model parameters from file
+c numNph    : maximal number of neutrons away from the initial 
+c             compound nucleus for multiple pre-equilibrium emission
+c numZph    : maximal number of protons away from the initial 
+c             compound nucleus for multiple pre-equilibrium emission
+c optmod    : file with optical model parameters
+c optmodfile: file with optical model parameters
+c omplines  : number of lines on optical model file
+c eomp      : energies on optical model file
+c vomp      : optical model parameters from file
 c
-      do 210 k=1,6
-        optmodfile=optmod(Zix,Nix,k)
-        if (optmodfile(1:1).ne.' ') then
-          open (unit=2,status='old',file=optmodfile)   
-          read(2,'(8x,i4)') omplines(k)
-          eomp(k,0)=0.
-          do 220 nen=1,omplines(k)
-            read(2,'(f7.3,6(f7.3,2f6.3),f6.3)',err=300) eomp(k,nen),
-     +        (vomp(k,nen,ii),ii=1,19)    
-  220     continue
-        endif
-  210 continue
+      if (Zix.le.numZph.and.Nix.le.numNph) then
+        do 210 k=1,6
+          optmodfile=optmod(Zix,Nix,k)
+          if (optmodfile(1:1).ne.' ') then
+            open (unit=2,status='old',file=optmodfile)   
+            read(2,'(8x,i4)') omplines(k)
+            eomp(Zix,Nix,k,0)=0.
+            do 220 nen=1,omplines(k)
+              read(2,*,err=300) eomp(Zix,Nix,k,nen),
+     +          (vomp(Zix,Nix,k,nen,ii),ii=1,19)    
+  220       continue
+            close(unit=2)
+          endif
+  210   continue
+      endif
       return
-  300 write(*,'("TALYS-error: Format error in ",a72)') optmodfile
+  300 write(*,'(" TALYS-error: Format error in ",a72)') optmodfile
       stop
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

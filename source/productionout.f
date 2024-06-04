@@ -2,15 +2,15 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 1, 2004
+c | Date  : October 4, 2006   
 c | Task  : Output of particle production cross sections
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*9  totfile
-      character*11 fisfile
+      character*13 totfile
+      character*15 fisfile
       integer      type,nen
 c
 c ************** Total particle production cross sections **************
@@ -20,15 +20,17 @@ c parname     : name of particle
 c xsparticle  : total particle production cross section 
 c multiplicity: particle multiplicity
 c
-      write(*,'(/"3. Total particle production cross sections"/)') 
+      write(*,'(/" 3. Total particle production cross sections"/)') 
       do 10 type=0,6
         if (parskip(type)) goto 10
-        write(*,'(a8,"=",1p,e12.5,"    Multiplicity=",e12.5)') 
+        write(*,'(1x,a8,"=",1p,e12.5,"    Multiplicity=",e12.5)') 
      +    parname(type),xsparticle(type),multiplicity(type)
 c
 c Write results to separate file
 c
 c filetotal : flag for total cross sections on separate file
+c natstring : string extension for file names
+c iso       : counter for isotope
 c numinclow : number of incident energies below Elow
 c parsym    : symbol of particle
 c k0        : index of incident particle
@@ -39,7 +41,7 @@ c numinc    : number of incident energies
 c eninc,Einc: incident energy in MeV
 c
         if (filetotal) then
-          totfile=' prod.tot'
+          totfile=' prod.tot'//natstring(iso)
           write(totfile(1:1),'(a1)') parsym(type)
           if (nin.eq.numinclow+1) then
             open (unit=1,status='unknown',file=totfile)
@@ -70,19 +72,18 @@ c flagfission : flag for fission
 c xsfistot    : total fission cross section
 c
       if (flagfission) then
-        write(*,'("fission =",1p,e12.5)') xsfistot
+        write(*,'(" fission =",1p,e12.5)') xsfistot
 c
 c Write results to separate file
 c
 c filefission: flag for fission cross sections on separate file 
 c
         if (filefission) then
-          fisfile='fission.tot'
+          fisfile='fission.tot'//natstring(iso)
           if (nin.eq.numinclow+1) then
             open (unit=1,status='unknown',file=fisfile)
-            write(1,'("# ",a1," + ",i3,a2,"   : (",a1,",f)        ",$)')
-     +        parsym(k0),Atarget,nuc(Ztarget),parsym(k0)
-            write(1,'("  Total")')
+            write(1,'("# ",a1," + ",i3,a2,"   : (",a1,",f)        ",
+     +        "  Total")') parsym(k0),Atarget,nuc(Ztarget),parsym(k0)
             write(1,'("# ")')
             write(1,'("# ")')
             write(1,'("# # energies =",i3)') numinc

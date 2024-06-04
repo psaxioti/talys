@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : December 5, 2004
+c | Date  : December 8, 2006
 c | Task  : Prepare information for initial compound nucleus
 c +---------------------------------------------------------------------
 c
@@ -13,11 +13,11 @@ c
      +                 jj2end,jj2,l2beg,l2end,l2,l,updown,i,parspin2o,
      +                 pspin2o,type,Zix,Nix,nexout,l2maxhf,Pprimebeg,
      +                 Pprimeend,Irspin2beg,Irspin2end,J2res,Pprime,
-     +                 pardif2,Irspin2,Ir,jj2primebeg,jj2primeend,
-     +                 jj2prime,l2primebeg,l2primeend,l2prime,lprime,
-     +                 modl,irad,updown2,ihill
+     +                 pardif2,Irspin2,Ir,jj2primebeg,
+     +                 jj2primeend,jj2prime,l2primebeg,l2primeend,
+     +                 l2prime,lprime,modl,irad,updown2,ihill
       real             Tinc,Tout
-      double precision fiswidth,gamwidth,rho,factor,ratio,tfishill
+      double precision gamwidth,rho,factor,ratio,tfishill
 c
 c The transmission coefficients are put in arrays for possible width 
 c fluctuation calculations. Also the total width denomhf appearing in 
@@ -233,14 +233,15 @@ c
 c
 c 140: Sum over residual spin
 c    
-c Irspin2 : 2 * residual spin
-c Ir      : residual spin
-c rho,rho0: integrated level density
+c Irspin2  : 2 * residual spin
+c Ir       : residual spin
+c rho,rho0 : integrated level density
 c
             do 140 Irspin2=Irspin2beg,Irspin2end,2
               Ir=Irspin2/2
               enumhf(type,nexout,Ir,Pprime)=0.
               rho=rho0(type,nexout,Ir,Pprime)
+              if (rho.lt.1.e-20) goto 140
 c
 c 150: Sum over j (jj2) of outgoing channel
 c
@@ -309,7 +310,7 @@ c
                   denomhf=denomhf+factor
 c
 c Information needed for width fluctuation calculation. Values for
-c for rho*T**i where (i=0,8) are stored. The photon contribution is 
+c for rho*T**i where (i=0,5) are stored. The photon contribution is 
 c stored in a single gamma width.
 c
                   if (flagwidth) then
@@ -355,7 +356,9 @@ c
       if (flagwidth) then
         if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0) then
           do 190 ihill=1,numhill
-            ratio=tfisA(J,parity,ihill)/tfisA(J,parity,0)
+            ratio=0.
+            if (tfisA(J,parity,0).gt.0.)
+     +        ratio=tfisA(J,parity,ihill)/tfisA(J,parity,0)
             tfishill=ratio*fiswidth
             tnum=tnum+1
             transjl(0,tnum)=max(rhofisA(J,parity,ihill),1.d0)

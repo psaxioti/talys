@@ -156,8 +156,6 @@ c
                 emin=Ex0min-SS-Exout
               endif                                           
               emax=Ex0plus-SS-Exout
-              Ex1min=Ex0plus-SS-emax
-              Ex1plus=Ex0min-SS-emin
             endif
 c
 c 3. Redistribution of decay from population on emission energy grid.

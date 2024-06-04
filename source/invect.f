@@ -22,7 +22,7 @@ c ********************************* Method *****************************
 c
 c We test if the point (x,y) belongs to the segment by testing if the
 c scalar product of the vector (x-x1,y-y1) with the vector (x2-x1,y2-y1)
-c is postive and if the norm of the vector (x-x1,y-y1) is lower than
+c is positive and if the norm of the vector (x-x1,y-y1) is lower than
 c the norm of the vector (x2-x1,y2-y1)
 c
       logical invect

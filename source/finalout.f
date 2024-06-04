@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 16, 2004
+c | Date  : October 7, 2006   
 c | Task  : Output of final results        
 c +---------------------------------------------------------------------
 c
@@ -23,29 +23,35 @@ c
 c
 c Write model parameters to separate file       
 c
-c flagpartable: flag for output of model parameters on separate file    
-c alphad      : alpha-constant for asymptotic level density parameter
-c betald      : beta-constant for asymptotic level density parameter
-c gammashell1 : gamma-constant for asymptotic level density parameter
-c gammashell2 : gamma-constant for asymptotic level density parameter
-c Rspincut    : adjustable constant for spin cutoff factor
-c Ufermi      : energy of Fermi distribution for damping of ground-state
-c             : rotational effects
-c cfermi      : width of Fermi distribution for damping of ground-state
-c             : rotational effects
-c Ufermibf    : energy of Fermi distribution for damping of barrier
-c             : rotational effects
-c cfermibf    : width of Fermi distribution for damping of barrier
-c             : rotational effects
-c Kph         : constant for single-particle level density parameter
-c               (g=A/Kph)
-c gnorm       : gamma normalization factor
-c M2constant  : overall constant for matrix element in exciton model
-c M2limit     : constant for asymptotical value for matrix element
-c M2shift     : constant for energy shift for matrix element
-c Rpinu       : ratio for two-component matrix element
-c Rgamma      : adjustable parameter for pre-equilibrium gamma decay
-c Esurf       : well depth for surface interaction
+c flagpartable  : flag for output of model parameters on separate file
+c alphad        : alpha-constant for asymptotic level density parameter
+c betald        : beta-constant for asymptotic level density parameter
+c gammashell1   : gamma-constant for asymptotic level density parameter
+c gammashell2   : gamma-constant for asymptotic level density parameter
+c pairconstant  : constant for pairing energy systematics
+c Pshiftconstant: global constant for pairing shift
+c Rspincut      : adjustable constant for spin cutoff factor
+c Ufermi        : energy of Fermi distribution for damping of 
+c               : ground-state rotational effects
+c cfermi        : width of Fermi distribution for damping of 
+c               : ground-state rotational effects
+c Ufermibf      : energy of Fermi distribution for damping of barrier
+c               : rotational effects
+c cfermibf      : width of Fermi distribution for damping of barrier
+c               : rotational effects
+c Kph           : constant for single-particle level density parameter
+c                 (g=A/Kph)
+c gnorm         : gamma normalization factor
+c M2constant    : overall constant for matrix element in exciton model
+c M2limit       : constant for asymptotical value for matrix element
+c M2shift       : constant for energy shift for matrix element
+c Rpinu,Rnupi...: ratio for two-component matrix element
+c Rgamma        : adjustable parameter for pre-equilibrium gamma decay
+c Esurf         : well depth for surface interaction
+c parsym        : symbol of particle
+c Cstrip        : adjustable parameter for stripping/pick-up reactions
+c Cknock        : adjustable parameter for knockout reactions
+c v1adjust..    : adjustable factors for OMP (default 1.)
 c
       if (flagpartable) then
         write(11,'("#")')
@@ -57,6 +63,8 @@ c
         write(11,'("betald      ",f10.5)') betald      
         write(11,'("gammashell1 ",f10.5)') gammashell1      
         write(11,'("gammashell2 ",f10.5)') gammashell2      
+        write(11,'("pairconstant",f10.5)') pairconstant      
+        write(11,'("pshiftconstant",f10.5)') Pshiftconstant      
         write(11,'("Rspincut    ",f10.5)') Rspincut       
         write(11,'("Ufermi      ",f10.5)') Ufermi           
         write(11,'("cfermi      ",f10.5)') cfermi           
@@ -73,9 +81,61 @@ c
         write(11,'("M2constant  ",f10.5)') M2constant     
         write(11,'("M2limit     ",f10.5)') M2limit        
         write(11,'("M2shift     ",f10.5)') M2shift        
+        write(11,'("Rpipi       ",f10.5)') Rpipi          
+        write(11,'("Rnunu       ",f10.5)') Rnunu          
         write(11,'("Rpinu       ",f10.5)') Rpinu          
+        write(11,'("Rnupi       ",f10.5)') Rnupi          
         write(11,'("Rgamma      ",f10.5)') Rgamma         
         write(11,'("Esurf       ",f10.5)') Esurf
+        do type=1,6
+          write(11,'("Cstrip     ",a1,f10.5)') parsym(type),Cstrip(type)
+          write(11,'("Cknock     ",a1,f10.5)') parsym(type),Cknock(type)
+        enddo
+        write(11,'("#")')
+        write(11,'("# Optical model")')
+        write(11,'("#")')      
+        do type=1,6
+          write(11,'("v1adjust   ",a1,f10.5)') parsym(type),
+     +      v1adjust(type)
+          write(11,'("v2adjust   ",a1,f10.5)') parsym(type),
+     +      v2adjust(type)
+          write(11,'("v3adjust   ",a1,f10.5)') parsym(type),
+     +      v3adjust(type)
+          write(11,'("v4adjust   ",a1,f10.5)') parsym(type),
+     +      v4adjust(type)
+          write(11,'("rvadjust   ",a1,f10.5)') parsym(type),
+     +      rvadjust(type)
+          write(11,'("avadjust   ",a1,f10.5)') parsym(type),
+     +      avadjust(type)
+          write(11,'("w1adjust   ",a1,f10.5)') parsym(type),
+     +      w1adjust(type)
+          write(11,'("w2adjust   ",a1,f10.5)') parsym(type),
+     +      w2adjust(type)
+          write(11,'("d1adjust   ",a1,f10.5)') parsym(type),
+     +      d1adjust(type)
+          write(11,'("d2adjust   ",a1,f10.5)') parsym(type),
+     +      d2adjust(type)
+          write(11,'("d3adjust   ",a1,f10.5)') parsym(type),
+     +      d3adjust(type)
+          write(11,'("rvdadjust  ",a1,f10.5)') parsym(type),
+     +      rvdadjust(type)
+          write(11,'("avdadjust  ",a1,f10.5)') parsym(type),
+     +      avdadjust(type)
+          write(11,'("rvsoadjust ",a1,f10.5)') parsym(type),
+     +      rvsoadjust(type)
+          write(11,'("avsoadjust ",a1,f10.5)') parsym(type),
+     +      avsoadjust(type)
+          write(11,'("vso1adjust ",a1,f10.5)') parsym(type),
+     +      vso1adjust(type)
+          write(11,'("vso2adjust ",a1,f10.5)') parsym(type),
+     +      vso2adjust(type)
+          write(11,'("wso1adjust ",a1,f10.5)') parsym(type),
+     +      wso1adjust(type)
+          write(11,'("wso2adjust ",a1,f10.5)') parsym(type),
+     +      wso2adjust(type)
+          write(11,'("rcadjust   ",a1,f10.5)') parsym(type),
+     +      rcadjust(type)
+        enddo
       endif
       close (unit=11)
 c
@@ -86,32 +146,32 @@ c numinc : number of incident energies
 c parname: name of particle
 c
       if (.not.flagexc) return
-      write(*,'(/"########## EXCITATION FUNCTIONS ###########"/)')
+      write(*,'(/" ########## EXCITATION FUNCTIONS ###########"/)')
       totfile='total.tot'
       open (unit=1,status='old',file=totfile,iostat=istat)
       if (istat.eq.0) then
-        write(*,'("1. Total (binary) cross sections"/)') 
-        write(*,'("   Energy    Non-elastic  Elastic     Total ",$)')
-        write(*,'("  Comp. el.  Shape el.  Reaction   Comp non-el",$)')
-        write(*,'("  Direct   Pre-equil."/)')
+        write(*,'(" 1. Total (binary) cross sections"/)') 
+        write(*,'("   Energy    Non-elastic  Elastic     Total  ",
+     +    "  Comp. el.  Shape el.  Reaction   Comp non-el",
+     +    "  Direct   Pre-equil."/)')
         read(1,'(////)') 
         do 10 nen=1,numinc
-          read(1,'(a126)') stringtot
-          write(*,'(a126)') stringtot
+          read(1,'(a112)') stringtot
+          write(*,'(1x,a112)') stringtot
    10   continue
         close (unit=1)
       endif
       binfile='binary.tot'
       open (unit=1,status='old',file=binfile,iostat=istat)
       if (istat.eq.0) then
-        write(*,'(/"2. Binary non-elastic cross sections",$)')
-        write(*,'(" (non-exclusive)"/)') 
+        write(*,'(/" 2. Binary non-elastic cross sections",
+     +    " (non-exclusive)"/)') 
         write(*,'("   Energy   ",7(2x,a8,1x)/)') 
      +    (parname(type),type=0,6)
         read(1,'(////)') 
         do 20 nen=1,numinc
-          read(1,'(a126)') stringtot
-          write(*,'(a126)') stringtot
+          read(1,'(a112)') stringtot
+          write(*,'(1x,a112)') stringtot
    20   continue
         close (unit=1)
       endif
@@ -119,22 +179,21 @@ c
 c ************** Total particle production cross sections **************
 c
 c parskip    : logical to skip outgoing particle
-c parsym     : symbol of particle
 c flagfission: flag for fission
 c 
-      write(*,'(/"3. Total particle production cross sections")')
+      write(*,'(/" 3. Total particle production cross sections")')
       do 110 type=0,6
         if (parskip(type)) goto 110
         totfile=' prod.tot'
         write(totfile(1:1),'(a1)') parsym(type)
         open (unit=1,status='old',file=totfile,iostat=istat)
         if (istat.eq.0) then
-          write(*,'(/a8, " production"/)') parname(type)
+          write(*,'(/1x,a8, " production"/)') parname(type)
           write(*,'(" Energy   Cross section Multiplicity"/)')
           read(1,'(////)') 
           do 120 nen=1,numinc
             read(1,'(a80)') string
-            write(*,'(a80)') string
+            write(*,'(1x,a80)') string
   120     continue
           close (unit=1)
         endif
@@ -143,12 +202,12 @@ c
         fisfile='fission.tot'
         open (unit=1,status='old',file=fisfile,iostat=istat)
         if (istat.eq.0) then
-          write(*,'(/"3b. Total fission cross sections "/)')
+          write(*,'(/" 3b. Total fission cross sections "/)')
           write(*,'(" Energy   Cross section "/)')
           read(1,'(////)') 
           do 130 nen=1,numinc
             read(1,'(a80)') string
-            write(*,'(a80)') string
+            write(*,'(1x,a80)') string
   130     continue
           close (unit=1)
         endif
@@ -176,7 +235,7 @@ c             section
 c nuc       : symbol of nucleus
 c tau       : lifetime of state in seconds
 c
-      write(*,'(/"4. Residual production cross sections")')
+      write(*,'(/" 4. Residual production cross sections")')
       do 210 Acomp=0,maxA
         do 210 Zcomp=0,maxZ
           Ncomp=Acomp-Zcomp
@@ -188,16 +247,15 @@ c
           write(rpfile(3:8),'(2i3.3)') Z,A
           open (unit=1,status='old',file=rpfile,iostat=istat)
           if (istat.eq.0) then
-            write(*,'(/"Production of Z=",$)')
-            write(*,'(i3," A=",i3," (",i3,a2,") - Total"/)') Z,A,A,
-     +        nuc(Z)
+            write(*,'(/" Production of Z=",i3,
+     +        " A=",i3," (",i3,a2,") - Total"/)') Z,A,A,nuc(Z)
             write(*,'(" Q-value    =",f11.6)') Qres(Zcomp,Ncomp,0)
             write(*,'(" E-threshold=",f11.6/)') Ethresh(Zcomp,Ncomp,0)
             write(*,'(" Energy   Cross section"/)')
             read(1,'(////)') 
             do 220 nen=1,numinc
               read(1,'(a80)') string
-              write(*,'(a80)') string
+              write(*,'(1x,a80)') string
   220       continue
             close (unit=1)
           endif
@@ -208,11 +266,9 @@ c
             write(isofile(11:12),'(i2.2)') nex
             open (unit=1,status='old',file=isofile,iostat=istat)
             if (istat.eq.0) then
-              write(*,'(/"Production of ",$)')
-              write(*,'("Z=",i3," A=",i3," (",i3,a2,") - Level",i3,$)')
-     +          Z,A,A,nuc(Z),nex
-              write(*,'("  (lifetime:",1p,e12.5," sec.)"/)') 
-     +          tau(Zcomp,Ncomp,nex)
+              write(*,'(/" Production of Z=",i3," A=",i3," (",i3,a2,
+     +        ") - Level",i3,"  (lifetime:",1p,e12.5," sec.)"/)') 
+     +          Z,A,A,nuc(Z),nex,tau(Zcomp,Ncomp,nex)
               write(*,'(" Q-value    =",f11.6)') Qres(Zcomp,Ncomp,nex)
               write(*,'(" E-threshold=",f11.6/)') 
      +          Ethresh(Zcomp,Ncomp,nex)
@@ -220,7 +276,7 @@ c
               read(1,'(////)') 
               do 240 nen=1,numinc
                 read(1,'(a80)') string
-                write(*,'(a80)') string
+                write(*,'(1x,a80)') string
   240         continue
               close (unit=1)
             endif
@@ -232,8 +288,8 @@ c
 c fisexist: flag for existence of fission cross section
 c
       if (flagfission) then
-        write(*,'(/"4b. Fission cross sections per fissioning",$)')
-        write(*,'(" nuclide")')
+        write(*,'(/" 4b. Fission cross sections per fissioning",
+     +    " nuclide")')
         do 310 Acomp=0,maxA
           do 310 Zcomp=0,maxZ
             Ncomp=Acomp-Zcomp
@@ -245,13 +301,13 @@ c
             write(rpfile(3:8),'(2i3.3)') Z,A
             open (unit=1,status='old',file=rpfile,iostat=istat)
             if (istat.eq.0) then             
-              write(*,'(/"Fission cross section for Z=",$)')
-              write(*,'(i3," A=",i3," (",i3,a2,")"/)') Z,A,A,nuc(Z)
+              write(*,'(/" Fission cross section for Z=",i3,
+     +          " A=",i3," (",i3,a2,")"/)') Z,A,A,nuc(Z)
               write(*,'("  Energy     Cross section"/)')
               read(1,'(////)') 
               do 320 nen=1,numinc
                 read(1,'(a80)') string
-                write(*,'(a80)') string
+                write(*,'(1x,a80)') string
   320         continue
               close (unit=1)
             endif
@@ -281,8 +337,8 @@ c
             write(reactionstring(type)(6:6),'(a1)') parsym(type)
           endif
   410   continue
-        write(*,'(/"5. Binary reactions to discrete levels",$)')
-        write(*,'(" and continuum")')       
+        write(*,'(/" 5. Binary reactions to discrete levels",
+     +    " and continuum")')       
         Zcomp=0
         Ncomp=0
         do 420 type=0,6
@@ -296,15 +352,15 @@ c
             write(contfile(1:2),'(2a1)') parsym(k0),parsym(type)
             open (unit=1,status='old',file=contfile,iostat=istat)
             if (istat.eq.0) then             
-              write(*,'(/"Total exclusive ",a9," scattering")') 
+              write(*,'(/" Total exclusive ",a9," scattering")') 
      +          reactionstring(type)    
-              write(*,'(/"  Energy     Total      Discrete   ",$)')
-              write(*,'("Continuum     (",a1,",g",a1,")"/)') parsym(k0),
+              write(*,'(/"  Energy     Total      Discrete   ",
+     +          "Continuum     (",a1,",g",a1,")"/)') parsym(k0),
      +          parsym(type)          
               read(1,'(////)') 
               do 430 nen=1,numinc
                 read(1,'(a80)') string
-                write(*,'(a80)') string
+                write(*,'(1x,a80)') string
   430         continue
               close (unit=1)
             endif
@@ -316,16 +372,16 @@ c
             write(discfile(5:6),'(i2.2)') nex
             open (unit=1,status='old',file=discfile,iostat=istat)
             if (istat.eq.0) then
-              write(*,'(/a9," to level",i3," of ",i3,a2,":",f4.1,a1,$)')
-     +          reactionstring(type),nex,A,nuc(Z),jdis(Zix,Nix,nex),
-     +          cparity(parlev(Zix,Nix,nex))
-              write(*,'(" at",f8.5," MeV"/)') edis(Zix,Nix,nex)
-              write(*,'("  Energy     Total      Direct",$)')
-              write(*,'("      Compound"/)')
+              write(*,'(/1x,a9," to level",i3," of ",i3,a2,":",f4.1,a1,
+     +          " at",f8.5," MeV"/)') reactionstring(type),nex,A,nuc(Z),
+     +          jdis(Zix,Nix,nex),cparity(parlev(Zix,Nix,nex)),
+     +          edis(Zix,Nix,nex)
+              write(*,'("  Energy     Total      Direct",
+     +          "      Compound"/)')
               read(1,'(////)') 
               do 450 nen=1,numinc
                 read(1,'(a80)') string
-                write(*,'(a80)') string
+                write(*,'(1x,a80)') string
   450         continue
               close (unit=1)
             endif
@@ -335,14 +391,14 @@ c
             write(contfile(1:2),'(2a1)') parsym(k0),parsym(type)
             open (unit=1,status='old',file=contfile,iostat=istat)
             if (istat.eq.0) then
-              write(*,'(/"Continuum exclusive ",a9," scattering")') 
+              write(*,'(/" Continuum exclusive ",a9," scattering")') 
      +          reactionstring(type)    
-              write(*,'(/"  Energy     Total      Continuum   ( ",$)')
-              write(*,'(a1,",g",a1,")"/)') parsym(k0),parsym(type)
+              write(*,'(/"  Energy     Total      Continuum   ( ",a1,
+     +          ",g",a1,")"/)') parsym(k0),parsym(type)
               read(1,'(////)') 
               do 460 nen=1,numinc
                 read(1,'(a80)') string
-                write(*,'(a80)') string
+                write(*,'(1x,a80)') string
   460         continue
               close (unit=1)
             endif
@@ -366,7 +422,7 @@ c
 c 1. Exclusive cross sections
 c
       if (flagchannels) then
-        write(*,'(/"6. Exclusive cross sections")')
+        write(*,'(/" 6. Exclusive cross sections")')
         do 510 npart=0,maxchannel
         do 510 ia=0,numia
         do 510 ih=0,numih
@@ -383,19 +439,18 @@ c
               write(xsfile(3:8),'(6i1)') in,ip,id,it,ih,ia
               open (unit=1,status='old',file=xsfile,iostat=istat)
               if (istat.eq.0) then             
-                write(*,'(/"     Emitted particles     ",$)')
-                write(*,'("reaction")')
+                write(*,'(/"     Emitted particles     reaction")')
                 write(*,'("   n   p   d   t   h   a")')
-                write(*,'(6i4,3x,$)') in,ip,id,it,ih,ia
-                write(*,'(4x,a17)') reacstring(idc)
+                write(*,'(6i4,7x,a17)')  in,ip,id,it,ih,ia,
+     +            reacstring(idc)
                 write(*,'(/" Q-value    =",f11.6)') Qexcl(idc,0)
                 write(*,'(" E-threshold=",f11.6/)') Ethrexcl(idc,0)
-                write(*,'(" Energy   Cross section Gamma c.s. ",$)')
-                write(*,'("c.s./res.prod.cs"/)')
+                write(*,'(" Energy   Cross section Gamma c.s. ",
+     +            "c.s./res.prod.cs"/)')
                 read(1,'(////)') 
                 do 530 nen=1,numinc
                   read(1,'(a80)') string
-                  write(*,'(a80)') string
+                  write(*,'(1x,a80)') string
   530           continue
                 close (unit=1)
               endif
@@ -407,15 +462,15 @@ c
                 write(isofile(11:12),'(i2.2)') nex
                 open (unit=1,status='old',file=isofile,iostat=istat)
                 if (istat.eq.0) then             
-                  write(*,'(/"Level",i3," (lifetime:",$)') nex
-                  write(*,'(1p,e12.5," sec.)"/)') tau(Zcomp,Ncomp,nex)
+                  write(*,'(/" Level",i3," (lifetime:",
+     +              1p,e12.5," sec.)"/)') nex,tau(Zcomp,Ncomp,nex)
                   write(*,'(" Q-value    =",f11.6)') Qexcl(idc,nex)
                   write(*,'(" E-threshold=",f11.6/)') Ethrexcl(idc,nex)
                   write(*,'(" Energy   Cross section  Branching"/)')
                   read(1,'(////)') 
                   do 550 nen=1,numinc
                     read(1,'(a80)') string
-                    write(*,'(a80)') string
+                    write(*,'(1x,a80)') string
   550             continue
                   close (unit=1)
                 endif
@@ -428,7 +483,7 @@ c
 c 2. Exclusive fission cross sections
 c
         if (flagfission) then
-          write(*,'(/"6b. Exclusive fission cross sections")')
+          write(*,'(/" 6b. Exclusive fission cross sections")')
           do 610 npart=0,maxchannel
           do 610 ia=0,numia
           do 610 ih=0,numih
@@ -445,18 +500,17 @@ c
                 write(xsfile(3:8),'(6i1)') in,ip,id,it,ih,ia
                 open (unit=1,status='old',file=xsfile,iostat=istat)
                 if (istat.eq.0) then             
-                  write(*,'(/"     Emitted particles     ",$)')
-                  write(*,'("reaction")')
+                  write(*,'(/"     Emitted particles     reaction")')
                   write(*,'("   n   p   d   t   h   a")')
-                  write(*,'(6i4,3x,$)') in,ip,id,it,ih,ia
-                  write(*,'(4x,a17)') reacstring(idc)
+                  write(*,'(6i4,7x,a17)') in,ip,id,it,ih,ia,
+     +              reacstring(idc)
                   write(*,'(/" Q-value    =",f11.6)') Qexcl(idc,0)
                   write(*,'(" E-threshold=",f11.6/)') Ethrexcl(idc,0)
                   write(*,'(" Energy   Cross section c.s./res.pr.cs"/)')
                   read(1,'(////)') 
                   do 630 nen=1,numinc
                     read(1,'(a80)') string
-                    write(*,'(a80)') string
+                    write(*,'(1x,a80)') string
   630             continue
                   close (unit=1)
                 endif
@@ -473,7 +527,7 @@ c gamexist  : flag for existence of gamma production cross section
 c Egam      : gamma energy
 c
       if (flaggamdis) then   
-        write(*,'(/"7. Gamma-ray intensities")')
+        write(*,'(/" 7. Gamma-ray intensities")')
         do 710 Zcomp=0,maxZ
           do 710 Ncomp=0,maxN
             Z=ZZ(Zcomp,Ncomp,0)
@@ -488,19 +542,19 @@ c
                 open (unit=1,status='old',file=gamfile,iostat=istat)
                 if (istat.eq.0) then             
                   Egam=edis(Zcomp,Ncomp,i1)-edis(Zcomp,Ncomp,i2)
-                  write(*,'(/,i3,a2,": Initial state",$)') A,nuc(Z)
-                write(*,'(i3," (",f4.1,a1," at",f8.4,") ---> Final",$)')
-     +              i1,jdis(Zcomp,Ncomp,i1),
-     +              cparity(parlev(Zcomp,Ncomp,i1)),edis(Zcomp,Ncomp,i1)
-                write(*,'(" state",i3," (",f4.1,a1," at",f8.4,") ",$)')
-     +              i2,jdis(Zcomp,Ncomp,i2),
-     +              cparity(parlev(Zcomp,Ncomp,i2)),edis(Zcomp,Ncomp,i2)
-                  write(*,'(" Egamma= ",f8.4/)') Egam
+                  write(*,'(/1x,i3,a2,": Initial state",i3," (",f4.1,a1,
+     +              " at",f8.4,") ---> Final state",i3," (",f4.1,a1,
+     +              " at",f8.4,")  Egamma= ",f8.4/)') A,nuc(Z),i1,
+     +              jdis(Zcomp,Ncomp,i1),
+     +              cparity(parlev(Zcomp,Ncomp,i1)),
+     +              edis(Zcomp,Ncomp,i1),i2,jdis(Zcomp,Ncomp,i2),
+     +              cparity(parlev(Zcomp,Ncomp,i2)),
+     +              edis(Zcomp,Ncomp,i2),Egam
                   write(*,'(" Energy   Cross section"/)')
                   read(1,'(////)') 
                   do 730 nen=1,numinc
                     read(1,'(a80)') string
-                    write(*,'(a80)') string
+                    write(*,'(1x,a80)') string
   730             continue
                   close (unit=1)
                 endif

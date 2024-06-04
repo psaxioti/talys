@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 21, 2004
+c | Date  : July 10, 2006
 c | Task  : Determine matching between temperature and Fermi-gas region
 c +---------------------------------------------------------------------
 c
@@ -31,13 +31,13 @@ c match   : function to search for zero crossings of the function
 c zbrak   : function to bracket the function
 c
       A=AA(Zix,Nix,0)
-      Exmemp=2.5+150./A+pair(Zix,Nix)
+      Exmemp=max(2.8+266./A+pair(Zix,Nix),0.1)
       ald=ignatyuk(Zix,Nix,Exmemp,ibar)
       xacc=0.0001
 c
 c Set possible region for solution
 c
-      x1=2.25/ald+pair(Zix,Nix)+0.1
+      x1=max(2.25/ald+pair(Zix,Nix),0.)+0.1
       x2=19.+300./A
       nseg=100
       Nb=2
