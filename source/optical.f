@@ -1,7 +1,7 @@
       subroutine optical(Zix,Nix,kopt,eopt)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : July 7, 2004
 c | Task  : Determination of optical potential
 c +---------------------------------------------------------------------
@@ -17,7 +17,7 @@ c
 c Zix          : charge number index for residual nucleus
 c Nix          : neutron number index for residual nucleus
 c kopt         : index for fast particle
-c eopt         : incident energy 
+c eopt         : incident energy
 c opticaln,....: optical model for neutrons, protons, deuterons, etc.
 c
       if (kopt.eq.1) call opticaln(Zix,Nix,eopt)

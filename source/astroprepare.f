@@ -23,8 +23,8 @@ c
       double precision gamwidth,rho,factor,ratio,tfishill
 c
 c For the astrophysical situation:
-c The transmission coefficients are put in arrays for possible width 
-c fluctuation calculations. Also the total width denomhf appearing in 
+c The transmission coefficients are put in arrays for possible width
+c fluctuation calculations. Also the total width denomhf appearing in
 c the denominator of the compound nucleus formula is created. Note that
 c the complete subroutine is performed inside the loop over J and P in
 c subroutine comptarget.
@@ -51,9 +51,9 @@ c Zix,Zindex   : charge number index for residual nucleus
 c Nix,Nindex   : neutron number index for residual nucleus
 c numex        : maximal number of excitation energies
 c numJ         : maximal J-value
-c Tastroinc    : transmission coefficient for incident channel 
+c Tastroinc    : transmission coefficient for incident channel
 c                (Astrophysical case)
-c Tastroout    : transmission coefficient for outgoing channel 
+c Tastroout    : transmission coefficient for outgoing channel
 c                (Astrophysical case)
 c
       J=J2/2
@@ -62,7 +62,7 @@ c
       tnum=0
       feed=0.
       parspin2i=int(2.*parspin(k0))
-      pspin2i=spin2(k0)        
+      pspin2i=spin2(k0)
       do 10 i=0,1
         do 20 type=0,6
           Zix=Zindex(Zcomp,Ncomp,type)
@@ -101,7 +101,7 @@ c 20: Sum over l of incident channel
 c
 c l2beg   : 2 * start of l summation
 c l2end   : 2 * end of l summation
-c lmaxinc : maximal l-value for transmission coefficients for 
+c lmaxinc : maximal l-value for transmission coefficients for
 c           incident channel
 c
         l2beg=abs(jj2-parspin2i)
@@ -109,14 +109,14 @@ c
         l2end=min(l2end,2*lmaxinc)
         do 60 l2=l2beg,l2end,2
           l=l2/2
-          modl=mod(l,2)    
+          modl=mod(l,2)
 c
-c Check parity conservation and make index for transmission 
-c coefficient. 
+c Check parity conservation and make index for transmission
+c coefficient.
 c
 c pardif     : difference between target and compound nucleus parity
 c updown     : spin index for transmission coefficient
-c Tjlinc,Tinc: transmission coefficients as a function of j and l 
+c Tjlinc,Tinc: transmission coefficients as a function of j and l
 c              for the incident channel
 c flagwidth  : flag for width fluctuation calculation
 c transeps   : absolute limit for transmission coefficient
@@ -124,7 +124,7 @@ c feed       : help variable
 c
 c If the parity of the target nucleus is equal (unequal) to the parity
 c of compound nucleus, i.e. pardif=0(1), the l-value must be even (odd).
-c     
+c
 c irad  : variable to indicate M(=0) or E(=1) radiation
 c Tgam  : gamma transmission coefficients
 c
@@ -138,7 +138,7 @@ c
           else
             if (modl.ne.pardif) goto 60
             updown=(jj2-l2)/pspin2i
-            Tinc=Tjlnex(k0,nexastro,updown,l) 
+            Tinc=Tjlnex(k0,nexastro,updown,l)
           endif
           if (flagwidth) then
             if (Tinc.gt.0.) then
@@ -147,20 +147,20 @@ c
               Tastroinc(1,nexastro,spintarget,Ptarget)=
      +          Tastroinc(1,nexastro,spintarget,Ptarget)+rho*Tinc
             endif
-          else  
+          else
             feed=feed+rho*Tinc
           endif
    60   continue
    50 continue
 c
-c Information needed for width fluctuation calculation. 
+c Information needed for width fluctuation calculation.
 c
 c rho   : integrated level density
 c wpower: power used for rho*(t**wpower)
 c
 c For the width fluctuation calculation, all transmission coefficients
-c need to be placed in one sequential array. Therefore, a counter tnum 
-c needs to be followed to keep track of the proper index for the 
+c need to be placed in one sequential array. Therefore, a counter tnum
+c needs to be followed to keep track of the proper index for the
 c transmission coefficients. The order inside the transjl array is:
 c
 c 1. Incident channel
@@ -168,15 +168,15 @@ c 2. Outgoing particle channels
 c 3. Gamma channel
 c 4. Fission channel (if present)
 c
-c Since here we lump incident channels relative to excited target 
-c states, we average the incident transmission coefficients into one 
-c Tinc. The effective number of such incident channels is contained in 
+c Since here we lump incident channels relative to excited target
+c states, we average the incident transmission coefficients into one
+c Tinc. The effective number of such incident channels is contained in
 c rho=Tastroinc(0...) which will be used again in astrotarget subroutine
 c For more explanations, call 911
 c
 c enumhf    : enumerator for compound nucleus formula
 c tnuminc   : counter for width fluctuation calculation
-c 
+c
       if (flagwidth) then
         tnum=tnum+1
         rho=Tastroinc(0,nexastro,spintarget,Ptarget)
@@ -231,18 +231,18 @@ c 2. Gamma and particle channels
 c
 c gamwidth : sum over all gamma transmission coefficients
 c parskip  : logical to skip outgoing particle
-c parspin2o: 2 * particle spin for outgoing channel 
+c parspin2o: 2 * particle spin for outgoing channel
 c pspin2o  : 2 * spin of particle (usually) for incident channel
 c
       gamwidth=0.
       do 110 type=0,6
         if (parskip(type)) goto 110
         parspin2o=int(2.*parspin(type))
-        pspin2o=spin2(type)  
+        pspin2o=spin2(type)
         Zix=Zindex(Zcomp,Ncomp,type)
         Nix=Nindex(Zcomp,Ncomp,type)
 c
-c 120: Sum over outgoing excitation energies     
+c 120: Sum over outgoing excitation energies
 c
 c maxex  : maximum excitation energy bin for residual nucleus
 c l2maxhf: 2 * lmaxhf
@@ -250,12 +250,12 @@ c lmaxhf : maximal l-value for transmission coefficients
 c
 c This loop is over all discrete levels and continuum bins of the
 c final nucleus.
-c       
+c
         do 120 nexout=0,maxex(Zix,Nix)
           l2maxhf=2*lmaxhf(type,nexout)
 c
 c Initialization of summations
-c                                     
+c
 c Nlast     : last discrete level
 c Pprimebeg : start of residual parity summation
 c parlev    : parity of level
@@ -265,14 +265,14 @@ c jdis      : spin of level
 c Irspin2end: 2 * end of residual spin summation
 c J2res     : help variable
 c maxJ      : maximal J-value
-c                                                         
+c
 c For discrete states, the begin and end points of the residual
 c spin/parity summation are both set equal to the residual discrete
 c level spin/parity.
-c      
+c
           if (nexout.le.Nlast(Zix,Nix,0)) then
             Pprimebeg=parlev(Zix,Nix,nexout)
-            Pprimeend=Pprimebeg     
+            Pprimeend=Pprimebeg
             Irspin2beg=int(2.*jdis(Zix,Nix,nexout))
             Irspin2end=Irspin2beg
           else
@@ -281,7 +281,7 @@ c For the continuum, the begin and end points of the residual
 c spin/parity summation are set to the maximally accessible values.
 c
             Pprimebeg=-1
-            Pprimeend=1         
+            Pprimeend=1
             J2res=J2+parspin2o
             Irspin2beg=mod(J2res,2)
             Irspin2end=J2res+l2maxhf
@@ -296,10 +296,10 @@ c The variable pardif2 is used as an indicator of parity conservation
 c for the outgoing channel.
 c
           do 130 Pprime=Pprimebeg,Pprimeend,2
-            pardif2=abs(parity-Pprime)/2    
+            pardif2=abs(parity-Pprime)/2
 c
 c 140: Sum over residual spin
-c    
+c
 c Irspin2 : 2 * residual spin
 c Ir      : residual spin
 c
@@ -325,7 +325,7 @@ c l2primebeg: 2 * start of l summation
 c l2primeend: 2 * end of l summation
 c l2prime   : 2 * l'
 c lprime    : 2 * l
-c modl      : help variable                         
+c modl      : help variable
 c
                 l2primebeg=abs(jj2prime-parspin2o)
                 if (type.eq.0) l2primebeg=max(l2primebeg,2)
@@ -333,13 +333,13 @@ c
                 l2primeend=min(l2primeend,l2maxhf)
                 do 160 l2prime=l2primebeg,l2primeend,2
                   lprime=l2prime/2
-                  modl=mod(lprime,2)    
+                  modl=mod(lprime,2)
 c
 c 1. Photons
 c
 c We include photons as a special case, with the multipole radiation
 c selection rules (irad=0: M-transition, irad=1: E-transition)
-c  
+c
 c irad  : variable to indicate M(=0) or E(=1) radiation
 c Tout  : transmission coefficients
 c Tgam  : gamma transmission coefficients
@@ -349,7 +349,7 @@ c
                       irad=1
                     else
                       irad=0
-                    endif                                    
+                    endif
                     Tout=Tgam(nexout,lprime,irad)
                   else
 c
@@ -357,12 +357,12 @@ c 2. Particles
 c
 c If the parity of the residual nucleus is equal (unequal) to the parity
 c of compound nucleus,i.e. pardif2=0(1), the l-value must be even (odd).
-c    
+c
 c updown2 : spin index for transmission coefficient
 c Tjlnex  : transmission coefficients as a function of particle type,
 c           energy, spin and l-value
 c factor  : help variable
-c numtrans: number of transmission coefficients 
+c numtrans: number of transmission coefficients
 c numhill : maximum number of Hill-Wheeler points
 c
                     if (modl.ne.pardif2) goto 160
@@ -376,7 +376,7 @@ c
                   denomhf=denomhf+factor
 c
 c Information needed for width fluctuation calculation. Values for
-c for rho*T**i where (i=0,5) are stored. The photon contribution is 
+c for rho*T**i where (i=0,5) are stored. The photon contribution is
 c stored in a single gamma width.
 c
                   if (flagwidth) then
@@ -415,7 +415,7 @@ c
   120   continue
   110 continue
 c
-c ******** Add fission and gamma transmission coefficients to 
+c ******** Add fission and gamma transmission coefficients to
 c          transmission coefficient array for width fluctuations *******
 c
 c 1. Fission.

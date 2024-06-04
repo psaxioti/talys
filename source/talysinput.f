@@ -1,7 +1,7 @@
       subroutine talysinput
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : June 28, 2004
 c | Task  : User input and defaults
 c +---------------------------------------------------------------------

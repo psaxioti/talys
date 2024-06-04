@@ -1,8 +1,8 @@
       subroutine dwbaout(itype,type,nen1,nen2)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : October 7, 2006   
+c | Author: Arjan Koning
+c | Date  : October 7, 2006
 c | Task  : Output of ECIS results for DWBA for MSD
 c +---------------------------------------------------------------------
 c

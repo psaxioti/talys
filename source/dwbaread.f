@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : May 8, 2007
+c | Date  : December 22, 2011
 c | Task  : Read ECIS results for DWBA for MSD
 c +---------------------------------------------------------------------
 c
@@ -23,7 +23,7 @@ c xsdw      : DWBA angular distribution as a function of incident
 c             energy, outgoing energy, angular momentum and angle
 c nS        : counter
 c
-      read(10,'()') 
+      read(10,'()')
       do 10 J=0,maxJmsd
         read(10,*) xs
         xsdwin(nen1,nen2,J,0)=real(xs)
@@ -36,7 +36,7 @@ c
             read(8,'()')
    30   continue
         do 40 J=0,maxJmsd
-          read(8,'(12x,i3)') nS
+          read(8,'(12x,i3)',err=40) nS
           do 50 iang=0,nanglecont
             do 50 k=1,nS
               read(8,'(i3,12x,e12.5)',err=50) itype,xs

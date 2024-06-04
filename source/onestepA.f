@@ -1,9 +1,9 @@
       subroutine onestepA(type)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 1, 2008
-c | Task  : Unnormalized one-step direct cross sections for outgoing 
+c | Task  : Unnormalized one-step direct cross sections for outgoing
 c |         energy grid
 c +---------------------------------------------------------------------
 c
@@ -52,7 +52,7 @@ c flagddx    : flag for output of double-differential cross sections
 c nanglecont : number of angles for continuum
 c xsdw       : DWBA angular distribution as a function of incident
 c              energy, outgoing energy, angular momentum and angle
-c msdstepad1 : continuum one-step direct angular distribution 
+c msdstepad1 : continuum one-step direct angular distribution
 c              (unnormalized)
 c
       Zix=Zindex(0,0,type)

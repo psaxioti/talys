@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : September 12, 2004
+c | Date  : March 11, 2010
 c | Task  : Compound emission spectra
 c +---------------------------------------------------------------------
 c
@@ -40,8 +40,8 @@ c nexmax     : maximum excitation energy bin for residual nucleus
 c
 c The decay from compound to residual nuclei is converted from the
 c excitation energy grid to emission energies.
-c The spectrum is obtained by spreading the decay over the mother 
-c bin and, in the case of continuum-continuum transitions, the 
+c The spectrum is obtained by spreading the decay over the mother
+c bin and, in the case of continuum-continuum transitions, the
 c residual bin.
 c
 c 1. Loop over excitation energy bins of compound nucleus.
@@ -51,7 +51,7 @@ c possible excitation energy bin nexmax for the residual nuclei.
 c As reference, we take the top of the mother bin. The maximal
 c residual excitation energy Exm is obtained by subtracting the
 c separation energy from this. The bin in which this Exm falls
-c is denoted by nexmax.           
+c is denoted by nexmax.
 c
       do 10 nex=maxex(Zcomp,Ncomp),Nlast(Zcomp,Ncomp,0)+1,-1
         Exinc=Ex(Zcomp,Ncomp,nex)
@@ -72,15 +72,15 @@ c
             endif
    30     continue
           nexmax(type)=-1
-   20   continue                             
+   20   continue
         nexmax(0)=nex-1
 c
-c 2. Determine the widths over which the decay must be spread. 
+c 2. Determine the widths over which the decay must be spread.
 c
 c eend         : last energy point of energy grid
 c numen        : maximum number of outgoing energies
 c xsgrid,xsemis: emission spectrum from compound nucleus
-c xsmpegrid    : multiple-preequilibrium emission spectrum from 
+c xsmpegrid    : multiple-preequilibrium emission spectrum from
 c                compound nucleus
 c
         do 110 type=0,6
@@ -117,14 +117,14 @@ c highest energetic transition that is possible (emax, from the top of
 c the mother bin to the bottom of the residual bin) and the lowest
 c (emin). However, the highest residual bin (nexout=nexmax) is
 c characterized by different energies (Ex1plus is the maximal residual
-c excitation energy and Eout is again the average between emin and 
+c excitation energy and Eout is again the average between emin and
 c emax).
-c        
+c
 c Ex1min : lower boundary of residual bin
 c Ex1plus: upper boundary of residual bin
 c emax   : maximal emission energy within bin decay
 c emin   : minimal emission energy
-c Eout   : emission energy 
+c Eout   : emission energy
 c
             if (nexout.gt.NL) then
               Ex1min=Exout-0.5*dEx
@@ -145,8 +145,8 @@ c excitation bin can not entirely decay to the discrete state.
 c For the residual discrete state, it is checked whether the mother
 c excitation bin is such a boundary case. This is done by adding the
 c particle separation energy to the excitation energy of the residual
-c discrete state. 
-c    
+c discrete state.
+c
               Exm=Exout+SS
               if (Exm.le.Ex0plus.and.Exm.gt.Ex0min) then
                 Eout=0.5*(Ex0plus+Exm)-SS-Exout
@@ -154,7 +154,7 @@ c
               else
                 Eout=Exinc-SS-Exout
                 emin=Ex0min-SS-Exout
-              endif                                           
+              endif
               emax=Ex0plus-SS-Exout
             endif
 c
@@ -168,7 +168,7 @@ c dE           : emission bin
 c dEhalf       : half of emission bin
 c
 c After the bottom (emin) and top (emax) of the excitation energy
-c bin have been determined. Then the begin and end points for the 
+c bin have been determined. Then the begin and end points for the
 c spectrum are located.
 c
             call locate(Ebottom,ebegin(type),eend(type),emin,nenbeg)
@@ -185,7 +185,7 @@ c
             xsom0=mcontrib(type,nex-1,nexout)
             xsop0=mcontrib(type,nex+1,nexout)
 c
-c Decay from continuum to continuum. 
+c Decay from continuum to continuum.
 c We need to interpolate between adjacent residual bins. They are also
 c determined. For the lowest emission energies we ensure that the limit
 c is zero for zero outgoing energy.
@@ -205,7 +205,7 @@ c term,term1...: help variables
 c
                 if (egrid(nen).le.Eout) then
                   edist=Eout-egrid(nen)
-                  if (emin.eq.0.) then
+                  if (emin.le.0.0001) then
                     term=xso00*(1.-edist/dEhalf)
                   else
                     term1=xso00+0.5*edist/dE*(xsom0-xso00)
@@ -228,7 +228,7 @@ c
                   term=term1+0.5*edist/dE*(term2-term1)
                 endif
 c
-c Each emission energy that is possible within the transition from bin 
+c Each emission energy that is possible within the transition from bin
 c to bin gets a weight.
 c
 c weight: weight of emission energy bin
@@ -239,7 +239,7 @@ c
   140         continue
             else
 c
-c Decay from continuum to discrete. 
+c Decay from continuum to discrete.
 c We only need to interpolate between adjacent mother bins.
 c
               do 150 nen=nenbeg,nenend
@@ -267,7 +267,7 @@ c The end points of the bin are taken into account and this is
 c corrected in weight. There are also cases where the excitation
 c energy bin falls completely in the emission energy bin
 c (nenbeg=nenend).
-c   
+c
 c fracbot,fractop: help variables
 c Etop           : top of outgoing energy bin
 c sumweight      : help variable
@@ -291,7 +291,7 @@ c
   160       continue
             if (sumweight.eq.0.) goto 130
 c
-c The contribution for mother bin --> residual bin is added to the 
+c The contribution for mother bin --> residual bin is added to the
 c spectrum.
 c
 c fracmpe   : multiple pre-equilibrium fraction
@@ -300,10 +300,10 @@ c factor    : help variable
 c emisfac   : help variable
 c compspect : compound part of spectrum
 c preeqspect: multiple pre-equilibrium part of spectrum
-c flagrecoil: flag for calculation of recoils 
-c comprecoil: subroutine for recoils from compound decay 
+c flagrecoil: flag for calculation of recoils
+c comprecoil: subroutine for recoils from compound decay
 c
-c Note that below 20 MeV, generally fracmpe=0 (no multiple 
+c Note that below 20 MeV, generally fracmpe=0 (no multiple
 c pre-equilibrium emission).
 c
             fracmpe=mpecontrib(type,nex,nexout)/xso00
@@ -315,13 +315,13 @@ c
               preeqspect(nen)=fracmpe*emisfac
               xsmpegrid(nen)=xsmpegrid(nen)+preeqspect(nen)
   170       continue
-            if (flagrecoil) 
+            if (flagrecoil)
      +        call comprecoil(Zcomp,Ncomp,nex,type,nexout,nenbeg,nenend)
   130     continue
 c
 c Create final spectra
 c
-c xsmpeemis: multiple-preequilibrium emission spectrum from 
+c xsmpeemis: multiple-preequilibrium emission spectrum from
 c            compound nucleus
 c
           do 180 nen=ebegin(type),eend(type)

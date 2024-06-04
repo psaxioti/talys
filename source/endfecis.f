@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 5, 2009
+c | Date  : December 29, 2010
 c | Task  : ECIS calculation for incident particle on ENDF-6 energy grid
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      jlmloc,rotational,vibrational                      
+      logical      jlmloc,rotational,vibrational
       character*13 outfile
       integer      Zix,Nix,i1,i,ii,nen
       real         e
@@ -23,10 +23,10 @@ c projmass,parmass: mass of projectile
 c spin,parspin    : spin of incident particle
 c resmass,tarmass : mass of nucleus
 c prodZ           : product of charges of projectile and target nucleus
-c Ztarget         : charge number of target nucleus  
+c Ztarget         : charge number of target nucleus
 c parZ            : charge number of particle
 c k0              : index of incident particle
-c Nband           : number of vibrational bands 
+c Nband           : number of vibrational bands
 c angbeg          : first angle
 c anginc          : angle increment
 c angend          : last angle
@@ -36,8 +36,8 @@ c Nindex          : neutron number index for residual nucleus
 c
 c Specific ECIS flags:
 c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
-c ecis2(13)=F : output of transmission coefficients 
-c ecis2(14)=F : no output of elastic angular distribution 
+c ecis2(13)=F : output of transmission coefficients
+c ecis2(14)=F : no output of elastic angular distribution
 c
       legendre=.false.
       hint=0.
@@ -53,7 +53,7 @@ c
 c
 c Loop over energies on ENDF-6 energy grid.
 c
-      if (flagendfecis) 
+      if (flagendfecis)
      +  open (unit=9,status='unknown',file='ecisendf.inp')
       Zix=Zindex(0,0,k0)
       Nix=Nindex(0,0,k0)
@@ -105,8 +105,8 @@ c
           ecis1(29:29)='T'
           ecis1(41:41)='T'
           hint=0.1
-          rmatch=12.
-          nrad=122
+          rmatch=18.
+          nrad=182
           jlmloc=.true.
         endif
       else
@@ -118,10 +118,10 @@ c cparity    : parity (character)
 c parlev     : parity of level
 c ndef       : number of collective levels
 c indexlevel : level index
-c leveltype  : type of level (rotational (R) or vibrational (V))   
+c leveltype  : type of level (rotational (R) or vibrational (V))
 c vibband    : band number of level
 c maxband    : highest vibrational level added to rotational model
-c edis       : energy of level  
+c edis       : energy of level
 c Jlevel     : spin of level
 c jdis       : spin of level
 c Plevel     : parity of level
@@ -161,8 +161,8 @@ c
           npp=ncoll
         else
           npp=1
-        endif                           
-        ecis1(12:12)='T'                                   
+        endif
+        ecis1(12:12)='T'
 c
 c 2a. Vibrational model
 c
@@ -201,25 +201,25 @@ c
           endif
           iqmax=8
         endif
-      endif                    
+      endif
 c
 c **************** ECIS input files for several energies ***************
 c
-c deftype  : deformation length (D) or parameter (B)          
+c deftype  : deformation length (D) or parameter (B)
 c flagrel  : flag for relativistic kinematics
 c disp     : flag for dispersive optical model
 c efer     : Fermi energy
 c w2disp,..: constants for imaginary potentials
-c nen6     : total number of energies 
+c nen6     : total number of energies
 c e        : energy in MeV
 c e6       : energies of ENDF-6 energy grid in MeV
 c coullimit: energy limit for charged particle OMP calculation
 c njmax    : maximal number of j-values in ECIS
-c Atarget  : mass number of target nucleus 
+c Atarget  : mass number of target nucleus
 c onethird : 1/3
 c numl     : maximum l-value (set in talys.cmb)
 c
-      if (deftype(Zix,Nix).eq.'B') ecis1(6:6)='F'  
+      if (deftype(Zix,Nix).eq.'B') ecis1(6:6)='F'
       if (flagrel) ecis1(8:8)='T'
       if (disp(Zix,Nix,k0)) then
         ecis1(10:10)='T'
@@ -251,12 +251,12 @@ c
 c ******************* Write ECIS input file ****************************
 c
 c flagcoulomb: flag for Coulomb excitation calculation with ECIS
-c soswitch   : switch for deformed spin-orbit calculation and sequential 
+c soswitch   : switch for deformed spin-orbit calculation and sequential
 c              iterations in ECIS
-c coulbar    : Coulomb barrier  
+c coulbar    : Coulomb barrier
 c ecisinput  : subroutine to create ECIS input file
 c
-c For rotational nuclei, the switch at soswitch MeV needs to be made 
+c For rotational nuclei, the switch at soswitch MeV needs to be made
 c according to Pascal Romain.
 c
         if (colltype(Zix,Nix).eq.'R'.and.flagrot(k0)) then
@@ -270,14 +270,14 @@ c
             ecis1(13:13)='T'
             ecis1(21:21)='F'
             ecis1(42:42)='F'
-          endif                               
+          endif
           if (k0.gt.1.and.e.le.0.05*coulbar(k0).and.
      +      e.le.2.*Elevel(ncoll)) e=0.1*Elevel(ncoll)
           if (flagrel) ecis1(8:8)='T'
         endif
         call ecisinput(Zix,Nix,k0,e,rotational,vibrational,jlmloc)
   110 continue
-      write(9,'("fin")') 
+      write(9,'("fin")')
       close (unit=9)
       if (.not.flagendfecis) return
 c

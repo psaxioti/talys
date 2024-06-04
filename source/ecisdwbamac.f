@@ -1,9 +1,9 @@
       subroutine ecisdwbamac(itype,type)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : May 17, 2009
-c | Task  : Create ECIS input file for macroscopic DWBA calculation for 
+c | Task  : Create ECIS input file for macroscopic DWBA calculation for
 c |         MSD
 c +---------------------------------------------------------------------
 c
@@ -17,20 +17,20 @@ c
 c **************************** Write input *****************************
 c
 c Zindex,Zix : charge number index for residual nucleus
-c Nindex,Nix : neutron number index for residual nucleus     
+c Nindex,Nix : neutron number index for residual nucleus
 c ZZ,Z       : charge number of residual nucleus
 c disp       : flag for dispersive optical model
 c title      : title of ECIS input file
 c ecis1,ecis2: 100 input flags ('T' or 'F') for ECIS
 c ncoll      : number of nuclear states
 c njmax      : maximal number of j-values in ECIS
-c iterm      : number of iterations   
-c npp        : number of optical potentials    
+c iterm      : number of iterations
+c npp        : number of optical potentials
 c rmatch     : matching radius
-c Emsdin     : incident MSD energy 
+c Emsdin     : incident MSD energy
 c parspin    : spin of particle
 c parmass    : mass of particle in a.m.u.
-c nucmass    : mass of nucleus 
+c nucmass    : mass of nucleus
 c parZ       : charge number of particle
 c parN       : neutron number of particle
 c Zinit      : charge number of initial compound nucleus
@@ -65,7 +65,7 @@ c
      +    parspin(type),parmass(type),nucmass(Zix,Nix),
      +    real(Z*parZ(type))
         write(9,'(2i5)') 1,J+1
-   10 continue                                        
+   10 continue
       do 20 J=0,maxJmsd
         write(9,'(i5,5x,f10.5)') J,betamsd
    20 continue
@@ -99,9 +99,9 @@ c wd,rwd,awd   : imaginary surface potential, radius, diffuseness
 c vso,rvso,avso: real spin-orbit potential, radius, diffuseness
 c wso,rwso,awso: imaginary spin-orbit potential, radius, diffuseness
 c rc           : Coulomb radius
-c angbeg       : first angle 
+c angbeg       : first angle
 c anginc       : angle increment
-c angend       : last angle 
+c angend       : last angle
 c
         if (i.eq.3) then
           Zixi=parZ(type)

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : November 22, 2006
+c | Date  : March 21, 2012
 c | Task  : Saddle point energies, rotating gs energy
 c +---------------------------------------------------------------------
 c
@@ -10,15 +10,15 @@ c *************************** Comments ********************************
 c
 c This subroutine returns the fission barrier height in MeV. It is
 c based on calculations using the rotating liquid drop model (S. Cohen,
-c F. Plasil, and W.J. Swiatecki, Ann. of Phys. 82, 577 (1974)). This 
+c F. Plasil, and W.J. Swiatecki, Ann. of Phys. 82, 577 (1974)). This
 c subroutine is based on the subroutine FISROT incorporated in ALICE-91
-c (M. Blann, presented at the "Workshop on Computation and Analysis of 
-c Nuclear Data Relevant to Nuclear Energy and Safety", Trieste, Italy, 
+c (M. Blann, presented at the "Workshop on Computation and Analysis of
+c Nuclear Data Relevant to Nuclear Energy and Safety", Trieste, Italy,
 c 1992.)
 c
 c ****************** Declarations and common blocks ********************
 c
-      include "talys.cmb" 
+      include "talys.cmb"
       integer ia,iz,il,ix,iy
       real    amass,zchar,neut,ll,paren,eso,ero,x,y,egs,esp,cx,bx,dx,
      +        by,cy,dy,h1,h2,hf,b1,b2,bfrldm

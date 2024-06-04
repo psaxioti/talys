@@ -1,8 +1,8 @@
       subroutine angdis
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : September 29, 2008
+c | Author: Arjan Koning
+c | Date  : June 25, 2010
 c | Task  : Calculation of angular distributions for discrete states
 c +---------------------------------------------------------------------
 c
@@ -17,7 +17,7 @@ c
 c nangle   : number of angles
 c ang      : angle
 c angle    : angle in degrees
-c deg2rad  : conversion factor for degrees to radians     
+c deg2rad  : conversion factor for degrees to radians
 c x        : help variable
 c J2end    : 2 * end of J summation
 c leg      : Legendre polynomial
@@ -33,40 +33,48 @@ c
 c
 c ******** Calculation of compound and total angular distribution ******
 c
-c parskip : logical to skip outgoing particle
-c Nlast   : last discrete level
-c parZ    : charge number of particle
-c parN    : neutron number of particle
-c cleg    : compound nucleus Legendre coefficient
-c compad  : compound angular distribution
-c discad  : discrete state angular distribution
-c directad: direct angular distribution
+c parskip   : logical to skip outgoing particle
+c Nlast     : last discrete level
+c parZ      : charge number of particle
+c parN      : neutron number of particle
+c cleg      : compound nucleus Legendre coefficient
+c compad    : compound angular distribution
+c xscompdisc: compound cross section for discrete state
+c fourpi    : 4.*pi
+c discad    : discrete state angular distribution
+c directad  : direct angular distribution
 c
       do 110 type=0,6
         if (parskip(type)) goto 110
         do 120 nex=0,Nlast(parZ(type),parN(type),0)
 c
-c For some unknown reason, compound inelastic inelastic scattering 
+c For some unknown reason, compound inelastic inelastic scattering
 c to 0+ states can have a L=2 Legendre coefficient that is larger
-c than the L=0 Legendre coefficient. This only happens for high 
-c incident energies, typically above 10 MeV, i.e. for cases that 
-c compound inelastic scattering to individual states is negligible. 
-c Nevertheless, to avoid complaints by ENDF6 checking codes we put 
+c than the L=0 Legendre coefficient. This only happens for high
+c incident energies, typically above 10 MeV, i.e. for cases that
+c compound inelastic scattering to individual states is negligible.
+c Nevertheless, to avoid complaints by ENDF6 checking codes we put
 c the L=2 Legendre coefficient equal to the L=0 coefficient for these
 c rare cases.
 c
-          if (type.ne.k0.or.nex.gt.0) 
+          if (type.ne.k0.or.nex.gt.0)
      +      cleg(type,nex,2)=min(cleg(type,nex,2),cleg(type,nex,0))
-          do 130 LL=0,J2end,2
-            do 140 iang=0,nangle
-              compad(type,nex,iang)=compad(type,nex,iang)+
-     +          (2*LL+1)*cleg(type,nex,LL)*leg(LL,iang)
-  140       continue
-  130     continue
-          do 150 iang=0,nangle
+          if (type.eq.k0.or.cleg(type,nex,0).ne.0.) then
+            do 130 LL=0,J2end,2
+              do 140 iang=0,nangle
+                compad(type,nex,iang)=compad(type,nex,iang)+
+     +            (2*LL+1)*cleg(type,nex,LL)*leg(LL,iang)
+  140         continue
+  130       continue
+          else
+            do 150 iang=0,nangle
+              compad(type,nex,iang)=xscompdisc(type,nex)/fourpi
+  150       continue
+          endif
+          do 160 iang=0,nangle
             discad(type,nex,iang)=directad(type,nex,iang)+
      +        compad(type,nex,iang)
-  150     continue
+  160     continue
   120   continue
   110 continue
 c
@@ -112,7 +120,7 @@ c
 c ***************************** Recoils ********************************
 c
 c flagrecoil  : flag for calculation of recoils
-c angdisrecoil: subroutine for recoil angular distributions for 
+c angdisrecoil: subroutine for recoil angular distributions for
 c               discrete states
 c
       if (flagrecoil) call angdisrecoil

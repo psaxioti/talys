@@ -1,7 +1,7 @@
       subroutine pol2(x1,x2,x3,y1,y2,y3,x,y)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 11, 2004
 c | Task  : Polynomial interpolation of second order
 c +---------------------------------------------------------------------

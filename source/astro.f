@@ -8,7 +8,7 @@ c +---------------------------------------------------------------------
 c
 c ************** Astrophysical reaction rate calculation ***************
 c
-c stellarrate: subroutine for calculation of reaction rate for a 
+c stellarrate: subroutine for calculation of reaction rate for a
 c              Maxwell-Boltzmann distribution
 c astroout   : subroutine for output of astrophysical results
 c

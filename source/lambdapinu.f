@@ -1,7 +1,7 @@
       function lambdapinu(Zcomp,Ncomp,ppi,hpi,pnu,hnu)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 1, 2008
 c | Task  : Proton-neutron transition rates for n --> n
 c +---------------------------------------------------------------------
@@ -9,7 +9,7 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical          surfwell       
+      logical          surfwell
       integer          Zcomp,Ncomp,ppi,hpi,pnu,hnu,h,p,n,A,nexcbins,i,
      +                 Zix,Nix,k,nen
       real             lambdapinu,edepth,gsp,gsn,damp,ignatyuk,U,
@@ -20,9 +20,9 @@ c
 c
 c *************************** Transition rates *************************
 c
-c lambdapinu   : proton-neutron transition rate for n --> n 
+c lambdapinu   : proton-neutron transition rate for n --> n
 c Zcomp        : charge number index for compound nucleus
-c Ncomp        : neutron number index for compound nucleus 
+c Ncomp        : neutron number index for compound nucleus
 c ppi          : proton particle number
 c pnu          : neutron particle number
 c hpi          : proton hole number
@@ -31,14 +31,14 @@ c h            : hole number
 c p            : particle number
 c n            : exciton number
 c A            : mass number of compound nucleus
-c Ainit        : mass number of initial compound nucleus 
+c Ainit        : mass number of initial compound nucleus
 c matrix       : subroutine for matrix element for exciton model
 c surfwell     : flag for surface effects in finite well
 c flagsurface  : flag for surface effects in exciton model
 c primary      : flag to designate primary (binary) reaction
 c edepth       : depth of potential well
 c Efermi       : depth of Fermi well
-c Esurf        : well depth for surface interaction   
+c Esurf        : well depth for surface interaction
 c gp,gsp       : single-particle proton level density parameter
 c gn,gsn       : single-particle neutron level density parameter
 c flaggshell   : flag for energy dependence of single particle level
@@ -48,23 +48,23 @@ c ignatyuk     : function for energy dependent level density parameter a
 c Ecomp        : total energy of composite system
 c alev         : level density parameter
 c U            : excitation energy minus pairing energy
-c preeqpair    : pre-equilibrium pairing energy       
+c preeqpair    : pre-equilibrium pairing energy
 c pairmodel    : model for preequilibrium pairing energy
 c Bfactor,lpinu: help variables
 c twopihbar    : 2*pi/hbar
 c factor1-4    : help variables
-c Apauli2      : two-component Pauli blocking correction factor 
+c Apauli2      : two-component Pauli blocking correction factor
 c M2pinu       : square of proton-neutron matrix element
 c finitewell   : correction function for finite well depth
 c
-c A. Analytical solution: The transition rates are taken from Kalbach, 
+c A. Analytical solution: The transition rates are taken from Kalbach,
 c    PRC33, 818 (1986).
 c
       lambdapinu=0.
       h=hpi+hnu
       p=ppi+pnu
       n=p+h
-      if (n.eq.0) return  
+      if (n.eq.0) return
       A=Ainit-Zcomp-Ncomp
       call matrix(A,n)
       surfwell=flagsurface.and.h.eq.1.and.primary
@@ -72,7 +72,7 @@ c
         edepth=Esurf
       else
         edepth=Efermi
-      endif   
+      endif
       gsp=gp(Zcomp,Ncomp)
       gsn=gn(Zcomp,Ncomp)
       if (flaggshell) then
@@ -112,19 +112,19 @@ c phdens2     : two-component particle-hole state density
 c Zix         : charge number index for residual nucleus
 c Nix         : neutron number index for residual nucleus
 c eopt        : energy for optical model calculation
-c S           : separation energy per particle  
+c S           : separation energy per particle
 c Weff        : effective imaginary well depth
 c Wompfac     : adjustable constant for OMP based transition rates
 c wvol        : absorption part of the optical potential averaged over
 c               the volume
 c hbar        : Planck's constant / 2.pi in MeV.s
-c densh,densp : help variables       
+c densh,densp : help variables
 c ratio       : state density ratio for hole scattering
 c termpinu1p,.: help variables
-c phtot       : total particle-hole state density       
-c                       
+c phtot       : total particle-hole state density
+c
         L1=Apauli2(ppi,hpi,pnu,hnu)-Apauli2(ppi-1,hpi-1,pnu,hnu)
-        L2=U-Apauli2(ppi-1,hpi-1,pnu,hnu)   
+        L2=U-Apauli2(ppi-1,hpi-1,pnu,hnu)
         if (primary) then
           nexcbins=max(nbins/2,2)
         else
@@ -133,19 +133,19 @@ c
         dEx=(L2-L1)/nexcbins
         sumpinu1p=0.
         do 10 i=1,nexcbins
-          uu=L1+(i-0.5)*dEx   
+          uu=L1+(i-0.5)*dEx
           if (flaggshell) then
             damp=ignatyuk(Zcomp,Ncomp,uu,0)/alev(Zcomp,Ncomp)
             gsp=gp(Zcomp,Ncomp)*damp
             gsn=gn(Zcomp,Ncomp)*damp
           endif
-          if (preeqmode.eq.2) then  
+          if (preeqmode.eq.2) then
             lambdapinu1p=twopihbar*M2pinu*
      +        phdens2(Zcomp,Ncomp,0,0,1,1,gsp,gsn,uu,edepth,surfwell)
           else
             Zix=1
             Nix=0
-            k=2      
+            k=2
             eopt=max(uu-S(Zix,Nix,k),-20.)
             nen=min(10*numen,int(eopt*10.))
             Weff=Wompfac(0)*wvol(k,nen)
@@ -157,7 +157,7 @@ c
               ratio=densh/densp
             else
               ratio=1.
-            endif  
+            endif
             lambdapinu1p=2.*Weff/hbar*ratio
           endif
           termpinu1p=lambdapinu1p*

@@ -1,7 +1,7 @@
       subroutine phdensitytable(Zix,Nix)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : December 17, 2009
 c | Task  : Tabulated particle-hole state densities
 c +---------------------------------------------------------------------
@@ -21,7 +21,7 @@ c
 c Zix        : charge number index for residual nucleus
 c Nix        : neutron number index for residual nucleus
 c ZZ,Z       : charge number of residual nucleus
-c AA,A,ia    : mass number of residual nucleus 
+c AA,A,ia    : mass number of residual nucleus
 c nenphdens  : number of energies for particle-hole state density grid
 c phexist1   : flag for existence of particle-hole state density table
 c phexist2   : flag for existence of particle-hole state density table
@@ -48,7 +48,7 @@ c
           read(2,'()')
    30   continue
         goto 20
-      else    
+      else
         if (flag2comp) then
           do 40 i=1,Nphconf2
             phexist2(Zix,Nix,ppitable(i),hpitable(i),pnutable(i),
@@ -61,7 +61,7 @@ c
         endif
         read(2,'(///)')
         do 60 nex=1,nenphdens
-          read(2,'(7x,86(e9.2))',err=200) 
+          read(2,'(7x,86(e9.2))',err=200)
      +      (phden2(nex,i),i=1,Nphconf2),(phden(nex,i),i=1,Nphconf1)
    60   continue
         read(2,'()')
@@ -95,6 +95,6 @@ c
    10 return
   200 write(*,'(" TALYS-error: Wrong particle-hole density table for",
      +  " Z=",i3," A=",i3)') Z,A
-      stop    
+      stop
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

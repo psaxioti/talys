@@ -1,7 +1,7 @@
       function cmsd(Ein)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning    
+c | Author: Arjan Koning
 c | Date  : August 11, 2004
 c | Task  : Normalization factor for MSD
 c +---------------------------------------------------------------------

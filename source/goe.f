@@ -2,7 +2,7 @@
      +  x202,x2i,x12i,x22i,fpst1,fpst2,s1,s2,s3,s4,s5,res,numtr,ielas)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
+c | Author: Stephane Hilaire
 c | Date  : February 6, 2007
 c | Task  : GOE triple integral width fluctuation correction
 c +---------------------------------------------------------------------
@@ -30,13 +30,13 @@ c numtjl  : number of transmission coefficients
 c na,nb   : counters for width fluctuation calculation
 c tav,ta..: average transmission coefficients
 c rhob    : help variable
-c st      : denominator of compound nucleus formula    
+c st      : denominator of compound nucleus formula
 c nweip,..: variables for GOE triple integral calculation
 c res     : width fluctuation factor
 c res1,dab: help variables
 c st      : denominator of compound nucleus formula
 c
-c Initialization 
+c Initialization
 c
       res1=0.
       dab=0.

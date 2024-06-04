@@ -13,7 +13,7 @@ c
       integer          Zcomp,Ncomp,J2,parity,ibar,iloop,J,itr,j2trans,
      +                 pitrans,ihill,i
       real             Eex,bfis,wfis,etrans,Eeff,twkbint,thill,elow,
-     +                 emid,eup,dE1,dE2 
+     +                 emid,eup,dE1,dE2
       double precision trfis,rhof,trfisone,rho1,rho2,rho3,r1log,r2log,
      +                 r3log,rho,rhotr
 c
@@ -22,7 +22,7 @@ c
 c Zcomp : charge number index for compound nucleus
 c Ncomp : neutron number index for compound nucleus
 c J2    : 2 * J
-c parity: parity     
+c parity: parity
 c ibar  : fission barrier
 c trfis : transmission coefficient
 c rhof  : integrated level density
@@ -49,7 +49,7 @@ c
       else
         bfis=fbarrier(Zcomp,Ncomp,ibar)
       endif
-      wfis=fwidth(Zcomp,Ncomp,ibar)       
+      wfis=fwidth(Zcomp,Ncomp,ibar)
 c
 c 1. Discrete states
 c
@@ -96,11 +96,11 @@ c
 c fecont       : start of continuum energy
 c nbintfis     : number of integration bins
 c elow,eup,emid: help variables
-c eintfis      : excitation energy for fission   
+c eintfis      : excitation energy for fission
 c dE1,dE2      : help variables
 c rho1-3       : help variables
 c r1log,...    : help variables
-c rhofis       : integrated level density  
+c rhofis       : integrated level density
 c rho          : integrated level density
 c
       if (Eex.ge.fecont(Zcomp,Ncomp,ibar)) then
@@ -122,7 +122,7 @@ c
      +        +(rho2-rho3)/(r2log-r3log)*dE2
           else
             rho=rho2*(dE1+dE2)
-          endif 
+          endif
           Eeff=Eex-emid
           if (fismodelx(Zcomp,Ncomp).eq.5) then
             trfisone=twkbint(Eeff,ibar,Zcomp,Ncomp)
@@ -139,7 +139,7 @@ c
             rhofisA(J,parity,ihill)=rhofisA(J,parity,ihill)+rho
           endif
    20   continue
-        if (iloop.eq.2) 
+        if (iloop.eq.2)
      +    tfisA(J,parity,0)=max(tfisA(J,parity,0),1.d-30)
       endif
       return

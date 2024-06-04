@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : May 24, 2007
+c | Date  : December 21, 2011
 c | Task  : Compound reaction for initial compound nucleus
 c +---------------------------------------------------------------------
 c
@@ -32,7 +32,7 @@ c
 c This may occur when direct + pre-equilibrium reactions completely
 c exhaust the reaction cross section for the binary channel, and
 c when the initial system is a excitation energy population.
-c 
+c
 c
       if (flaginitpop) return
       if (xsflux.le.xseps) return
@@ -49,9 +49,9 @@ c Initially, Wab is set to 1 (no width fluctuations).
 c
       Wab=1.
       parspin2i=int(2.*parspin(k0))
-      pspin2i=spin2(k0)       
+      pspin2i=spin2(k0)
 c
-c The level densities and transmission coefficients can be prepared 
+c The level densities and transmission coefficients can be prepared
 c before the nested loops over all quantum numbers.
 c
 c Zcomp      : charge number index for compound nucleus
@@ -67,11 +67,11 @@ c
 c
 c *** Output of flux conservation check of transmission coefficients ***
 c
-c flagcheck: flag for output of numerical checks 
+c flagcheck: flag for output of numerical checks
 c flagwidth: flag for width fluctuation calculation
 c wmode    : designator for width fluctuation model
 c
-      if (flagcheck.and.flagwidth) then 
+      if (flagcheck.and.flagwidth) then
         write(*,'(/" ++++++++++ CHECK OF FLUX CONSERVATION",
      +    " OF TRANSMISSION COEFFICIENTS ++++++++++")')
         if (wmode.eq.0) write(*,'(" Hauser-Feshbach model"/)')
@@ -82,18 +82,18 @@ c
 c
 c ************** Initialization of transmission coefficients ***********
 c
-c The transmission coefficients Tjlnex have values interpolated from 
+c The transmission coefficients Tjlnex have values interpolated from
 c the Tjl coefficients of the emission energy grid. For the incident
-c channel, the Tjl are exactly calculated. Hence, we use exact values 
+c channel, the Tjl are exactly calculated. Hence, we use exact values
 c for the incident channel in the transmission coefficient array.
 c
 c updown     : spin index for transmission coefficient
-c lmaxinc    : maximal l-value for transmission coefficients for 
+c lmaxinc    : maximal l-value for transmission coefficients for
 c              incident channel
 c Tjlnex     : transmission coefficients as a function of
 c              particle type, energy, spin and l-value
 c Ltarget    : excited level of target
-c Tjlinc,Tinc: transmission coefficients as a function of j and l 
+c Tjlinc,Tinc: transmission coefficients as a function of j and l
 c              for the incident channel
 c
       do 10 updown=-1,1
@@ -120,7 +120,7 @@ c parity : parity
 c pardif : difference between target and compound nucleus parity
 c targetP: parity of target
 c
-c The variable pardif is used as an indicator of parity conservation 
+c The variable pardif is used as an indicator of parity conservation
 c for the incident channel.
 c
       do 110 parity=-1,1,2
@@ -134,31 +134,31 @@ c nfisbar     : number of fission barrier parameters
 c J2beg       : 2 * start of J summation
 c J2end       : 2 * end of J summation
 c tfission    : subroutine for fission transmission coefficients
-c compprepare : subroutine to prepare information for initial 
+c compprepare : subroutine to prepare information for initial
 c               compound nucleus
 c denomhf     : denominator for compound nucleus formula
-c widthprepare: subroutine for preparation of width fluctuation 
+c widthprepare: subroutine for preparation of width fluctuation
 c               corrections
 c tnumi       : counter for width fluctuation calculation
 c
-c There are two possible types of calculation for the initial compound 
-c nucleus. If either width fluctuation corrections or compound nucleus 
-c angular distributions are wanted, we need to sum explicitly over all 
-c possible quantum numbers before we calculate the width fluctuation 
-c or angular factor. If not, the sum over j,l of the transmission 
-c coefficients can be lumped into one factor, which decreases the 
+c There are two possible types of calculation for the initial compound
+c nucleus. If either width fluctuation corrections or compound nucleus
+c angular distributions are wanted, we need to sum explicitly over all
+c possible quantum numbers before we calculate the width fluctuation
+c or angular factor. If not, the sum over j,l of the transmission
+c coefficients can be lumped into one factor, which decreases the
 c calculation time. In the latter case, the partial decay widths
 c enumhf are calculated in subroutine compprepare.
-c 
-c In order to get do-loops running over integer values, certain quantum 
+c
+c In order to get do-loops running over integer values, certain quantum
 c numbers are multiplied by 2, which can be seen from a 2 present in the
-c corresponding variable names. For each loop, the begin and end point 
+c corresponding variable names. For each loop, the begin and end point
 c is determined from the triangular rule.
 c
-c For every J and P (parity), first the denominator (total width) 
-c denomhf for the Hauser-Feshbach formula is constructed in subroutine 
-c compprepare. Also width fluctuation variables that only depend on J 
-c and P and not on the other angular momentum quantum numbers are 
+c For every J and P (parity), first the denominator (total width)
+c denomhf for the Hauser-Feshbach formula is constructed in subroutine
+c compprepare. Also width fluctuation variables that only depend on J
+c and P and not on the other angular momentum quantum numbers are
 c calculated in subroutine widthprepare. For the width fluctuation
 c calculation, all transmission coefficients need to be placed in one
 c sequential array. Therefore, a counter tnum needs to be followed
@@ -166,7 +166,7 @@ c to keep track of the proper index for the transmission coefficients.
 c
         do 120 J2=J2beg,J2end,2
           J=J2/2
-          if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0) 
+          if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0)
      +      call tfission(Zcomp,Ncomp,J2,parity)
           call compprepare(Zcomp,Ncomp,J2,parity)
           if (denomhf.eq.0.) goto 120
@@ -177,9 +177,9 @@ c Initially, we assume that no width fluctuation corrections or
 c angular distributions are calculated. This means the various loops
 c over l and j for the incident and outgoing channel do not need to
 c be performed. In this case, the terms needed for the Hauser-Feshbach
-c calculation only depend on J and P, and the 
-c corresponding widths enumhf and denomhf have already been calculated 
-c in subroutine compprepare, where the loops over l and j were done. 
+c calculation only depend on J and P, and the
+c corresponding widths enumhf and denomhf have already been calculated
+c in subroutine compprepare, where the loops over l and j were done.
 c
 c jj2beg     : 2 * start of j summation
 c jj2end     : 2 * end of j summation
@@ -202,13 +202,14 @@ c
 c 130: Sum over j (jj2) of incident channel
 c
 c flagcompang  : flag for compound angular distribution calculation
+c flagurr      : flag for output of unresolved resonance parameters
 c targetspin2  : 2 * spin of target
 c jj2          : 2 * j
 c
-c On-set of loop over j in the case of width fluctuations or 
+c On-set of loop over j in the case of width fluctuations or
 c angular distributions.
 c
-          if (flagwidth.or.flagcompang) then
+          if (flagwidth.or.flagcompang.or.flagurr) then
             jj2beg=abs(J2-targetspin2)
             jj2end=J2+targetspin2
           endif
@@ -218,10 +219,10 @@ c 140: Sum over l of incident channel
 c
 c l2: 2 * l
 c
-c On-set of loop over l in the case of width fluctuations or 
+c On-set of loop over l in the case of width fluctuations or
 c angular distributions.
 c
-            if (flagwidth.or.flagcompang) then
+            if (flagwidth.or.flagcompang.or.flagurr) then
               l2beg=abs(jj2-parspin2i)
               l2end=jj2+parspin2i
               l2end=min(l2end,2*lmaxinc)
@@ -233,17 +234,17 @@ c Check parity conservation and make index for transmission coefficient
 c for width fluctuation calculation.
 c
 c
-c If the parity of the target nucleus is equal (unequal) to the parity 
+c If the parity of the target nucleus is equal (unequal) to the parity
 c of compound nucleus, i.e. pardif=0(1), the l-value must be even (odd).
 c
-              if (flagwidth.or.flagcompang) then
+              if (flagwidth.or.flagcompang.or.flagurr) then
                 if (mod(l,2).ne.pardif) goto 140
                 updown=(jj2-l2)/pspin2i
                 Tinc=Tjlinc(updown,l)
                 tnumi=tnumi+1
               endif
 c
-c 160: Sum over outgoing channels     
+c 160: Sum over outgoing channels
 c
 c fluxsum      : check for conservation of flux per P,J,j,l
 c tnumo,tnuminc: counters for width fluctuation calculation
@@ -255,7 +256,7 @@ c tfisA        : transmission coefficient for Hill-Wheeler magnitude
 c widthfluc    : subroutine for width fluctuation correction
 c tfis         : fission transmission coefficients
 c xsbinary     : cross section from initial compound to residual nucleus
-c CNfactor     : factor for compound nucleus cross section: 
+c CNfactor     : factor for compound nucleus cross section:
 c                pi/[ k**2 (2s+1)(2I+1) ]
 c
               fluxsum=0.
@@ -263,7 +264,7 @@ c
 c 1. Fission channel
 c
 c The fission contribution is calculated and added to the binary fission
-c cross section. Also the transmission coefficient index for width 
+c cross section. Also the transmission coefficient index for width
 c fluctuations is increased.
 c
               if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0) then
@@ -288,6 +289,20 @@ c
                   factor1=real(feed*tfis(J,parity)/denomhf)
                 endif
                 xsbinary(-1)=xsbinary(-1)+CNfactor*(J2+1.)*factor1
+c
+c Extract (L,J) dependent parameters for URR (Gilles Noguere)
+c
+c lurr      : maximal orbital angular momentum for URR
+c Turr      : (l,j) transmission coefficient for URR calculation
+c xsbinarylj: (l,j) cross section for URR calculation
+c nulj      : (l,j) number of degrees of freedom for URR calculation
+c
+                if (flagurr.and.l.le.lurr) then
+                  Turrlj(-1,l,J)=factor1*denomhf/(Tinc*Wab)
+                  xsbinarylj(-1,l,J)=xsbinarylj(-1,l,J)+
+     +              CNfactor*(J2+1.)*real(factor1)
+                  nulj(-1,l,J)=1
+                endif
               endif
 c
 c 2. Gamma and particle channels
@@ -304,21 +319,21 @@ c
                 if (type.eq.1) tnumo=tnuminc
                 if (parskip(type)) goto 160
                 parspin2o=int(2.*parspin(type))
-                pspin2o=spin2(type)                  
+                pspin2o=spin2(type)
                 Zix=Zindex(Zcomp,Ncomp,type)
                 Nix=Nindex(Zcomp,Ncomp,type)
                 NL=Nlast(Zix,Nix,0)
 c
-c 170: Sum over outgoing excitation energies     
+c 170: Sum over outgoing excitation energies
 c
 c sumIPE : compound contribution summed over residual spin and parity
 c          and energy
 c maxex  : maximum excitation energy bin for residual nucleus
-c l2maxhf: 2 * lmaxhf            
+c l2maxhf: 2 * lmaxhf
 c lmaxhf : maximal l-value for transmission coefficients
 c elastic: designator for elastic channel
 c
-c This loop is over all discrete levels and continuum bins of the 
+c This loop is over all discrete levels and continuum bins of the
 c final nucleus.
 c
                 sumIPE=0.
@@ -328,9 +343,9 @@ c
 c
 c Initialization of summations
 c
-c Pprimebeg : start of residual parity summation 
+c Pprimebeg : start of residual parity summation
 c parlev    : parity of level
-c Pprimeend : end of residual parity summation  
+c Pprimeend : end of residual parity summation
 c Irspin2beg: 2 * start of residual spin summation
 c jdis      : spin of level
 c Irspin2end: 2 * end of residual spin summation
@@ -341,24 +356,24 @@ c sumIPas   : sumIP for astrophysics
 c
 c For discrete states, the begin and end points of the residual
 c spin/parity summation are both set equal to the residual discrete
-c level spin/parity.   
+c level spin/parity.
 c
                   if (nexout.le.NL) then
                     Pprimebeg=parlev(Zix,Nix,nexout)
-                    Pprimeend=Pprimebeg      
+                    Pprimeend=Pprimebeg
                     Irspin2beg=int(2.*jdis(Zix,Nix,nexout))
                     Irspin2end=Irspin2beg
                   else
 c
 c For the continuum, the begin and end points of the residual
 c spin/parity summation are set to the maximally accessible values.
-c  
+c
                     Pprimebeg=-1
-                    Pprimeend=1      
+                    Pprimeend=1
                     J2res=J2+parspin2o
                     Irspin2beg=mod(J2res,2)
                     Irspin2end=J2res+l2maxhf
-                    Irspin2end=min(Irspin2end,2*maxJ(Zix,Nix,nexout))  
+                    Irspin2end=min(Irspin2end,2*maxJ(Zix,Nix,nexout))
                   endif
                   sumIP=0.
                   if (flagastro) sumIPas=0.
@@ -367,7 +382,7 @@ c 180: Sum over residual parity
 c
 c pardif2: difference between residual and compound nucleus parity
 c
-c The variable pardif2 is used as an indicator of parity conservation 
+c The variable pardif2 is used as an indicator of parity conservation
 c for the outgoing channel.
 c
                   do 180 Pprime=Pprimebeg,Pprimeend,2
@@ -389,12 +404,12 @@ c
 c sumjl   : compound contribution summed over residual j and l
 c jj2prime: 2 * j'
 c
-c On-set of loop over jprime in the case of width fluctuations or 
+c On-set of loop over jprime in the case of width fluctuations or
 c angular distributions.
 c
                       sumjl=0.
                       if (flagwidth.or.flagcompang) then
-                        jj2primebeg=abs(J2-Irspin2) 
+                        jj2primebeg=abs(J2-Irspin2)
                         jj2primeend=J2+Irspin2
                       endif
                       do 200 jj2prime=jj2primebeg,jj2primeend,2
@@ -402,22 +417,22 @@ c
 c 210: Sum over l of outgoing channel
 c
 c l2prime: 2 * l'
-c modl   : help variable    
+c modl   : help variable
 c
-c On-set of loop over lprime in the case of width fluctuations or 
+c On-set of loop over lprime in the case of width fluctuations or
 c angular distributions.
 c
                         if (flagwidth.or.flagcompang) then
                           l2primebeg=abs(jj2prime-parspin2o)
                           l2primeend=jj2prime+parspin2o
                           l2primeend=min(l2primeend,l2maxhf)
-                          if (type.eq.0) l2primebeg=max(l2primebeg,2)   
+                          if (type.eq.0) l2primebeg=max(l2primebeg,2)
                         endif
                         do 210 l2prime=l2primebeg,l2primeend,2
                           lprime=l2prime/2
-                          modl=mod(lprime,2)     
+                          modl=mod(lprime,2)
 c
-c We include photons as a special case, with the multipole radiation 
+c We include photons as a special case, with the multipole radiation
 c selection rules (irad=0: M-transition, irad=1: E-transition)
 c
                           if (flagwidth.or.flagcompang) then
@@ -433,7 +448,7 @@ c
                                 irad=1
                               else
                                 irad=0
-                              endif                                    
+                              endif
                               Tout=Tgam(nexout,lprime,irad)
                             else
 c
@@ -450,12 +465,12 @@ c
                             endif
 c
 c ** Populate the outgoing channels using the compound nucleus formula *
-c        
+c
 c ielas: designator for elastic channel
 c
 c We determine the index for the width fluctuation calculation and call
 c the subroutine that calculates the correction factor. The contribution
-c of this particular outgoing channel is added to the sum for the 
+c of this particular outgoing channel is added to the sum for the
 c incident channel (to check for flux conservation).
 c
                             if (type.ge.1) tnumo=tnumo+1
@@ -463,19 +478,19 @@ c
                               ielas=0
                               if (elastic.and.jj2.eq.jj2prime.and.
      +                          l2.eq.l2prime) ielas=1
-                              call widthfluc(ielas)    
+                              call widthfluc(ielas)
                             endif
                             factor1=real(Tinc*rho*Tout/denomhf*Wab)
                             fluxsum=fluxsum+factor1
                           else
 c
-c If NO width fluctuation corrections or angular distributions are 
+c If NO width fluctuation corrections or angular distributions are
 c required, the partial and total decay widths were already determined
-c in subroutine compprepare. This means we are now in the short loop 
+c in subroutine compprepare. This means we are now in the short loop
 c with l=j=lprime=jprime=1.
 c
 c enumhf     : enumerator for compound nucleus formula
-c flagastrogs: flag for calculation of astrophysics reaction rate with 
+c flagastrogs: flag for calculation of astrophysics reaction rate with
 c              target in ground state only
 c
                             factor1=feed*
@@ -518,12 +533,12 @@ c racah       : function for racah coefficients
 c Ablatt      : Blatt-Biedenharn A-factor
 c cleg        : compound nucleus Legendre coefficient
 c
-c Compound angular distributions are calculated for discrete states 
+c Compound angular distributions are calculated for discrete states
 c only. It can be easily generalized to the continuum, but we postpone
-c that until we find a reason to do so (the deviation from isotropy is 
-c assumed to be negligible). Note that we are still inside the most 
-c inner loop 210, i.e. as indicated in the manual, all quantum numbers 
-c are required for a proper calculation of the compound angular 
+c that until we find a reason to do so (the deviation from isotropy is
+c assumed to be negligible). Note that we are still inside the most
+c inner loop 210, i.e. as indicated in the manual, all quantum numbers
+c are required for a proper calculation of the compound angular
 c distribution. The Legendre coefficients are divide by (2LL+1) to
 c bring them on the same level as the direct reaction Legendre
 c coefficients that come out of ECIS.
@@ -597,7 +612,37 @@ c
   170           continue
                 xspopnuc(Zix,Nix)=xspopnuc(Zix,Nix)+sumIPE
                 xsbinary(type)=xsbinary(type)+sumIPE
+c
+c Extract (L,J) dependent parameters for URR (advice of Gilles Noguere)
+c
+                if (flagurr.and.l.le.lurr) then
+                  Turrlj(type,l,J)=
+     +              sumIPE*denomhf/(CNfactor*(J2+1.)*Tinc*Wab)
+                  xsbinarylj(type,l,J)=xsbinarylj(type,l,J)+
+     +              real(sumIPE)
+                  if (type.eq.0) then
+                    nulj(type,l,J)=nulj(type,l,J)+1
+                  else
+                    nulj(type,l,J)=1
+                  endif
+                endif
   160         continue
+c
+c
+c Determine angular momentum range for URR calculation
+c
+c Turrljinc   : incident channel (l,j) transmission coefficient for
+c               URR calculation
+c lminU,lmaxU : minimal and maximal orbital angular momentum
+c JminU,JmaxU : minimal and maximal total angular momentum
+c
+              if (flagurr.and.l.le.lurr) then
+                Turrljinc(l,J)=Turrljinc(l,J)+Tinc
+                if (l.le.lminU) lminU=l
+                if (l.ge.lmaxU) lmaxU=l
+                if (J.le.JminU(l)) JminU(l)=J
+                if (J.ge.JmaxU(l)) JmaxU(l)=J
+              endif
 c
 c ****** Check of flux conservation of transmission coefficients *******
 c
@@ -627,7 +672,7 @@ c k0      : index of incident particle
 c parN    : neutron number of particle
 c
       if (flagastro.and..not.flagastrogs) then
-        if (Tastrotot.ge.transeps.and.rhoastrotot.ge.0..and.flagwidth) 
+        if (Tastrotot.ge.transeps.and.rhoastrotot.ge.0..and.flagwidth)
      +    call astrotarget
         if (flagwidth) then
           if (maxex(parZ(k0),parN(k0))+1.gt.3) ewfc=Einc
@@ -637,7 +682,7 @@ c
 c *********** Output of fission transmission coefficients **************
 c
 c flagfisout : flag for output of fission information
-c tfissionout: subroutine for output of fission transmission 
+c tfissionout: subroutine for output of fission transmission
 c              coefficients
 c
       nex=maxex(Zcomp,Ncomp)
@@ -646,13 +691,13 @@ c
 c **** ECIS calculation of compound cross sections (reference only) ****
 c
 c In addition to a calculation by TALYS, a compound nucleus run by ECIS
-c can be requested. The results will however not be used for TALYS but 
+c can be requested. The results will however not be used for TALYS but
 c are just for comparison.
 c
 c flageciscomp: flag for compound nucleus calculation by ECIS
 c raynalcomp  : subroutine for ECIS calculation of compound cross
-c               sections (reference only)         
-c  
+c               sections (reference only)
+c
       if (flageciscomp) call raynalcomp
       return
       end

@@ -1,7 +1,7 @@
       subroutine thermalxs
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : October 17, 2008
 c | Task  : Cross sections at thermal energies
 c +---------------------------------------------------------------------
@@ -25,11 +25,11 @@ c path   : directory containing structure files to be read
 c lenpath: length of pathname
 c
 c Read experimental values from thermal cross section file
-c Values from the table can always be overruled by values given in the 
-c input file.  
+c Values from the table can always be overruled by values given in the
+c input file.
 c
 c 1. Inquire whether file is present
-c 
+c
       Z=ZZ(0,0,1)
       A=AA(0,0,1)
       thchar='z   '
@@ -41,7 +41,7 @@ c
 c
 c 2. Search for the isotope under consideration and read information
 c
-c ia          : mass number from resonance table     
+c ia          : mass number from resonance table
 c xscaptherm  : thermal capture cross section
 c xsptherm    : thermal (n,p) cross section
 c xsalphatherm: thermal (n,a) cross section
@@ -64,9 +64,9 @@ c (J. Kopecky, M.G. Delfini, H.A.J. van der Kamp and D. Nierop:
 c Revisions and extensions of neutron capture cross-sections in
 c the European Activation File EAF-3, ECN-C--92-051, July 1992.)
 c
-c alev,ald: level density parameter 
+c alev,ald: level density parameter
 c Spair   : help variable
-c S       : separation energy per particle      
+c S       : separation energy per particle
 c pair    : pairing energy
 c
    30 if (xscaptherm.eq.0.) then

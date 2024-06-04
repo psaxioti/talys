@@ -3,13 +3,13 @@ c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
 c | Date  : September 9, 2004
-c | Task  : Test if (x,y) belongs to the triangle defined by the points 
+c | Task  : Test if (x,y) belongs to the triangle defined by the points
 c |         (x1,y1),(x2,y2),(x3,y3)
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
-c x,y   : coordinates of the point to test 
+c x,y   : coordinates of the point to test
 c x1,y1 : coordinates of the 1st summit of the triangle
 c x2,y2 : coordinates of the 2nd summit of the triangle
 c x3,y3 : coordinates of the 3rd summit of the triangle
@@ -53,7 +53,7 @@ c
 c third segment (x3,y3) --> (x1,y1)
 c
       sign3=sideline(x,y,x3,y3,x1,y1)
-      signg3=sideline(xg,yg,x3,y3,x1,y1)     
+      signg3=sideline(xg,yg,x3,y3,x1,y1)
 c
 c Final test
 c

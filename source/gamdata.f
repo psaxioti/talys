@@ -8,13 +8,13 @@ c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
-      include "talys.cmb" 
+      include "talys.cmb"
 c
 c ***************** Gamma_gamma tabulated values ***********************
 c
 c Spline fit to experimental data made by J. Kopecky, 2002.
 c
-c gamkopecky: radiative width in eV by spline fit of Kopecky 
+c gamkopecky: radiative width in eV by spline fit of Kopecky
 c
       data (gamkopecky(indx),indx=40,250) /1.15,
      +  1.1,1.08,1.02,1.005,0.95,1.0,1.0,1.15,1.3,1.5,

@@ -35,7 +35,7 @@ c Exrec        : Recoil Excitation energy corresponding to Eejcm
 c Exrec2       : Recoil Excitation energy corresponding to Eejcm
 c vreccm1      : Recoil velocity corresponding to Eejcm1
 c vreccm2      : Recoil velocity corresponding to Eejcm2
-c iex          : Loop over excitation energy bins counter 
+c iex          : Loop over excitation energy bins counter
 c iex1         : Recoil excitation energy index corresponding to Eejcm1
 c iex2         : Recoil excitation energy index corresponding to Eejcm1
 c iexmin       : minimum of iex1 and iex2
@@ -121,14 +121,14 @@ c
 c parskip  : logical to skip outgoing particle
 c flagspec : flag for output of spectra
 c ebegin   : first energy point of energy grid
-c eend     : last energy point of energy grid      
+c eend     : last energy point of energy grid
 c
       if (flagspec) then
         do 10 type=0,6
           if (parskip(type)) goto 10
 c
 c *** Calculate recoil and light particle spectra in the LAB frame *****
-c  
+c
 c Initialisations (angcm=0 since first compound system decay)
 c
           Zix=Zindex(0,0,type)
@@ -204,7 +204,7 @@ c
 c
 c EJECTILE and RECOIL TREATMENT
 c
-c Ejectile and recoil LAB angles and energies deduced from CM points 
+c Ejectile and recoil LAB angles and energies deduced from CM points
 c
               call cm2lab(type)
 c
@@ -373,7 +373,7 @@ c
      +                ddxrec(Zix,Nix,iex,ix,iys)+ddxrecadd
                       ddxrectot(Zix,Nix,iex)=ddxrectot(Zix,Nix,iex)+
      +                  fluxadd
-                   
+
                     enddo
                   endif
                 enddo

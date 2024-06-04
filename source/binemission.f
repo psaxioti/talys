@@ -23,19 +23,19 @@ c Zindex,Zix : charge number index for residual nucleus
 c Nindex,Nix : neutron number index for residual nucleus
 c Nlast,NL   : last discrete level
 c SS,S       : separation energy
-c maxex      : maximum excitation energy bin for compound nucleus  
+c maxex      : maximum excitation energy bin for compound nucleus
 c deltaEx,dEx: excitation energy bin for population arrays
 c Ex,Exout   : excitation energy
-c Eo         : outgoing energy grid based on excitation energy 
+c Eo         : outgoing energy grid based on excitation energy
 c Exinc      : excitation energy of entrance bin
 c xsMeV      : cross section on outgoing energy grid
 c contrib    : contribution to emission spectrum
 c
-c The decay from the primary compound nucleus to residual nuclei is 
+c The decay from the primary compound nucleus to residual nuclei is
 c converted from the excitation energy grid to emission energies.
 c Decay from the primary compound nucleus to discrete states is
 c already taken into account and the emission energies for these
-c transitions are exactly known. The emission energies Eo correspond 
+c transitions are exactly known. The emission energies Eo correspond
 c exactly with the excitation energy grid points. The contribution
 c per MeV, xsMeV, is constructed.
 c
@@ -81,7 +81,7 @@ c
             goto 40
           endif
 c
-c To obtain the emission energies belonging to the excitation energy 
+c To obtain the emission energies belonging to the excitation energy
 c grid points, we use first order interpolation.
 c
 c locate : subroutine to find value in ordered table
@@ -106,23 +106,23 @@ c
 c
 c Normalisation of binary spectra to binary cross sections
 c
-c eoutdis        : outgoing energy of discrete state reaction     
+c eoutdis        : outgoing energy of discrete state reaction
 c nendisc        : last discrete bin
-c emissum        : integrated binary emission spectrum         
+c emissum        : integrated binary emission spectrum
 c deltaE         : energy bin around outgoing energies
 c frac           : help variable
 c xscompcont     : compound cross section for continuum
 c flagchannels   : flag for exclusive channels calculation
 c emax           : maximal emission energy within bin decay
-c emin           : minimal emission energy              
+c emin           : minimal emission energy
 c Ebottom        : bottom of outgoing energy bin
 c nenbeg,nenend  : help variables
 c binemis        : emission spectra from initial compound nucleus
 c Etop           : top of outgoing energy bin
-c fraclow,fracbot: help variables     
+c fraclow,fracbot: help variables
 c xspreeq        : preequilibrium cross section per particle type and
-c                  outgoing energy          
-c xsgr           : smoothed giant resonance cross section 
+c                  outgoing energy
+c xsgr           : smoothed giant resonance cross section
 c
 c Due to interpolation errors, there is always a small difference
 c between the binary continuum cross section and the integral of the
@@ -157,7 +157,7 @@ c
             call locate(Ebottom,ebegin(type),eend(type),emin,nenbeg)
             call locate(Ebottom,ebegin(type),eend(type),emax,nenend)
             nenbeg=max(nenbeg,1)
-            if (nenend.lt.nenbeg) goto 130   
+            if (nenend.lt.nenbeg) goto 130
             do 140 nen=nenbeg,nenend
               if (egrid(nen).ge.Eo(NL)) goto 140
               binemis(type,nexout,nen)=xsemis(type,nen)+
@@ -166,7 +166,7 @@ c
 c
 c The end points of the bin are taken into account and this is
 c corrected in binemis. There are also cases where the excitation
-c energy bin falls completely in the emission energy bin 
+c energy bin falls completely in the emission energy bin
 c (nenbeg=nenend).
 c
             fracbot=(emin-Ebottom(nenbeg))/deltaE(nenbeg)

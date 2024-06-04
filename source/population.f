@@ -1,8 +1,8 @@
       subroutine population
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : December 15, 2009
+c | Author: Arjan Koning
+c | Date  : November 11, 2011
 c | Task  : Processing of pre-equilibrium spectra into population bins
 c +---------------------------------------------------------------------
 c
@@ -33,35 +33,35 @@ c Ex         : excitation energy
 c egrid      : outgoing energy grid
 c Elow,Ehigh : help variables
 c deltaEx    : excitation energy bin for population arrays
-c locate     : subroutine to find value in ordered table 
+c locate     : subroutine to find value in ordered table
 c na1,nb1    : help variables
 c Ea1,Eb1    : help variables
 c xsa,xsb,xs : help variables
 c xspreeq    : preequilibrium cross section per particle type and
 c              outgoing energy
 c
-c The pre-equilibrium cross sections have been calculated on the 
+c The pre-equilibrium cross sections have been calculated on the
 c emission energy grid. They are interpolated on the excitation
 c energy grids of the level populations (both for the total and the
 c spin/parity-dependent cases) to enable futher decay of the residual
-c nuclides. 
+c nuclides.
 c
       if (flagomponly) return
       do 10 type=0,6
         if (parskip(type)) goto 10
         Zix=Zindex(0,0,type)
-        Nix=Nindex(0,0,type)   
-        SS=S(0,0,type)   
-        NL=Nlast(Zix,Nix,0)   
+        Nix=Nindex(0,0,type)
+        SS=S(0,0,type)
+        NL=Nlast(Zix,Nix,0)
         if (ebegin(type).ge.eend(type)) goto 10
 c
 c We include multiple pre-equilibrium emission only for neutrons and
 c protons.
 c
-        if (flagmulpre.and.(type.eq.1.or.type.eq.2)) 
+        if (flagmulpre.and.(type.eq.1.or.type.eq.2))
      +    mulpreZN(Zix,Nix)=.true.
 c
-c Loop over excitation energies. Determine the emission energy that 
+c Loop over excitation energies. Determine the emission energy that
 c corresponds with the excitation energy.
 c
         do 20 nexout=NL+1,maxex(Zix,Nix)
@@ -85,7 +85,7 @@ c
 c Add contribution from giant resonances
 c
 c flaggiant: flag for collective contribution from giant resonances
-c xsgr     : smoothed giant resonance cross section 
+c xsgr     : smoothed giant resonance cross section
 c pol1     : subroutine for polynomial interpolation of first order
 c xslow,...: help variable
 c
@@ -103,20 +103,20 @@ c
 c
 c Determine interpolated value.
 c
-c preeqpopex: pre-equilibrium population cross section summed over 
+c preeqpopex: pre-equilibrium population cross section summed over
 c             spin and parity
 c
           call pol1(Ea2,Eb2,xsa,xsb,Ehigh,xshigh)
           xs=0.5*(xslow+xshigh)*deltaEx(Zix,Nix)
           if (xs.lt.1.e-30) xs=0.
-          preeqpopex(type,nexout)=xs
+          preeqpopex(Zix,Nix,nexout)=xs
 c
 c If the pre-equilibrium spin distribution is chosen, the spectrum
 c is interpolated on the spin/parity dependent population.
 c
 c flagpespin: flag for pre-equilibrium spin distribution or compound
-c             spin distribution for pre-equilibrium cross section  
-c parity    : parity 
+c             spin distribution for pre-equilibrium cross section
+c parity    : parity
 c J         : total angular momentum
 c maxJph    : maximal spin for particle-hole states
 c xspreeqJP : preequilibrium cross section per particle type,
@@ -147,7 +147,7 @@ c
                 call pol1(Ea2,Eb2,xsa,xsb,Ehigh,xshigh)
                 xs=0.5*(xslow+xshigh)*deltaEx(Zix,Nix)
                 if (xs.lt.1.e-30) xs=0.
-                preeqpop(type,nexout,J,parity)=xs
+                preeqpop(Zix,Nix,nexout,J,parity)=xs
    30       continue
           endif
 c
@@ -165,8 +165,8 @@ c p        : particle number
 c parA     : mass number of particle
 c h        : hole number
 c xsstep   : preequilibrium cross section per particle type, stage
-c            and outgoing energy     
-c xspopph  : population cross section per particle-hole configuration 
+c            and outgoing energy
+c xspopph  : population cross section per particle-hole configuration
 c
             if (.not.flag2comp) then
               do 40 pc=p0,maxpar
@@ -196,10 +196,10 @@ c pcnu    : composite neutron particle number
 c pnu0    : initial neutron number
 c pnu     : neutron particle number
 c parN    : neutron number of particle
-c hnu     : neutron hole number           
+c hnu     : neutron hole number
 c xsstep2 : two-component preequilibrium cross section
 c xspopph2: population cross section per two-component particle-hole
-c            configuration           
+c            configuration
 c
               do 50 pcpi=ppi0,maxpar
                 ppi=pcpi-parZ(type)
@@ -234,29 +234,29 @@ c xsgrtot   : total smoothed giant resonance cross section
 c
 c Normalization of the pre-equilibrium population cross section. Due
 c to interpolation, the part of the continuum population that comes from
-c pre-equilibrium is not exactly equal to the total pre-equilibrium 
-c cross section. The normalization is done over the whole excitation 
+c pre-equilibrium is not exactly equal to the total pre-equilibrium
+c cross section. The normalization is done over the whole excitation
 c energy range.
 c
       do 110 type=0,6
         if (parskip(type)) goto 110
         Zix=Zindex(0,0,type)
-        Nix=Nindex(0,0,type)   
-        NL=Nlast(Zix,Nix,0)   
+        Nix=Nindex(0,0,type)
+        NL=Nlast(Zix,Nix,0)
         xscheck(type)=0.
         do 120 nex=NL+1,maxex(Zix,Nix)
-          xscheck(type)=xscheck(type)+preeqpopex(type,nex)
+          xscheck(type)=xscheck(type)+preeqpopex(Zix,Nix,nex)
   120   continue
         norm=1.
-        if (xscheck(type).ne.0.) 
+        if (xscheck(type).ne.0.)
      +    norm=(xspreeqtot(type)+xsgrtot(type))/xscheck(type)
         do 130 nex=NL+1,maxex(Zix,Nix)
-          preeqpopex(type,nex)=preeqpopex(type,nex)*norm
+          preeqpopex(Zix,Nix,nex)=preeqpopex(Zix,Nix,nex)*norm
           if (flagpespin) then
             do 140 parity=-1,1,2
               do 140 J=0,maxJph
-                preeqpop(type,nex,J,parity)=
-     +            preeqpop(type,nex,J,parity)*norm
+                preeqpop(Zix,Nix,nex,J,parity)=
+     +            preeqpop(Zix,Nix,nex,J,parity)*norm
   140       continue
           endif
   130   continue

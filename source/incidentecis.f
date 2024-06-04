@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 5, 2009
+c | Date  : December 20, 2011
 c | Task  : ECIS calculation for incident energy
 c +---------------------------------------------------------------------
 c
@@ -17,7 +17,7 @@ c
 c ********************** Set ECIS input parameters *********************
 c
 c flaginccalc     : flag for new ECIS calculation for incident channel
-c legendre        : logical for output of Legendre coefficients     
+c legendre        : logical for output of Legendre coefficients
 c Einc,Ein        : incident energy in MeV
 c hint            : integration step size h
 c rmatch          : matching radius
@@ -42,11 +42,11 @@ c Nindex          : neutron number index for residual nucleus
 c
 c Specific ECIS flags:
 c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
-c ecis2(13)=T : output of transmission coefficients 
-c ecis2(14)=T : output of elastic angular distribution 
-c ecis2(15)=T : output of Legendre coefficients        
+c ecis2(13)=T : output of transmission coefficients
+c ecis2(14)=T : output of elastic angular distribution
+c ecis2(15)=T : output of Legendre coefficients
 c
-      if (flaginccalc) 
+      if (flaginccalc)
      +  open (unit=9,status='unknown',file='ecisinc.inp')
       legendre=.true.
       Ein=Einc
@@ -82,18 +82,18 @@ c ecis1,ecis2: 100 input flags ('T' or 'F') for ECIS
 c jlmloc     : flag for JLM OMP
 c colltype   : type of collectivity (D, V or R)
 c flagrot    : flag for use of rotational optical model per
-c              outgoing particle, if available 
+c              outgoing particle, if available
 c rotational : flag for rotational input
-c vibrational: flag for vibrational input      
+c vibrational: flag for vibrational input
 c title      : title of ECIS input file
 c ncoll      : number of nuclear states
 c npp        : number of optical potentials
 c iterm      : number of iterations
 c idvib      : identifier for existence of vibrational state inside
-c              rotational model        
-c Elevel     : energy of level   
+c              rotational model
+c Elevel     : energy of level
 c tarspin    : spin of target nucleus
-c tarparity  : parity of target nucleus     
+c tarparity  : parity of target nucleus
 c inelfile   : file for inelastic scattering cross sections
 c jlmexist   : flag for existence of tabulated radial matter density
 c nrad       : number of radial points
@@ -122,8 +122,8 @@ c
           ecis1(29:29)='T'
           ecis1(41:41)='T'
           hint=0.1
-          rmatch=12.
-          nrad=122
+          rmatch=18.
+          nrad=182
           njmax=1600
           jlmloc=.true.
         endif
@@ -131,23 +131,23 @@ c
 c
 c 2. Deformed nucleus
 c
-c ndef       : number of collective levels           
+c ndef       : number of collective levels
 c indexlevel : level index
-c leveltype  : type of level (rotational (R) or vibrational (V))  
+c leveltype  : type of level (rotational (R) or vibrational (V))
 c vibband    : band number of level
 c maxband    : highest vibrational level added to rotational model
 c jdis       : spin of level
 c cparity    : parity (character)
-c parlev     : parity of level   
+c parlev     : parity of level
 c Jlevel     : spin of level
 c Plevel     : parity of level
 c iph,iphonon: phonon (1 or 2)
 c iband      : band number of level
-c Jband,lband: angular momentum 
-c Kmag       : magnetic quantum number  
-c vibbeta    : vibrational deformation parameter 
+c Jband,lband: angular momentum
+c Kmag       : magnetic quantum number
+c vibbeta    : vibrational deformation parameter
 c defpar     : deformation parameter
-c flagstate  : flag for optical model potential for each excited state 
+c flagstate  : flag for optical model potential for each excited state
 c
         iterm=0
         tarspin=jdis(Zix,Nix,0)
@@ -158,7 +158,7 @@ c
           if (leveltype(Zix,Nix,ii).ne.'V'.and.
      +      leveltype(Zix,Nix,ii).ne.'R') goto 10
           if (colltype(Zix,Nix).eq.'R'.and.
-     +      vibband(Zix,Nix,i).gt.maxband) goto 10    
+     +      vibband(Zix,Nix,i).gt.maxband) goto 10
           i1=i1+1
           idvib(i1)=vibband(Zix,Nix,i)
           Elevel(i1)=edis(Zix,Nix,ii)
@@ -196,11 +196,11 @@ c
 c flagcoulomb: flag for Coulomb excitation calculation with ECIS
 c soswitch   : switch for deformed spin-orbit calculation and sequential
 c              iterations in ECIS
-c coulbar    : Coulomb barrier  
+c coulbar    : Coulomb barrier
 c Nrotbeta   : number of deformation parameters for rotational nucleus
-c rotbeta    : deformation parameters for rotational nucleus  
+c rotbeta    : deformation parameters for rotational nucleus
 c nrot       : number of deformation parameters
-c rotpar     : deformation parameters for rotational nucleus 
+c rotpar     : deformation parameters for rotational nucleus
 c iqm        : largest order of deformation
 c iqmax      : maximum l-value of multipole expansion
 c deftype    : deformation length (D) or parameter (B)
@@ -210,8 +210,8 @@ c
           ecis1(1:1)='T'
 c
 c Some input flags for ECIS are energy dependent for the rotational
-c model. For rotational nuclei, the switch at soswitch MeV needs to 
-c be made according to Pascal Romain. 
+c model. For rotational nuclei, the switch at soswitch MeV needs to
+c be made according to Pascal Romain.
 c
           if (k0.gt.1.and.flagcoulomb) ecis1(11:11)='T'
           if ((k0.eq.1.and.Ein.le.soswitch).or.
@@ -246,9 +246,9 @@ c
 c ************** Calculate optical potential parameters ****************
 c
 c flagrel   : flag for relativistic kinematics
-c disp      : flag for dispersive optical model   
+c disp      : flag for dispersive optical model
 c efer      : Fermi energy
-c w2disp,...: constants for imaginary potentials        
+c w2disp,...: constants for imaginary potentials
 c optical   : subroutine for determination of optical potential
 c flagoutomp: flag for output of optical model parameters
 c ZZ        : charge number of residual nucleus
@@ -274,22 +274,28 @@ c
       call optical(Zix,Nix,k0,Ein)
 c
 c Output of optical model parameters, if requested.
-c 
+c
       if (flagoutomp) then
         Z=ZZ(0,0,k0)
         A=AA(0,0,k0)
         if (jlmexist(0,0,k0)) then
-          call mom(0,0,dble(prodZ),dble(Ein))
-          write(*,'(/" +++++++++ JLM OPTICAL MODEL POTENTIAL FOR ",
-     +      "INCIDENT CHANNEL ++++++++++")')
+          if (k0.le.2) then
+            call mom(Zix,Nix,dble(prodZ),dble(Ein))
+            write(*,'(/" +++++++++ JLM OPTICAL MODEL POTENTIAL FOR ",
+     +        "INCIDENT CHANNEL ++++++++++")')
+          else
+            call foldalpha(Zix,Nix,Ein)
+            write(*,'(/" +++++++++ DOUBLE FOLDING OPTICAL MODEL ",
+     +        "POTENTIAL FOR INCIDENT CHANNEL ++++++++++")')
+          endif
           write(*,'(/11x,a8," on ",i3,a2/)') parname(k0),A,nuc(Z)
-          write(*,'("  Radius ",4x,"V",5x,"W",6x,"Vso",4x,"Wso"/)')
+          write(*,'("  Radius ",4x,"V",6x,"W",7x,"Vso",5x,"Wso"/)')
           do 110 i=1,numjlm
-          write(*,'(f7.3,2x,4(f7.3))') radjlm(0,0,i),
-     +      normjlm(0,0,1)*potjlm(0,0,i,1),
-     +      normjlm(0,0,2)*potjlm(0,0,i,2),
-     +      normjlm(0,0,5)*potjlm(0,0,i,5),
-     +      normjlm(0,0,6)*potjlm(0,0,i,6)
+          write(*,'(f7.3,2x,4(f8.3))') radjlm(Zix,Nix,i),
+     +      normjlm(Zix,Nix,1)*potjlm(Zix,Nix,i,1),
+     +      normjlm(Zix,Nix,2)*potjlm(Zix,Nix,i,2),
+     +      normjlm(Zix,Nix,5)*potjlm(Zix,Nix,i,5),
+     +      normjlm(Zix,Nix,6)*potjlm(Zix,Nix,i,6)
   110     continue
         else
           write(*,'(/" +++++++++ OPTICAL MODEL PARAMETERS FOR ",
@@ -311,7 +317,7 @@ c
 c ecisinput: subroutine to create ECIS input file
 c
       call ecisinput(Zix,Nix,k0,Ein,rotational,vibrational,jlmloc)
-      write(9,'("fin")') 
+      write(9,'("fin")')
       close (unit=9)
       legendre=.false.
 c
@@ -321,7 +327,7 @@ c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
 c ecis06t    : subroutine ecis06, adapted for TALYS
-c ecisstatus : status of ECIS file  
+c ecisstatus : status of ECIS file
 c
       if (flagoutecis) then
         outfile='ecisinc.out  '
@@ -329,7 +335,7 @@ c
         outfile=nulldev
       endif
       call ecis06t('ecisinc.inp  ',outfile,'ecis06.inccs ',inelfile,
-     +  'ecis06.inctr ','ecis06.incang','ecis06.incleg')  
+     +  'ecis06.inctr ','ecis06.incang','ecis06.incleg')
       open (unit=9,status='unknown',file='ecisinc.inp')
       close (unit=9,status=ecisstatus)
       return

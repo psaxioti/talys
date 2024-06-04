@@ -27,16 +27,16 @@ c an       : neutron level density parameter
 c ap       : proton level density parameter
 c U        : excitation energy minus pairing energy
 c invfermi : help variable
-c fermi    : function for Fermi gas level density formula    
+c fermi    : function for Fermi gas level density formula
 c T2       : square of temperature
 c expo,term: help variables
 c deninv   : help variable
 c
 c Back-shifted Fermi gas
 c
-c We apply the method of Grossjean and Feldmeier, as implemented by 
-c Demetriou and Goriely, to avoid the unphysical divergence near zero 
-c energy. The contribution given by the 1./term goes rapidly to zero 
+c We apply the method of Grossjean and Feldmeier, as implemented by
+c Demetriou and Goriely, to avoid the unphysical divergence near zero
+c energy. The contribution given by the 1./term goes rapidly to zero
 c with increasing excitation energy.
 c
       sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
@@ -45,7 +45,7 @@ c
       term=exp(1.)/24.*(an+ap)**2/sqrt(an*ap)/sigma
       U=Eex-P
       if (U.gt.0.) then
-        invfermi=1./fermi(Zix,Nix,ald,Eex,P,ibar)     
+        invfermi=1./fermi(Zix,Nix,ald,Eex,P,ibar)
         T2=U/ald
         expo=4.*an*ap*T2
         if (expo.lt.80.) then

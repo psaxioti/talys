@@ -1,7 +1,7 @@
       subroutine abundance
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : October 5, 2006
 c | Task  : Natural abundances
 c +---------------------------------------------------------------------
@@ -26,14 +26,14 @@ c abchar : help variable
 c Ztarget: charge number of target nucleus
 c path   : directory containing structure files to be read
 c lenpath: length of pathname
-c ia     : mass number from abundance table     
+c ia     : mass number from abundance table
 c abun,ab: isotopic abundance
 c isotope: isotope number of residual nucleus
 c isonum : number of isotopes
 c abtot  : summed abundances for normalization
 c nuc    : symbol of nucleus
 c
-c Note that for non-natural elements we take the longest-lived isotope 
+c Note that for non-natural elements we take the longest-lived isotope
 c as default.
 c
 c 1. Isotopic abundances from user file
@@ -97,9 +97,9 @@ c
       return
   200 write(*,'(" TALYS-error: No natural isotopes for this",
      +  " element, the mass keyword must be different from 0")')
-      stop    
-  210 write(*,'(" TALYS-error: Format error in abundance file ",a72)') 
+      stop
+  210 write(*,'(" TALYS-error: Format error in abundance file ",a72)')
      +  abfile
-      stop    
+      stop
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

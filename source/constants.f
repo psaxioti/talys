@@ -1,8 +1,8 @@
       subroutine constants
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : June 17, 2005
+c | Author: Arjan Koning
+c | Date  : September 27, 2011
 c | Task  : Constants and initialization
 c +---------------------------------------------------------------------
 c
@@ -29,7 +29,7 @@ c clight     : speed of light in vacuum in m/s
 c pi2h2c2    : 1/(pi*pi*clight*clight*hbar**2) in mb**-1.MeV**-2
 c pi2h3c2    : 1/(pi*pi*clight*clight*hbar**3) in mb**-1.MeV**-3.s**-1
 c amupi2h3c2 : amu/(pi*pi*clight*clight*hbar**3) in mb**-1.MeV**-2.s**-1
-c amu        : atomic mass unit in MeV 
+c amu        : atomic mass unit in MeV
 c amu4pi2h2c2: amu/(4*pi*pi*clight*clight*hbar**2) in mb**-1.MeV**-1
 c
       twopi=2.*pi
@@ -63,7 +63,7 @@ c
 c
 c ATTENTION: As long as we use an equidistant parity distribution, we
 c            set it equal to 0.5, instead of calling a subroutine.
-c            As soon as an analytical non-equidistant parity 
+c            As soon as an analytical non-equidistant parity
 c            distribution is used in TALYS, pardis should be changed
 c            into a function pardis(J,Ex) throughout TALYS.
 c
@@ -79,6 +79,12 @@ c
       do 110 i=1,numiso
         natstring(i)='    '
   110 continue
+c
+c ***************** Set maximum acceptable energy for TALYS ************
+c
+c Emaxtalys: maximum acceptable energy for TALYS
+c
+      Emaxtalys=600.
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

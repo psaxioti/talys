@@ -1,7 +1,7 @@
       double precision function mliquid2(Z,A)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : October 3, 2007
 c | Task  : Goriely liquid drop mass
 c +---------------------------------------------------------------------
@@ -31,7 +31,7 @@ c Ecoul   : Coulomb energy
 c Eldm    : liquid drop energy
 c amu     : atomic mass unit in MeV
 c
-c Goriely model: S. Goriely, ND2001, Tsukuba, Japan, J. Nuc. Sci Techn. 
+c Goriely model: S. Goriely, ND2001, Tsukuba, Japan, J. Nuc. Sci Techn.
 c August 2002, suppl 2. p.536 (2002)
 c
       data avol,as,asym,ass,ac /-15.6428,17.5418,27.9418,-25.3440,0.70/

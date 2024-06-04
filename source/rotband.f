@@ -26,7 +26,7 @@ c Erk10       : energy shift between k=0- and k=1-
 c rj,itstot   : help variables
 c Erot        : rotational energy
 c minertia    : moment of inertia of fission barrier
-c Eband       : help variable     
+c Eband       : help variable
 c efistrhb    : energy of head band transition states
 c fecont      : start of continuum energy
 c numrot      : number of rotational states
@@ -50,7 +50,7 @@ c
    30     rj=rj+jstep
           Erot=(rj*(rj+1.)-jstart*(jstart+1.))/
      +      (2.*minertia(Zix,Nix,nbi))
-          Eband=efistrhb(Zix,Nix,nbi,i)+Erot+Erk10 
+          Eband=efistrhb(Zix,Nix,nbi,i)+Erot+Erk10
           if (Eband.gt.fecont(Zix,Nix,nbi)) goto 20
           nfistrrot(Zix,Nix,nbi)=nfistrrot(Zix,Nix,nbi)+1
           itstot=nfistrrot(Zix,Nix,nbi)

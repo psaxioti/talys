@@ -1,8 +1,8 @@
       subroutine incident
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : June 7, 2009
+c | Author: Arjan Koning
+c | Date  : September 27, 2011
 c | Task  : Main settings and basic cross sections for incident energy
 c +---------------------------------------------------------------------
 c
@@ -14,11 +14,12 @@ c
 c ************ Setting of some parameters for incident channel *********
 c
 c flagpreeq : flag for pre-equilibrium calculation
-c flagmulpre: flag for multiple pre-equilibrium calculation 
+c flagmulpre: flag for multiple pre-equilibrium calculation
 c flagmain  : flag for main output
 c Einc      : incident energy in MeV
 c yesno     : function to assign y or n to logical value
 c flagwidth : flag for width fluctuation calculation
+c flagurr   : flag for output of unresolved resonance parameters
 c nbins     : number of continuum excitation energy bins
 c
 c Multiple pre-equilibrium emission is always set off if there is no
@@ -31,27 +32,29 @@ c
       if (flagmain) then
         if (Einc.ge.0.001) then
           write(*,'(/," ########## RESULTS FOR E=",f9.5,
-     +      " ##########"/)') Einc       
+     +      " ##########"/)') Einc
         else
           write(*,'(/," ########## RESULTS FOR E=",1p,e12.5,
-     +      " ##########"/)') Einc        
+     +      " ##########"/)') Einc
         endif
         write(*,'(" Energy dependent input flags"/)')
-        write(*,'(" Width fluctuations (flagwidth)            : ",a1)') 
+        write(*,'(" Width fluctuations (flagwidth)            : ",a1)')
      +    yesno(flagwidth)
-        write(*,'(" Preequilibrium (flagpreeq)                : ",a1)') 
+        write(*,'(" Unresolved resonance parameters (flagurr) : ",a1)')
+     +    yesno(flagurr)
+        write(*,'(" Preequilibrium (flagpreeq)                : ",a1)')
      +    yesno(flagpreeq)
-        write(*,'(" Multiple preequilibrium (flagmulpre)      : ",a1)') 
+        write(*,'(" Multiple preequilibrium (flagmulpre)      : ",a1)')
      +    yesno(flagmulpre)
-        write(*,'(" Number of continuum excitation energy bins:",i3)') 
+        write(*,'(" Number of continuum excitation energy bins:",i3)')
      +    nbins
       endif
 c
-c *** Calculation of total, reaction, elastic cross section, 
-c     transmission coefficients and elastic angular distribution for 
+c *** Calculation of total, reaction, elastic cross section,
+c     transmission coefficients and elastic angular distribution for
 c     incident energy ***
 c
-c k0           : index for incident particle  
+c k0           : index for incident particle
 c coullimit    : energy limit for charged particle OMP calculation
 c incidentecis : subroutine for ECIS calculation for incident energy
 c incidentread : subroutine to read ECIS results for incident energy
@@ -64,10 +67,10 @@ c parinclude   : logical to include outgoing particle
 c flagcomp     : flag for compound nucleus calculation
 c radwidtheory : subroutine for theoretical calculation of total
 c                radiative width
-c gammanorm    : subroutine for normalization of gamma ray strength 
-c                functions 
+c gammanorm    : subroutine for normalization of gamma ray strength
+c                functions
 c spr          : subroutine for S, P and R' resonance parameters
-c flaginverse  : flag for output of transmission coefficients and 
+c flaginverse  : flag for output of transmission coefficients and
 c                inverse reaction cross sections
 c incidentout  : subroutine for reaction output for incident channel
 c
@@ -79,8 +82,10 @@ c
       else
         if (.not.flaginitpop) call incidentgamma
       endif
-      if (parinclude(0).or.flagcomp) call radwidtheory(0,0,Einc)
-      if (strength.eq.1) call gammanorm(0,0)
+      if (parinclude(0).or.flagcomp) then
+        call radwidtheory(0,0,Einc)
+        if (strength.eq.1) call gammanorm(0,0)
+      endif
       if (k0.eq.1.and.(parinclude(0).or.flagcomp)) call spr
       if (flaginverse) call incidentout
       return

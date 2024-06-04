@@ -1,7 +1,7 @@
       subroutine preeq
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : May 26, 2009
 c | Task  : Pre-equilibrium reactions
 c +---------------------------------------------------------------------
@@ -31,7 +31,7 @@ c
       ppi0=parZ(k0)
       hpi0=0
       pnu0=parN(k0)
-      hnu0=0              
+      hnu0=0
 c
 c Special case for photonuclear reactions
 c
@@ -39,14 +39,14 @@ c
         p0=1
         h0=0
         pnu0=1
-        hnu0=0              
+        hnu0=0
         ppi0=0
-        hpi0=0              
+        hpi0=0
       endif
 c
 c Initialization for surface interaction
 c
-c Efermi      : depth of Fermi well   
+c Efermi      : depth of Fermi well
 c flagsurface : flag for surface effects in exciton model
 c Esurf,Esurf0: well depth for surface interaction
 c surface     : well depth for first hole
@@ -59,8 +59,8 @@ c
           if (k0.eq.2) Esurf=surface(2,Einc)
         else
           Esurf=Esurf0
-        endif    
-      endif    
+        endif
+      endif
 c
 c *********************** Pre-equilibrium model ************************
 c
@@ -73,7 +73,7 @@ c flag2comp   : flag for two-component pre-equilibrium model
 c exciton     : subroutine for exciton model
 c excitonout  : subroutine for output of exciton model parameters
 c exciton2    : subroutine for two-component exciton model
-c exciton2out : subroutine for output of two-component exciton model 
+c exciton2out : subroutine for output of two-component exciton model
 c               parameters
 c
 c Pre-equilibrium models:
@@ -83,7 +83,7 @@ c preeqmode= 3: Exciton model: Numerical solution - optical model in
 c               transition rates
 c preeqmode= 4: Multi-step direct/Multi-step compound
 c
-      if (flagpeout) 
+      if (flagpeout)
      +  write(*,'(/," ########## PRE-EQUILIBRIUM ##########")')
 c
 c Correct reaction cross section for direct and giant resonance effects
@@ -105,7 +105,7 @@ c Quantum-mechanical pre-equilibrium models.
 c
 c preeqmode   : designator for pre-equilibrium model
 c msd         : subroutine for multi-step direct model
-c msdplusmsc  : subroutine for total quantum-mechanical pre-equilibrium 
+c msdplusmsc  : subroutine for total quantum-mechanical pre-equilibrium
 c               cross sections
 c flagpecomp  : flag for Kalbach complex particle emission model
 c preeqcomplex: subroutine for pre-equilibrium complex particle emission
@@ -122,8 +122,8 @@ c stripping and knockout contributions are added.
 c
       if (flagpecomp) call preeqcomplex
 c
-c Direct contributions are subtracted from the pre-equilibrium cross 
-c sections and pre-equilibrium cross sections are collapsed onto 
+c Direct contributions are subtracted from the pre-equilibrium cross
+c sections and pre-equilibrium cross sections are collapsed onto
 c discrete states.
 c
       if (k0.gt.0) call preeqcorrect
@@ -133,7 +133,7 @@ c
 c preeqtotal: subroutine for total pre-equilibrium cross sections
 c flagang   : flag for output of angular distributions
 c flagddx   : flag for output of double-differential cross sections
-c flagrecoil: flag for calculation of recoils     
+c flagrecoil: flag for calculation of recoils
 c preeqang  : subroutine for pre-equilibrium angular distributions
 c preeqout  : subroutine for output of pre-equilibrium cross sections
 c

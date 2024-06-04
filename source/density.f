@@ -2,13 +2,13 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 18, 2007
-c | Task  : Level density 
+c | Date  : January 2, 2011
+c | Task  : Level density
 c +---------------------------------------------------------------------
 c
 c ******************* Declarations and common blocks *******************
 c
-c Note that the parity is not used explicitly for analytical level 
+c Note that the parity is not used explicitly for analytical level
 c densities. For those, an equidistant parity distribution is assumed.
 c
       include "talys.cmb"
@@ -27,10 +27,10 @@ c parity    : parity
 c ibar      : fission barrier number, zero for states on ground state
 c ldmod     : level density model
 c ldexist   : flag for existence of level density table
-c ald       : level density parameter 
-c ignatyuk  : function for energy dependent level density parameter a 
+c ald       : level density parameter
+c ignatyuk  : function for energy dependent level density parameter a
 c densitytot: total level density
-c pardis    : parity distribution 
+c pardis    : parity distribution
 c spindis   : Wigner spin distribution
 c
 c 1. Gilbert and Cameron
@@ -45,12 +45,12 @@ c
      +    spindis(Zix,Nix,Eex,ald,Rspin,ibar)
       else
 c
-c 4. Tabulated level densities     
+c 4. Tabulated level densities
 c
 c Eshift             : shifted excitation energy
 c ctable,ptable      : constant to adjust tabulated level densities
 c Edensmax           : maximum energy on level density table
-c locate             : subroutine to find value in ordered table 
+c locate             : subroutine to find value in ordered table
 c edens              : energy grid for tabulated level densities
 c nendens            : number of energies for level density grid
 c eb,ee,ldb,lde,ldtab: help variables
@@ -61,8 +61,8 @@ c
         jj=min(29,int(Rspin))
         Eshift=Eex-ptable(Zix,Nix,ibar)
         if (Eshift.le.0.) goto 100
-        if (Eshift.le.Edensmax) then
-          call locate(edens,0,nendens,Eshift,nex2) 
+        if (Eshift.le.Edensmax(Zix,Nix)) then
+          call locate(edens,0,nendens(Zix,Nix),Eshift,nex2)
           eb=edens(nex2)
           ee=edens(nex2+1)
           ldb=ldtable(Zix,Nix,nex2,jj,parity,ibar)
@@ -74,10 +74,10 @@ c
      +       (log(lde)-log(ldb)))
           endif
         else
-          eb=edens(nendens-1)
-          ee=edens(nendens)
-          ldb=log(ldtable(Zix,Nix,nendens-1,jj,parity,ibar))
-          lde=log(ldtable(Zix,Nix,nendens,jj,parity,ibar))
+          eb=edens(nendens(Zix,Nix)-1)
+          ee=edens(nendens(Zix,Nix))
+          ldb=log(ldtable(Zix,Nix,nendens(Zix,Nix)-1,jj,parity,ibar))
+          lde=log(ldtable(Zix,Nix,nendens(Zix,Nix),jj,parity,ibar))
           ldtab=exp(ldb+(Eshift-eb)/(ee-eb)*(lde-ldb))
         endif
         cctable=exp(dble(ctable(Zix,Nix,ibar)*sqrt(Eshift)))

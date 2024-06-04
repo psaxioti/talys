@@ -21,14 +21,14 @@ c p         : particle number
 c h         : hole number
 c Eex       : excitation energy
 c Ewell     : average depth of potential well
-c surfwell  : flag for surface effects in finite well  
+c surfwell  : flag for surface effects in finite well
 c n         : exciton number
-c widthdis  : width of the weighting distribution for averaging the 
-c             finite well depth correction function 
-c Efermi    : maximal depth of Fermi well 
+c widthdis  : width of the weighting distribution for averaging the
+c             finite well depth correction function
+c Efermi    : maximal depth of Fermi well
 c jbin      : number of bins used in averaging procedure equals 2*jbin+1
 c wtsum     : sum over all contributions to the weight
-c fwtsum    : sum over all weighted contributions to the finite well 
+c fwtsum    : sum over all weighted contributions to the finite well
 c             depth correction function
 c jwell     : help variable in loop over potential well depth bins
 c Ewellj    : potential well depth used in loop
@@ -39,9 +39,9 @@ c factor    : help variable
 c sgn       : +1 for even argument, -1 for odd argument
 c ncomb     : n!/(n!(n-k)!)
 c
-c The general finite well correction comes from Betak and Dobes, 
+c The general finite well correction comes from Betak and Dobes,
 c Z. Phys. A279 (1976) 319. For the first p-h interaction, surface
-c effects can be included according to Kalbach, Phys Rev C32, 
+c effects can be included according to Kalbach, Phys Rev C32,
 c p. 1157 (1985).
 c
       finitewell=1.
@@ -84,7 +84,7 @@ c
             wtsum=wtsum+wt
             fwtsum=fwtsum+wt*fwell
  20       continue
-          if (wtsum.gt.0.) finitewell=fwtsum/wtsum  
+          if (wtsum.gt.0.) finitewell=fwtsum/wtsum
         endif
       else
 c

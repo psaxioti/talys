@@ -1,7 +1,7 @@
       subroutine preeqinit
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 1, 2008
 c | Task  : Initialization of general pre-equilibrium parameters
 c +---------------------------------------------------------------------
@@ -42,7 +42,7 @@ c
 c ************* Spin distribution for particle-hole states *************
 c
 c maxJph   : maximal spin for particle-hole states
-c RnJsum   : (2J+1)*sum over spin distributions 
+c RnJsum   : (2J+1)*sum over spin distributions
 c sigma2ph : spin cutoff factor for particle-hole states
 c Atarget  : mass number of target nucleus
 c twothird : 2/3
@@ -52,7 +52,7 @@ c sqrttwopi: sqrt(2.*pi)
 c expo     : help variable
 c RnJ      : spin distribution for particle-hole states
 c
-c Default spin cutoff factor for p-h density: Gruppelaar, 
+c Default spin cutoff factor for p-h density: Gruppelaar,
 c Group Meeting on level densities, Brookhaven (1983), p. 143.
 c
       maxJph=30
@@ -73,7 +73,7 @@ c gs,g   : single-particle level density parameter
 c p      : particle number
 c numparx: maximal particle number (set in talys.cmb)
 c h      : hole number
-c Apauli : Pauli blocking correction energy 
+c Apauli : Pauli blocking correction energy
 c Epp    : Pauli energy
 c factor : help variable
 c
@@ -93,13 +93,13 @@ c
 c
 c 2. Two components (Kalbach, Phys. Rev. C33, 818 (1986)).
 c
-c gp,gsp         : single-particle proton level density parameter 
+c gp,gsp         : single-particle proton level density parameter
 c gn,gsn         : single-particle neutron level density parameter
 c ppi,hpi        : proton particle and hole number
 c pnu,hnu        : neutron particle and hole number
 c Eppi,..        : Pauli energy
 c factorp,factorn: help variables
-c Apauli2        : two-component Pauli blocking correction factor 
+c Apauli2        : two-component Pauli blocking correction factor
 c
       gsp=gp(0,0)
       gsn=gn(0,0)
@@ -120,7 +120,7 @@ c
 c
 c ************* Potential for optical model exciton model **************
 c
-c bonetti: subroutine for determination of effective absorption optical 
+c bonetti: subroutine for determination of effective absorption optical
 c          potential
 c
       if (preeqmode.eq.3) call bonetti
@@ -132,19 +132,19 @@ c flag2comp : flag for two-component pre-equilibrium model
 c k0        : index of incident particle
 c Rblann    : Blann's factor
 c
-c The R-factor takes into account the neutron-proton distinction in 
-c multiple preequilibrium. The indices for the R-factor are 
+c The R-factor takes into account the neutron-proton distinction in
+c multiple preequilibrium. The indices for the R-factor are
 c Rblann(itype,type,nstep) where type is the second emitted particle,
-c itype is the first emitted particle and nstep is the stage of primary 
-c pre-equilibrium emission. For this factor it is assumed that N=Z and 
-c that an effective interaction ratio of  p-n  to p-p or n-n of a 
+c itype is the first emitted particle and nstep is the stage of primary
+c pre-equilibrium emission. For this factor it is assumed that N=Z and
+c that an effective interaction ratio of  p-n  to p-p or n-n of a
 c factor 3 applies, see Blann and Vonach, Phys. Rev. C28, 1475 (1983).
-c Eqs. (9) and (10) and the paragraph below. The numbers are taken 
+c Eqs. (9) and (10) and the paragraph below. The numbers are taken
 c from GNASH.
 c
       if (.not.(flagmulpre.and..not.flag2comp)) return
 c
-c 1. Incident neutron 
+c 1. Incident neutron
 c
       if (k0.eq.1) then
         Rblann(2,2,1)=0.
@@ -169,7 +169,7 @@ c
         Rblann(1,2,5)=0.516
       else
 c
-c 1. Incident proton 
+c 1. Incident proton
 c
         Rblann(1,1,1)=0.
         Rblann(1,2,1)=1.

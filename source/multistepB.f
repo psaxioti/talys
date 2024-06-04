@@ -10,11 +10,11 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer type,nen,nen2,na,nb,nc,ns,iang
-      real    Eout,Ea,Eb,Ec,xsa,xsb,xsc,xs    
+      real    Eout,Ea,Eb,Ec,xsa,xsb,xsc,xs
 c
 c ********** Interpolate continuum multi-step cross sections ***********
 c
-c parskip    : logical to skip outgoing particle 
+c parskip    : logical to skip outgoing particle
 c ebegin     : first energy point of energy grid
 c eend       : last energy point of energy grid
 c Eout       : outgoing energy
@@ -30,11 +30,11 @@ c xsa,xsb,xsc: help variables
 c msdstep0   : n-step cross section for MSD
 c pol2       : subroutine for polynomial interpolation of second order
 c xs         : help variable
-c msdstep    : continuum n-step direct cross section 
+c msdstep    : continuum n-step direct cross section
 c flagddx    : flag for output of double-differential cross sections
 c nanglecont : number of angles for continuum
 c msdstepad0 : n-step angular distribution for MSD
-c msdstepad  : continuum n-step direct angular distribution 
+c msdstepad  : continuum n-step direct angular distribution
 c
       do 10 type=1,2
         if (parskip(type)) goto 10
@@ -54,13 +54,13 @@ c
           Ea=Emsd(na)
           Eb=Emsd(nb)
           Ec=Emsd(nc)
-          do 30 ns=2,maxmsd 
+          do 30 ns=2,maxmsd
             xsa=max(msdstep0(type,ns,na),1.e-30)
             xsb=max(msdstep0(type,ns,nb),1.e-30)
             xsc=max(msdstep0(type,ns,nc),1.e-30)
             call pol2(Ea,Eb,Ec,xsa,xsb,xsc,Eout,xs)
             if (xs.lt.1.e-30) xs=0.
-            msdstep(type,ns,nen)=xs 
+            msdstep(type,ns,nen)=xs
             if (flagddx) then
               do 40 iang=0,nanglecont
                 xsa=max(msdstepad0(type,ns,na,iang),1.e-30)
@@ -68,7 +68,7 @@ c
                 xsc=max(msdstepad0(type,ns,nc,iang),1.e-30)
                 call pol2(Ea,Eb,Ec,xsa,xsb,xsc,Eout,xs)
                 if (xs.lt.1.e-30) xs=0.
-                msdstepad(type,ns,nen,iang)=xs 
+                msdstepad(type,ns,nen,iang)=xs
    40         continue
             endif
    30     continue

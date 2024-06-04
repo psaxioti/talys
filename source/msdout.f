@@ -1,8 +1,8 @@
       subroutine msdout
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Konin
-c | Date  : October 5, 2006   
+c | Author: Arjan Koning
+c | Date  : October 5, 2006
 c | Task  : Output of multi-step direct cross sections
 c +---------------------------------------------------------------------
 c
@@ -18,20 +18,20 @@ c maxmsd    : number of MSD steps
 c msdstepint: n-step direct cross section integrated over energy
 c msdsum    : multi-step direct cross section summed over steps and
 c             integrated over energy
-c msdall    : total multi-step direct cross section 
-c parskip   : logical to skip outgoing particle 
+c msdall    : total multi-step direct cross section
+c parskip   : logical to skip outgoing particle
 c parsym    : symbol of particle
 c k0        : index of incident particle
 c ebegin    : first energy point of energy grid
 c eend      : last energy point of energy grid
 c egrid     : outgoing energy grid
 c msdtot    : multi-step direct cross section summed over steps
-c msdstep   : continuum n-step direct cross section 
+c msdstep   : continuum n-step direct cross section
 c
       write(*,'(/" ++++++++++ MULTI-STEP DIRECT MODEL ++++++++++")')
       write(*,'(/" 1. Total multi-step direct cross sections"/)')
       write(*,'(" Step ",2(5x,a8)/)') (parname(type),type=1,2)
-      do 10 ns=1,maxmsd 
+      do 10 ns=1,maxmsd
         write(*,'(1x,i3,1p,3x,2(1x,e12.5))') ns,(msdstepint(type,ns),
      +    type=1,2)
    10 continue
@@ -55,10 +55,10 @@ c flagddx     : flag for output of double-differential cross sections
 c nanglecont  : number of angles for continuum
 c anglecont   : angle in degrees for continuum
 c msdtotad    : multi-step direct angular distribution summed over steps
-c msdstepad   : continuum n-step direct angular distribution 
+c msdstepad   : continuum n-step direct angular distribution
 c msdtotintad : multi-step direct angular distribution summed over steps
 c               and integrated over energy
-c msdstepintad: n-step direct angular distribution integrated over 
+c msdstepintad: n-step direct angular distribution integrated over
 c               energy
 c
       if (.not.flagddx) return

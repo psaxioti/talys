@@ -3,17 +3,17 @@ c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
 c | Date  : September 9, 2004
-c | Task  : Test if (x,y) belongs to the segment defined by the points 
+c | Task  : Test if (x,y) belongs to the segment defined by the points
 c |         (x1,y1),(x2,y2)
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
-c x,y    : coordinates of the point to test 
+c x,y    : coordinates of the point to test
 c x1,y1  : coordinates of the 1st point of the segment
 c x2,y2  : coordinates of the 2nd point of the segment
-c x1x,y1x: coordinates of the vector (x-x1,y-y1) 
-c x12,y12: coordinates of the vector (x2-x1,y2-y1) 
+c x1x,y1x: coordinates of the vector (x-x1,y-y1)
+c x12,y12: coordinates of the vector (x2-x1,y2-y1)
 c pscal  : scalar product of the vector (x-x1,y-y1) with (x2-x1,y2-y1)
 c norm1  : norm of vector (x-x1,y-y1)
 c norm2  : norm of vector (x2-x1,y2-y1)
@@ -48,7 +48,7 @@ c test if the two vectors have the same direction (if not return)
 c
       if (pscal.lt.-epsilon) return
 c
-c test if norm of vector (x-x1,y-y1) lower than norm of segment 
+c test if norm of vector (x-x1,y-y1) lower than norm of segment
 c
       dnorm=norm1-norm2
       if (dnorm.gt.epsilon) return

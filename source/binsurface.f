@@ -128,7 +128,7 @@ c
           ypts(ipts)=yr1
         endif
       enddo
-c    
+c
 c check if the triangle summits are inside that bin
 c
       if (belongs(x1,xu,xl).and.belongs(y1,yu,yl)) then

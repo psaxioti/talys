@@ -1,7 +1,7 @@
       subroutine resonancepar(Zix,Nix)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : June 12, 2009
 c | Task  : S-wave resonance parameters
 c +---------------------------------------------------------------------
@@ -28,10 +28,10 @@ c lenpath: length of pathname
 c
 c Read experimental values from resonance parameter file
 c Resonance parameters from the table can always be overruled
-c by a value given in the input file.  
+c by a value given in the input file.
 c
 c 1. Inquire whether file is present
-c 
+c
       Z=ZZ(Zix,Nix,0)
       A=AA(Zix,Nix,0)
       reschar='z   '
@@ -43,7 +43,7 @@ c
 c
 c 2. Search for the isotope under consideration and read information
 c
-c ia     : mass number from resonance table     
+c ia     : mass number from resonance table
 c D0     : experimental s-wave resonance spacing in eV
 c dD0    : uncertainty in D0
 c S0     : s-wave strength function
@@ -61,15 +61,15 @@ c
       if (S0f.ne.0..and.S0(Zix,Nix).eq.0.) S0(Zix,Nix)=S0f
       if (dgamgamf.ne.0..and.gamgam(Zix,Nix).eq.0.) dgamgam(Zix,Nix)=
      +  dgamgamf
-      if (gamgamf.ne.0..and.gamgam(Zix,Nix).eq.0.) 
+      if (gamgamf.ne.0..and.gamgam(Zix,Nix).eq.0.)
      +  gamgam(Zix,Nix)=gamgamf
    20 close (unit=2)
 c
-c 3. Tabulated value for total radiative width or systematics 
+c 3. Tabulated value for total radiative width or systematics
 c    (Kopecky, 2002)
 c
 c gamkopecky  : radiative width in eV by spline fit of Kopecky
-c gamgamadjust: adjustable factor for radiative parameters 
+c gamgamadjust: adjustable factor for radiative parameters
 c             (default 1.)
 c
    30 if (gamgam(Zix,Nix).eq.0.) then

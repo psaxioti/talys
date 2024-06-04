@@ -9,7 +9,7 @@ c
 c ****************************** MSD model *****************************
 c
 c msdinit : subroutine for initialization of MSD model parameters
-c dwbaecis: subroutine for ECIS calculations of DWBA for MSD 
+c dwbaecis: subroutine for ECIS calculations of DWBA for MSD
 c msdcalc : subroutine for MSD calculation
 c msdtotal: subroutine for total multi-step direct cross sections
 c msdout  : subroutine for output of multi-step direct cross sections

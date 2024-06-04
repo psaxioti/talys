@@ -1,7 +1,7 @@
       subroutine onecontinuumA(itype,type)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 1, 2008
 c | Task  : Unnormalized one-step direct cross sections for MSD
 c +---------------------------------------------------------------------
@@ -20,13 +20,13 @@ c Zindex,Zix: charge number index for residual nucleus
 c Nindex,Nix: neutron number index for residual nucleus
 c g,gs      : single-particle level density parameter
 c QQ        : Q-value
-c S         : separation energy per particle   
+c S         : separation energy per particle
 c msdbins2  : number of energy points for MSD calculation
 c Emsdin    : incident MSD energy
 c specmass  : specific mass for target nucleus
 c Emsd      : MSD energy grid
 c Emsdout   : outgoing MSD energy
-c Exmsd     : excitation energy for MSD energy grid     
+c Exmsd     : excitation energy for MSD energy grid
 c flaggshell: flag for energy dependence of single particle level
 c             density parameter g
 c ignatyuk  : function for energy dependent level density parameter a
@@ -38,7 +38,7 @@ c omega     : particle-hole state density
 c total,xs  : help variables
 c xsdwin    : DWBA cross section as a function of incident energy,
 c             outgoing energy and angular momentum
-c xscont1   : continuum one-step direct cross section for MSD 
+c xscont1   : continuum one-step direct cross section for MSD
 c             (unnormalized)
 c flagddx   : flag for output of double-differential cross sections
 c nanglecont: number of angles for continuum

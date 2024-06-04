@@ -2,8 +2,8 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning, Eric Bauge and Pascal Romain
-c | Date  : August 24, 2008
-c | Task  : Read ECIS results for incident energy 
+c | Date  : September 17, 2011
+c | Task  : Read ECIS results for incident energy
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -14,7 +14,7 @@ c
      +                 Zix,Nix,i,nJ,k,nS,lev,l,ispin,nSt,nL,ii,iSt,iang,
      +                 itype
       real             groundspin2,rj,jres,factor,xsr,eps
-      double precision xs,Tcoef,dl,teps
+      double precision xs,Tcoef,ddl,teps
 c
 c ************ Read total, reaction and elastic cross section **********
 c
@@ -29,10 +29,10 @@ c xs         : help variable
 c xstotinc   : total cross section (neutrons only) for incident channel
 c xsreacinc  : reaction cross section for incident channel
 c xsoptinc   : optical model reaction cross section for incident channel
-c xselasinc  : total elastic cross section (neutrons only) for incident 
+c xselasinc  : total elastic cross section (neutrons only) for incident
 c              channel
 c
-c If the ECIS calculation has already been done in a previous run, we 
+c If the ECIS calculation has already been done in a previous run, we
 c can read from existing files.
 c
       if (flaginccalc) then
@@ -78,7 +78,7 @@ c
         infileleg=19
         infilein=20
       endif
-      read(infilecs,'()') 
+      read(infilecs,'()')
       if (k0.eq.1) then
         read(infilecs,*) xs
         xstotinc=real(xs)
@@ -92,16 +92,28 @@ c
       endif
       eps=-1.e-3
       if (xselasinc.lt.eps.or.xsreacinc.lt.eps.or.xstotinc.lt.eps) then
-        write(*,'(" TALYS-error: Negative OMP cross section")')
+        write(*,'(" TALYS-warning: Negative OMP cross section")')
         write(*,'(" Elastic : ",1p,e12.5)') xselasinc
         write(*,'(" Reaction: ",1p,e12.5)') xsreacinc
         write(*,'(" Total   : ",1p,e12.5)') xstotinc
-        stop
+        if (xselasinc.lt.eps) then
+          xselasinc=0.
+          write(*,'(" --> Elastic : ",1p,e12.5)') xselasinc
+        endif
+        if (xsreacinc.lt.eps) then
+          xsreacinc=0.
+          write(*,'(" --> Reaction: ",1p,e12.5)') xsreacinc
+        endif
+        if (xstotinc.lt.eps) then
+          xstotinc=xselasinc+xsreacinc
+          write(*,'(" --> Total   : ",1p,e12.5)') xstotinc
+        endif
+        xsoptinc=xsreacinc
       endif
       xselasinc=max(xselasinc,0.)
       xsreacinc=max(xsreacinc,0.)
       xstotinc=max(xstotinc,0.)
-     
+
 c
 c ******************* Read transmission coefficients *******************
 c
@@ -115,17 +127,17 @@ c nS         : number of transmission coefficients per J-value
 c lev        : level number
 c l          : orbital angular momentum
 c jres       : j-value
-c Tjl,Tcoef  : transmission coefficients as a function of spin and 
+c Tjl,Tcoef  : transmission coefficients as a function of spin and
 c              l-value
 c numl       : maximal number of l-values
 c colltype   : type of collectivity (D, V or R)
 c flagrot    : flag for use of rotational optical model per
-c              outgoing particle, if available  
+c              outgoing particle, if available
 c factor     : help variable
 c ispin      : spin index
 c parspin    : spin of particle
 c
-c For rotational nuclei, the rotational transmission 
+c For rotational nuclei, the rotational transmission
 c coefficients are transformed into into spherical equivalents.
 c
       Zix=Zindex(0,0,k0)
@@ -156,14 +168,14 @@ c
 c *************** Processing of transmission coefficients **************
 c
 c Transmission coefficients averaged over spin and determination of
-c maximal l-value. ECIS stops its output of transmission coefficients 
-c somewhat too early. For the highest l values the transmission 
-c coefficient for (l+spin) is not written in the output. Since these 
+c maximal l-value. ECIS stops its output of transmission coefficients
+c somewhat too early. For the highest l values the transmission
+c coefficient for (l+spin) is not written in the output. Since these
 c are small numbers we put them equal to the value for (l-spin).
 c
 c Tlinc     : transmission coefficients as a function of l for the
 c             incident channel, averaged over spin
-c translimit: limit for transmission coefficient 
+c translimit: limit for transmission coefficient
 c teps      : help variable
 c transeps  : absolute limit for transmission coefficient
 c lmaxinc   : maximal l-value for transmission coefficients for incident
@@ -173,9 +185,9 @@ c 1. Spin 1/2 particles: Neutrons, protons, tritons and Helium-3
 c
       if (k0.ne.3.and.k0.ne.6) then
         do 210 l=0,numl
-          if (Tjlinc(-1,l).ne.0.and.Tjlinc(1,l).eq.0) 
+          if (Tjlinc(-1,l).ne.0.and.Tjlinc(1,l).eq.0)
      +      Tjlinc(1,l)=Tjlinc(-1,l)
-          if (Tjlinc(-1,l).eq.0.and.Tjlinc(1,l).ne.0.and.l.gt.0) 
+          if (Tjlinc(-1,l).eq.0.and.Tjlinc(1,l).ne.0.and.l.gt.0)
      +      Tjlinc(-1,l)=Tjlinc(1,l)
           Tlinc(l)=((l+1)*Tjlinc(1,l)+l*Tjlinc(-1,l))/(2*l+1)
           teps=Tlinc(0)*translimit/(2*l+1)
@@ -192,11 +204,11 @@ c 2. Spin 1 particles: Deuterons
 c
       if (k0.eq.3) then
         do 220 l=0,numl
-          if (Tjlinc(-1,l).ne.0.and.Tjlinc(0,l).eq.0) 
+          if (Tjlinc(-1,l).ne.0.and.Tjlinc(0,l).eq.0)
      +      Tjlinc(0,l)=Tjlinc(-1,l)
-          if (Tjlinc(-1,l).ne.0.and.Tjlinc(1,l).eq.0) 
+          if (Tjlinc(-1,l).ne.0.and.Tjlinc(1,l).eq.0)
      +      Tjlinc(1,l)=Tjlinc(-1,l)
-          if (Tjlinc(-1,l).eq.0.and.Tjlinc(1,l).ne.0.and.l.gt.0) 
+          if (Tjlinc(-1,l).eq.0.and.Tjlinc(1,l).ne.0.and.l.gt.0)
      +      Tjlinc(-1,l)=Tjlinc(1,l)
           Tlinc(l)=((2*l+3)*Tjlinc(1,l)+(2*l+1)*Tjlinc(0,l)+
      +      (2*l-1)*Tjlinc(-1,l))/(3*(2*l+1))
@@ -228,27 +240,27 @@ c
 c
 c ******************* Direct reaction Legendre coefficients ************
 c
-c We read the Legendre coefficients for the direct component of the 
-c reaction only. The compound nucleus coefficients are calculated by 
+c We read the Legendre coefficients for the direct component of the
+c reaction only. The compound nucleus coefficients are calculated by
 c TALYS later on. For coupled-channels reactions, the inelastic
 c Legendre coefficients are also read.
 c
-c nSt    : number of states
-c nL     : number of Legendre coefficients
-c i      : level number
-c l      : l-value
-c indexcc: level index for coupled channel
-c dleg,dl: direct reaction Legendre coefficient
+c nSt     : number of states
+c nL      : number of Legendre coefficients
+c i       : level number
+c l       : l-value
+c indexcc : level index for coupled channel
+c dleg,ddl: direct reaction Legendre coefficient
 c
   300 read(infileleg,'(55x,i5)') nSt
       do 310 ist=1,nSt
         read(infileleg,'(5x,i5)') nL
         do 320 k=1,nL
-          read(infileleg,'(2i5,e20.10)') i,l,dl
+          read(infileleg,'(2i5,e20.10)') i,l,ddl
           if (l.gt.3*numl) goto 320
           ii=i-1
           if (i.ne.1) ii=indexcc(Zix,Nix,i)
-          dleg(k0,ii,l)=real(dl)
+          dleg(k0,ii,l)=real(ddl)
   320   continue
   310 continue
 c
@@ -279,10 +291,10 @@ c angular distributions and cross sections.
 c
 c xscoupled    : inelastic cross section from coupled channels
 c xsdirdisc    : direct cross section for discrete state
-c Nlast        : last discrete level   
+c Nlast        : last discrete level
 c xsdirdisctot : direct cross section summed over discrete states
 c dorigin      : origin of direct cross section (Direct or Preeq)
-c xscollconttot: total collective cross section in the continuum    
+c xscollconttot: total collective cross section in the continuum
 c xsdirdiscsum : total direct cross section
 c
       if (colltype(Zix,Nix).ne.'S'.and.flagrot(k0)) then
@@ -306,7 +318,7 @@ c
             xsdirdisctot(k0)=xsdirdisctot(k0)+xsdirdisc(k0,ii)
           else
             xscollconttot=xscollconttot+xsdirdisc(k0,ii)
-          endif       
+          endif
           xscoupled=xscoupled+xsdirdisc(k0,ii)
           dorigin(k0,ii)='Direct'
   540   continue
@@ -315,7 +327,7 @@ c
 c
 c Close files
 c
-c ecisstatus: status of ECIS file  
+c ecisstatus: status of ECIS file
 c nin       : counter for incident energy
 c numinc    : number of incident energies
 c

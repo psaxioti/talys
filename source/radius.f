@@ -7,13 +7,13 @@ c | Task  : Radius function for Tripathi formula
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
-c                                                                 
+c
       implicit none
       integer na(23),ia,i
       real    radius,a,rms(23),fact
 c
 c *************************** Radius function **************************
-c   
+c
       data na/1,2,3,4,6,7,9,10,11,12,13,14,15,16,
      +  17,18,19,20,22,23,24,25,26/
       data rms/0.85,2.095,1.976,1.671,2.57,2.41,2.519,2.45,2.42,
@@ -23,7 +23,7 @@ c
       ia=int(a+0.4)
       radius=fact*(0.84*a**(1./3.)+0.55)
       do 10 i=1,23
-        if (ia.eq.na(i)) radius=fact*rms(i)      
+        if (ia.eq.na(i)) radius=fact*rms(i)
   10  continue
       return
       end

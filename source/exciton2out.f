@@ -1,9 +1,9 @@
       subroutine exciton2out
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : October 5, 2006   
-c | Task  : Output of two-component exciton model parameters 
+c | Author: Arjan Koning
+c | Date  : October 5, 2006
+c | Task  : Output of two-component exciton model parameters
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -33,7 +33,7 @@ c hnu       : neutron hole number
 c h         : hole number
 c n         : exciton number
 c matrix    : subroutine for matrix element for exciton model
-c Ainit     : mass number of initial compound nucleus 
+c Ainit     : mass number of initial compound nucleus
 c M2pipi    : square of proton-proton matrix element
 c M2nunu    : square of neutron-neutron matrix element
 c M2pinu    : square of proton-neutron matrix element
@@ -70,7 +70,7 @@ c hbar      : Planck's constant / 2.pi in MeV.s
 c
       write(*,'(/" 2. Emission rates or escape widths"/)')
       write(*,'(" A. Emission rates ( /sec)"/)')
-      write(*,'(" p(p) h(p) p(n) h(n)",4x,7(a8,4x),"Total"/)') 
+      write(*,'(" p(p) h(p) p(n) h(n)",4x,7(a8,4x),"Total"/)')
      +  (parname(type),type=0,6)
       do 20 p=p0,maxpar
         do 20 ppi=ppi0,maxpar
@@ -84,7 +84,7 @@ c
             endif
    20 continue
       write(*,'(/" B. Escape widths (MeV)"/)')
-      write(*,'(" p(p) h(p) p(n) h(n)",4x,7(a8,4x),"Total"/)') 
+      write(*,'(" p(p) h(p) p(n) h(n)",4x,7(a8,4x),"Total"/)')
      +  (parname(type),type=0,6)
       do 30 p=p0,maxpar
         do 30 ppi=ppi0,maxpar
@@ -103,13 +103,13 @@ c
 c lambdapiplus: proton transition rate for n --> n+2
 c lambdanuplus: neutron transition rate for n --> n+2
 c lambdapinu  : proton-neutron transition rate for n --> n
-c lambdanupi  : neutron-proton transition rate for n --> n        
+c lambdanupi  : neutron-proton transition rate for n --> n
 c
       write(*,'(/" 3. Internal transition rates or damping widths,",
      +  " total widths"/)')
       write(*,'(" A. Internal transition rates ( /sec)"/)')
       write(*,'(" p(p) h(p) p(n) h(n)     lambdapiplus   ",
-     +  "lambdanuplus    lambdapinu     lambdanupi"/)') 
+     +  "lambdanuplus    lambdapinu     lambdanupi"/)')
       do 40 p=p0,maxpar
         do 40 ppi=ppi0,maxpar
           hpi=ppi-ppi0
@@ -125,7 +125,7 @@ c
    40 continue
       write(*,'(/" B. Damping widths (MeV)"/)')
       write(*,'(" p(p) h(p) p(n) h(n)     gammapiplus    ",
-     +  "gammanuplus    gammapinu      gammanupi"/)') 
+     +  "gammanuplus    gammapinu      gammanupi"/)')
       do 50 p=p0,maxpar
         do 50 ppi=ppi0,maxpar
           hpi=ppi-ppi0
@@ -140,7 +140,7 @@ c
             endif
    50 continue
       write(*,'(/" C. Total widths (MeV)"/)')
-      write(*,'(" p(p) h(p) p(n) h(n)      gammatot"/)') 
+      write(*,'(" p(p) h(p) p(n) h(n)      gammatot"/)')
       do 60 p=p0,maxpar
         do 60 ppi=ppi0,maxpar
           hpi=ppi-ppi0

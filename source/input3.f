@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : May 19, 2009
+c | Date  : September 27, 2011
 c | Task  : Read input for third set of variables
 c +---------------------------------------------------------------------
 c
@@ -21,16 +21,17 @@ c
 c flageciscalc: flag for new ECIS calculation for outgoing particles
 c               and energy grid
 c flaginccalc : flag for new ECIS calculation for incident channel
-c flagendfecis: flag for new ECIS calculation for ENDF-6 files     
+c flagendfecis: flag for new ECIS calculation for ENDF-6 files
 c flagrel     : flag for relativistic kinematics
 c flagcomp    : flag for compound nucleus calculation
 c flagfullhf  : flag for full spin dependence of transmission
-c               coefficients         
-c ewfc        : off-set incident energy for width fluctuation 
+c               coefficients
+c ewfc        : off-set incident energy for width fluctuation
 c               calculation
 c ptype0      : type of incident particle
 c epreeq      : on-set incident energy for preequilibrium calculation
-c emulpre     : on-set incident energy for multiple preequilibrium 
+c Emaxtalys   : maximum acceptable energy for TALYS
+c emulpre     : on-set incident energy for multiple preequilibrium
 c               calculation
 c flagpespin  : flag for pre-equilibrium spin distribution or compound
 c               spin distribution for pre-equilibrium cross section
@@ -39,14 +40,14 @@ c maxrot      : number of included excited rotational levels
 c k0          : index for incident particle
 c strength    : model for E1 gamma-ray strength function
 c strengthM1  : model for M1 gamma-ray strength function
-c flagpecomp  : flag for Kalbach complex particle emission model 
+c flagpecomp  : flag for Kalbach complex particle emission model
 c flagsurface : flag for surface effects in exciton model
 c flaggiant0  : flag for collective contribution from giant resonances
 c flag2comp   : flag for two-component pre-equilibrium model
-c flagchannels: flag for exclusive channels calculation 
+c flagchannels: flag for exclusive channels calculation
 c flagfission : flag for fission
 c Atarget     : mass number of target nucleus
-c ldmodel     : level density model
+c ldmodelall  : level density model for all nuclides
 c flagparity  : flag for non-equal parity distribution
 c flaghbstate : flag for head band states in fission
 c flagclass2  : flag for class2 states in fission
@@ -54,41 +55,40 @@ c flagbasic   : flag for output of basic information and results
 c flageciscomp: flag for compound nucleus calculation by ECIS
 c flagecisdwba: flag for new ECIS calculation for DWBA for MSD
 c flagonestep : flag for continuum one-step direct only
-c flaglocalomp: flag for local (y) or global (n) optical model 
-c flagdisp    : flag for dispersive optical model   
-c flagompall  : flag for new optical model calculation for all 
+c flaglocalomp: flag for local (y) or global (n) optical model
+c flagdisp    : flag for dispersive optical model
+c flagompall  : flag for new optical model calculation for all
 c               residual nuclei
 c flagautorot : flag for automatic rotational coupled channels
 c               calculations for A > 150
-c flagstate   : flag for optical model potential for each excited state 
+c flagstate   : flag for optical model potential for each excited state
 c Zix         : charge number index for residual nucleus
-c numZph      : maximal number of protons away from the initial 
+c numZph      : maximal number of protons away from the initial
 c               compound nucleus for multiple pre-equilibrium emission
 c Nix         : neutron number index for residual nucleus
-c numNph      : maximal number of neutrons away from the initial 
+c numNph      : maximal number of neutrons away from the initial
 c               compound nucleus for multiple pre-equilibrium emission
 c optmod      : file with optical model parameters
 c flagsys     : flag for reaction cross section from systematics
-c flagrot     : flag for use of rotational optical model per 
+c flagrot     : flag for use of rotational optical model per
 c               outgoing particle, if available
 c flagasys    : flag for all level density parameters a from systematics
-c flaggshell  : flag for energy dependence of single particle level 
+c flaggshell  : flag for energy dependence of single particle level
 c               density parameter g
 c flagmassdis : flag for calculation of fission fragment mass yields
-c flagffevap  : flag for calculation of particle evaporation from 
+c flagffevap  : flag for calculation of particle evaporation from
 c               fission fragment mass yields
-c flagendf    : flag for information for ENDF-6 file  
-c flagendfdet : flag for detailed ENDF-6 information per channel      
-c flagrecoil  : flag for calculation of recoils 
-c flaglabddx  : flag for calculation of DDX in LAB system 
+c flagendf    : flag for information for ENDF-6 file
+c flagendfdet : flag for detailed ENDF-6 information per channel
+c flagrecoil  : flag for calculation of recoils
+c flaglabddx  : flag for calculation of DDX in LAB system
 c flagrecoilav: flag for average velocity in recoil calculation
 c flagEchannel: flag for channel energy for emission spectrum
 c flagreaction: flag for calculation of nuclear reactions
-c flagastro   : flag for calculation of astrophysics reaction rate
-c flagastrogs : flag for calculation of astrophysics reaction rate 
+c flagastrogs : flag for calculation of astrophysics reaction rate
 c               with target in ground state only
 c flagexpmass : flag for using experimental nuclear mass if available
-c flagjlm     : flag for using semi-microscopic JLM OMP 
+c flagjlm     : flag for using semi-microscopic JLM OMP
 c flagomponly : flag to execute ONLY an optical model calculation
 c flagmicro   : flag for completely microscopic Talys calculation
 c
@@ -100,7 +100,7 @@ c
       flagfullhf=.false.
       ewfc=-1.
       if (ptype0.eq.'0') then
-        epreeq=250.
+        epreeq=Emaxtalys
       else
         epreeq=-1.
       endif
@@ -131,7 +131,7 @@ c
 c ldmodel=5 (Combinatorial HFB model) has parity-dependent
 c level densities.
 c
-      if (ldmodel.eq.5) then
+      if (ldmodelall.eq.5) then
         flagparity=.true.
       else
         flagparity=.false.
@@ -155,10 +155,10 @@ c
    10 continue
       do 20 type=0,6
         flagsys(type)=.false.
-   20 continue   
+   20 continue
       do 30 type=0,6
         flagrot(type)=.false.
-   30 continue   
+   30 continue
       if (k0.eq.1.or.k0.eq.2) flagrot(k0)=.true.
       flagasys=.false.
       flaggshell=.false.
@@ -175,18 +175,17 @@ c
       flagrecoilav=.false.
       flagEchannel=.false.
       flagreaction=.true.
-      flagastro=.false.
       flagastrogs=.false.
       flagexpmass=.true.
       flagjlm=.false.
       if (flagomponly) then
         flagcomp=.false.
-        epreeq=250.
-        emulpre=250.
+        epreeq=Emaxtalys
+        emulpre=Emaxtalys
         flaggiant0=.false.
       endif
       if (flagmicro) then
-        strength=3
+        strength=4
         flagautorot=.true.
         flagjlm=.true.
       endif
@@ -194,9 +193,9 @@ c
 c **************** Read third set of input variables *******************
 c
 c nlines     : number of input lines
-c getkeywords: subroutine to retrieve keywords and values from input 
+c getkeywords: subroutine to retrieve keywords and values from input
 c              line
-c inline     : input line                 
+c inline     : input line
 c word       : words on input line
 c key        : keyword
 c value      : value or string
@@ -216,7 +215,7 @@ c Test for keywords
 c
 c Zinit : charge number of initial compound nucleus
 c Ninit : neutron number of initial compound nucleus
-c parsym: symbol of particle 
+c parsym: symbol of particle
 c
         if (key.eq.'maxband') then
           read(value,*,end=300,err=300) maxband
@@ -266,7 +265,7 @@ c
         endif
         if (key.eq.'widthfluc') then
           if (ch.eq.'y') then
-            ewfc=20.
+            if (k0.gt.1) ewfc=10.
             goto 110
           endif
           if (ch.eq.'n') then
@@ -277,24 +276,24 @@ c
           goto 110
         endif
         if (key.eq.'preequilibrium') then
-          if (ch.eq.'y') then 
+          if (ch.eq.'y') then
             epreeq=0.
             goto 110
           endif
-          if (ch.eq.'n') then 
-            epreeq=250.
+          if (ch.eq.'n') then
+            epreeq=Emaxtalys
             goto 110
           endif
           read(value,*,end=300,err=300) epreeq
           goto 110
         endif
         if (key.eq.'multipreeq') then
-          if (ch.eq.'y') then 
+          if (ch.eq.'y') then
             emulpre=0.
             goto 110
           endif
-          if (ch.eq.'n') then 
-            emulpre=250.
+          if (ch.eq.'n') then
+            emulpre=Emaxtalys
             goto 110
           endif
           read(value,*,end=300,err=300) emulpre
@@ -402,7 +401,7 @@ c
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif
-        if (key.eq.'optmod') then 
+        if (key.eq.'optmod') then
           read(word(2),*,end=300,err=300) iz
           read(word(3),*,end=300,err=300) ia
           Zix=Zinit-iz
@@ -412,7 +411,7 @@ c
             write(*,'(" TALYS-warning: Z,N index out of range,",
      +        " keyword ignored: ",a80)') inline(i)
             goto 110
-          else    
+          else
             ch=word(5)(1:1)
             if (ch.eq.' ') ch='n'
             do 210 type=1,6
@@ -482,13 +481,13 @@ c
           if (ch.eq.'y') flagendf=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
-        endif            
+        endif
         if (key.eq.'endfdetail') then
           if (ch.eq.'n') flagendfdet=.false.
           if (ch.eq.'y') flagendfdet=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
-        endif            
+        endif
         if (key.eq.'recoil') then
           if (ch.eq.'n') flagrecoil=.false.
           if (ch.eq.'y') flagrecoil=.true.
@@ -534,12 +533,6 @@ c
         if (key.eq.'parity') then
           if (ch.eq.'n') flagparity=.false.
           if (ch.eq.'y') flagparity=.true.
-          if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
-        endif
-        if (key.eq.'astro') then
-          if (ch.eq.'n') flagastro=.false.
-          if (ch.eq.'y') flagastro=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif

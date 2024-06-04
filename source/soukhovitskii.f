@@ -1,8 +1,8 @@
       subroutine soukhovitskii(k,Z,A,eopt)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : December 17, 2007
+c | Author: Arjan Koning
+c | Date  : May 11, 2011
 c | Task  : Global optical model parameters for actinides by
 c |         Soukhovitskii et al.
 c +---------------------------------------------------------------------
@@ -64,8 +64,8 @@ c wso1,wso2 : components for Wso
       w1loc=w1adjust(k)*14.74
       w2loc=w2adjust(k)*81.63
       w=w1loc*f**2/(f**2+w2loc**2)
-      rw=1.2476
-      aw=0.594
+      rw=rwadjust(k)*1.2476
+      aw=awadjust(k)*0.594
       vd=0.
       rvd=rvdadjust(k)*1.2080
       avd=avdadjust(k)*0.614
@@ -76,8 +76,8 @@ c wso1,wso2 : components for Wso
       d2loc=d2adjust(k)*0.01759
       d3loc=d3adjust(k)*11.79
       wd=d1loc*f**2*exp(-d2loc*f)/(f**2+d3loc**2)
-      rwd=rvd
-      awd=avd
+      rwd=rwdadjust(k)*1.2080
+      awd=awdadjust(k)*0.614
       vso1loc=vso1adjust(k)*5.86
       vso2loc=vso2adjust(k)*0.0050
       vso=vso1loc*exp(-vso2loc*f)
@@ -86,8 +86,8 @@ c wso1,wso2 : components for Wso
       wso1loc=-3.1*wso1adjust(k)
       wso2loc=wso2adjust(k)*160.
       wso=wso1loc*f**2/(f**2+wso2loc**2)
-      rwso=rvso
-      awso=avso
+      rwso=rwsoadjust(k)*1.1213
+      awso=awsoadjust(k)*0.59
       if (k.eq.1) then
         rc=0.
       else

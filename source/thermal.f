@@ -1,8 +1,8 @@
       subroutine thermal
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : October 17, 2008
+c | Author: Arjan Koning
+c | Date  : February 3, 2011
 c | Task  : Estimate of thermal cross sections
 c +---------------------------------------------------------------------
 c
@@ -27,10 +27,10 @@ c Zcomp        : charge number index for compound nucleus
 c Ncomp        : neutron number index for compound nucleus
 c Etherm       : thermal energy
 c ctherm       : constant for 1/v capture cross section function
-c xscapres     : capture cross section in resonance region      
-c E1v          : energy at end of 1/v region 
+c xscapres     : capture cross section in resonance region
+c E1v          : energy at end of 1/v region
 c xscap1       : capture cross section at first incident energy
-c xspopnuc     : population cross section per nucleus    
+c xspopnuc     : population cross section per nucleus
 c ratio        : ratio thermal/first energy for gamma capture
 c xscaptherm   : thermal capture cross section
 c xsptherm     : thermal (n,p) cross section
@@ -90,21 +90,21 @@ c
 c Determine cross sections on low-energy grid
 c
 c Ereslog      : logarithm of energy at start of resonance region
-c numinclow    : number of incident energies below Elow 
+c numinclow    : number of incident energies below Elow
 c elog,ealog   : help variables
 c Eratio       : energy ratio
 c eninc        : incident energy in MeV
 c fxsnonel     : non-elastic cross section
 c fxselastot   : total elastic cross section (shape + compound)
-c fxstotinc    : total cross section (neutrons only) for incident 
+c fxstotinc    : total cross section (neutrons only) for incident
 c                channel
 c fxscompel    : compound elastic cross section
-c fxselasinc   : total elastic cross section (neutrons only) for 
+c fxselasinc   : total elastic cross section (neutrons only) for
 c                incident channel
 c fxsreacinc   : reaction cross section for incident channel
 c fxscompnonel : total compound non-elastic cross section
 c fxsdirdiscsum: total direct cross section
-c fxspreeqsum  : total preequilibrium cross section summed over 
+c fxspreeqsum  : total preequilibrium cross section summed over
 c                particles
 c
       Ereslog=log(E1v)
@@ -124,24 +124,24 @@ c
 c
 c Exclusive channel cross sections
 c
-c flagchannels : flag for exclusive channels calculation 
-c idnum        : counter for exclusive channel    
+c flagchannels : flag for exclusive channels calculation
+c idnum        : counter for exclusive channel
 c fxschannel   : channel cross section
-c fxsgamchannel: gamma channel cross section    
-c fxsgamdischan: discrete gamma channel cross section  
-c numlev       : maximum number of included discrete levels      
-c Ethrexc      : threshold incident energy for exclusive channel   
-c idchannel    : identifier for exclusive channel  
-c xseps        : limit for cross sections  
+c fxsgamchannel: gamma channel cross section
+c fxsgamdischan: discrete gamma channel cross section
+c numlev       : maximum number of included discrete levels
+c Ethrexc      : threshold incident energy for exclusive channel
+c idchannel    : identifier for exclusive channel
+c xseps        : limit for cross sections
 c xsalog       : help variable
 c xsreslog     : cross section at start of resonance region
 c pol1         : subroutine for interpolation of first order
-c fxsratio     : ratio of exclusive cross section over residual 
-c                production cross section (for exclusive gamma ray 
-c                intensities)    
-c Nlast        : last discrete level          
+c fxsratio     : ratio of exclusive cross section over residual
+c                production cross section (for exclusive gamma ray
+c                intensities)
+c Nlast        : last discrete level
 c fxschaniso   : channel cross section per isomer
-c fexclyield   : exclusive channel yield per isomer 
+c fexclyield   : exclusive channel yield per isomer
 c
         if (flagchannels) then
           do 120 idc=0,idnum
@@ -173,7 +173,7 @@ c
               call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
               fxschannel(nen,idc)=exp(xs)
             else
-              xs=xsa*R*Eratio                         
+              xs=xsa*R*Eratio
               fxschannel(nen,idc)=xs
             endif
             fxsnonel(nen)=fxsnonel(nen)+fxschannel(nen,idc)
@@ -191,7 +191,7 @@ c
                 call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
                 fxschaniso(nen,idc,nex)=exp(xs)
               else
-                xs=xsa*R*Eratio                         
+                xs=xsa*R*Eratio
                 fxschaniso(nen,idc,nex)=xs
               endif
               fexclyield(nen,idc,nex)=exclyield(idc,nex)
@@ -206,7 +206,7 @@ c
               call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
               fxsgamchannel(nen,idc)=exp(xs)
             else
-              xs=xsa*R*Eratio                         
+              xs=xsa*R*Eratio
               fxsgamchannel(nen,idc)=xs
             endif
             do 150 i1=1,numlev
@@ -221,7 +221,7 @@ c
                   call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
                   fxsgamdischan(nen,idc,i1,i2)=exp(xs)
                 else
-                  xs=xsa*R*Eratio                         
+                  xs=xsa*R*Eratio
                   fxsgamdischan(nen,idc,i1,i2)=xs
                 endif
   150       continue
@@ -232,11 +232,11 @@ c Binary cross sections
 c
 c fxsbinary: cross section from initial compound to residual nucleus
 c Ethresh  : threshold incident energy for residual nucleus
-c parZ     : charge number of particle   
-c parN     : neutron number of particle   
+c parZ     : charge number of particle
+c parN     : neutron number of particle
 c k0       : index of incident particle
 c
-        do 210 type=0,6     
+        do 210 type=0,6
           fxsbinary(nen,type)=0.
           if (eninc(nen).le.Ethresh(parZ(type),parN(type),0)) goto 210
           if (type.eq.k0) goto 210
@@ -244,7 +244,7 @@ c
           if (xsa.lt.xseps) goto 210
           R=ratio
           Rres=ratiores
-          if (type.eq.1) then
+          if (type.eq.2) then
             R=ratiop
             Rres=ratioresp
           endif
@@ -260,7 +260,7 @@ c
             call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
             fxsbinary(nen,type)=exp(xs)
           else
-            xs=xsa*R*Eratio                         
+            xs=xsa*R*Eratio
             fxsbinary(nen,type)=xs
           endif
   210   continue
@@ -269,11 +269,11 @@ c Residual production cross sections
 c
 c maxZ     : maximal number of protons away from the initial compound
 c            nucleus
-c maxN     : maximal number of neutrons away from the initial compound 
+c maxN     : maximal number of neutrons away from the initial compound
 c            nucleus
 c fxspopnuc: population cross section per nucleus
 c fxspopex : population cross section summed over spin and parity
-c fxsbranch: branching ratio for isomeric cross section     
+c fxsbranch: branching ratio for isomeric cross section
 c flagastro: flag for calculation of astrophysics reaction rate
 c
         do 310 Zcomp=0,maxZ
@@ -301,12 +301,12 @@ c
               call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
               fxspopnuc(nen,Zcomp,Ncomp)=exp(xs)
             else
-              xs=xsa*R*Eratio                         
+              xs=xsa*R*Eratio
               fxspopnuc(nen,Zcomp,Ncomp)=xs
             endif
             if (.not.flagchannels) fxsnonel(nen)=fxsnonel(nen)+
      +        fxspopnuc(nen,Zcomp,Ncomp)
-            do 320 nex=0,Nlast(Zcomp,Ncomp,0)     
+            do 320 nex=0,Nlast(Zcomp,Ncomp,0)
               fxspopex(nen,Zcomp,Ncomp,nex)=0.
               if (eninc(nen).le.Ethresh(Zcomp,Ncomp,nex)) goto 320
               xsa=xspopex(Zcomp,Ncomp,nex)
@@ -319,7 +319,7 @@ c
                 call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
                 fxspopex(nen,Zcomp,Ncomp,nex)=exp(xs)
               else
-                xs=xsa*R*Eratio                         
+                xs=xsa*R*Eratio
                 fxspopex(nen,Zcomp,Ncomp,nex)=xs
               endif
               fxsbranch(nen,Zcomp,Ncomp,nex)=xsbranch(Zcomp,Ncomp,nex)
@@ -331,14 +331,14 @@ c
 c Reactions to discrete states
 c
 c fxsexclusive: exclusive single channel cross section
-c fxsdisctot  : total cross section summed over discrete states    
+c fxsdisctot  : total cross section summed over discrete states
 c fxsexclcont : exclusive single channel cross section for continuum
-c fxsngn      : total (projectile,gamma-ejectile) cross section   
+c fxsngn      : total (projectile,gamma-ejectile) cross section
 c fxsdisc     : total cross section for discrete state
 c fxsdirdisc  : direct cross section for discrete state
 c fxscompdisc : compound cross section for discrete state
 c
-        do 410 type=0,6     
+        do 410 type=0,6
           fxsexclusive(nen,type)=0.
           fxsdisctot(nen,type)=0.
           fxsexclcont(nen,type)=0.
@@ -347,7 +347,7 @@ c
           if (type.eq.k0) goto 410
           R=ratio
           Rres=ratiores
-          if (type.eq.1) then
+          if (type.eq.2) then
             R=ratiop
             Rres=ratioresp
           endif
@@ -366,7 +366,7 @@ c
                 fxsexclusive(nen,type)=exp(xs)
               endif
             else
-              xs=xsa*R*Eratio                         
+              xs=xsa*R*Eratio
               fxsexclusive(nen,type)=xs
             endif
           endif
@@ -381,7 +381,7 @@ c
                 fxsdisctot(nen,type)=exp(xs)
               endif
             else
-              xs=xsa*R*Eratio                         
+              xs=xsa*R*Eratio
               fxsdisctot(nen,type)=xs
             endif
           endif
@@ -396,7 +396,7 @@ c
                 fxsexclcont(nen,type)=exp(xs)
               endif
             else
-              xs=xsa*R*Eratio                         
+              xs=xsa*R*Eratio
               fxsexclcont(nen,type)=xs
             endif
           endif
@@ -411,7 +411,7 @@ c
                 fxsngn(nen,type)=exp(xs)
               endif
             else
-              xs=xsa*R*Eratio                         
+              xs=xsa*R*Eratio
               fxsngn(nen,type)=xs
             endif
           endif
@@ -430,7 +430,7 @@ c
                   fxsdisc(nen,type,nex)=exp(xs)
                 endif
               else
-                xs=xsa*R*Eratio                         
+                xs=xsa*R*Eratio
                 fxsdisc(nen,type,nex)=xs
               endif
             endif
@@ -445,7 +445,7 @@ c
                   fxsdirdisc(nen,type,nex)=exp(xs)
                 endif
               else
-                xs=xsa*R*Eratio                         
+                xs=xsa*R*Eratio
                 fxsdirdisc(nen,type,nex)=xs
               endif
             endif
@@ -460,7 +460,7 @@ c
                   fxscompdisc(nen,type,nex)=exp(xs)
                 endif
               else
-                xs=xsa*R*Eratio                         
+                xs=xsa*R*Eratio
                 fxscompdisc(nen,type,nex)=xs
               endif
             endif

@@ -2,8 +2,8 @@
 c
 c +---------------------------------------------------------------------
 c | Author  : Stephane Goriely and Stephane Hilaire
-c | Date    : May 19, 2009
-c | Task    : Calculate reaction rate for a Maxwell-Boltzmann 
+c | Date    : December 22, 2011
+c | Task    : Calculate reaction rate for a Maxwell-Boltzmann
 c |           distribution
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer          Zix,Nix,Ncomp,Zcomp,nloop,iloop,nen,i
-      real             fact0,am,e,fex,ee0,ee1
+      real             fact0,am,convfac,e,fex,ee0,ee1,smacs
       double precision fact,sum,xs,term,dE,rate
 c
 c ************************ Partition Function **************************
@@ -38,37 +38,47 @@ c
 c
 c Calculation of thermonuclear reaction rate factor
 c
+c convfac     : conversion factor for the average velocity at 
+c               temperature T9
+c redumass    : reduced mass
+c parZ        : charge number of particle
+c parN        : neutron number of particle
+c k0          : index of incident particle
 c Ncomp       : neutron number index for compound nucleus
-c maxN        : maximal number of neutron away from initial compound 
+c maxN        : maximal number of neutron away from initial compound
 c               nucleus
 c Zcomp       : proton number index for compound nucleus
-c maxZ        : maximal number of protons away from initial compound 
+c maxZ        : maximal number of protons away from initial compound
 c               nucleus
 c flagfission : flag for fission
-c numT        : number of temperatures 
+c nTmax       : number of temperatures
 c T9          : Temperature grid in 10**9 K
 c fact        : reaction rate factor for particles
 c sum,fex     : help variables
 c numinc      : number of incident energies
 c eninc,e     : incident energy in MeV
-c xs          : cross section expressed in barn 
+c xs          : cross section expressed in barn
 c xsastro     : cross section for astrophysical calculation
 c xsastrofis  : astrophysical fission cross section
 c term        : help variable
 c dE          : incident energy bin
-c flagastrogs : flag for calculation of astrophysics reaction rate with 
+c flagastrogs : flag for calculation of astrophysics reaction rate with
 c               target in ground state only
-c rateastro   : thermonuclear reaction rate factor
-c rateastrofis: thermonuclear reaction rate factor for fission
 c partf       : integrated partition function
+c rateastro   : thermonuclear reaction rate factor
+c macsastro   : thermonuclear reaction cross section
+c rateastrofis: thermonuclear reaction rate factor for fission
+c macsastrofis: thermonuclear reaction cross section for fission
+c smacs       : total conversion factor for the average velocity at 
+c               temperature T9
 c
+      convfac=2.45484e+5/sqrt(redumass(parZ(k0),parN(k0),k0))
       do 10 Ncomp=0,maxN
         do 20 Zcomp=0,maxZ
           nloop=1
           if (flagfission.and.Ncomp.eq.0.and.Zcomp.eq.0) nloop=2
           do 30 iloop=1,nloop
-            do 40 i=1,numT
-              rateastrofis(i)=0.
+            do 40 i=1,nTmax
               fact=3.7335e+10/(sqrt(am*(T9(i)**3)))
               sum=0.
               do 50 nen=1,numinc
@@ -103,10 +113,13 @@ c
               else
                 rate=sum/partf(i)
               endif
+              smacs=convfac*sqrt(T9(i))
               if (iloop.eq.1) then
                 rateastro(Zcomp,Ncomp,i)=rate
+                macsastro(Zcomp,Ncomp,i)=rate/smacs
               else
                 rateastrofis(i)=rate
+                macsastrofis(i)=rate/smacs
               endif
   40        continue
   30      continue

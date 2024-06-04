@@ -1,8 +1,8 @@
       subroutine channelsout
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : September 13, 2009
+c | Author: Arjan Koning
+c | Date  : November 18, 2011
 c | Task  : Output of exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -20,9 +20,9 @@ c
 c ****************** Output of channel cross sections ******************
 c
 c npart     : number of particles in outgoing channel
-c maxchannel: maximal number of outgoing particles in individual 
+c maxchannel: maximal number of outgoing particles in individual
 c             channel description (e.g. this is 3 for (n,2np))
-c numia,....: maximal number of ejectile in channel description  
+c numia,....: maximal number of ejectile in channel description
 c chanopen  : flag to open channel with first non-zero cross section
 c idc,ident : help variables
 c idnum     : counter for exclusive channel
@@ -34,8 +34,8 @@ c Zcomp     : charge number index for compound nucleus
 c Ncomp     : neutron number index for compound nucleus
 c Nlast,NL  : last discrete level
 c tau       : lifetime of state in seconds
-c edis      : energy of level 
-c xschaniso : channel cross section per isomer   
+c edis      : energy of level
+c xschaniso : channel cross section per isomer
 c exclyield : exclusive channel yield per isomer
 c
       write(*,'(/" 6. Exclusive cross sections"/)')
@@ -66,10 +66,10 @@ c
               if (tau(Zcomp,Ncomp,nex).ne.0.) goto 40
    30       continue
             goto 10
-   40       write(*,'(61x,"0    ",1p,e12.5,0p,f9.5)') 
+   40       write(*,'(61x,"0    ",1p,e12.5,0p,f9.5)')
      +        xschaniso(idc,0),exclyield(idc,0)
             do 50 nex=1,NL
-              if (tau(Zcomp,Ncomp,nex).ne.0.) then    
+              if (tau(Zcomp,Ncomp,nex).ne.0.) then
                 write(*,'(59x,i3,4x,1p,e12.5,0p,f9.5,2x,1p,e12.5,
      +            " sec. ")') nex,xschaniso(idc,nex),
      +            exclyield(idc,nex),tau(Zcomp,Ncomp,nex)
@@ -83,8 +83,8 @@ c Write results on separate files
 c
 c isostring    : string to designate target isomer
 c filechannels : flag for exclusive channel cross sections on
-c                separate file 
-c Liso         : isomeric number of target   
+c                separate file
+c Liso         : isomeric number of target
 c chanexist    : flag for existence of exclusive cross section
 c natstring    : string extension for file names
 c iso          : counter for isotope
@@ -92,19 +92,23 @@ c parsym       : symbol of particle
 c k0           : index of incident particle
 c Atarget      : mass number of target nucleus
 c nuc          : symbol of nucleus
-c Ztarget      : charge number of target nucleus      
+c Ztarget      : charge number of target nucleus
 c Qexcl        : Q-value for exclusive channel
-c Ethrexc      : threshold incident energy for exclusive channel       
-c numinc       : number of incident energies    
+c Ethrexc      : threshold incident energy for exclusive channel
+c flagcompo    : flag for output of cross section components
+c numinc       : number of incident energies
 c numinclow    : number of incident energies below Elow
-c eninc,Einc   : incident energy in MeV  
+c eninc,Einc   : incident energy in MeV
 c nin          : counter for incident energy
 c xsratio      : ratio of exclusive cross section over residual
 c                production cross section (for exclusive gamma ray
-c                intensities) 
+c                intensities)
+c Fdir         : direct population fraction per nucleus
+c Fpreeq       : preequilibrium population fraction per nucleus
+c Fcomp        : compound population fraction per nucleus
 c flagendf     : flag for information for ENDF-6 file
 c fxsgamchannel: gamma channel cross section
-c fxsgamdischan: discrete gamma channel cross section 
+c fxsgamdischan: discrete gamma channel cross section
 c
       isostring='   '
       if (filechannels) then
@@ -122,7 +126,7 @@ c
           ident=100000*in+10000*ip+1000*id+100*it+10*ih+ia
           do 120 idc=0,idnum
             if (idchannel(idc).eq.ident) then
-              if (xschannel(idc).lt.xseps.and.
+              if (xschannel(idc).lt.xseps.and.npart.ne.0.and.
      +          .not.chanexist(in,ip,id,it,ih,ia)) goto 110
               Zcomp=ip+id+it+2*ih+2*ia
               Ncomp=in+id+2*it+ih+2*ia
@@ -140,28 +144,60 @@ c
                 write(1,'("# Q-value    =",1p,e12.5)') Qexcl(idc,0)
                 write(1,'("# E-threshold=",1p,e12.5)') Ethrexcl(idc,0)
                 write(1,'("# # energies =",i3)') numinc
-                write(1,'("#    E         xs       gamma xs  ",
-     +            "xs/res.prod.xs")')
-                do 130 nen=1,numinclow
-                  write(1,'(1p,e10.3,3e12.5)') eninc(nen),
-     +              fxschannel(nen,idc),fxsgamchannel(nen,idc),
-     +              fxsratio(nen,idc)
-                    fxschannel(nen,idc)=0.
-                    fxsgamchannel(nen,idc)=0.
-                    fxsratio(nen,idc)=0.
-  130           continue
-                do 140 nen=numinclow+1,nin-1
-                  write(1,'(1p,e10.3,3e12.5)') eninc(nen),0.,0.,0.
-  140           continue
+                if (flagcompo) then
+                  write(1,'("#    E         xs       gamma xs  ",
+     +              "xs/res.prod.xs              Direct  ",
+     +              "Preequilibrium Compound")')
+                else
+                  write(1,'("#    E         xs       gamma xs  ",
+     +              "xs/res.prod.xs")')
+                endif
+                if (flagcompo) then
+                  do 130 nen=1,numinclow
+                    write(1,'(1p,e10.3,3e12.5,12x,3e12.5)') eninc(nen),
+     +                fxschannel(nen,idc),fxsgamchannel(nen,idc),
+     +                fxsratio(nen,idc),
+     +                Fdir(Zcomp,Ncomp)*fxschannel(nen,idc),
+     +                Fpreeq(Zcomp,Ncomp)*fxschannel(nen,idc),
+     +                Fcomp(Zcomp,Ncomp)*fxschannel(nen,idc)
+                      fxschannel(nen,idc)=0.
+                      fxsgamchannel(nen,idc)=0.
+                      fxsratio(nen,idc)=0.
+  130             continue
+                  do 140 nen=numinclow+1,nin-1
+                    write(1,'(1p,e10.3,3e12.5,12x,3e12.5)') 
+     +                eninc(nen),0.,0.,0.,0.,0.,0.
+  140             continue
+                else
+                  do 150 nen=1,numinclow
+                    write(1,'(1p,e10.3,3e12.5)') eninc(nen),
+     +                fxschannel(nen,idc),fxsgamchannel(nen,idc),
+     +                fxsratio(nen,idc)
+                      fxschannel(nen,idc)=0.
+                      fxsgamchannel(nen,idc)=0.
+                      fxsratio(nen,idc)=0.
+  150             continue
+                  do 160 nen=numinclow+1,nin-1
+                    write(1,'(1p,e10.3,3e12.5)') eninc(nen),0.,0.,0.
+  160             continue
+                endif
               else
                 open (unit=1,status='old',file=xsfile)
-                do 150 nen=1,nin+4
-                  read(1,*,end=160,err=160)
-  150           continue
-              endif      
-              write(1,'(1p,e10.3,3e12.5)') Einc,xschannel(idc),
-     +          xsgamchannel(idc),xsratio(idc)
-  160         close (unit=1)
+                do 170 nen=1,nin+4
+                  read(1,*,end=180,err=180)
+  170           continue
+              endif
+              if (flagcompo) then
+                write(1,'(1p,e10.3,3e12.5,12x,3e12.5)') Einc,
+     +            xschannel(idc),xsgamchannel(idc),xsratio(idc),
+     +            Fdir(Zcomp,Ncomp)*xschannel(idc),
+     +            Fpreeq(Zcomp,Ncomp)*xschannel(idc),
+     +            Fcomp(Zcomp,Ncomp)*xschannel(idc)
+              else
+                write(1,'(1p,e10.3,3e12.5)') Einc,xschannel(idc),
+     +            xsgamchannel(idc),xsratio(idc)
+              endif
+  180         close (unit=1)
 c
 c B. Ground state and isomers
 c
@@ -171,7 +207,7 @@ c
               do 210 nex=1,NL
                 if (tau(Zcomp,Ncomp,nex).ne.0.) goto 220
   210         continue
-              goto 300                      
+              goto 300
   220         do 230 nex=0,NL
                 if (nex.eq.0.or.tau(Zcomp,Ncomp,nex).ne.0.) then
                   isofile='xs000000.L00'
@@ -185,7 +221,7 @@ c
      +               reacstring(idc),nex
                     write(1,'("# Q-value    =",1p,e12.5,0p," Elevel=",
      +                f11.6)') Qexcl(idc,nex),edis(Zcomp,Ncomp,nex)
-                    write(1,'("# E-threshold=",1p,e12.5)') 
+                    write(1,'("# E-threshold=",1p,e12.5)')
      +                Ethrexcl(idc,nex)
                     write(1,'("# # energies =",i3)') numinc
                     write(1,'("#    E         xs      Branching")')
@@ -205,9 +241,9 @@ c
   260               continue
                   endif
                   write(1,'(1p,e10.3,e12.5,0p,f11.5)') Einc,
-     +              xschaniso(idc,nex),exclyield(idc,nex)     
+     +              xschaniso(idc,nex),exclyield(idc,nex)
   270             close (unit=1)
-                endif      
+                endif
   230         continue
 c
 c C. Discrete gamma-rays
@@ -233,7 +269,7 @@ c
                     Ngam=0
                     do 320 i1=1,numlev
                       do 320 i2=0,i1
-                        if (fxsgamdischan(nen,idc,i1,i2).gt.0.) 
+                        if (fxsgamdischan(nen,idc,i1,i2).gt.0.)
      +                    Ngam=Ngam+1
   320               continue
                     write(1,'(1p,e10.3,i5)') eninc(nen),Ngam
@@ -256,10 +292,10 @@ c
                   do 360 nen=1,nin-1
                     read(1,'(10x,i5)',end=400,err=400) Ngam
                     do 370 i1=1,Ngam
-                      read(1,*,end=400,err=400) 
+                      read(1,*,end=400,err=400)
   370               continue
   360             continue
-                endif      
+                endif
                 Ngam=0
                 do 380 i1=1,numlev
                   do 380 i2=0,i1
@@ -274,8 +310,8 @@ c
      +                edis(Zcomp,Ncomp,i2)
   390           continue
   400           close (unit=1)
-              endif      
-            endif      
+              endif
+            endif
   120     continue
   110   continue
       endif
@@ -287,7 +323,7 @@ c chanfisexist: flag for existence of exclusive fission cross section
 c fisstring   : string for exclusive fission reaction channel
 c xsfischannel: fission channel cross section
 c channelsum  : sum over exclusive channel cross sections
-c xsngnsum    : sum over total (projectile,gamma-ejectile) cross 
+c xsngnsum    : sum over total (projectile,gamma-ejectile) cross
 c               sections
 c xsnonel     : non-elastic cross section
 c
@@ -304,7 +340,7 @@ c
         do 410 in=0,numin
           if (in+ip+id+it+ih+ia.ne.npart) goto 410
           if (.not.chanopen(in,ip,id,it,ih,ia)) goto 410
-          if (nin.eq.numinclow+1) 
+          if (nin.eq.numinclow+1)
      +      chanfisexist(in,ip,id,it,ih,ia)=.false.
           ident=100000*in+10000*ip+1000*id+100*it+10*ih+ia
           do 420 idc=0,idnum
@@ -322,12 +358,12 @@ c
      +  xsngnsum
       write(*,'(" Total                                    :",f12.5)')
      +  channelsum+xsngnsum
-      write(*,'(" Non-elastic cross section                :",f12.5)') 
+      write(*,'(" Non-elastic cross section                :",f12.5)')
      +  xsnonel
 c
 c Write results on separate files
 c
-c filefission: flag for fission cross sections on separate file 
+c filefission: flag for fission cross sections on separate file
 c
       if (filefission) then
         do 510 npart=0,maxchannel
@@ -342,8 +378,8 @@ c
           ident=100000*in+10000*ip+1000*id+100*it+10*ih+ia
           do 520 idc=0,idnum
             if (idchannel(idc).eq.ident) then
-              if (xsfischannel(idc).lt.xseps.and.
-     +          .not.chanexist(in,ip,id,it,ih,ia)) goto 510     
+              if (xsfischannel(idc).lt.xseps.and.npart.ne.0.and.
+     +          .not.chanexist(in,ip,id,it,ih,ia)) goto 510
               Zcomp=ip+id+it+2*ih+2*ia
               Ncomp=in+id+2*it+ih+2*ia
               xsfile='xs000000.fis'
@@ -366,7 +402,7 @@ c
                 do 540 nen=1,nin+4
                   read(1,*,end=550,err=550)
   540           continue
-              endif      
+              endif
               write(1,'(1p,e10.3,e12.5)') Einc,xsfischannel(idc)
   550         close (unit=1)
             endif
@@ -387,7 +423,7 @@ c
         do 560 type=1,6
           if (parskip(type)) goto 560
           write(*,'(1x,a8,"=",1p,e12.5,
-     +      "    Summed exclusive cross sections=",1p,e12.5)') 
+     +      "    Summed exclusive cross sections=",1p,e12.5)')
      +      parname(type),xsparticle(type),xsparcheck(type)
   560 continue
       endif
@@ -400,8 +436,8 @@ c ebegin     : first energy point of energy grid
 c eendhigh   : last energy point for energy grid for any particle
 c egrid      : outgoing energy grid
 c xschannelsp: channel cross section spectra
-c preeqratio : pre-equilibrium ratio 
-c emissum    : integrated emission spectrum 
+c preeqratio : pre-equilibrium ratio
+c emissum    : integrated emission spectrum
 c xschancheck: integrated channel spectra
 c xsdisctot  : total cross section summed over discrete states
 c gmult      : continuum gamma multiplicity
@@ -432,7 +468,7 @@ c
           write(*,'("    n   p   d   t   h   a")')
           write(*,'(1x,6i4,3x,1p,e12.5,2x,a17,1p,e12.5)') in,ip,id,it,
      +      ih,ia,xschannel(idc),reacstring(idc),xsgamchannel(idc)
-          write(*,'(/"  Outgoing spectra"/)') 
+          write(*,'(/"  Outgoing spectra"/)')
           write(*,'("  Energy  ",7(a8,4x)/)') (parname(type),type=0,6)
           do 640 nen=ebegin(0),eendhigh
             write(*,'(1x,f7.3,1p,7e12.5)') egrid(nen),
@@ -440,7 +476,7 @@ c
   640     continue
           if (filechannels) then
             spfile='sp000000E000.000.tot'
-            write(spfile(3:8),'(6i1)') in,ip,id,it,ih,ia 
+            write(spfile(3:8),'(6i1)') in,ip,id,it,ih,ia
             write(spfile(10:16),'(f7.3)') Einc
             write(spfile(10:12),'(i3.3)') int(Einc)
             open (unit=1,status='unknown',file=spfile)
@@ -449,7 +485,7 @@ c
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
             write(1,'("# # energies =",i3)') eendhigh-ebegin(0)+1
-            write(1,'("# E-out  ",7(2x,a8,2x))') 
+            write(1,'("# E-out  ",7(2x,a8,2x))')
      +        (parname(type),type=0,6)
             if (npart.eq.0) then
               do 650 nen=ebegin(0),eendhigh
@@ -466,22 +502,24 @@ c
           endif
           if (flagcheck) then
             emissum=xschancheck(idc)
-            if (npart.eq.1.and.in.eq.1) emissum=emissum+xsdisctot(1)
-            if (npart.eq.1.and.ip.eq.1) emissum=emissum+xsdisctot(2)
-            if (npart.eq.1.and.id.eq.1) emissum=emissum+xsdisctot(3)
-            if (npart.eq.1.and.it.eq.1) emissum=emissum+xsdisctot(4)
-            if (npart.eq.1.and.ih.eq.1) emissum=emissum+xsdisctot(5)
-            if (npart.eq.1.and.ia.eq.1) emissum=emissum+xsdisctot(6)
-            write(*,'(/"  E-av    ",7(f7.3,5x))') 
+            xs=0.
+            if (npart.eq.1.and.in.eq.1) xs=xsdisctot(1)
+            if (npart.eq.1.and.ip.eq.1) xs=xsdisctot(2)
+            if (npart.eq.1.and.id.eq.1) xs=xsdisctot(3)
+            if (npart.eq.1.and.it.eq.1) xs=xsdisctot(4)
+            if (npart.eq.1.and.ih.eq.1) xs=xsdisctot(5)
+            if (npart.eq.1.and.ia.eq.1) xs=xsdisctot(6)
+            emissum=emissum+xs
+            write(*,'(/"  E-av    ",7(f7.3,5x))')
      +        (Eavchannel(idc,type),type=0,6)
-            write(*,'("  multi   ",f7.3,6(11x,i1))') 
+            write(*,'("  multi   ",f7.3,6(11x,i1))')
      +        gmult(idc),in,ip,id,it,ih,ia
-            write(*,'("  Total   ",7(f7.3,5x))') 
+            write(*,'("  Total   ",7(f7.3,5x))')
      +        gmult(idc)*Eavchannel(idc,0),
      +        in*Eavchannel(idc,1),ip*Eavchannel(idc,2),
      +        id*Eavchannel(idc,3),it*Eavchannel(idc,4),
      +        ih*Eavchannel(idc,5),ia*Eavchannel(idc,6)
-            write(*,'(/" Available energy:",f10.5)') 
+            write(*,'(/" Available energy:",f10.5)')
      +        Qexcl(idc,0)+eninccm
             write(*,'(" Emission energy :",f10.5)') Especsum(idc)
             write(*,'(/" Check of integrated emission spectra:")')
@@ -492,8 +530,17 @@ c
               write(*,'(" Cross section (x multiplicity)    =",
      +          1p,e12.5)') npart*xschannel(idc)
             endif
-            write(*,'(" Integrated spectra + discrete c.s.=",1p,e12.5)')
-     +        emissum
+            if (npart.eq.1) then
+              write(*,'(" Integrated spectra + discrete c.s.=",
+     +          1p,e12.5)') emissum
+              write(*,'(" Integrated spectra                  =",
+     +          1p,e12.5)') xschancheck(idc)
+              write(*,'(" Discrete cross sections             =",
+     +          1p,e12.5)') xs
+            else
+              write(*,'(" Integrated spectra                =",
+     +          1p,e12.5)') emissum
+            endif
           endif
   610   continue
 c
@@ -501,7 +548,7 @@ c *********** Output of fission channel cross section spectra **********
 c
 c eend          : last energy point of energy grid
 c xsfischannelsp: fission channel cross section spectra
-c xsfischancheck: integrated fission channel spectra    
+c xsfischancheck: integrated fission channel spectra
 c
         if (flagfission) then
           write(*,'(/" 6b2. Exclusive fission spectra ")')
@@ -525,7 +572,7 @@ c
             write(*,'("    n   p   d   t   h   a")')
             write(*,'(1x,6i4,3x,1p,e12.5,2x,a17)') in,ip,id,it,ih,ia,
      +        xsfischannel(idc),fisstring(idc)
-            write(*,'(/"  Outgoing spectra"/)') 
+            write(*,'(/"  Outgoing spectra"/)')
             write(*,'("  Energy  ",7(a8,4x)/)') (parname(type),type=0,6)
             do 760 nen=ebegin(0),eend(0)
               write(*,'(1x,f7.3,1p,7e12.5)') egrid(nen),
@@ -533,7 +580,7 @@ c
   760       continue
             if (filechannels) then
               spfile='sp000000E000.000.fis'
-              write(spfile(3:8),'(6i1)') in,ip,id,it,ih,ia 
+              write(spfile(3:8),'(6i1)') in,ip,id,it,ih,ia
               write(spfile(10:16),'(f7.3)') Einc
               write(spfile(10:12),'(i3.3)') int(Einc)
               open (unit=1,status='unknown',file=spfile)
@@ -542,7 +589,7 @@ c
               write(1,'("# E-incident = ",f7.3)') Einc
               write(1,'("# ")')
               write(1,'("# # energies =",i3)') eendhigh-ebegin(0)+1
-              write(1,'("# E-out  ",7(2x,a8,2x))') 
+              write(1,'("# E-out  ",7(2x,a8,2x))')
      +          (parname(type),type=0,6)
               do 770 nen=ebegin(0),eendhigh
                 write(1,'(f7.3,1p,7e12.5)') egrid(nen),
@@ -552,7 +599,7 @@ c
             endif
             if (flagcheck) then
               write(*,'(/" Check of integrated emission spectra:")')
-              write(*,'(" Cross section (x multiplicity)=",1p,e12.5)') 
+              write(*,'(" Cross section (x multiplicity)=",1p,e12.5)')
      +          npart*xsfischannel(idc)
               write(*,'(" Integrated spectra            =",1p,e12.5)')
      +          xsfischancheck(idc)
@@ -566,7 +613,7 @@ c xspreeq    : preequilibrium cross section per particle type and
 c              outgoing energy
 c xsmpreeq   : multiple pre-equilibrium emission spectrum
 c xsgr       : smoothed giant resonance cross section
-c xscomp     : compound emission spectrum      
+c xscomp     : compound emission spectrum
 c xsspeccheck: total particle production spectra
 c
         if (flagcheck) then
@@ -575,7 +622,7 @@ c
      +      " is exhausted by exclusive cross sections)")')
           do 810 type=0,6
             if (parskip(type)) goto 810
-            write(*,'(/" Summed exclusive ",a8," spectra"/)') 
+            write(*,'(/" Summed exclusive ",a8," spectra"/)')
      +        parname(type)
             write(*,'("  Energy   Summed     Composite   Difference"/)')
             do 820 nen=ebegin(type),eend(type)
@@ -590,11 +637,11 @@ c
 c
 c ***************** Output of channel recoil spectra *******************
 c
-c flagrecoil: flag for calculation of recoils  
+c flagrecoil: flag for calculation of recoils
 c maxenrec  : number of recoil energies
 c Erec      : recoil energy
 c specrecoil: recoil spectrum
-c filerecoil: flag for recoil spectra on separate file    
+c filerecoil: flag for recoil spectra on separate file
 c
       if (flagrecoil) then
         write(*,'(/" 6c. Exclusive recoil spectra ")')
@@ -620,7 +667,7 @@ c
           write(*,'("    n   p   d   t   h   a")')
           write(*,'(1x,6i4,3x,1p,e12.5,2x,a17)') in,ip,id,it,ih,ia,
      +      xschannel(idc),reacstring(idc)
-          write(*,'(/" Recoil spectrum"/)') 
+          write(*,'(/" Recoil spectrum"/)')
           write(*,'("  Energy  Cross section"/)')
           do 940 nen=0,maxenrec
             write(*,'(1x,f7.3,1p,e12.5)') Erec(Zcomp,Ncomp,nen),
@@ -628,7 +675,7 @@ c
   940     continue
           if (filechannels.and.filerecoil) then
             recfile='sp000000E000.000.rec'
-            write(recfile(3:8),'(6i1)') in,ip,id,it,ih,ia 
+            write(recfile(3:8),'(6i1)') in,ip,id,it,ih,ia
             write(recfile(10:16),'(f7.3)') Einc
             write(recfile(10:12),'(i3.3)') int(Einc)
             open (unit=1,status='unknown',file=recfile)
@@ -638,7 +685,7 @@ c
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
             write(1,'("# # energies =",i3)') maxenrec+1
-            write(1,'("# E-out Cross section")') 
+            write(1,'("# E-out Cross section")')
             do 950 nen=0,maxenrec
               write(1,'(f7.3,1p,e12.5)') Erec(Zcomp,Ncomp,nen),
      +          specrecoil(Zcomp,Ncomp,nen)*xsratio(idc)

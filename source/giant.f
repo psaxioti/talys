@@ -1,7 +1,7 @@
       subroutine giant
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : July 12, 2004
 c | Task  : Giant resonance contribution
 c +---------------------------------------------------------------------
@@ -20,9 +20,9 @@ c l              : l-value
 c betagr         : deformation parameter for giant resonance
 c eoutgr         : outgoing energy
 c k0             : index of incident particle
-c eninccm        : center-of-mass incident energy in MeV  
-c Egrcoll        : energy of giant resonance 
-c Ggrcoll,grwidth: width of giant resonance     
+c eninccm        : center-of-mass incident energy in MeV
+c Egrcoll        : energy of giant resonance
+c Ggrcoll,grwidth: width of giant resonance
 c fac1,fac2,edist: help variables
 c sqrttwopi      : sqrt(2.*pi)
 c sumgauss       : sum over Gaussians (for normalization)
@@ -38,7 +38,7 @@ c xsgr           : smoothed giant resonance cross section
 c flagddx        : flag for output of double-differential cross sections
 c nanglecont     : number of angles for continuum
 c xsgrad         : smoothed giant resonance angular distribution
-c grcollad       : giant resonance angular distribution 
+c grcollad       : giant resonance angular distribution
 c xsgrtot        : total smoothed giant resonance cross section
 c xsgrsum        : sum over giant resonance cross sections
 c
@@ -64,7 +64,7 @@ c
               xsgrstate(k0,l,i,nen)=weight*xsgrcoll(k0,l,i)
               xsgr(k0,nen)=xsgr(k0,nen)+xsgrstate(k0,l,i,nen)
               if (flagddx) then
-                do 50 iang=0,nanglecont   
+                do 50 iang=0,nanglecont
                   xsgrad(k0,nen,iang)=xsgrad(k0,nen,iang)+
      +              weight*grcollad(k0,l,i,iang)
    50           continue
@@ -80,7 +80,7 @@ c *********** Other collective contributions to the continuum **********
 c
 c xscollconttot: total collective cross section in the continuum
 c Zindex,Zix   : charge number index for residual nucleus
-c Nindex,Nix   : neutron number index for residual nucleus      
+c Nindex,Nix   : neutron number index for residual nucleus
 c Nlast        : last discrete level
 c numlev2      : maximum number of levels
 c deform       : deformation parameter
@@ -117,7 +117,7 @@ c
             weight=gauss(nen)/sumgauss/deltaE(nen)
             xscollcont(nen)=xscollcont(nen)+weight*xsdirdisc(k0,i)
             if (flagddx) then
-              do 140 iang=0,nanglecont   
+              do 140 iang=0,nanglecont
                 collcontad(nen,iang)=collcontad(nen,iang)+
      +            weight*directad(k0,i,iang)
   140         continue
@@ -131,7 +131,7 @@ c
       do 210 nen=ebegin(k0),eend(k0)
         xsgr(k0,nen)=xsgr(k0,nen)+xscollcont(nen)
         if (flagddx) then
-          do 220 iang=0,nanglecont   
+          do 220 iang=0,nanglecont
             xsgrad(k0,nen,iang)=xsgrad(k0,nen,iang)+collcontad(nen,iang)
   220     continue
         endif

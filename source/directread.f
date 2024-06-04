@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : August 24, 2009
+c | Date  : September 17, 2011
 c | Task  : Read ECIS results for direct cross section
 c +---------------------------------------------------------------------
 c
@@ -11,24 +11,24 @@ c
       include "talys.cmb"
       integer          type,Zix,Nix,NL,i,iS,nS,k,nleg,l,iang,itype
       real             levelenergy,xsdwbatot
-      double precision xs,dl
+      double precision xs,ddl
 c
 c **************** Read direct, inelastic cross sections ***************
 c
 c k0              : index of incident particle
-c parskip         : logical to skip outgoing particle  
+c parskip         : logical to skip outgoing particle
 c Zindex,Zix      : charge number index for residual nucleus
 c Nindex,Nix      : neutron number index for residual nucleus
 c Nlast,NL        : last discrete level
 c numlev2         : maximum number of levels
 c Ltarget         : excited level of target
-c deform          : deformation parameter 
+c deform          : deformation parameter
 c eoutdis         : outgoing energy of discrete state reaction
 c edis,levelenergy: energy of level
 c eninccm         : center-of-mass incident energy in MeV
-c parA            : mass number of particle  
+c parA            : mass number of particle
 c xs              : help variable
-c xsdirdisc       : direct cross section for discrete state    
+c xsdirdisc       : direct cross section for discrete state
 c dorigin         : origin of direct cross section (Direct or Preeq)
 c
       open (unit=8,status='unknown',file='ecis06.dirang')
@@ -37,47 +37,47 @@ c
       do 10 type=k0,k0
         if (parskip(type)) goto 10
         Zix=Zindex(0,0,type)
-        Nix=Nindex(0,0,type)   
-        NL=Nlast(Zix,Nix,0)   
+        Nix=Nindex(0,0,type)
+        NL=Nlast(Zix,Nix,0)
 c
 c 1. Direct collective states
-c 
+c
         do 20 i=0,numlev2
-          if (i.eq.Ltarget.and.type.eq.k0) goto 20               
+          if (i.eq.Ltarget.and.type.eq.k0) goto 20
           if (deform(Zix,Nix,i).eq.0.) goto 20
-          if (eoutdis(type,i).le.0.) goto 20 
+          if (eoutdis(type,i).le.0.) goto 20
           levelenergy=edis(Zix,Nix,i)
           if (eninccm.le.levelenergy+0.1*parA(type)) goto 20
-          read(10,'()') 
-          read(10,*) xs       
+          read(10,'()')
+          read(10,*) xs
           xsdirdisc(type,i)=real(xs)
           if (i.le.NL) dorigin(type,i)='Direct'
 c
 c ******************* Direct reaction Legendre coefficients ************
 c
-c We read the Legendre coefficients for the direct component of the 
-c reaction only, the compound nucleus coefficients are calculated by 
+c We read the Legendre coefficients for the direct component of the
+c reaction only, the compound nucleus coefficients are calculated by
 c TALYS later on.
 c
-c nS     : number of states
-c nleg   : number of Legendre coefficients
-c i      : level
-c l      : l-value
-c dleg,dl: direct reaction Legendre coefficient
+c nS      : number of states
+c nleg    : number of Legendre coefficients
+c i       : level
+c l       : l-value
+c dleg,ddl: direct reaction Legendre coefficient
 c
-        
+
           read(9,'(55x,i5)') nS
           do 110 iS=1,nS
             if (iS.eq.1) then
               read(9,'(5x,i5)')  nleg
               do 120 k=1,nleg
-                read(9,'()') 
+                read(9,'()')
   120         continue
             else
               read(9,'(5x,i5)')  nleg
               do 130 k=1,nleg
-                read(9,'(5x,i5,e20.10)') l,dl
-                if (i.le.NL) dleg(type,i,l)=real(dl)
+                read(9,'(5x,i5,e20.10)') l,ddl
+                if (i.le.NL) dleg(type,i,l)=real(ddl)
   130         continue
             endif
   110     continue
@@ -108,8 +108,8 @@ c
    20   continue
 c
 c 2. Giant resonance states
-c 
-c Egrcoll: energy of giant resonance  
+c
+c Egrcoll: energy of giant resonance
 c
         if (type.eq.k0) then
           do 310 l=0,3
@@ -122,8 +122,8 @@ c Giant resonance cross section
 c
 c xsgrcoll: giant resonance cross section
 c
-              read(10,'()') 
-              read(10,*) xs      
+              read(10,'()')
+              read(10,*) xs
               xsgrcoll(k0,l,i)=real(xs)
 c
 c Giant resonance angular distribution
@@ -131,7 +131,7 @@ c
 c nanglecont: number of angles for continuum
 c grcollad  : giant resonance angular distribution
 c
-              read(8,'()') 
+              read(8,'()')
               read(8,'(12x,i3)') nS
               do 330 iang=0,nanglecont
                 do 330 k=1,nS
@@ -152,11 +152,11 @@ c xsdwbatot    : direct DWBA cross section summed over discrete states
 c xsdirdisctot : direct cross section summed over discrete states
 c xscollconttot: total collective cross section in the continuum
 c xsdirdiscsum : total direct cross section
-c ecisstatus   : status of ECIS file  
+c ecisstatus   : status of ECIS file
 c
         xsdwbatot=0.
         do 410 i=0,numlev2
-          if (i.eq.0.and.type.eq.k0) goto 410               
+          if (i.eq.0.and.type.eq.k0) goto 410
           if (deform(Zix,Nix,i).ne.0.) then
             if (i.le.NL) then
               xsdwbatot=xsdwbatot+xsdirdisc(type,i)

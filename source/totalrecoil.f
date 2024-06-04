@@ -8,23 +8,23 @@ c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
-      include "talys.cmb"                                   
+      include "talys.cmb"
       integer type,nen,iang,Zcomp,Ncomp,ixl,nexrec,iyl
       real    sumen,sum,dErecoil
 c
 c ******************** Angle-integrated spectra ************************
-c 
+c
 c flaglabddx : flag for calculation of DDX in LAB system
 c sumen,sum  : help variables
 c iejlab     : number of ejectile lab bins
 c parskip    : logical to skip outgoing particle
-c nanglecont : number of angles for continuum   
+c nanglecont : number of angles for continuum
 c ddxejlab   : LAB ddx array
-c dcosangcont: width of cosine bin 
+c dcosangcont: width of cosine bin
 c xsejlab    : LAB ejectile spectrum
-c twopi      : 2.*pi  
-c dEejlab    : width of ejectile lab bin        
-c xsejlabint : LAB energy-integrated spectrum  
+c twopi      : 2.*pi
+c dEejlab    : width of ejectile lab bin
+c xsejlabint : LAB energy-integrated spectrum
 c
       if (flaglabddx) then
         do 10 type=0,6
@@ -56,20 +56,20 @@ c maxenrec  : number of recoil energies
 c dErecoil  : width of recoil bin
 c Erecmax   : maximal energy limit of recoil bin
 c Erecmin   : minimal energy limit of recoil bin
-c Nlast     : last discrete level    
-c ddxrec    : array containing the lab double differential xs of the 
-c             residual nucleus with (Zinit-i) protons and (Ninit-j) 
-c             neutrons, with excitation energy given by Ex(i,j,k) in 
+c Nlast     : last discrete level
+c ddxrec    : array containing the lab double differential xs of the
+c             residual nucleus with (Zinit-i) protons and (Ninit-j)
+c             neutrons, with excitation energy given by Ex(i,j,k) in
 c             the lab bin with energy limits Erecmin(i,j,l),
 c             Erecmax(i,j,l) and angular limits angrecmin(m),
-c             angrecmax(m)  
-c areareclab: Total surface of LAB ddx bins        
+c             angrecmax(m)
+c areareclab: Total surface of LAB ddx bins
 c specrecoil: recoil spectrum
-c recoilint : total recoil integrated over spectrum              
+c recoilint : total recoil integrated over spectrum
 c
       do 110 Zcomp=0,maxZ
         do 110 Ncomp=0,maxN
-          if (xspopnuc(Zcomp,Ncomp).lt.xseps) goto 110   
+          if (xspopnuc(Zcomp,Ncomp).lt.xseps) goto 110
           sumen=0.
           do 120 ixl=0,maxenrec
             dErecoil=abs(Erecmax(Zcomp,Ncomp,ixl)-

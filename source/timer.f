@@ -1,9 +1,9 @@
       subroutine timer
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : September 25, 2006   
-c | Task  : Output of execution time 
+c | Author: Arjan Koning
+c | Date  : September 25, 2006
+c | Task  : Output of execution time
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -20,7 +20,7 @@ c minute : number of minutes
 c second : number of seconds
 c hundred: number of 1/100th of seconds
 c
-c The returned time should be "charge time" (e.g., cp+pp+sys). This 
+c The returned time should be "charge time" (e.g., cp+pp+sys). This
 c could be machine dependent.
 c
       time=etime(tarray)

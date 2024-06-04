@@ -1,9 +1,9 @@
       subroutine endfinfo
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : September 23, 2009
-c | Task  : Info for ENDF-6 file           
+c | Author: Arjan Koning
+c | Date  : October 9, 2011
+c | Task  : Info for ENDF-6 file
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -24,13 +24,15 @@ c targetspin : spin of target
 c targetE    : energy of target
 c Ltarget    : excited level of target
 c Liso       : isomeric number of target
-c numinc     : number of incident energies 
+c numinc     : number of incident energies
 c eninc      : incident energy in MeV
 c nlevmax    : maximum number of included discrete levels for target
-c energyfile : file with incident energies 
+c energyfile : file with incident energies
 c yesno      : y or n function
 c flagendfdet: flag for detailed ENDF-6 information per channel
 c Nrescue    : number of energies for adjustment factors
+c flagrecoil : flag for calculation of recoils
+c flagurrendf: flag for URR info to ENDF
 c
       open (unit=1,status='unknown',file='tefal.inf')
       write(1,'(i3,"       : projectile type")') k0
@@ -39,7 +41,7 @@ c
       write(1,'(f10.6,": mass of target in a.m.u.")') tarmass
       write(1,'(f4.1,"      : spin of target")') targetspin
       write(1,'(f10.6,": energy of target")') targetE
-      write(1,'(2i4,"  : level and isomeric number of target")') 
+      write(1,'(2i4,"  : level and isomeric number of target")')
      +  Ltarget,Liso
       endfenergyfile='energies.endf'
       open (unit=2,status='unknown',file=endfenergyfile)
@@ -52,13 +54,15 @@ c
       write(1,'(a40,": file with incident energies")') endfenergyfile
       write(1,'(a1,"         : detailed ENDF-6 information",
      + " per channel")') yesno(flagendfdet)
-      if (Nrescue(1).ne.0) then
+      if (Nrescue(1,-1).ne.0) then
         flagel=.false.
       else
         flagel=.true.
       endif
       write(1,'(a1,"         : keep elastic cross section",
      + " in normalization")') yesno(flagel)
+      write(1,'(a1,"         : recoils")') yesno(flagrecoil)
+      write(1,'(a1,"         : urr")') yesno(flagurrendf)
       close (unit=1)
       return
       end

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : August 17, 2009
+c | Date  : November 17, 2011
 c | Task  : Binary reaction results
 c +---------------------------------------------------------------------
 c
@@ -31,7 +31,8 @@ c xspopex     : population cross section summed over spin and parity
 c xspopex0    : binary population cross section for discrete states
 c xspopnuc    : population cross section per nucleus
 c xsdirdisctot: direct cross section summed over discrete states
-c xsbinary    : cross section from initial compound to residual nucleus 
+c xspopdir    : direct population cross section per nucleus
+c xsbinary    : cross section from initial compound to residual nucleus
 c
 c No binary reaction for initial excitation energy population.
 c
@@ -57,29 +58,30 @@ c
           endif
           xspopex0(type,nex)=xspopex(Zix,Nix,nex)
    20   continue
-        xspopnuc(Zix,Nix)=xspopnuc(Zix,Nix)+xsdirdisctot(type)
+        xspopdir(Zix,Nix)=xsdirdisctot(type)
         xsbinary(type)=xsbinary(type)+xsdirdisctot(type)
+        xspopnuc(Zix,Nix)=xspopnuc(Zix,Nix)+xsdirdisctot(type)
 c
 c
 c ******* Assign spin distribution to pre-equilibrium population *******
 c
 c flagpreeq : flag for pre-equilibrium calculation
 c flagpespin: flag for pre-equilibrium spin distribution or compound
-c             spin distribution for pre-equilibrium cross section   
+c             spin distribution for pre-equilibrium cross section
 c maxex     : maximum excitation energy bin for compound nucleus
-c maxJph    : maximal spin for particle-hole states 
+c maxJph    : maximal spin for particle-hole states
 c factor    : help variable
 c preeqpop  : pre-equilibrium population cross section
 c preeqpopex: pre-equilibrium population cross section summed over
 c             spin and parity
 c Eex,Ex    : excitation energy
 c ald       : level density parameter
-c ignatyuk  : function for energy dependent level density parameter a 
+c ignatyuk  : function for energy dependent level density parameter a
 c spindis   : Wigner spin distribution
-c pardis    : parity distribution               
+c pardis    : parity distribution
 c xspreeqtot: preequilibrium cross section per particle type
 c xsgrtot   : total smoothed giant resonance cross section
-c             incident channel 
+c             incident channel
 c
         if (flagpreeq) then
           if (.not.flagpespin) then
@@ -89,8 +91,8 @@ c
                   do 40 J=0,maxJph
                     factor=xspop(Zix,Nix,nex,J,parity)/
      +                xspopex(Zix,Nix,nex)
-                    preeqpop(type,nex,J,parity)=factor*
-     +                preeqpopex(type,nex)
+                    preeqpop(Zix,Nix,nex,J,parity)=factor*
+     +                preeqpopex(Zix,Nix,nex)
    40           continue
               else
                 Eex=Ex(Zix,Nix,nex)
@@ -98,20 +100,20 @@ c
                 do 50 parity=-1,1,2
                   do 50 J=0,maxJph
                     factor=spindis(Zix,Nix,Eex,ald,real(J),0)*pardis
-                    preeqpop(type,nex,J,parity)=factor*
-     +                preeqpopex(type,nex)
+                    preeqpop(Zix,Nix,nex,J,parity)=factor*
+     +                preeqpopex(Zix,Nix,nex)
    50           continue
               endif
    30       continue
           endif
           do 60 nex=NL+1,maxex(Zix,Nix)
             xspopex(Zix,Nix,nex)=xspopex(Zix,Nix,nex)+
-     +        preeqpopex(type,nex)
+     +        preeqpopex(Zix,Nix,nex)
             do 70 parity=-1,1,2
-              do 70 J=0,maxJph                                         
+              do 70 J=0,maxJph
                 xspop(Zix,Nix,nex,J,parity)=
      +            xspop(Zix,Nix,nex,J,parity)+
-     +            preeqpop(type,nex,J,parity)
+     +            preeqpop(Zix,Nix,nex,J,parity)
    70       continue
    60     continue
           xspopnuc(Zix,Nix)=xspopnuc(Zix,Nix)+xspreeqtot(type)+
@@ -121,31 +123,31 @@ c
 c
 c ************* Other total binary cross sections **********************
 c
-c xscompdisctot: compound cross section summed over discrete states 
+c xscompdisctot: compound cross section summed over discrete states
 c k0           : index of incident particle
 c Ltarget      : excited level of target
-c xsdisc       : total cross section for discrete state 
-c xscompdisc   : compound cross section for discrete state      
-c xsdisctot    : total cross section summed over discrete states     
-c xsdircont    : direct cross section for continuum  
-c xsdirect     : total direct cross section             
+c xsdisc       : total cross section for discrete state
+c xscompdisc   : compound cross section for discrete state
+c xsdisctot    : total cross section summed over discrete states
+c xsdircont    : direct cross section for continuum
+c xsdirect     : total direct cross section
 c xscompcont   : compound cross section for continuum
-c xseps        : limit for cross sections                 
-c xsconttot    : total cross section for continuum 
-c xscompound   : total compound cross section    
+c xseps        : limit for cross sections
+c xsconttot    : total cross section for continuum
+c xscompound   : total compound cross section
 c xscompel     : compound elastic cross section
 c xscompel6    : compound elastic cross section
 c xselastot    : total elastic cross section (shape + compound)
-c xselasinc    : total elastic cross section (neutrons only) 
-c xsnonel      : non-elastic cross section 
-c xsnonel6     : non-elastic cross section 
+c xselasinc    : total elastic cross section (neutrons only)
+c xsnonel      : non-elastic cross section
+c xsnonel6     : non-elastic cross section
 c xsreacinc    : reaction cross section for incident channel
 c xscompall    : total compound cross section summed over particles
 c xsdirdiscsum : total direct cross section
 c xspreeqsum   : total preequilibrium cross section summed over
 c                particles
-c xsgrsum      : sum over giant resonance cross sections   
-c xscompnonel  : total compound non-elastic cross section        
+c xsgrsum      : sum over giant resonance cross sections
+c xscompnonel  : total compound non-elastic cross section
 c
         xscompdisctot(type)=0.
         do 80 nex=0,NL
@@ -159,7 +161,7 @@ c
         xsdirect(type)=xsdirdisctot(type)+xsdircont(type)
         if (xscompcont(type).lt.xseps) xscompcont(type)=0.
         xsconttot(type)=xscompcont(type)+xsdircont(type)
-        xscompound(type)=xscompdisctot(type)+xscompcont(type)           
+        xscompound(type)=xscompdisctot(type)+xscompcont(type)
    10 continue
       xscompel=xspopex0(k0,Ltarget)
       xscompel6(nin)=xscompel
@@ -167,7 +169,7 @@ c
       xsnonel=xsreacinc-xscompel
       xsnonel6(nin)=xsnonel
       xscompall=max(xsreacinc-xsdirdiscsum-xspreeqsum-xsgrsum,0.)
-      xscompnonel=xscompall-xscompel    
+      xscompnonel=xscompall-xscompel
       xscompnonel=max(xscompnonel,0.)
 c
 c ***************** Create binary feeding channels *********************
@@ -187,7 +189,7 @@ c
   120     continue
   110   continue
         feedbinary(k0,Ltarget)=0.
-      endif               
+      endif
 c
 c *************** Interpolate decay on emission spectrum ***************
 c
@@ -208,7 +210,7 @@ c Etop       : top of outgoing energy bin
 c eoutdis    : outgoing energy of discrete state reaction
 c xsbinemis  : cross section for emission from first compound nucleus
 c deltaE     : energy bin around outgoing energies
-c egrid      : outgoing energy grid      
+c egrid      : outgoing energy grid
 c Eaverage   : average outgoing energy
 c
       if (flagrecoil.or.flagspec) then
@@ -253,14 +255,14 @@ c eendhigh   : last energy point for energy grid for any particle
 c flagcheck  : flag for output of numerical checks
 c binnorm    : normalization factor for binary spectra
 c odd        : odd (1) or even (0) nucleus
-c Exmax      : maximum excitation energy for residual nucleus 
+c Exmax      : maximum excitation energy for residual nucleus
 c deltaEx    : excitation energy bin for population arrays
 c
       if (flagpop) then
         write(*,'(/" ########## BINARY CHANNELS ###########")')
         write(*,'(/" ++++++++++ BINARY CROSS SECTIONS ++++++++++"/)')
-        if (flagfission) 
-     +    write(*,'(" fission  channel",23x,":",1p,e12.5)') 
+        if (flagfission)
+     +    write(*,'(" fission  channel",23x,":",1p,e12.5)')
      +    xsbinary(-1)
         do 310 type=0,6
           if (parskip(type)) goto 310
@@ -286,7 +288,7 @@ c
      +      " Average emission energy"/)')
           do 330 type=0,6
             if (parskip(type)) goto 330
-            write(*,'(1x,a8,1p,3(10x,e12.5),0p,10x,f8.3)') 
+            write(*,'(1x,a8,1p,3(10x,e12.5),0p,10x,f8.3)')
      +        parname(type),
      +        xscompcont(type)+xspreeqtot(type)+xsgrtot(type),
      +        binemissum(type),binnorm(type),Eaverage(type)
@@ -305,7 +307,7 @@ c
           if (xspopnuc(Zix,Nix).eq.0.) goto 340
           odd=mod(A,2)
           write(*,'(/" Population of Z=",i3," N=",i3,
-     +      " (",i3,a2,") after binary ",a8," emission:",1p,e12.5)') 
+     +      " (",i3,a2,") after binary ",a8," emission:",1p,e12.5)')
      +      Z,N,A,nuc(Z),parname(type),xspopnuc(Zix,Nix)
           if (maxex(Zix,Nix).gt.NL) then
             write(*,'(" Maximum excitation energy:",f8.3,
@@ -329,12 +331,13 @@ c
 c Remove compound elastic scattering from population of target state.
 c
 c parZ      : charge number of particle
-c parN      : neutron number of particle           
-c targetspin: spin of target        
-c targetP   : parity of target 
+c parN      : neutron number of particle
+c targetspin: spin of target
+c targetP   : parity of target
 c
       xspopex(parZ(k0),parN(k0),Ltarget)=0.
       xspop(parZ(k0),parN(k0),Ltarget,int(targetspin),targetP)=0.
+      preeqpopex(parZ(k0),parN(k0),Ltarget)=0.
 c
 c **************************** Recoils *********************************
 c

@@ -10,7 +10,7 @@ c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
-c x,y  : coordinates of the point to test 
+c x,y  : coordinates of the point to test
 c xs,ys: coordinates of the 1st point of the segment
 c xe,ye: coordinates of the 2nd point of the segment
 c a    : help variable

@@ -1,8 +1,8 @@
       subroutine omppar(Zix,Nix)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : June 20, 2008
+c | Author: Arjan Koning
+c | Date  : December 9, 2010
 c | Task  : Optical model parameters
 c +---------------------------------------------------------------------
 c
@@ -43,10 +43,10 @@ c d1,d2,d3    : components for Wd
 c rvso0,avso0 : real spin-orbit radius, diffuseness
 c vso1,vso2   : components for Vso
 c wso1,wso2   : components for Wso
-c flagdisp    : flag for dispersive optical model   
+c flagdisp    : flag for dispersive optical model
 c flagjlm     : flag for using semi-microscopic JLM OMP
-c disp        : flag for dispersive optical model   
-c colltype    : type of collectivity (D, V or R)  
+c disp        : flag for dispersive optical model
+c colltype    : type of collectivity (D, V or R)
 c
       Z=ZZ(Zix,Nix,0)
       N=NN(Zix,Nix,0)
@@ -59,15 +59,15 @@ c
         if (k.eq.1) then
           if (optmodfileN(Zix)(1:1).ne.' ') then
             ompfile=optmodfileN(Zix)
-          else   
+          else
             ompfile=path(1:lenpath)//'optical/neutron/'//ompchar
-          endif   
+          endif
         else
           if (optmodfileP(Zix)(1:1).ne.' ') then
             ompfile=optmodfileP(Zix)
-          else   
+          else
             ompfile=path(1:lenpath)//'optical/proton/'//ompchar
-          endif   
+          endif
         endif
         omptype=' '
         inquire (file=ompfile,exist=lexist)
@@ -140,7 +140,7 @@ c
         vso1(Zix,Nix,1)=5.922+0.0030*A
         vso2(Zix,Nix,1)=0.0040
         rvso0(Zix,Nix,1)=1.1854-0.647*A**(-onethird)
-        avso0(Zix,Nix,1)=0.59    
+        avso0(Zix,Nix,1)=0.59
         wso1(Zix,Nix,1)=-3.1
         wso2(Zix,Nix,1)=160.
         rc0(Zix,Nix,1)=0.
@@ -173,7 +173,7 @@ c
         vso1(Zix,Nix,2)=5.922+0.0030*A
         vso2(Zix,Nix,2)=0.0040
         rvso0(Zix,Nix,2)=1.1854-0.647*A**(-onethird)
-        avso0(Zix,Nix,2)=0.59    
+        avso0(Zix,Nix,2)=0.59
         wso1(Zix,Nix,2)=-3.1
         wso2(Zix,Nix,2)=160.
         rc0(Zix,Nix,2)=1.198+0.697*A**(-twothird)+12.994*A**(-5./3.)
@@ -187,9 +187,9 @@ c
 c
 c ************** Optical model file from user input file ***************
 c
-c numNph    : maximal number of neutrons away from the initial 
+c numNph    : maximal number of neutrons away from the initial
 c             compound nucleus for multiple pre-equilibrium emission
-c numZph    : maximal number of protons away from the initial 
+c numZph    : maximal number of protons away from the initial
 c             compound nucleus for multiple pre-equilibrium emission
 c optmod    : file with optical model parameters
 c optmodfile: file with optical model parameters
@@ -202,8 +202,8 @@ c
         do 210 k=1,6
           optmodfile=optmod(Zix,Nix,k)
           if (optmodfile(1:1).ne.' ') then
-            open (unit=2,status='old',file=optmodfile)   
-            read(2,'(8x,i4)') omplines(Zix,Nix,k)
+            open (unit=2,status='old',file=optmodfile)
+            read(2,*) omplines(Zix,Nix,k)
             if (omplines(Zix,Nix,k).gt.numomp) then
               write(*,'(" TALYS-error: number of lines in OMP file > ",
      +          i4)') numomp
@@ -212,9 +212,16 @@ c
             eomp(Zix,Nix,k,0)=0.
             do 220 nen=1,omplines(Zix,Nix,k)
               read(2,*,err=300) eomp(Zix,Nix,k,nen),
-     +          (vomp(Zix,Nix,k,nen,ii),ii=1,19)    
+     +          (vomp(Zix,Nix,k,nen,ii),ii=1,19)
   220       continue
             close (unit=2)
+            if (omplines(Zix,Nix,k).eq.1) then
+              omplines(Zix,Nix,k)=2
+              eomp(Zix,Nix,k,2)=eomp(Zix,Nix,k,1)
+              do 230 ii=1,19
+                vomp(Zix,Nix,k,2,ii)=vomp(Zix,Nix,k,1,ii)
+  230         continue
+            endif
           endif
   210   continue
       endif

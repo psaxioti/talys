@@ -32,10 +32,10 @@ c n1        : exciton number-1
 c fac1      : help variable
 c factor    : help variable
 c nfac      : n!
-c finitewell: function for correction for finite well depth 
+c finitewell: function for correction for finite well depth
 c
-c In general, the finite depth of the hole is included. If the 
-c uncorrected state density is required, it should be specified by 
+c In general, the finite depth of the hole is included. If the
+c uncorrected state density is required, it should be specified by
 c Ewell=0. (which thus actually means Ewell=infinity).
 c
       phdens=0.
@@ -50,7 +50,7 @@ c
         fac1=nfac(p)*nfac(h)*nfac(n1)
         factor=gs**(p+h)/fac1
         phdens=factor*(Eex-Ap)**n1
-        phdens=phdens*finitewell(p,h,Eex,Ewell,surfwell) 
+        phdens=phdens*finitewell(p,h,Eex,Ewell,surfwell)
       else
 
 c 2. Tabulated particle-hole state densities

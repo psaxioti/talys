@@ -1,7 +1,7 @@
       subroutine gammadecay(Zix,Nix)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 11, 2009
 c | Task  : Scheme for discrete gamma decay
 c +---------------------------------------------------------------------
@@ -88,8 +88,8 @@ c
 c
 c Write decay information to file
 c
-c ZZ       : charge number of residual nucleus   
-c AA       : mass number of residual nucleus   
+c ZZ       : charge number of residual nucleus
+c AA       : mass number of residual nucleus
 c decayfile: decay file
 c parsym   : symbol of particle
 c nuc      : symbol of nucleus
@@ -97,14 +97,14 @@ c
       Z=ZZ(Zix,Nix,0)
       A=AA(Zix,Nix,0)
       type=2*Zix+Nix
-      decayfile='decay. '     
+      decayfile='decay. '
       write(decayfile(7:7),'(a1)') parsym(type)
-      open (unit=1,status='unknown',file=decayfile)   
+      open (unit=1,status='unknown',file=decayfile)
       write(1,'("# ",i3,a2," Discrete gamma decay")') A,nuc(Z)
       write(1,'("# ")')
       write(1,'("# ")')
       write(1,'("# # levels   =",i3)') nlev(Zix,Nix)
-      write(1,'("#   E        fraction              ")')    
+      write(1,'("#   E        fraction              ")')
       do 110 i=1,nlev(Zix,Nix)
         write(1,'(2i4,f10.6)') i,Ngam(i),yieldg(i)
         do 120 j=1,Ngam(i)
@@ -113,25 +113,25 @@ c
   110 continue
       close (unit=1)
 c
-c Write discrete level file for gamma transition probabitities
+c Write discrete level file for gamma transition probabilities
 c
 c edis       : energy of level
 c jdis       : spin of level
 c cparity    : parity of level (character)
-c parlev     : parity of level 
+c parlev     : parity of level
 c nbranch    : number of branching levels
 c tau        : lifetime of state in seconds
 c jassign    : flag for assignment of spin
 c passign    : flag for assignment of parity
-c ENSDF      : string from original ENSDF discrete level file  
+c ENSDF      : string from original ENSDF discrete level file
 c branchlevel: level to which branching takes place
 c branchratio: gamma-ray branching ratio to level
 c bassign    : flag for assignment of branching ratio
 c
       N=A-Z
-      discretefile='discrete. '     
+      discretefile='discrete. '
       write(discretefile(10:10),'(a1)') parsym(type)
-      open (unit=1,status='unknown',file=discretefile)   
+      open (unit=1,status='unknown',file=discretefile)
       write(1,'("# Discrete levels for Z=",i3," N=",i3,
      +  " (",i3,a2,")")')  Z,N,A,nuc(Z)
       write(1,'("# ")')
@@ -153,7 +153,7 @@ c
      +      jassign(Zix,Nix,i),passign(Zix,Nix,i),ENSDF(Zix,Nix,i)
         endif
         do 140 k=1,nbranch(Zix,Nix,i)
-          write(1,'(33x,"--->",i3,2x,f8.4,18x,a1)') 
+          write(1,'(33x,"--->",i3,2x,f8.4,18x,a1)')
      +      branchlevel(Zix,Nix,i,k),branchratio(Zix,Nix,i,k)*100.,
      +      bassign(Zix,Nix,i,k)
   140   continue

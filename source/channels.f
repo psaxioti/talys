@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : September 1, 2009
+c | Date  : February 25, 2010
 c | Task  : Exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -41,7 +41,7 @@ c
 c
 c ********** Construction of exclusive channel cross sections **********
 c
-c 1. Loop over all residual nuclei, starting with the first residual 
+c 1. Loop over all residual nuclei, starting with the first residual
 c    nucleus, and then according to decreasing Z and N.
 c
 c idnum   : counter for exclusive channel
@@ -64,14 +64,14 @@ c
 c
 c 2. To minimize the loops, the maximal possible number of each particle
 c    type is determined, given Zix and Nix. E.g. for Zix=1, Nix=2 there
-c    can be at most one proton, 2 neutrons, one deuteron or 1 triton in 
-c    the exit channel. These maximal numbers are determined by simple 
+c    can be at most one proton, 2 neutrons, one deuteron or 1 triton in
+c    the exit channel. These maximal numbers are determined by simple
 c    formulae.
 c
 c Aix       : mass number index for residual nucleus
 c inend,..  : help variables
 c parinclude: logical to include outgoing particle
-c maxchannel: maximal number of outgoing particles in individual 
+c maxchannel: maximal number of outgoing particles in individual
 c             channel description (e.g. this is 3 for (n,2np))
 c numin,....: maximal number of ejectile in channel description
 c
@@ -97,13 +97,13 @@ c
           ihend=min(ihend,numih)
           iaend=min(iaend,numia)
 c
-c 3. Determine whether residual nucleus under consideration can be 
+c 3. Determine whether residual nucleus under consideration can be
 c    reached by particle combination.
-c    Increase running index idnum and identifier ident for particle 
+c    Increase running index idnum and identifier ident for particle
 c    combination.
 c
 c chanopen : flag to open channel with first non-zero cross section
-c idnumfull: flag to designate maximum number of exclusive channels 
+c idnumfull: flag to designate maximum number of exclusive channels
 c Ztot,Ntot: number of nucleon units in exit channel
 c npart    : number of particles in outgoing channel
 c ident    : exclusive channel identifier
@@ -129,9 +129,9 @@ c
             endif
             idchannel(idnum)=ident
 c
-c Initialization of arrays. Since the idnum counter may be reset at the 
-c end of loop 120, in the case that the exclusive cross section is 
-c below a threshold, the various exclusive channel arrays need to be 
+c Initialization of arrays. Since the idnum counter may be reset at the
+c end of loop 120, in the case that the exclusive cross section is
+c below a threshold, the various exclusive channel arrays need to be
 c initialized to zero here.
 c
 c xschannel     : channel cross section
@@ -139,21 +139,21 @@ c xsgamchannel  : gamma channel cross section
 c xsfischannel  : fission channel cross section
 c xschancheck   : integrated channel spectra
 c xsfischancheck: integrated fission channel spectra
-c xsratio       : ratio of exclusive cross section over residual 
-c                 production cross section (for exclusive gamma ray 
+c xsratio       : ratio of exclusive cross section over residual
+c                 production cross section (for exclusive gamma ray
 c                 intensities)
-c numlev        : maximum number of included discrete levels 
-c Qexcl         : Q-value for exclusive channel 
-c Ethrexcl      : threshold incident energy for exclusive channel 
+c numlev        : maximum number of included discrete levels
+c Qexcl         : Q-value for exclusive channel
+c Ethrexcl      : threshold incident energy for exclusive channel
 c xschaniso     : channel cross section per isomer
 c exclyield     : exclusive channel yield per isomer
 c xsgamdischan  : discrete gamma channel cross section
-c S             : separation energy per particle 
+c S             : separation energy per particle
 c k0            : index of incident particle
-c targetE       : energy of target 
-c numex         : maximal number of excitation energies 
+c targetE       : energy of target
+c numex         : maximal number of excitation energies
 c                 (set in talys.cmb)
-c Eavchannel    : channel average energy 
+c Eavchannel    : channel average energy
 c xschannelsp   : channel cross section spectra
 c xsfischannelsp: fission channel cross section spectra
 c specexcl      : exclusive spectra per excitation energy
@@ -195,14 +195,14 @@ c
 c parskip       : logical to skip outgoing particle
 c identorg,idorg: identifier for previous channel
 c Zcomp         : charge number index for compound nucleus
-c parZ          : charge number of particle 
+c parZ          : charge number of particle
 c Ncomp         : neutron number index for compound nucleus
-c parN          : neutron number of particle 
+c parN          : neutron number of particle
 c Nlast         : last discrete level
 c edis          : energy of level
 c specmass      : specific mass for residual nucleus
 c
-c The exclusive channel under consideration may have been reached 
+c The exclusive channel under consideration may have been reached
 c through different paths. Here the previous path is determined by
 c looking at the type of the last emitted particle.
 c
@@ -221,7 +221,7 @@ c
                 if (idchannel(idorg).eq.idd) then
                   identorg(type)=idorg
 c
-c The Q-value for exclusive channels is determined, both for the 
+c The Q-value for exclusive channels is determined, both for the
 c ground state and isomers.
 c
                   Zcomp=Zix-parZ(type)
@@ -264,17 +264,17 @@ c
 c 5. Exclusive cross sections per excitation energy
 c
 c feedexcl: feeding terms from compound excitation energy bin to
-c           residual excitation energy bin     
+c           residual excitation energy bin
 c ebegin  : first energy point of energy grid
 c eend    : last energy point of energy grid
 c binemis : emission spectra from initial compound nucleus
 c
-c The inclusive cross section per excitation energy S is 
-c tracked in xsexcl. The inclusive spectrum per excitation energy 
+c The inclusive cross section per excitation energy S is
+c tracked in xsexcl. The inclusive spectrum per excitation energy
 c dS/dEk' is tracked in specexcl.
 c
 c Special case for binary channel. The binary emission spectrum has
-c already been determined in subroutine binemission. 
+c already been determined in subroutine binemission.
 c
                 if (Zcomp.eq.0.and.Ncomp.eq.0) then
                   nex=maxex(Zcomp,Ncomp)+1
@@ -294,7 +294,7 @@ c
 c
 c 340: Loop over excitation energies of mother nucleus
 c
-c Calculation of inclusive cross section per excitation energy S 
+c Calculation of inclusive cross section per excitation energy S
 c
 c term1,..: help variables
 c popexcl : population cross section of bin just before decay
@@ -308,7 +308,7 @@ c
                   xsexcl(idnum,nexout)=xsexcl(idnum,nexout)+term2
                   if (type.eq.0) then
                     gamexcl(idnum,nexout)=gamexcl(idnum,nexout)+term2
-                    if (nex.le.Nlast(Zcomp,Ncomp,0)) 
+                    if (nex.le.Nlast(Zcomp,Ncomp,0))
      +                xsgamdischan(idnum,nex,nexout)=term2
                   endif
                     gamexcl(idnum,nexout)=gamexcl(idnum,nexout)+term1*
@@ -317,7 +317,7 @@ c                 endif
 c
 c 6. Exclusive spectra per excitation energy
 c
-c Calculation of inclusive spectrum per excitation energy dS/dEk' 
+c Calculation of inclusive spectrum per excitation energy dS/dEk'
 c
                   if (flagspec) then
                     do 350 type2=0,6
@@ -331,7 +331,7 @@ c
      +                    specexcl(idnum,type2,nexout,nen)+term3
   360                 continue
 c
-c Calculation of second term of exclusive spectrum. The spectrum of the 
+c Calculation of second term of exclusive spectrum. The spectrum of the
 c last emitted particle is obtained by interpolating the feeding terms
 c in subroutine specemission. The discrete gamma-ray production is
 c excluded from the exclusive gamma spectra.
@@ -340,7 +340,7 @@ c NL,Nlast    : last discrete level
 c specemission: subroutine for exclusive emission spectra
 c specemis    : exclusive emission contribution
 c
-                      if (type2.eq.0.and.nex.le.Nlast(Zcomp,Ncomp,0)) 
+                      if (type2.eq.0.and.nex.le.Nlast(Zcomp,Ncomp,0))
      +                  goto 350
                       if (type2.eq.type) then
                         call specemission(Zcomp,Ncomp,nex,idorg,type,
@@ -358,7 +358,7 @@ c
 c
 c 7. Exclusive cross sections: total and per isomer
 c
-c xspopnuc: population cross section per nucleus               
+c xspopnuc: population cross section per nucleus
 c
 c At the end of the decay, the nucleus can end up at an isomer or the
 c ground state. The exclusive cross sections for the particular channel
@@ -387,9 +387,9 @@ c
      +        xschannel(idnum)/xspopnuc(Zix,Nix)
             channelsum=channelsum+xschannel(idnum)
 c
-c For non-threshold reactions (positive Q-value) we always assign a 
+c For non-threshold reactions (positive Q-value) we always assign a
 c minimum value to the exclusive cross section. (The transmission
-c coefficients for these reactions might have been zero (from ECIS), 
+c coefficients for these reactions might have been zero (from ECIS),
 c but non-threshold reactions theoretically have a non-zero cross
 c section.)
 c
@@ -407,7 +407,7 @@ c
   400         continue
             endif
 c
-c For each exclusive channel, the multiplicity or yield per 
+c For each exclusive channel, the multiplicity or yield per
 c isomer/ground state is determined.
 c
             if (xschannel(idnum).ne.0.) then
@@ -443,8 +443,8 @@ c
 c
 c 9. Check.
 c
-c The summed exclusive cross sections should equal the particle 
-c production cross sections and analogously for the spectra. 
+c The summed exclusive cross sections should equal the particle
+c production cross sections and analogously for the spectra.
 c The result will appear in the output, if requested. Also the
 c exclusive spectra are integrated so that they can be compared
 c with the exclusive cross sections.
@@ -457,11 +457,11 @@ c Especsum   : total emission energy
 c emissum    : integrated emission spectrum
 c Eaveragesum: help variable
 c xsspeccheck: total particle production spectra
-c deltaE     : energy bin around outgoing energies    
-c egrid      : outgoing energy grid 
+c deltaE     : energy bin around outgoing energies
+c egrid      : outgoing energy grid
 c eoutdis    : outgoing energy of discrete state reaction
 c frac       : help variable
-c Etop       : top of outgoing energy bin                    
+c Etop       : top of outgoing energy bin
 c nendisc    : last discrete bin
 c gmult      : continuum gamma multiplicity
 c
@@ -511,7 +511,7 @@ c
      +                  xsfischannelsp(idnum,type,nendisc(type))*frac
                     endif
                   endif
-                  if (type.gt.0.or.npart.eq.0) 
+                  if (type.gt.0.or.npart.eq.0)
      +              xschancheck(idnum)=xschancheck(idnum)+emissum
                   if (emissum.gt.0.) Eavchannel(idnum,type)=
      +              Eaveragesum/emissum
@@ -534,7 +534,7 @@ c
 c apos      : '
 c reacstring: string for exclusive reaction channel
 c fisstring : string for exclusive fission reaction channel
-c parsym    : symbol of particle             
+c parsym    : symbol of particle
 c numchantot: maximal number of exclusive channels
 c
             apos="'"
@@ -618,20 +618,21 @@ c
                 reacstring(idnum)(i:i)=apos
                 i=i+1
               endif
-            endif           
+            endif
             reacstring(idnum)(i:i)=')'
-            if (flagfission) 
+            if (flagfission)
      +        fisstring(idnum)=reacstring(idnum)(1:i-1)//'f)'
 c
 c Reset idnum counter in the case that the cross section is too small.
 c
 c opennum: total number of open channels
 c
-            if (xschannel(idnum).ge.xseps.and..not.idnumfull) then
+            if ((xschannel(idnum).ge.xseps.and..not.idnumfull).or.
+     +        npart.eq.0) then
               if (.not.chanopen(in,ip,id,it,ih,ia)) opennum=opennum+1
               chanopen(in,ip,id,it,ih,ia)=.true.
             endif
-            if (xschannel(idnum).lt.xseps.and.
+            if (xschannel(idnum).lt.xseps.and.npart.gt.1.and.
      +        .not.chanopen(in,ip,id,it,ih,ia)) idnum=idnum-1
             if (opennum.eq.numchantot) idnumfull=.true.
             if (idnum.lt.0) goto 120
@@ -639,11 +640,11 @@ c
   120     continue
   110 continue
 c
-c Set threshold energy for inelastic scattering to that of first 
+c Set threshold energy for inelastic scattering to that of first
 c excited state.
 c
   700 do 710 idc=0,idnum
-        if (idchannel(idc).eq.100000) then 
+        if (idchannel(idc).eq.100000) then
           Ethrexcl(idc,0)=Ethrexcl(idc,1)
           goto 720
         endif

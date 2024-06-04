@@ -6,7 +6,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
-c | Date  : February 26, 2005
+c | Date  : December 22, 2011
 c | Task  : Calculation of the way the surface triangle defined by its
 c |         summits (x1,y1),(x2,y2) and (x3,y3) is distributed in a
 c |         given bidimensional grid depending on ityp.
@@ -92,7 +92,7 @@ c
       Nix=Nindex(Zcomp,Ncomp,type)
 c
 c We here calculate the lab angle resulting from the coupling
-c of the angle of the considered CM with respect to the beam axis 
+c of the angle of the considered CM with respect to the beam axis
 c (angcm) with the emission angles in this CM.
 c
       ix1=1
@@ -101,10 +101,16 @@ c
       iy1=0
       iy2=0
       iy3=0
+      cos1=max(cos1,-1.)
+      cos1=min(cos1,1.)
       angle1=acos(cos1)
       if (sin1.lt.0.) angle1=twopi-angle1
+      cos2=max(cos2,-1.)
+      cos2=min(cos2,1.)
       angle2=acos(cos2)
       if (sin2.lt.0.) angle2=twopi-angle2
+      cos3=max(cos3,-1.)
+      cos3=min(cos3,1.)
       angle3=acos(cos3)
       if (sin3.lt.0.) angle3=twopi-angle3
       yy1=angle1+angcm
@@ -144,7 +150,7 @@ c
 c
 c determine x and y loop limits
 c
-c xloop 
+c xloop
 c
         ixmax=iejlab(type)
         if (x1.gt.Eejlabmax(type,ixmax)) then
@@ -187,7 +193,7 @@ c
    30     continue
         endif
 c
-c yloop 
+c yloop
 c
    31   iymax=2*nanglecont+1
         do 40 iy=0,iymax
@@ -335,7 +341,7 @@ c ********************* Recoil surface calculation *********************
 c
 c determine x and y loop limits
 c
-c xloop 
+c xloop
 c
         if (x1.gt.Erecmax(Zix,Nix,maxenrec)) then
           Erecmax(Zix,Nix,maxenrec)=x1
@@ -377,7 +383,7 @@ c
   230     continue
         endif
 c
-c yloop 
+c yloop
 c
   231   iymax=2*nanglerec+1
         do 240 iy=0,iymax
@@ -486,7 +492,7 @@ c
             surfbin=areareclab(Zix,Nix,ix,iystore)
             call binsurface(x1,yc1,x2,yc2,x3,yc3,xl,xu,yl,yu,pi,twopi,
      +                      epsx,epsy,surfloc,surfbin)
-            spartr(ix,iystore)=surfloc            
+            spartr(ix,iystore)=surfloc
             sumsurf=sumsurf+surfloc
   310     continue
   300   continue
@@ -515,7 +521,7 @@ c
                 spartr(ix,iystore)=surfloc
                 sumsurf=sumsurf+surfloc
               enddo
-            enddo  
+            enddo
           endif
         endif
       endif

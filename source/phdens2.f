@@ -28,7 +28,7 @@ c gsp       : single-particle proton level density parameter
 c gsn       : single-particle neutron level density parameter
 c Eex       : excitation energy
 c Ewell     : depth of potential well
-c surfwell  : flag for surface effects in finite well  
+c surfwell  : flag for surface effects in finite well
 c phmodel   : particle-hole state density model
 c phexist2  : flag for existence of particle-hole state density table
 c Apauli2,Ap: two-component Pauli blocking correction factor
@@ -42,10 +42,10 @@ c fac1      : help variable
 c nfac      : n!
 c factor    : help variable
 c finitewell: function for correction for finite well depth
-c 
-c The finite depth of the hole is included. If the uncorrected state 
-c density is required, it should be specified by Ewell=0. (which thus 
-c actually means Ewell=infinity).                
+c
+c The finite depth of the hole is included. If the uncorrected state
+c density is required, it should be specified by Ewell=0. (which thus
+c actually means Ewell=infinity).
 c
       phdens2=0.
       if (ppi.lt.0.or.hpi.lt.0.or.pnu.lt.0.or.hnu.lt.0) return
@@ -98,7 +98,7 @@ c
         endif
         phdens2=ldtab
       endif
-      if (phdens2.lt.1.e-10) phdens2=0.  
+      if (phdens2.lt.1.e-10) phdens2=0.
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

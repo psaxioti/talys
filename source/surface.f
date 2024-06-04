@@ -16,7 +16,7 @@ c ************************* Kalbach formula ****************************
 c
 c surface : well depth for first hole
 c elab    : incident energy
-c Ainit   : mass number of initial compound nucleus 
+c Ainit   : mass number of initial compound nucleus
 c onethird: 1/3
 c
       if (type.eq.1) then

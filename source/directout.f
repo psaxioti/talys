@@ -18,12 +18,12 @@ c Zindex,Zix   : charge number index for residual nucleus
 c Nindex,Nix   : neutron number index for residual nucleus
 c k0           : index of incident particle
 c numlev2      : maximum number of levels
-c xsdirdisc    : direct cross section for discrete state 
+c xsdirdisc    : direct cross section for discrete state
 c edis,elev    : energy of level
 c eoutdis      : outgoing energy of discrete state reaction
 c jdis,jlev    : spin of level
 c cparity      : parity of level (character)
-c parlev,plev  : parity of level 
+c parlev,plev  : parity of level
 c deftype      : deformation length (D) or parameter (B)
 c deform       : deformation parameter
 c xsdirdisctot : direct cross section summed over discrete states
@@ -42,15 +42,15 @@ c
       Zix=Zindex(0,0,k0)
       Nix=Nindex(0,0,k0)
       do 10 i=1,numlev2
-        if (xsdirdisc(k0,i).ne.0.) 
-     +    write(*,'(1x,i3,2f10.5,f7.1,a1,f12.5,5x,a1,f9.5)') 
+        if (xsdirdisc(k0,i).ne.0.)
+     +    write(*,'(1x,i3,2f10.5,f7.1,a1,f12.5,5x,a1,f9.5)')
      +    i,edis(Zix,Nix,i),eoutdis(k0,i),jdis(Zix,Nix,i),
      +    cparity(parlev(Zix,Nix,i)),xsdirdisc(k0,i),deftype(Zix,Nix),
      +    deform(Zix,Nix,i)
    10 continue
       write(*,'(/" Discrete direct inelastic cross section:",
      +  f12.5,"   Level 1-",i3)') xsdirdisctot(k0),nlev(Zix,Nix)
-      write(*,'(" Collective cross section in continuum  :",f12.5)') 
+      write(*,'(" Collective cross section in continuum  :",f12.5)')
      +  xscollconttot
       if (flagang) then
         write(*,'(/" Direct inelastic angular distributions")')
@@ -63,31 +63,31 @@ c
             plev(ilev)=parlev(Zix,Nix,i)
             do 30 iang=0,nangle
               dad(ilev,iang)=directad(k0,i,iang)
-   30       continue    
+   30       continue
           endif
-   20   continue    
+   20   continue
         nset=ilev/10
         nrest=mod(ilev,10)
         do 40 n1=1,nset
           n2=10*(n1-1)
-          write(*,'(/" Angle",10(" Ex=",f6.3,"  "))') 
+          write(*,'(/" Angle",10(" Ex=",f6.3,"  "))')
      +      (elev(i),i=n2+1,n2+10)
-          write(*,'(4x,10("    JP=",f4.1,a1)/)') 
+          write(*,'(4x,10("    JP=",f4.1,a1)/)')
      +      (jlev(i),cparity(plev(i)),i=n2+1,n2+10)
           do 50 iang=0,nangle
             write(*,'(1x,f5.1,1p,10e12.5)') angle(iang),
      +        (dad(i,iang),i=n2+1,n2+10)
-   50     continue    
-   40   continue    
+   50     continue
+   40   continue
         if (nrest.gt.0) then
-          write(*,'(/" Angle  ",10("Ex=",f6.3,"   "))') 
+          write(*,'(/" Angle  ",10("Ex=",f6.3,"   "))')
      +      (elev(i),i=10*nset+1,10*nset+nrest)
           write(*,'(4x,10("    JP=",f4.1,a1)/)') (jlev(i),
      +      cparity(plev(i)),i=10*nset+1,10*nset+nrest)
           do 60 iang=0,nangle
             write(*,'(1x,f5.1,1p,10e12.5)') angle(iang),
      +        (dad(i,iang),i=nset+1,nset+nrest)
-   60     continue    
+   60     continue
         endif
       endif
 c
@@ -95,16 +95,16 @@ c *********************** Giant resonances *****************************
 c
 c flaggiant : flag for collective contribution from giant resonances
 c xsgrcoll  : giant resonance cross section
-c Egrcoll   : energy of giant resonance 
-c eoutgr    : emission energy 
-c Ggrcoll   : width of giant resonance     
+c Egrcoll   : energy of giant resonance
+c eoutgr    : emission energy
+c Ggrcoll   : width of giant resonance
 c betagr    : deformation parameter for giant resonance
 c xsgrtot   : total smoothed giant resonance cross section
 c xscollcont: collective cross section in the continuum
 c flagddx   : flag for output of double-differential cross sections
 c nanglecont: number of angles for continuum
 c anglecont : angle in degrees for continuum
-c grcollad  : giant resonance angular distribution 
+c grcollad  : giant resonance angular distribution
 c flagspec  : flag for output of spectra
 c ebegin    : first energy point of energy grid
 c eend      : last energy point of energy grid
@@ -128,7 +128,7 @@ c
       if (flagddx) then
         write(*,'(" Average angular distributions",/)')
         write(*,'(" Angle    GMR         GQR         LEOR      HEOR"/)')
-        do 110 iang=0,nanglecont   
+        do 110 iang=0,nanglecont
           write(*,'(1x,f5.1,1p,4e12.5)') anglecont(iang),
      +      grcollad(k0,0,1,iang),grcollad(k0,2,1,iang),
      +      grcollad(k0,3,1,iang),grcollad(k0,3,2,iang)

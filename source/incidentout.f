@@ -1,8 +1,8 @@
       subroutine incidentout
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : August 24, 2009
+c | Author: Arjan Koning
+c | Date  : December 18, 2011
 c | Task  : Reaction output for incident channel
 c +---------------------------------------------------------------------
 c
@@ -30,8 +30,8 @@ c
 c
 c For low energy neutrons we give the resonance parameters.
 c
-c Einc     : incident energy in MeV   
-c Atarget  : mass number of target nucleus    
+c Einc     : incident energy in MeV
+c Atarget  : mass number of target nucleus
 c Sstrength: s,p,d,etc-wave strength function
 c Rprime   : potential scattering radius
 c
@@ -39,21 +39,19 @@ c
         write(*,'(/" S-wave and P-wave strength functions and ",
      +    "potential scattering radius"/)')
         write(*,'("      A      Value"/)')
-        write(*,'(" S0:",i4,f8.4," .10e-4 eV**-1/2")') Atarget,
-     +    Sstrength(0)*1.e4
-        write(*,'(" P0:",i4,f8.4," .10e-4 eV**-1/2")') Atarget,
-     +    Sstrength(1)*1.e4
+        write(*,'(" S0:",i4,f8.4," .10e-4")') Atarget,Sstrength(0)*1.e4
+        write(*,'(" S1:",i4,f8.4," .10e-4")') Atarget,Sstrength(1)*1.e4
         write(*,'(" R :",i4,f8.4," fm")') Atarget,Rprime
       endif
 c
 c *********** Transmission coefficients for incident channel ***********
 c
-c lmaxinc: maximal l-value for transmission coefficients for incident 
+c lmaxinc: maximal l-value for transmission coefficients for incident
 c          channel
 c parname: name of particle
-c Tjlinc : transmission coefficients as a function of spin and l for 
+c Tjlinc : transmission coefficients as a function of spin and l for
 c          the incident channel
-c Tlinc  : transmission coefficients as a function of l for the 
+c Tlinc  : transmission coefficients as a function of l for the
 c          incident channel, averaged over spin
 c
       if (lmaxinc.eq.-1) return
@@ -90,9 +88,9 @@ c
    30   continue
       endif
 c
-c 4. Photons                            
+c 4. Photons
 c
-c gammax: number of l-values for gamma multipolarity 
+c gammax: number of l-values for gamma multipolarity
 c
       if (k0.eq.0) then
         write(*,'("  L     T(L)"/)')
@@ -105,7 +103,7 @@ c *********** Shape elastic scattering angular distribution ************
 c
 c flagang : flag for output of angular distributions
 c nangle  : number of angles
-c angle   : angle            
+c angle   : angle
 c Ltarget : excited level of target
 c directad: direct angular distribution
 c
@@ -115,7 +113,7 @@ c
         do 110 iang=0,nangle
           write(*,'(1x,f5.1,1p,e16.5)') angle(iang),
      +      directad(k0,Ltarget,iang)
-  110   continue                                           
+  110   continue
       endif
       return
       end

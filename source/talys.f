@@ -1,12 +1,12 @@
 c
-c                            TALYS-1.2
+c                            TALYS-1.4
 c
-c                   (Version: December 21, 2009)
+c                   (Version: December 28, 2011)
 c
-c             Nuclear reactions from 1 keV to 200 MeV. 
+c             Nuclear reactions from 1 keV to 200 MeV.
 c
 c Consult the manual for a detailed outline of TALYS.
-c Please send any comments, corrections or improvements to one of 
+c Please send any comments, corrections or improvements to one of
 c the three principal authors:
 c
 c       |-------------------------------------------------------|
@@ -30,26 +30,26 @@ c       | Email: stephane.hilaire@cea.fr                        |
 c       |-------------------------------------------------------|
 c
 c       |-------------------------------------------------------|
-c       |                 Marieke Duijvestijn                   |
+c       |                 Stephane Goriely                      |
 c       |                                                       |
-c       | NRG - Nuclear Research and Consultancy Group          |
-c       | Westerduinweg 3                                       |
-c       | P.O. Box 25, NL-1755 ZG  Petten, The Netherlands      |
-c       | Phone: (+31) 224 564402  FAX: (+31) 224 568490        |
-c       | Email: duijvestijn@nrg.eu                             |
+c       | Institut d'Astronomie et d'Astrophysique              |
+c       | Universite Libre de Bruxelles                         |
+c       | Campus de la Plaine, CP-226, 1050 Brussels, Belgium   |
+c       | Phone: (+32) 2 650 2843                               |
+c       | Email: sgoriely@astro.ulb.ac.be                       |
 c       |-------------------------------------------------------|
 c
       program talys
 c
 c +---------------------------------------------------------------------
-c | Author : Arjan Koning, Stephane Hilaire and Marieke Duijvestijn
-c | Date   : December 21, 2009
+c | Author : Arjan Koning, Stephane Hilaire and Stephane Goriely
+c | Date   : December 28, 2011
 c | Task   : Main program
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
-      include "talys.cmb"          
+      include "talys.cmb"
 c
 c ************* Input, initialization and reaction models **************
 c
@@ -57,7 +57,7 @@ c machine      : subroutine for machine dependent statements
 c constants    : subroutine for constants and initialization
 c talysinput   : subroutine for user input and defaults
 c talysinitial : subroutine for initialization of nuclear structure
-c talysreaction: subroutine with reaction models 
+c talysreaction: subroutine with reaction models
 c flagnatural  : flag for calculation of natural element
 c natural      : subroutine for calculation of natural element
 c

@@ -1,7 +1,7 @@
       subroutine endf
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : December 15, 2009
 c | Task  : Cross sections and information for ENDF-6 file
 c +---------------------------------------------------------------------
@@ -15,7 +15,7 @@ c
 c numinc      : number of incident energies
 c endfinfo    : subroutine for info for ENDF-6 file
 c endfenergies: subroutine for energy grid for ENDF-6 file
-c k0          : index for incident particle 
+c k0          : index for incident particle
 c endfecis    : subroutine for ECIS calculation for incident particle on
 c               ENDF-6 energy grid
 c endfread    : subroutine to read ECIS results for incident particle on

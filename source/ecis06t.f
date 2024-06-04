@@ -3881,7 +3881,7 @@ c output of optical parameters.                                         lect-283
       write (mw,1014) (aleg(i),val(4*i-3,ip),val(4*i-2,ip),ro(i),val(4*ilect-288
      1-1,ip),val(4*i,ip),i=1,6)                                         lect-289
       read (mr,1013) ro(1),val(27,ip),val(33,ip),val(28,ip)             lect-290
-      read (mr,1013) val(29,ip),ro(2),val(31,ip),val(33,ip)             lect-291
+      read (mr,1013) val(29,ip),ro(2),val(31,ip),val(32,ip)             lect-291
       if (lo(99)) val(27,ip)=0.d0                                       lect-292
       if (lo(99)) val(31,ip)=0.d0                                       lect-293
       val(25,ip)=ipi(4,ij)                                              lect-294
@@ -3897,7 +3897,7 @@ c output of optical parameters.                                         lect-283
       aleg(2)=bleg(2)                                                   lect-304
       if (lt(5).or.(.not.lo(19))) aleg(2)=bleg(1)                       lect-305
       write (mw,1015) (aleg(i),val(4*i+21,ip),val(4*i+22,ip),ro(i),val(4lect-306
-     1*i+23,ip),val(4*i+24,ip),i=1,2),val(25,ip)                        lect-307
+     1*i+23,ip),val(4*i+24,ip),i=1,2),val(33,ip)                        lect-307
       lo(108)=lo(108).or.val(29,ip).ne.0.d0.or.(lo(109).and.val(19,ip).nlect-308
      1e.0.d0)                                                           lect-309
       w1=dmax1(w1,val(26,ip)+10.d0*val(27,ip),val(30,ip)+10.d0*val(31,iplect-310

@@ -1,9 +1,9 @@
       subroutine gammanorm(Zcomp,Ncomp)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire and Arjan Koning 
+c | Author: Stephane Hilaire and Arjan Koning
 c | Date  : August 5, 2009
-c | Task  : Normalization of gamma ray strength functions 
+c | Task  : Normalization of gamma ray strength functions
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -12,10 +12,10 @@ c
       integer Zcomp,Ncomp,nen,l,irad
       real    Egamma,Tgamma,fstrength,gammaxs
 c
-c We normalize the gamma-ray strength functions by imposing the 
-c condition that the transmission coefficients integrated from zero up 
-c to neutron separation energy are equal to the ratio of the 
-c experimental mean gamma width and mean level spacing for s-wave 
+c We normalize the gamma-ray strength functions by imposing the
+c condition that the transmission coefficients integrated from zero up
+c to neutron separation energy are equal to the ratio of the
+c experimental mean gamma width and mean level spacing for s-wave
 c neutrons.
 c
 c ************** Normalization of transmission coefficients ***********
@@ -35,7 +35,7 @@ c gammax   : number of l-values for gamma multipolarity
 c Tgamma   : gamma transmission coefficient
 c twopi    : 2.*pi
 c fstrength: gamma ray strength function
-c Tjl      : transmission coefficients as a function of particle type, 
+c Tjl      : transmission coefficients as a function of particle type,
 c            energy, spin and l-value
 c
       if (gnorm.eq.-1.) then
@@ -57,8 +57,8 @@ c
 c
 c Photo-absorption cross section
 c
-c xsreac : reaction cross section   
-c gammaxs: function for gamma ray cross sections 
+c xsreac : reaction cross section
+c gammaxs: function for gamma ray cross sections
 c
         xsreac(0,nen)=gammaxs(Zcomp,Ncomp,Egamma)
    10 continue

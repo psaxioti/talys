@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : September 9, 2004
+c | Date  : February 25, 2010
 c | Task  : Transmission coefficients per fission mode
 c +---------------------------------------------------------------------
 c
@@ -24,7 +24,7 @@ c
         i=0
         snew=10.0
         sold=1.0
-   10   if (abs(snew/sold).le.(1.-1.e-2).or.abs(snew/sold).ge.1.+1.e-2)
+   10   if (abs(snew/sold).le.0.99.or.abs(snew/sold).ge.1.01)
      +    then
           sold=snew
           i=i+1

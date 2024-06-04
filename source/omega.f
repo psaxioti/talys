@@ -23,7 +23,7 @@ c h       : hole number
 c gs      : single-particle level density parameter
 c Eex     : excitation energy
 c rJ      : spin
-c surfwell: flag for surface effects in finite well 
+c surfwell: flag for surface effects in finite well
 c RnJ     : spin distribution for particle-hole states
 c phdens  : particle-hole state density
 c Efermi  : depth of Fermi well

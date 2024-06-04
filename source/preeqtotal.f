@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 30, 2008
+c | Date  : March 28, 2010
 c | Task  : Total pre-equilibrium cross sections
 c +---------------------------------------------------------------------
 c
@@ -24,24 +24,28 @@ c Etop        : top of outgoing energy bin
 c nendisc     : last discrete bin
 c p           : particle number
 c p0          : initial particle number
-c maxpar      : maximal particle number   
-c ebegin      : first energy point of energy grid 
+c maxpar      : maximal particle number
+c ebegin      : first energy point of energy grid
 c xssteptot   : preequilibrium cross section per particle type and stage
 c xsstep      : preequilibrium cross section per particle type, stage
 c               and outgoing energy
 c deltaE      : energy bin around outgoing energies
 c xspreeqtot  : preequilibrium cross section per particle type
-c eend        : last energy point of energy grid 
+c eend        : last energy point of energy grid
 c xspreeqtotps: preequilibrium cross section per particle type for
 c               pickup and stripping
 c xspreeqps   : preequilibrium cross section per particle type and
 c               outgoing energy for pickup and stripping
 c xspreeqtotki: preequilibrium cross section per particle type for
-c               knockout and inelastic       
+c               knockout and inelastic
+c xspreeqtotbu: preequilibrium cross section per particle type for
+c               breakup
 c xspreeqki   : preequilibrium cross section per particle type and
-c               outgoing energy for knockout and inelastic              
+c               outgoing energy for knockout and inelastic
+c xspreeqbu   : preequilibrium cross section per particle type and
+c               outgoing energy for breakup
 c xspreeqsum  : total preequilibrium cross section summed over particles
-c xspreeq     : preequilibrium cross section per particle type and 
+c xspreeq     : preequilibrium cross section per particle type and
 c               outgoing energy
 c
 c The pre-equilibrium spectra and spectra per exciton number are summed
@@ -64,7 +68,7 @@ c
      +        deltaE(nen)
    30     continue
           xssteptot(type,p)=xssteptot(type,p)-
-     +      xsstep(type,p,nendisc(type))*frac     
+     +      xsstep(type,p,nendisc(type))*frac
           xspreeqtot(type)=xspreeqtot(type)+xssteptot(type,p)
    20   continue
         do 40 nen=ebegin(type),eend(type)
@@ -72,13 +76,17 @@ c
      +      deltaE(nen)
           xspreeqtotki(type)=xspreeqtotki(type)+xspreeqki(type,nen)*
      +      deltaE(nen)
+          xspreeqtotbu(type)=xspreeqtotbu(type)+xspreeqbu(type,nen)*
+     +      deltaE(nen)
    40   continue
         xspreeqtotps(type)=xspreeqtotps(type)-
      +    xspreeqps(type,nendisc(type))*frac
         xspreeqtotki(type)=xspreeqtotki(type)-
      +    xspreeqki(type,nendisc(type))*frac
+        xspreeqtotbu(type)=xspreeqtotbu(type)-
+     +    xspreeqbu(type,nendisc(type))*frac
         xspreeqtot(type)=xspreeqtot(type)+xspreeqtotps(type)+
-     +    xspreeqtotki(type)
+     +    xspreeqtotki(type)+xspreeqtotbu(type)
         xspreeqsum=xspreeqsum+xspreeqtot(type)
    10 continue
 c
@@ -99,14 +107,14 @@ c
 c
 c ************************* Unitarity condition ************************
 c
-c In line with unitarity, the summed direct + pre-equilibrium cross 
+c In line with unitarity, the summed direct + pre-equilibrium cross
 c section may not exceed the reaction cross section. In these cases,
 c we normalize the results.
 c
 c xsflux        : cross section flux
 c xseps         : limit for cross sections
 c xsdirdiscsum  : total direct cross section
-c xsreacinc     : reaction cross section for incident channel  
+c xsreacinc     : reaction cross section for incident channel
 c xsgrsum       : sum over giant resonance cross sections
 c norm,preeqnorm: preequilibrium normalization factor
 c xspreeqdiscsum: total preequilibrium cross section for discrete states
@@ -117,10 +125,10 @@ c flag2comp     : flag for two-component pre-equilibrium model
 c ppi           : proton particle number
 c ppi0          : initial proton number
 c pnu           : neutron particle number
-c pnu0          : initial neutron number         
+c pnu0          : initial neutron number
 c xsstep2       : two-component preequilibrium cross section
 c flagpespin    : flag for pre-equilibrium spin distribution or compound
-c                 spin distribution for pre-equilibrium cross section  
+c                 spin distribution for pre-equilibrium cross section
 c parity        : parity
 c maxJph        : maximal spin for particle-hole states
 c xspreeqJP     : preequilibrium cross section per particle type,
@@ -139,6 +147,7 @@ c
           xspreeqtot(type)=xspreeqtot(type)*norm
           xspreeqtotps(type)=xspreeqtotps(type)*norm
           xspreeqtotki(type)=xspreeqtotki(type)*norm
+          xspreeqtotbu(type)=xspreeqtotbu(type)*norm
           xspreeqdisctot(type)=xspreeqdisctot(type)*norm
           do 120 p=p0,maxpar
             xssteptot(type,p)=xssteptot(type,p)*norm
@@ -150,6 +159,7 @@ c
             xspreeq(type,nen)=xspreeq(type,nen)*norm
             xspreeqps(type,nen)=xspreeqps(type,nen)*norm
             xspreeqki(type,nen)=xspreeqki(type,nen)*norm
+            xspreeqbu(type,nen)=xspreeqbu(type,nen)*norm
             do 150 p=p0,maxpar
               xsstep(type,p,nen)=xsstep(type,p,nen)*norm
   150       continue
@@ -173,14 +183,14 @@ c
 c
 c **** Add discrete pre-equilibrium contribution to discrete states ****
 c
-c xsdirdisctot: direct cross section summed over discrete states       
-c xsdirdisc   : direct cross section for discrete state 
+c xsdirdisctot: direct cross section summed over discrete states
+c xsdirdisc   : direct cross section for discrete state
 c
       xsdirdiscsum=xsdirdiscsum+xspreeqdiscsum
       do 210 type=0,6
         if (parskip(type)) goto 210
         xsdirdisctot(type)=xsdirdisctot(type)+xspreeqdisctot(type)
-        do 220 i=0,Nlast(parZ(type),parN(type),0)  
+        do 220 i=0,Nlast(parZ(type),parN(type),0)
           xsdirdisc(type,i)=xsdirdisc(type,i)+xspreeqdisc(type,i)
   220   continue
   210 continue

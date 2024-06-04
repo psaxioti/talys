@@ -42,10 +42,10 @@ c excitation energies characteristics
 c        Exinc=Ex(Zcomp,Ncomp,nex) : middle of the bin
 c        Ex0plus=Exinc+0.5*dExinc  : upper limit of the bin
 c        Ex0min=Exinc-0.5*dExinc   : lower limit of the bin
-c with a given ejectile (i.e. we are still within the type loop) in a 
+c with a given ejectile (i.e. we are still within the type loop) in a
 c residual nucleus bin nexout characterised by an excitation energy
-c Exout=Ex(Zix,Nix,nexout) and the bin limits Ex1min 
-c (lower boundary of residual bin) and Ex1plus 
+c Exout=Ex(Zix,Nix,nexout) and the bin limits Ex1min
+c (lower boundary of residual bin) and Ex1plus
 c (upper boundary of residual bin). The corresponding ejectile emission
 c energies have been deduced and are given by the egrid(ieject) values
 c were ieject is between nenbeg and nenend
@@ -56,7 +56,7 @@ c The bin that decays is also described by a distribution of kinetic
 c energies and angles in the LAB frame given by the combination of
 c the elements of the array ddxrec(Zcomp,Ncomp,nex,ierec,iarec) which
 c gives the spectrum as function of the recoil energies ierec and lab
-c angle iarec and the elements of the array 
+c angle iarec and the elements of the array
 c ddxrectot(Zcomp,Ncomp,nex) which gives the integrated cross
 c section distributed over the energy-angular bin. In other words,
 c ddxrectot(Zcomp,Ncomp,nex) is the sum of the elements of
@@ -89,7 +89,7 @@ c
       recoilmass=nucmass(Zix,Nix)*amu
       if (type.ne.0) then
         ratio=recoilmass/(ejectmass*(ejectmass+recoilmass))
-      endif               
+      endif
       compmass=nucmass(Zcomp,Ncomp)*amu
       sumddxr=0.
 c
@@ -103,10 +103,10 @@ c
         fracCMloc(ierec)=0.
         do 120 iarec=0,nanglerec
 c
-c Calculate fraction of the decay having this CM velocity 
+c Calculate fraction of the decay having this CM velocity
 c characteristics (i.e. fracCMloc)
 c
-          if (ddxrectot(Zcomp,Ncomp,nex).gt.0.) 
+          if (ddxrectot(Zcomp,Ncomp,nex).gt.0.)
      +      fracCMloc(ierec)=fracCMloc(ierec)+
      +      ddxrec(Zcomp,Ncomp,nex,ierec,iarec)*
      +      areareclab(Zcomp,Ncomp,ierec,iarec)/
@@ -124,9 +124,9 @@ c
         ierecend=maxenrec
       endif
 c
-c Determine CM outgoing energies corresponding to the decay 
+c Determine CM outgoing energies corresponding to the decay
 c from nex to nexout
-c 
+c
 c Eejcm1     : Lower limit of CM ejectile energy bin
 c Eejcm2     : Upper limit of CM ejectile energy bin
 c dEejcm     : Width of CM ejectile energy bin
@@ -161,7 +161,7 @@ c
             vreccm1=pejcm1/recoilmass
             vreccm2=pejcm2/recoilmass
 c
-c loop over ejectile angles in the CM frame 
+c loop over ejectile angles in the CM frame
 c
 c angejcm1   : Lower value of ejectile CM angle (in degrees)
 c angejcm2   : Upper value of ejectile CM angle (in degrees)
@@ -183,12 +183,12 @@ c
 c EJECTILE and RECOIL TREATMENT
 c
 c
-c The ejectile as well as recoil LAB angles and energies corresponding 
+c The ejectile as well as recoil LAB angles and energies corresponding
 c to the CM points are deduced
 c
 c flaglabddx : flag for calculation of DDX in LAB system
 c Eejlab11   : LAB ejectile energy corresp. to (Eejcm1,angejcm1)
-c cosejlab11 : LAB ejectile angle cosine corresp. to (Eejcm1,angejcm1) 
+c cosejlab11 : LAB ejectile angle cosine corresp. to (Eejcm1,angejcm1)
 c Eejlab12   : LAB ejectile energy corresp. to (Eejcm1,angejcm2)
 c cosejlab12 : LAB ejectile angle cosine corresp. to  (Eejcm1,angejcm2)
 c Eejlab21   : LAB ejectile energy corresp. to (Eejcm2,angejcm1)

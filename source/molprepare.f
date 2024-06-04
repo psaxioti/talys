@@ -2,8 +2,8 @@
      +  product,numtr,numinc)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
-c | Date  : June 19, 2007
+c | Author: Stephane Hilaire
+c | Date  : March 2, 2010
 c | Task  : Preparation of Moldauer width fluctuation correction
 c +---------------------------------------------------------------------
 c
@@ -61,7 +61,7 @@ c
           capt=exp(-expo)
         endif
 c
-c Calculation of product over tjl 
+c Calculation of product over tjl
 c
 c factor,eps,yy,x1   : help variables
 c prod,fxmsqrt,fxmold: help variables
@@ -71,6 +71,7 @@ c
         do 50 i=numinc+1,numtjl
           eps=real(2.*tav(i)*x/(st*vnu(i)))
           yy=real(-vnu(i)*0.5*tjl(0,i))
+          if (eps.le.1.e-30) goto 50
           if (eps.lt.1.e-5) then
             x1=eps-0.5*eps*eps+(eps**3)/3.-0.25*(eps**4)+0.2*(eps**5)
           else

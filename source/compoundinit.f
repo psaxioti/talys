@@ -1,7 +1,7 @@
       subroutine compoundinit
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : July 9, 2004
 c | Task  : Initialization of compound model parameters
 c +---------------------------------------------------------------------
@@ -16,9 +16,9 @@ c
 c spin2  : 2 * spin of particle (usually)
 c parspin: spin of particle
 c
-c For alpha-particles and photons, spin2 is set to 1, to prevent 
+c For alpha-particles and photons, spin2 is set to 1, to prevent
 c division by zero in Hauser-Feshbach routines. This is fine, since in
-c these cases the enumerator in the expression in which spin2 appears 
+c these cases the enumerator in the expression in which spin2 appears
 c is always zero.
 c
       spin2(0)=1
@@ -40,7 +40,7 @@ c ngoep,ngoes,...: number of points for Gauss-Legendre integration
 c xgoep,wgoep,...: variables for Gauss-Legendre integration
 c gauleg         : subroutine for calculation of Gauss-Legendre arrays
 c
-c Generate weight and nodes for Gauss-Legendre/Laguerre integration 
+c Generate weight and nodes for Gauss-Legendre/Laguerre integration
 c
       if (enincmin.le.ewfc) then
         wpower=1
@@ -71,7 +71,7 @@ c
 c
 c ***** Initialization for compound nucleus angular distributions ******
 c
-c flagang: flag for output of angular distributions 
+c flagang: flag for output of angular distributions
 c numfact: number of terms for factorial logarithm
 c logfact: factorial logarithm
 c

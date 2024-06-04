@@ -1,8 +1,8 @@
       subroutine mainout
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : December 21, 2009
+c | Author: Arjan Koning
+c | Date  : December 28, 2011
 c | Task  : Main output
 c +---------------------------------------------------------------------
 c
@@ -13,10 +13,10 @@ c
 c
 c *************************** Code and version *************************
 c
-      write(*,'(/"    TALYS-1.2       (Version: December 21, 2009)"/)')
-      write(*,'(" Copyright (C) 2009  A.J. Koning, S. Hilaire ",
-     +  "and M.C. Duijvestijn")')
-      write(*,'(24x," NRG          CEA              NRG"/)')
+      write(*,'(/"    TALYS-1.4 Version: December 28, 2011)"/)')
+      write(*,'(" Copyright (C) 2011  A.J. Koning, S. Hilaire ",
+     +  "and S. Goriely      ")')
+      write(*,'(24x," NRG          CEA          ULB    "/)')
       write(*,'(" Dimensions - Cross sections: mb, Energies: MeV, ",
      +  "Angles: degrees")')
 c
@@ -42,14 +42,14 @@ c Ltarget    : excited level of target
 c edis       : energy of level
 c jdis       : spin of level
 c cparity    : parity of level (character)
-c parlev     : parity of level 
+c parlev     : parity of level
 c tau        : lifetime of state in seconds
 c parskip    : logical to skip outgoing particle
 c numinc     : number of incident energies
 c flaginitpop: flag for initial population distribution
 c eninc      : incident energy in MeV
 c parsym     : symbol of particle
-c Q          : Q-value for target nucleus 
+c Q          : Q-value for target nucleus
 c flagomponly: flag to execute ONLY an optical model calculation
 c flagcomp   : flag for compound nucleus calculation
 c
@@ -58,14 +58,14 @@ c
       Zix=Zindex(Zcomp,Ncomp,k0)
       Nix=Nindex(Zcomp,Ncomp,k0)
       write(*,'(/" ########## BASIC REACTION PARAMETERS ##########"/)')
-      write(*,'(" Projectile           : ",a8,4x, 
+      write(*,'(" Projectile           : ",a8,4x,
      +  "Mass in a.m.u.      : ",f10.6)') parname(k0),parmass(k0)
-      write(*,'(" Target               : ",i3,a2,7x, 
+      write(*,'(" Target               : ",i3,a2,7x,
      +  "Mass in a.m.u.      : ",f10.6)') Atarget,Starget,tarmass
       if (Ltarget.ne.0) then
         write(*,'(/" Excited target level : Number  Energy  ",
      +    "Spin Parity Lifetime(sec)")')
-        write(*,'(24x,i3,4x,f7.4,2x,f4.1,3x,a1,4x,1p,e10.3)') 
+        write(*,'(24x,i3,4x,f7.4,2x,f4.1,3x,a1,4x,1p,e10.3)')
      +    Ltarget,edis(Zix,Nix,Ltarget),jdis(Zix,Nix,Ltarget),
      +    cparity(parlev(Zix,Nix,Ltarget)),tau(Zix,Nix,Ltarget)
       endif
@@ -80,7 +80,7 @@ c Projectile
 c
       if (.not.flaginitpop) then
         if (numinc.eq.1) then
-          write(*,'(/," 1 incident energy (LAB):"/)') 
+          write(*,'(/," 1 incident energy (LAB):"/)')
         else
           write(*,'(/,1x,i3," incident energies (LAB):"/)') numinc
         endif
@@ -111,7 +111,7 @@ c
             write(*,'(1p,2e10.3)') Exdist(i),Pdistex(i)
   30      continue
         else
-          write(*,'("    Ex ",11("      J=",i2)/)') 
+          write(*,'("    Ex ",11("      J=",i2)/)')
      +      (J,J=0,10)
           do 40 parity=-1,1,2
             do 40 i=1,npopbins
@@ -120,7 +120,7 @@ c
   40      continue
         endif
       endif
-      write(*,'(/" Q-values for binary reactions:"/)') 
+      write(*,'(/" Q-values for binary reactions:"/)')
       do 50 type=0,6
         if (parskip(type)) goto 50
         write(*,'(" Q(",a1,",",a1,"):",f9.5)') parsym(k0),parsym(type),
@@ -135,7 +135,7 @@ c flagdensity  : flag for output of level densities
 c densityout   : subroutine for output of level density parameters
 c flagfisout   : flag for output of fission information
 c fissionparout: subroutine for output for fission parameters
-c strucwrite   : flag for output of nuclear structure info 
+c strucwrite   : flag for output of nuclear structure info
 c
       if (flaglevels) call levelsout(Zix,Nix)
       if (flagdensity) call densityout(Zix,Nix)
@@ -148,6 +148,6 @@ c
         if (flagfisout) call fissionparout(Zcomp,Ncomp)
         strucwrite(Zcomp,Ncomp)=.true.
       endif
-      return 
+      return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

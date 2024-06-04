@@ -1,7 +1,7 @@
       double precision function mliquid1(Z,A)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : December 8, 2005
 c | Task  : Myers-Swiatecki liquid drop mass
 c +---------------------------------------------------------------------
@@ -32,8 +32,8 @@ c deltaP   : pairing energy
 c Eldm     : liquid drop energy
 c amu      : atomic mass unit in MeV
 c
-c Myers-Swiatecki model: Nucl. Phys. 81 (1966) 1. 
-c We use the original M-S parameters, see Mengoni and Nakajima, 
+c Myers-Swiatecki model: Nucl. Phys. 81 (1966) 1.
+c We use the original M-S parameters, see Mengoni and Nakajima,
 c J. Nucl. Sci. Technol.  31[2], p 151 (1994).
 c
       data a1,a2,kappa,c3,c4 /15.677,18.56,1.79,0.717,1.21129/

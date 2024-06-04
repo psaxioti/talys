@@ -1,8 +1,8 @@
       subroutine input5
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : December 7, 2009
+c | Author: Arjan Koning
+c | Date  : December 22, 2011
 c | Task  : Read input for fifth set of variables
 c +---------------------------------------------------------------------
 c
@@ -11,9 +11,10 @@ c
       include "talys.cmb"
       character*1  ch
       character*80 word(40),key,value
-      integer      Zix,Nix,ibar,irad,Z,N,oddZ,oddN,lval,type,mt,igr,i,
-     +             iz,ia,ivalue,type2,omptype,nr
-      real         val
+      integer      Zix,Nix,ibar,irad,Z,N,oddZ,oddN,lval,type,mt,is,igr,
+     +             i,iz,ia,ivalue,type2,omptype,nr,k
+      real         alphaldall,betaldall,gammashell1all,
+     +             Pshiftconstantall,val
 c
 c ************** Defaults for fifth set of input variables *************
 c
@@ -27,30 +28,25 @@ c Rspincut      : adjustable constant (global) for spin cutoff factor
 c spincutmodel  : model for spin cutoff factor for ground state
 c shellmodel    : model for shell correction energies
 c kvibmodel     : model for vibrational enhancement
-c gammashell2   : gamma-constant for asymptotic level density parameter 
+c gammashell2   : gamma-constant for asymptotic level density parameter
 c flagcol       : flag for collective enhancement of level density
 c flagcolldamp  : flag for damping of collective effects in effective
-c                 level density (without explicit collective 
-c                 enhancement). Only used for Bruyeres-le-Chatel 
+c                 level density (without explicit collective
+c                 enhancement). Only used for Bruyeres-le-Chatel
 c                 (Pascal Romain) fission model
-c alphad        : alpha-constant for asymptotic level density parameter
-c betald        : beta-constant for asymptotic level density parameter
-c gammashell1   : gamma-constant for asymptotic level density parameter 
 c pairconstant  : constant for pairing energy systematics
-c ldmodel       : level density model
-c Pshiftconstant: global constant for pairing shift
-c Ufermi        : energy of Fermi distribution for damping of 
+c Ufermi        : energy of Fermi distribution for damping of
 c                 ground-state rotational effects
-c cfermi        : width of Fermi distribution for damping of 
+c cfermi        : width of Fermi distribution for damping of
 c                 ground-state rotational effects
 c Ufermibf      : energy of Fermi distribution for damping of barrier
 c                 rotational effects
 c cfermibf      : width of Fermi distribution for damping of barrier
-c                 rotational effects              
-c Kph           : constant for single-particle level density parameter 
+c                 rotational effects
+c Kph           : constant for single-particle level density parameter
 c                 (g=A/Kph)
 c M2constant    : overall constant for matrix element in exciton model
-c M2limit       : constant for asymptotical value for matrix element
+c M2limit       : constant for asymptotic value for matrix element
 c M2shift       : constant for energy shift for matrix element
 c Rpinu,Rnupi.  : ratio for two-component matrix element
 c Esurf0        : well depth for surface interaction
@@ -60,11 +56,16 @@ c xscaptherm    : thermal capture cross section
 c xsptherm      : thermal (n,p) cross section
 c xsalphatherm  : thermal (n,a) cross section
 c Zix           : charge number index for residual nucleus
-c numZ          : maximal number of protons away from the initial 
+c numZ          : maximal number of protons away from the initial
 c                 compound nucleus
 c Nix           : neutron number index for residual nucleus
-c numN          : maximal number of neutrons away from the initial 
+c numN          : maximal number of neutrons away from the initial
 c                 compound nucleus
+c ldmodel       : level density model
+c alphad        : alpha-constant for asymptotic level density parameter
+c betald        : beta-constant for asymptotic level density parameter
+c gammashell1   : gamma-constant for asymptotic level density parameter
+c Pshiftconstant: global constant for pairing shift
 c alev          : level density parameter
 c alimit        : asymptotic level density parameter
 c gammald       : gamma-constant for asymptotic level density parameter
@@ -79,15 +80,15 @@ c E0            : constant of temperature formula
 c Nlow          : lowest discrete level for temperature matching
 c Ntop          : highest discrete level for temperature matching
 c Krotconstant  : normalization constant for rotational enhancement
-c s2adjust      : adjustable constant (Z,A,barrier-dependent) for spin 
-c                 cutoff parameter      
+c s2adjust      : adjustable constant (Z,A,barrier-dependent) for spin
+c                 cutoff parameter
 c ctable,ptable : constant to adjust tabulated level densities
 c cglobal       : global constant to adjust tabulated level densities
 c pglobal       : global constant to adjust tabulated level densities
 c g             : single-particle level density parameter
 c gp            : single-particle proton level density parameter
 c gn            : single-particle neutron level density parameter
-c gamgam        : experimental total radiative width in eV
+c gamgam        : total radiative width in eV
 c D0            : experimental s-wave resonance spacing in eV
 c S0            : s-wave strength function
 c etable,ftable : constant to adjust tabulated strength functions
@@ -102,35 +103,35 @@ c epr           : energy of PR
 c gpr           : width of PR
 c tpr           : strength of PR
 c fiso          : correction factor for isospin forbidden transitions
-c aadjust....   : adjustable factors for level density parameters 
+c aadjust....   : adjustable factors for level density parameters
 c                 (default 1.)
-c axtype        : type of axiality of barrier 
+c axtype        : type of axiality of barrier
 c                 1: axial symmetry
 c                 2: left-right asymmetry
 c                 3: triaxial and left-right symmetry
 c                 4: triaxial no left-right symmetry
 c                 5: no symmetry
 c fbarrier      : height of fission barrier
-c fwidth        : width of fission barrier 
+c fwidth        : width of fission barrier
 c betafiscor    : adjustable factor for fission path width
 c Zinit         : charge number of initial compound nucleus
 c Ninit         : neutron number of initial compound nucleus
 c vfiscor       : adjustable factor for fission path height
 c fismodel      : fission model
-c Rtransmom     : normalization constant for moment of inertia for 
+c Rtransmom     : normalization constant for moment of inertia for
 c                 transition states
-c Rclass2mom    : normalization constant for moment of inertia for 
+c Rclass2mom    : normalization constant for moment of inertia for
 c                 class 2 states
 c widthc2       : width of class2 states
 c Ninit         : neutron number of initial compound nucleus
 c hbtransfile   : file with head band transition states
 c class2file    : file with class 2 transition states
-c levelfile     : discrete level file   
-c deformfile    : deformation parameter file   
+c levelfile     : discrete level file
+c deformfile    : deformation parameter file
 c optmodfileN   : optical model parameter file for neutrons
 c optmodfileP   : optical model parameter file for protons
 c radialfile    : radial matter density file
-c ompenergyfile : file with energies for OMP calculation (ENDF files 
+c ompenergyfile : file with energies for OMP calculation (ENDF files
 c                 only)
 c radialmodel   : model for radial matter densities (JLM OMP only)
 c massnucleus   : mass of nucleus in amu as read from user input file
@@ -140,6 +141,7 @@ c msdbins       : number of energy points for DWBA calculation for MSD
 c Emsdmin       : minimal outgoing energy for MSD calculation
 c Cstrip        : adjustable parameter for stripping/pick-up reactions
 c Cknock        : adjustable parameter for knockout reactions
+c Cbreak        : adjustable parameter for breakup reactions
 c v1adjust....  : adjustable factors for OMP (default 1.)
 c ompadjustF    : logical for local OMP adjustment
 c ompadjustN    : number of energy ranges for local OMP adjustment
@@ -150,10 +152,17 @@ c ompadjusts    : variance of local OMP adjustment
 c jlmmode       : option for JLM imaginary potential normalization
 c flagrescue    : flag for final rescue: normalization to data
 c rescuefile    : file with incident energy dependent adjustment factors
-c grescue       : global multiplication factor for incident energy 
+c grescue       : global multiplication factor for incident energy
 c                 dependent adjustment factors
 c flaglabddx    : flag for calculation of DDX in LAB system
+c aradialcor    : adjustable parameter for shape of DF alpha potential
+c adepthcor     : adjustable parameter for depth of DF alpha potential
 c nanglerec     : number of recoil angles
+c RprimeU       : potential scattering radius
+c nTmax         : effective number of temperatures for Maxwellian 
+c                 average
+c astroT9       : temperature, in 10^9 K, for Maxwellian average
+c astroE        : energy, in MeV, for Maxwellian average
 c
       if (k0.eq.1.and.flagendf) then
         eninclow=0.
@@ -163,7 +172,7 @@ c
 c
 c Advice of S. Goriely: no gamma normalization for A < 40.
 c
-      if (k0.ne.1.or.Atarget.lt.40.or.strength.eq.3.or.strength.eq.4) 
+      if (k0.ne.1.or.Atarget.lt.40.or.strength.eq.3.or.strength.eq.4)
      +  then
         gnorm=1.
       else
@@ -174,58 +183,6 @@ c
       shellmodel=1
       kvibmodel=2
       gammashell2=0.
-c
-c Level density systematics 
-c
-c ldmodel 1: Gilbert and Cameron
-c ldmodel 2: Back-shifted Fermi gas
-c ldmodel 3: Superfluid model
-c
-      if (ldmodel.eq.1.or.ldmodel.ge.4) then
-        if (flagcol) then
-          alphald=0.0207305
-          betald=0.229537
-          gammashell1=0.473625
-          Pshiftconstant=0.
-        else
-          alphald=0.0692559
-          betald=0.282769
-          gammashell1=0.433090
-          Pshiftconstant=0.
-        endif                              
-        if (flagcolldamp) then
-          alphald=0.0666
-          betald=0.258
-          gammashell1=0.459
-          Pshiftconstant=0.
-        endif
-      endif                              
-      if (ldmodel.eq.2) then
-        if (flagcol) then
-          alphald=0.0381563
-          betald=0.105378
-          gammashell1=0.546474
-          Pshiftconstant=0.743229
-        else
-          alphald=0.0722396
-          betald=0.195267
-          gammashell1=0.410289
-          Pshiftconstant=0.173015
-        endif                              
-      endif                              
-      if (ldmodel.eq.3) then
-        if (flagcol) then
-          alphald=0.0357750
-          betald=0.135307
-          gammashell1=0.699663
-          Pshiftconstant=-0.149106
-        else
-          alphald=0.110575
-          betald=0.0313662
-          gammashell1=0.648723
-          Pshiftconstant=1.13208
-        endif                              
-      endif                              
       pairconstant=12.
       Ufermi=30.
       cfermi=5.
@@ -245,8 +202,57 @@ c
       xscaptherm=0.
       xsptherm=0.
       xsalphatherm=0.
+      alphaldall=-99.
+      betaldall=-99.
+      gammashell1all=-99.
+      Pshiftconstantall=-99.
       do 10 Zix=0,numZ
         do 20 Nix=0,numN
+          if (ldmodel(Zix,Nix).eq.1.or.ldmodel(Zix,Nix).ge.4) then
+            if (flagcol(Zix,Nix)) then
+              alphald(Zix,Nix)=0.0207305
+              betald(Zix,Nix)=0.229537
+              gammashell1(Zix,Nix)=0.473625
+              Pshiftconstant(Zix,Nix)=0.
+            else
+              alphald(Zix,Nix)=0.0692559
+              betald(Zix,Nix)=0.282769
+              gammashell1(Zix,Nix)=0.433090
+              Pshiftconstant(Zix,Nix)=0.
+            endif
+            if (flagcolldamp) then
+              alphald(Zix,Nix)=0.0666
+              betald(Zix,Nix)=0.258
+              gammashell1(Zix,Nix)=0.459
+              Pshiftconstant(Zix,Nix)=0.
+            endif
+          endif
+          if (ldmodel(Zix,Nix).eq.2) then
+            if (flagcol(Zix,Nix)) then
+              alphald(Zix,Nix)=0.0381563
+              betald(Zix,Nix)=0.105378
+              gammashell1(Zix,Nix)=0.546474
+              Pshiftconstant(Zix,Nix)=0.743229
+            else
+              alphald(Zix,Nix)=0.0722396
+              betald(Zix,Nix)=0.195267
+              gammashell1(Zix,Nix)=0.410289
+              Pshiftconstant(Zix,Nix)=0.173015
+            endif
+          endif
+          if (ldmodel(Zix,Nix).eq.3) then
+            if (flagcol(Zix,Nix)) then
+              alphald(Zix,Nix)=0.0357750
+              betald(Zix,Nix)=0.135307
+              gammashell1(Zix,Nix)=0.699663
+              Pshiftconstant(Zix,Nix)=-0.149106
+            else
+              alphald(Zix,Nix)=0.110575
+              betald(Zix,Nix)=0.0313662
+              gammashell1(Zix,Nix)=0.648723
+              Pshiftconstant(Zix,Nix)=1.13208
+            endif
+          endif
           alev(Zix,Nix)=0.
           alimit(Zix,Nix)=0.
           gammald(Zix,Nix)=-1.
@@ -263,7 +269,7 @@ c
             Krotconstant(Zix,Nix,ibar)=1.
             ctable(Zix,Nix,ibar)=cglobal
             ptable(Zix,Nix,ibar)=pglobal
-   30     continue     
+   30     continue
           g(Zix,Nix)=0.
           gp(Zix,Nix)=0.
           gn(Zix,Nix)=0.
@@ -281,7 +287,7 @@ c
                 epr(Zix,Nix,irad,lval)=0.
                 gpr(Zix,Nix,irad,lval)=0.
                 tpr(Zix,Nix,irad,lval)=0.
-   40     continue     
+   40     continue
           do type=0,6
             fiso(Zix,Nix,type)=1.
           enddo
@@ -308,7 +314,7 @@ c
             Rtransmom(Zix,Nix,ibar)=1.
             Rclass2mom(Zix,Nix,ibar)=1.
             widthc2(Zix,Nix,ibar)=0.2
-   50     continue     
+   50     continue
           betafiscor(Zix,Nix)=1.
           Z=Zinit-Zix
           N=Ninit-Nix
@@ -324,14 +330,14 @@ c
           if (fismodel.ne.5) axtype(Zix,Nix,2)=2
           Rtransmom(Zix,Nix,1)=0.6
           hbtransfile(Zix,Nix)='                                       '
-          class2file(Zix,Nix)='                                        '
-   20   continue     
+          clas2file(Zix,Nix)='                                         '
+   20   continue
         levelfile(Zix)='                                               '
         deformfile(Zix)='                                              '
         optmodfileN(Zix)='                                            '
         optmodfileP(Zix)='                                            '
         radialfile(Zix)='                                              '
-   10 continue     
+   10 continue
       ompenergyfile='                                            '
       radialmodel=2
       do 60 Zix=0,numZ+4
@@ -341,14 +347,15 @@ c
           beta2(Zix,Nix,0)=0.
           beta2(Zix,Nix,1)=0.6
           beta2(Zix,Nix,2)=0.8
-          beta2(Zix,Nix,3)=1. 
-   60 continue     
+          beta2(Zix,Nix,3)=1.
+   60 continue
       msdbins=6
       Emsdmin=0.
       do 70 type=0,6
         Cstrip(type)=1.
         Cknock(type)=1.
-   70 continue     
+        Cbreak(type)=1.
+   70 continue
       do 80 type=1,6
         v1adjust(type)=1.
         v2adjust(type)=1.
@@ -358,36 +365,44 @@ c
         avadjust(type)=1.
         w1adjust(type)=1.
         w2adjust(type)=1.
+        rwadjust(type)=-1.
+        awadjust(type)=-1.
+        rvdadjust(type)=-1.
+        avdadjust(type)=-1.
         d1adjust(type)=1.
         d2adjust(type)=1.
         d3adjust(type)=1.
-        rvdadjust(type)=1.
-        avdadjust(type)=1.
+        rwdadjust(type)=1.
+        awdadjust(type)=1.
         vso1adjust(type)=1.
         vso2adjust(type)=1.
         rvsoadjust(type)=1.
         avsoadjust(type)=1.
         wso1adjust(type)=1.
         wso2adjust(type)=1.
+        rwsoadjust(type)=-1.
+        awsoadjust(type)=-1.
         rcadjust(type)=1.
-        do 90 omptype=1,6
+        do 90 omptype=1,12
           ompadjustN(type,omptype)=0
           do 92 nr=1,numrange
             ompadjustE1(type,omptype,nr)=0.
             ompadjustE2(type,omptype,nr)=0.
             ompadjustD(type,omptype,nr)=1.
             ompadjusts(type,omptype,nr)=1.
-   92     continue     
-   90   continue     
-   80 continue     
-      do 94 omptype=1,6
-        ompadjustF(omptype)=.false.
-   94 continue     
+   92     continue
+   90   continue
+   80 continue
+      do 94 type=1,6
+        ompadjustF(type)=.false.
+   94 continue
       flagrescue=.false.
       do 100 mt=1,nummt
-        rescuefile(mt)='                                             '
-        grescue(mt)=1.
-  100 continue     
+        do 105 is=-1,1
+          rescuefile(mt,is)='                                          '
+          grescue(mt,is)=1.
+  105   continue
+  100 continue
       jlmmode=0
       lvadjust=1.
       lwadjust=1.
@@ -395,18 +410,24 @@ c
       lw1adjust=1.
       lvsoadjust=1.
       lwsoadjust=1.
+      aradialcor=1.
+      adepthcor=1.
       if (flaglabddx) then
         nanglerec=numangrec
       else
         nanglerec=1
       endif
+      RprimeU=0.
+      nTmax=numT
+      astroT9=0.
+      astroE=0.
 c
 c **************** Read fifth set of input variables *******************
 c
 c nlines     : number of input lines
-c getkeywords: subroutine to retrieve keywords and values from input 
+c getkeywords: subroutine to retrieve keywords and values from input
 c              line
-c inline     : input line                 
+c inline     : input line
 c word       : words on input line
 c key        : keyword
 c value      : value or string
@@ -430,8 +451,8 @@ c require more computation (e.g. level density parameters).
 c
 c iz    : charge number
 c ia    : mass number
-c val   : help variable 
-c ivalue: help variable 
+c val   : help variable
+c ivalue: help variable
 c
         if (key.eq.'elow') then
           read(value,*,end=1000,err=1000) eninclow
@@ -441,7 +462,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -454,7 +475,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -467,7 +488,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -480,7 +501,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -493,7 +514,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -506,7 +527,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -520,7 +541,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -536,7 +557,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -552,7 +573,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -568,7 +589,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -584,7 +605,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -600,7 +621,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) ivalue
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -616,7 +637,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) ivalue
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -632,7 +653,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -648,7 +669,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -664,7 +685,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -680,7 +701,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -695,7 +716,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -708,7 +729,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -721,7 +742,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -735,7 +756,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -759,7 +780,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -783,7 +804,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -848,7 +869,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -877,7 +898,7 @@ c
           read(word(3),*,end=1000,err=1000) iz
           read(word(4),*,end=1000,err=1000) ia
           read(word(5),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -890,7 +911,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -903,7 +924,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -916,7 +937,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -929,7 +950,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -942,7 +963,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -955,7 +976,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -968,7 +989,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -981,7 +1002,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -994,7 +1015,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -1018,7 +1039,7 @@ c
   220       fbarrier(Zix,Nix,ibar)=val
           endif
           goto 110
-        endif                   
+        endif
         if (key.eq.'fishw') then
           ibar=1
           read(word(2),*,end=1000,err=1000) iz
@@ -1034,7 +1055,7 @@ c
   230       fwidth(Zix,Nix,ibar)=val
           endif
           goto 110
-        endif                   
+        endif
         if (key.eq.'rtransmom') then
           ibar=1
           read(word(2),*,end=1000,err=1000) iz
@@ -1050,7 +1071,7 @@ c
   240       Rtransmom(Zix,Nix,ibar)=val
           endif
           goto 110
-        endif                   
+        endif
         if (key.eq.'rclass2mom') then
           ibar=1
           read(word(2),*,end=1000,err=1000) iz
@@ -1066,7 +1087,7 @@ c
   250       Rclass2mom(Zix,Nix,ibar)=val
           endif
           goto 110
-        endif                   
+        endif
         if (key.eq.'class2width') then
           ibar=1
           read(word(2),*,end=1000,err=1000) iz
@@ -1082,7 +1103,7 @@ c
   260       widthc2(Zix,Nix,ibar)=val
           endif
           goto 110
-        endif                   
+        endif
         if (key.eq.'levelfile') then
           read(word(2),*,end=1000,err=1000) iz
           Zix=Zinit-iz
@@ -1092,7 +1113,7 @@ c
             levelfile(Zix)=word(3)
             goto 110
           endif
-        endif                   
+        endif
         if (key.eq.'deformfile') then
           read(word(2),*,end=1000,err=1000) iz
           Zix=Zinit-iz
@@ -1102,7 +1123,7 @@ c
             deformfile(Zix)=word(3)
             goto 110
           endif
-        endif                   
+        endif
         if (key.eq.'hbtransfile') then
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
@@ -1114,7 +1135,7 @@ c
             hbtransfile(Zix,Nix)=word(4)
             goto 110
           endif
-        endif                   
+        endif
         if (key.eq.'class2file') then
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
@@ -1123,10 +1144,10 @@ c
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
           else
-            class2file(Zix,Nix)=word(4)
+            clas2file(Zix,Nix)=word(4)
             goto 110
           endif
-        endif                   
+        endif
         if (key.eq.'optmodfilen') then
           read(word(2),*,end=1000,err=1000) iz
           Zix=Zinit-iz
@@ -1136,7 +1157,7 @@ c
             optmodfileN(Zix)=word(3)
             goto 110
           endif
-        endif                   
+        endif
         if (key.eq.'optmodfilep') then
           read(word(2),*,end=1000,err=1000) iz
           Zix=Zinit-iz
@@ -1146,7 +1167,7 @@ c
             optmodfileP(Zix)=word(3)
             goto 110
           endif
-        endif                   
+        endif
         if (key.eq.'radialfile') then
           read(word(2),*,end=1000,err=1000) iz
           Zix=Zinit-iz
@@ -1156,17 +1177,17 @@ c
             radialfile(Zix)=word(3)
             goto 110
           endif
-        endif                   
+        endif
         if (key.eq.'ompenergyfile') then
           ompenergyfile=value
           goto 110
-        endif                   
+        endif
         if (key.eq.'beta2') then
           ibar=0
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -1182,7 +1203,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) ivalue
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -1197,7 +1218,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -1210,7 +1231,7 @@ c
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
           read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz   
+          Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
             goto 1040
@@ -1239,6 +1260,17 @@ c
   310     continue
           goto 1000
   320     read(word(3),*,end=1000,err=1000) Cknock(type2)
+          goto 110
+        endif
+        if (key.eq.'cbreak') then
+          do 322 type=0,6
+            if (ch.eq.parsym(type)) then
+              type2=type
+              goto 324
+            endif
+  322     continue
+          goto 1000
+  324     read(word(3),*,end=1000,err=1000) Cbreak(type2)
           goto 110
         endif
         if (key.eq.'v1adjust') then
@@ -1329,7 +1361,7 @@ c
   480     read(word(3),*,end=1000,err=1000) w2adjust(type2)
           goto 110
         endif
-        if (key.eq.'d1adjust') then
+        if (key.eq.'rwadjust') then
           do 490 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
@@ -1337,10 +1369,10 @@ c
             endif
   490     continue
           goto 1000
-  500     read(word(3),*,end=1000,err=1000) d1adjust(type2)
+  500     read(word(3),*,end=1000,err=1000) rwadjust(type2)
           goto 110
         endif
-        if (key.eq.'d2adjust') then
+        if (key.eq.'awadjust') then
           do 510 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
@@ -1348,10 +1380,10 @@ c
             endif
   510     continue
           goto 1000
-  520     read(word(3),*,end=1000,err=1000) d2adjust(type2)
+  520     read(word(3),*,end=1000,err=1000) awadjust(type2)
           goto 110
         endif
-        if (key.eq.'d3adjust') then
+        if (key.eq.'rvdadjust') then
           do 530 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
@@ -1359,10 +1391,10 @@ c
             endif
   530     continue
           goto 1000
-  540     read(word(3),*,end=1000,err=1000) d3adjust(type2)
+  540     read(word(3),*,end=1000,err=1000) rvdadjust(type2)
           goto 110
         endif
-        if (key.eq.'rvsoadjust') then
+        if (key.eq.'avdadjust') then
           do 550 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
@@ -1370,32 +1402,32 @@ c
             endif
   550     continue
           goto 1000
-  560     read(word(3),*,end=1000,err=1000) rvsoadjust(type2)
+  560     read(word(3),*,end=1000,err=1000) avdadjust(type2)
           goto 110
         endif
-        if (key.eq.'avsoadjust') then
+        if (key.eq.'rwdadjust') then
           do 570 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
-              goto 580
+              goto  580
             endif
   570     continue
           goto 1000
-  580     read(word(3),*,end=1000,err=1000) avsoadjust(type2)
+  580     read(word(3),*,end=1000,err=1000) rwdadjust(type2)
           goto 110
         endif
-        if (key.eq.'rvdadjust') then
+        if (key.eq.'awdadjust') then
           do 590 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
-              goto  600
+              goto 600
             endif
   590     continue
           goto 1000
-  600     read(word(3),*,end=1000,err=1000) rvdadjust(type2)
+  600     read(word(3),*,end=1000,err=1000) awdadjust(type2)
           goto 110
         endif
-        if (key.eq.'avdadjust') then
+        if (key.eq.'d1adjust') then
           do 610 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
@@ -1403,10 +1435,10 @@ c
             endif
   610     continue
           goto 1000
-  620     read(word(3),*,end=1000,err=1000) avdadjust(type2)
+  620     read(word(3),*,end=1000,err=1000) d1adjust(type2)
           goto 110
         endif
-        if (key.eq.'vso1adjust') then
+        if (key.eq.'d2adjust') then
           do 630 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
@@ -1414,10 +1446,10 @@ c
             endif
   630     continue
           goto 1000
-  640     read(word(3),*,end=1000,err=1000) vso1adjust(type2)
+  640     read(word(3),*,end=1000,err=1000) d2adjust(type2)
           goto 110
         endif
-        if (key.eq.'vso2adjust') then
+        if (key.eq.'d3adjust') then
           do 650 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
@@ -1425,10 +1457,10 @@ c
             endif
   650     continue
           goto 1000
-  660     read(word(3),*,end=1000,err=1000) vso2adjust(type2)
+  660     read(word(3),*,end=1000,err=1000) d3adjust(type2)
           goto 110
         endif
-        if (key.eq.'wso1adjust') then
+        if (key.eq.'rvsoadjust') then
           do 670 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
@@ -1436,10 +1468,10 @@ c
             endif
   670     continue
           goto 1000
-  680     read(word(3),*,end=1000,err=1000) wso1adjust(type2)
+  680     read(word(3),*,end=1000,err=1000) rvsoadjust(type2)
           goto 110
         endif
-        if (key.eq.'wso2adjust') then
+        if (key.eq.'avsoadjust') then
           do 690 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
@@ -1447,10 +1479,10 @@ c
             endif
   690     continue
           goto 1000
-  700     read(word(3),*,end=1000,err=1000) wso2adjust(type2)
+  700     read(word(3),*,end=1000,err=1000) avsoadjust(type2)
           goto 110
         endif
-        if (key.eq.'rcadjust') then
+        if (key.eq.'vso1adjust') then
           do 710 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
@@ -1458,18 +1490,10 @@ c
             endif
   710     continue
           goto 1000
-  720     read(word(3),*,end=1000,err=1000) rcadjust(type2)
+  720     read(word(3),*,end=1000,err=1000) vso1adjust(type2)
           goto 110
         endif
-        if (key.eq.'rvadjustf'.or.key.eq.'avadjustf'.or.
-     +    key.eq.'rwdadjustf'.or.key.eq.'awdadjustf'.or.
-     +    key.eq.'rvsoadjustf'.or.key.eq.'avsoadjustf') then
-          if (key.eq.'rvadjustf') omptype=1
-          if (key.eq.'avadjustf') omptype=2
-          if (key.eq.'rwdadjustf') omptype=3
-          if (key.eq.'awdadjustf') omptype=4
-          if (key.eq.'rvsoadjustf') omptype=5
-          if (key.eq.'avsoadjustf') omptype=6
+        if (key.eq.'vso2adjust') then
           do 730 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
@@ -1477,12 +1501,95 @@ c
             endif
   730     continue
           goto 1000
-  740     ompadjustF(type2)=.true.
+  740     read(word(3),*,end=1000,err=1000) vso2adjust(type2)
+          goto 110
+        endif
+        if (key.eq.'rwsoadjust') then
+          do 750 type=1,6
+            if (ch.eq.parsym(type)) then
+              type2=type
+              goto 760
+            endif
+  750     continue
+          goto 1000
+  760     read(word(3),*,end=1000,err=1000) rwsoadjust(type2)
+          goto 110
+        endif
+        if (key.eq.'awsoadjust') then
+          do 770 type=1,6
+            if (ch.eq.parsym(type)) then
+              type2=type
+              goto 780
+            endif
+  770     continue
+          goto 1000
+  780     read(word(3),*,end=1000,err=1000) awsoadjust(type2)
+          goto 110
+        endif
+        if (key.eq.'wso1adjust') then
+          do 790 type=1,6
+            if (ch.eq.parsym(type)) then
+              type2=type
+              goto 800
+            endif
+  790     continue
+          goto 1000
+  800     read(word(3),*,end=1000,err=1000) wso1adjust(type2)
+          goto 110
+        endif
+        if (key.eq.'wso2adjust') then
+          do 810 type=1,6
+            if (ch.eq.parsym(type)) then
+              type2=type
+              goto 820
+            endif
+  810     continue
+          goto 1000
+  820     read(word(3),*,end=1000,err=1000) wso2adjust(type2)
+          goto 110
+        endif
+        if (key.eq.'rcadjust') then
+          do 830 type=1,6
+            if (ch.eq.parsym(type)) then
+              type2=type
+              goto 840
+            endif
+  830     continue
+          goto 1000
+  840     read(word(3),*,end=1000,err=1000) rcadjust(type2)
+          goto 110
+        endif
+        if (key.eq.'rvadjustf'.or.key.eq.'avadjustf'.or.
+     +    key.eq.'rwadjustf'.or.key.eq.'awadjustf'.or.
+     +    key.eq.'rvdadjustf'.or.key.eq.'avdadjustf'.or.
+     +    key.eq.'rwdadjustf'.or.key.eq.'awdadjustf'.or.
+     +    key.eq.'rvsoadjustf'.or.key.eq.'avsoadjustf'.or.
+     +    key.eq.'rwsoadjustf'.or.key.eq.'awsoadjustf') then
+          if (key.eq.'rvadjustf') omptype=1
+          if (key.eq.'avadjustf') omptype=2
+          if (key.eq.'rwadjustf') omptype=3
+          if (key.eq.'awadjustf') omptype=4
+          if (key.eq.'rvdadjustf') omptype=5
+          if (key.eq.'avdadjustf') omptype=6
+          if (key.eq.'rwdadjustf') omptype=7
+          if (key.eq.'awdadjustf') omptype=8
+          if (key.eq.'rvsoadjustf') omptype=9
+          if (key.eq.'avsoadjustf') omptype=10
+          if (key.eq.'rwsoadjustf') omptype=11
+          if (key.eq.'awsoadjustf') omptype=12
+          do 850 type=1,6
+            if (ch.eq.parsym(type)) then
+              type2=type
+              goto 860
+            endif
+  850     continue
+          goto 1000
+  860     ompadjustF(type2)=.true.
           ompadjustN(type2,omptype)=ompadjustN(type2,omptype)+1
           nr=ompadjustN(type2,omptype)
-          read(word(3),*,end=1000,err=1000) 
+          read(word(3),*,end=1000,err=1000)
      +      ompadjustE1(type2,omptype,nr)
-          read(word(4),*,end=1000,err=1000) 
+          read(word(4),*,end=1000,err=1000)
      +      ompadjustE2(type2,omptype,nr)
           read(word(5),*,end=1000,err=1000) ompadjustD(type2,omptype,nr)
           read(word(6),*,end=110,err=1000) ompadjusts(type2,omptype,nr)
@@ -1490,10 +1597,22 @@ c
         endif
         if (key.eq.'rescuefile') then
           read(word(2),*,end=1000,err=1000) mt
-          rescuefile(mt)=word(3)
+          if (mt.lt.1.or.mt.gt.nummt) goto 1050
+          is=-1
+          do 870 k=1,71
+            if (word(3)(k:k+1).eq.'_g') then
+              is=0
+              goto 880
+            endif
+            if (word(3)(k:k+1).eq.'_m') then
+              is=1
+              goto 880
+            endif
+  870     continue
+  880     rescuefile(mt,is)=word(3)
           val=1.
-          read(word(4),*,end=750,err=1000) val
-  750     grescue(mt)=val
+          read(word(4),*,end=890,err=1000) val
+  890     grescue(mt,is)=val
           flagrescue=.true.
           goto 110
         endif
@@ -1502,63 +1621,71 @@ c
           goto 110
         endif
         if (key.eq.'lvadjust') then
-          read(value,*,end=1000,err=1000) lvadjust 
+          read(value,*,end=1000,err=1000) lvadjust
           goto 110
         endif
         if (key.eq.'lwadjust') then
-          read(value,*,end=1000,err=1000) lwadjust 
+          read(value,*,end=1000,err=1000) lwadjust
           goto 110
         endif
         if (key.eq.'lv1adjust') then
-          read(value,*,end=1000,err=1000) lv1adjust 
+          read(value,*,end=1000,err=1000) lv1adjust
           goto 110
         endif
         if (key.eq.'lw1adjust') then
-          read(value,*,end=1000,err=1000) lw1adjust 
+          read(value,*,end=1000,err=1000) lw1adjust
           goto 110
         endif
         if (key.eq.'lvsoadjust') then
-          read(value,*,end=1000,err=1000) lvsoadjust 
+          read(value,*,end=1000,err=1000) lvsoadjust
           goto 110
         endif
         if (key.eq.'lwsoadjust') then
-          read(value,*,end=1000,err=1000) lwsoadjust 
+          read(value,*,end=1000,err=1000) lwsoadjust
+          goto 110
+        endif
+        if (key.eq.'aradialcor') then
+          read(value,*,end=1000,err=1000) aradialcor
+          goto 110
+        endif
+        if (key.eq.'adepthcor') then
+          read(value,*,end=1000,err=1000) adepthcor
           goto 110
         endif
         if (key.eq.'gnorm') then
-          read(value,*,end=1000,err=1000) gnorm 
+          read(value,*,end=1000,err=1000) gnorm
           goto 110
         endif
         if (key.eq.'spincutmodel') then
-          read(value,*,end=1000,err=1000) spincutmodel 
+          read(value,*,end=1000,err=1000) spincutmodel
           goto 110
         endif
         if (key.eq.'shellmodel') then
-          read(value,*,end=1000,err=1000) shellmodel 
+          read(value,*,end=1000,err=1000) shellmodel
           goto 110
         endif
         if (key.eq.'kvibmodel') then
-          read(value,*,end=1000,err=1000) kvibmodel 
+          read(value,*,end=1000,err=1000) kvibmodel
           goto 110
         endif
         if (key.eq.'radialmodel') then
-          read(value,*,end=1000,err=1000) radialmodel 
+          read(value,*,end=1000,err=1000) radialmodel
           goto 110
         endif
         if (key.eq.'rspincut') then
-          read(value,*,end=1000,err=1000) Rspincut 
+          read(value,*,end=1000,err=1000) Rspincut
           goto 110
         endif
         if (key.eq.'alphald') then
-          read(value,*,end=1000,err=1000) alphald 
+          read(value,*,end=1000,err=1000) alphaldall
           goto 110
         endif
         if (key.eq.'betald') then
-          read(value,*,end=1000,err=1000) betald 
+          read(value,*,end=1000,err=1000) betaldall
           goto 110
         endif
         if (key.eq.'gammashell1') then
-          read(value,*,end=1000,err=1000) gammashell1
+          read(value,*,end=1000,err=1000) gammashell1all
           goto 110
         endif
         if (key.eq.'gammashell2') then
@@ -1570,55 +1697,55 @@ c
           goto 110
         endif
         if (key.eq.'pshiftconstant') then
-          read(value,*,end=1000,err=1000) Pshiftconstant
+          read(value,*,end=1000,err=1000) Pshiftconstantall
           goto 110
         endif
         if (key.eq.'ufermi') then
-          read(value,*,end=1000,err=1000) Ufermi 
+          read(value,*,end=1000,err=1000) Ufermi
           goto 110
         endif
         if (key.eq.'cfermi') then
-          read(value,*,end=1000,err=1000) cfermi 
+          read(value,*,end=1000,err=1000) cfermi
           goto 110
         endif
         if (key.eq.'ufermibf') then
-          read(value,*,end=1000,err=1000) Ufermibf 
+          read(value,*,end=1000,err=1000) Ufermibf
           goto 110
         endif
         if (key.eq.'cfermibf') then
-          read(value,*,end=1000,err=1000) cfermibf 
+          read(value,*,end=1000,err=1000) cfermibf
           goto 110
         endif
         if (key.eq.'kph') then
-          read(value,*,end=1000,err=1000) Kph 
+          read(value,*,end=1000,err=1000) Kph
           goto 110
         endif
         if (key.eq.'m2constant') then
-          read(value,*,end=1000,err=1000) M2constant 
+          read(value,*,end=1000,err=1000) M2constant
           goto 110
         endif
         if (key.eq.'m2limit') then
-          read(value,*,end=1000,err=1000) M2limit 
+          read(value,*,end=1000,err=1000) M2limit
           goto 110
         endif
         if (key.eq.'m2shift') then
-          read(value,*,end=1000,err=1000) M2shift 
+          read(value,*,end=1000,err=1000) M2shift
           goto 110
         endif
         if (key.eq.'rpipi') then
-          read(value,*,end=1000,err=1000) Rpipi 
+          read(value,*,end=1000,err=1000) Rpipi
           goto 110
         endif
         if (key.eq.'rnunu') then
-          read(value,*,end=1000,err=1000) Rnunu 
+          read(value,*,end=1000,err=1000) Rnunu
           goto 110
         endif
         if (key.eq.'rpinu') then
-          read(value,*,end=1000,err=1000) Rpinu 
+          read(value,*,end=1000,err=1000) Rpinu
           goto 110
         endif
         if (key.eq.'rnupi') then
-          read(value,*,end=1000,err=1000) Rnupi 
+          read(value,*,end=1000,err=1000) Rnupi
           goto 110
         endif
         if (key.eq.'esurf') then
@@ -1626,41 +1753,107 @@ c
           goto 110
         endif
         if (key.eq.'rgamma') then
-          read(value,*,end=1000,err=1000) Rgamma 
+          read(value,*,end=1000,err=1000) Rgamma
           goto 110
         endif
         if (key.eq.'msdbins')  then
-          read(value,*,end=1000,err=1000) msdbins          
+          read(value,*,end=1000,err=1000) msdbins
           goto 110
         endif
         if (key.eq.'emsdmin')  then
-          read(value,*,end=1000,err=1000) Emsdmin          
+          read(value,*,end=1000,err=1000) Emsdmin
           goto 110
         endif
         if (key.eq.'elwidth')  then
-          read(value,*,end=1000,err=1000) elwidth          
+          read(value,*,end=1000,err=1000) elwidth
           goto 110
         endif
         if (key.eq.'xscaptherm')  then
-          read(value,*,end=1000,err=1000) xscaptherm          
+          read(value,*,end=1000,err=1000) xscaptherm
           goto 110
         endif
         if (key.eq.'xsptherm')  then
-          read(value,*,end=1000,err=1000) xsptherm          
+          read(value,*,end=1000,err=1000) xsptherm
           goto 110
         endif
         if (key.eq.'xsalphatherm')  then
-          read(value,*,end=1000,err=1000) xsalphatherm          
+          read(value,*,end=1000,err=1000) xsalphatherm
           goto 110
         endif
         if (key.eq.'anglesrec')  then
           read(value,*,end=1000,err=1000) nanglerec
           goto 110
         endif
+        if (key.eq.'rprime')  then
+          read(value,*,end=1000,err=1000) RprimeU
+          goto 110
+        endif
+        if (key.eq.'astrot')  then
+          read(value,*,end=1000,err=1000) astroT9
+          nTmax=1
+          flagastro=.true.
+          goto 110
+        endif
+        if (key.eq.'astroe')  then
+          read(value,*,end=1000,err=1000) astroE
+          nTmax=1
+          flagastro=.true.
+          flagastrogs=.true.
+          goto 110
+        endif
         goto 110
  1040   write(*,'(" TALYS-warning: Z,N index out of range,",
      +    " keyword ignored: ",a80)') inline(i)
   110 continue
+c
+c Set level density parameters per nucleus
+c
+      if (alphaldall.ne.-99.) then
+        do 910 Nix=0,numN
+          do 910 Zix=0,numZ
+            alphald(Zix,Nix)=alphaldall
+  910   continue
+      endif
+      if (betaldall.ne.-99.) then
+        do 920 Nix=0,numN
+          do 920 Zix=0,numZ
+            betald(Zix,Nix)=betaldall
+  920   continue
+      endif
+      if (gammashell1all.ne.-99.) then
+        do 930 Nix=0,numN
+          do 930 Zix=0,numZ
+            gammashell1(Zix,Nix)=gammashell1all
+  930   continue
+      endif
+      if (Pshiftconstantall.ne.-99.) then
+        do 940 Nix=0,numN
+          do 940 Zix=0,numZ
+            Pshiftconstant(Zix,Nix)=Pshiftconstantall
+  940   continue
+      endif
+c
+c Apply consistent OMP adjustment factors for Koning-Delaroche and other
+c potentials.
+c
+      do 950 type=1,6
+        if ((type.eq.3.and.deuteronomp.ge.2).or.(type.eq.6.and.
+     +    alphaomp.ge.2)) then
+          if (rwadjust(type).eq.-1.) rwadjust(type)=1.
+          if (awadjust(type).eq.-1.) awadjust(type)=1.
+          if (rvdadjust(type).eq.-1.) rvdadjust(type)=1.
+          if (avdadjust(type).eq.-1.) avdadjust(type)=1.
+          if (rwsoadjust(type).eq.-1.) rwsoadjust(type)=1.
+          if (awsoadjust(type).eq.-1.) awsoadjust(type)=1.
+        else
+          if (rwadjust(type).eq.-1.) rwadjust(type)=rvadjust(type)
+          if (awadjust(type).eq.-1.) awadjust(type)=avadjust(type)
+          if (rvdadjust(type).eq.-1.) rvdadjust(type)=rwdadjust(type)
+          if (avdadjust(type).eq.-1.) avdadjust(type)=awdadjust(type)
+          if (rwsoadjust(type).eq.-1.) rwsoadjust(type)=rvsoadjust(type)
+          if (awsoadjust(type).eq.-1.) awsoadjust(type)=avsoadjust(type)
+        endif
+  950 continue
       return
  1000 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
       stop
@@ -1672,6 +1865,9 @@ c
       stop
  1030 write(*,'(" TALYS-error: 0 <= multipole radiation <= ",i1,
      +  ", lval index out of range: ",a80)') numgam,inline(i)
+      stop
+ 1050 write(*,'(" TALYS-error: 1 <= MT number <= ",i4,
+     +  ", MT index out of range: ",a80)') nummt,inline(i)
       stop
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

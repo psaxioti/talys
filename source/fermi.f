@@ -1,4 +1,4 @@
-      double precision function fermi(Zix,Nix,ald,Eex,P,ibar)     
+      double precision function fermi(Zix,Nix,ald,Eex,P,ibar)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning

@@ -1,7 +1,7 @@
       subroutine natural
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : April 15, 2009
 c | Task  : Calculation for natural elements
 c +---------------------------------------------------------------------
@@ -33,7 +33,7 @@ c isonum       : number of isotopes
 c iso          : counter for isotope
 c talysinput   : subroutine for user input and defaults
 c talysinitial : subroutine for initialization of nuclear structure
-c talysreaction: subroutine with reaction models      
+c talysreaction: subroutine with reaction models
 c
 c For mono-isotopic nuclides we are done.
 c
@@ -45,7 +45,7 @@ c
         call talysinput
         call talysinitial
         call talysreaction
-      enddo    
+      enddo
 c
 c ******** Merge output files in results for natural elements **********
 c
@@ -62,8 +62,8 @@ c totfile   : file with total cross sections
 c numinc    : number of incident energies
 c natstring : string extension for file names
 c abun      : isotopic abundance
-c parsym    : symbol of particle   
-c nuc       : symbol of nucleus 
+c parsym    : symbol of particle
+c nuc       : symbol of nucleus
 c
       do 10 k=1,numen2
         en(k)=0.
@@ -98,7 +98,7 @@ c
         write(3,'("# # energies =",i3)') numinc
         write(3,'("#    E      Non-elastic  Elastic     Total",
      +    "     Comp. el.  Shape el.  Reaction",
-     +    " Comp. nonel   Direct   Pre-equil.")')              
+     +    " Comp. nonel   Direct   Pre-equil.")')
         do 60 k=1,numinc
           write(3,'(f10.3,2x,1p,9e11.4)') en(k),(xstotnat(k2,k),k2=1,9)
    60   continue
@@ -107,7 +107,7 @@ c
 c 2. Particle production cross sections
 c
 c prodfile: file with total particle production cross sections
-c parname : name of particle   
+c parname : name of particle
 c
         do 110 type=1,6
           do 120 k=1,numinc
@@ -135,7 +135,7 @@ c
           write(3,'("# ")')
           write(3,'("# ")')
           write(3,'("# # energies =",i3)') numinc
-          write(3,'("#    E         xs         Yield")')       
+          write(3,'("#    E         xs         Yield")')
           do 160 k=1,numinc
             write(3,'(1p,e10.3,2e12.5)') en(k),xsprodnat(k),
      +        xsyieldnat(k)
@@ -146,7 +146,7 @@ c
 c
 c 3. Elastic scattering angular distribution
 c
-c nangle   : number of angles 
+c nangle   : number of angles
 c xsnat,...: cross section for natural element
 c elexist  : logical to determine existence of elastic scattering file
 c discfile : file with elastic scattering angular distribution
@@ -181,13 +181,13 @@ c
   230   continue
         if (elexist) then
           open (3,status='unknown',file=discfile(1:16))
-          write(3,'("# ",a1," + nat-",a2," Elastic scattering", 
+          write(3,'("# ",a1," + nat-",a2," Elastic scattering",
      +      " angular distribution")') parsym(k0),nuc(Ztarget)
           write(3,'("# E-incident = ",f7.3)') eninc(k)
           write(3,'("# ")')
           write(3,'("# # angles   =",i3)') nangle+1
           write(3,'("#   E         xs            Direct",
-     +      "         Compound")')     
+     +      "         Compound")')
           do 260 iang=0,nangle
             write(3,'(f5.1,1p,3e16.5)') angle(iang),xsnat(iang),
      +        xs1nat(iang),xs2nat(iang)
@@ -200,14 +200,14 @@ c 4. Composite particle spectra
 c
 c specexist: logical to determine existence of spectrum file
 c enspecnat: emission energy for natural element
-c enspec   : emission energy 
+c enspec   : emission energy
 c specfile : file with composite particle spectra
 c xsspecnat: differential cross section for natural element
 c xsspec   : differential cross section
 c neniso   : number of emission energies per isotope
 c Efac,....: help variables
-c ebegin   : first energy point of energy grid  
-c eendout  : last energy point of energy grid 
+c ebegin   : first energy point of energy grid
+c eendout  : last energy point of energy grid
 c
       do 310 k=1,numinc
         do 320 type=1,6
@@ -226,7 +226,7 @@ c
   370         continue
   360       continue
 c
-c In general, the secondary spectra for the various isotopes are 
+c In general, the secondary spectra for the various isotopes are
 c all different. Therefore, we first read the secondary energy
 c grids and cross sections into memory.
 c
@@ -240,7 +240,7 @@ c
               open (2,status='old',file=specfile)
               read(2,'(////)',end=390,err=390)
               do 380 k2=1,numen2
-                read(2,'(f7.3,5e12.5)',end=390,err=380) 
+                read(2,'(f7.3,5e12.5)',end=390,err=380)
      +            enspec(i,k2),(xsspec(i,k2,j),j=1,5)
                 neniso(i)=neniso(i)+1
   380         continue
@@ -248,7 +248,7 @@ c
             endif
   350     continue
 c
-c Make one unifying energy grid by removing double energies 
+c Make one unifying energy grid by removing double energies
 c and sorting the remaining energies.
 c
           if (specexist) then
@@ -279,7 +279,7 @@ c
                 do 470 k2=1,neniso(i)-1
                   Ea=enspec(i,k2)
                   Eb=enspec(i,k2+1)
-                  if (enspecnat(nen).ge.Ea.and.enspecnat(nen).lt.Eb) 
+                  if (enspecnat(nen).ge.Ea.and.enspecnat(nen).lt.Eb)
      +              then
                     Efac=(enspecnat(nen)-Ea)/(Eb-Ea)
                     do 480 j=1,5
@@ -299,7 +299,7 @@ c
             write(3,'("# ")')
             write(3,'("# # energies =",i3)') nenen
             write(3,'("# E-out    Total       Direct    Pre-equil.",
-     +        "  Mult. preeq  Compound")')             
+     +        "  Mult. preeq  Compound")')
             do 490 nen=1,nenen
               write(3,'(f7.3,1p,5e12.5)') enspecnat(nen),
      +          (xsspecnat(nen,j),j=1,5)
@@ -314,9 +314,9 @@ c
 c zbeg,..: help variables
 c Ztarget: charge number of target nucleus
 c isotope: isotope number of residual nucleus
-c numZ   : maximal number of protons away from the initial compound 
+c numZ   : maximal number of protons away from the initial compound
 c          nucleus
-c numN   : maximal number of neutrons away from the initial compound 
+c numN   : maximal number of neutrons away from the initial compound
 c          nucleus
 c
       zbeg=max(Ztarget-numZ-2,1)
@@ -357,7 +357,7 @@ c
             write(3,'("# ")')
             write(3,'("# ")')
             write(3,'("# # energies =",i3)') numinc
-            write(3,'("#    E         xs")')                
+            write(3,'("#    E         xs")')
             do 560 k=1,numinc
               write(3,'(1p,e10.3,e12.5)') en(k),xsnat(k)
   560       continue
@@ -397,7 +397,7 @@ c
               write(3,'("# ")')
               write(3,'("# ")')
               write(3,'("# # energies =",i3)') numinc
-              write(3,'("#    E         xs")')                
+              write(3,'("#    E         xs")')
               do 620 k=1,numinc
                 write(3,'(1p,e10.3,e12.5)') en(k),xsnat(k)
   620         continue
@@ -410,8 +410,8 @@ c 6. Exclusive channel cross sections
 c
 c npart     : number of particles in outgoing channel
 c maxchannel: maximal number of outgoing particles in individual
-c             channel description (e.g. this is 3 for (n,2np))     
-c numin,....: maximal number of ejectile in channel description  
+c             channel description (e.g. this is 3 for (n,2np))
+c numin,....: maximal number of ejectile in channel description
 c xsfile    : file with channel cross sections
 c
       do 710 npart=0,maxchannel
@@ -420,7 +420,7 @@ c
       do 710 it=0,numit
       do 710 id=0,numid
       do 710 ip=0,numip
-      do 710 in=0,numin    
+      do 710 in=0,numin
         if (in+ip+id+it+ih+ia.ne.npart) goto 710
         do 720 k=1,numinc
           xsnat(k)=0.
@@ -444,8 +444,8 @@ c
         if (xsexist) then
           open (3,status='unknown',file=xsfile(1:12))
           write(3,'("# ",a1," + nat-",a2)') parsym(k0),nuc(Ztarget)
-          write(3,'("# ")') 
-          write(3,'("# ")') 
+          write(3,'("# ")')
+          write(3,'("# ")')
           write(3,'("# # energies =",i3)') numinc
           write(3,'("#    E         xs")')
           do 760 k=1,numinc
@@ -492,16 +492,16 @@ c
         close (unit=3)
       endif
 c
-c 8. Fission yields                   
+c 8. Fission yields
 c
 c Atarget   : mass number of target nucleus
 c flagffevap: flag for calculation of particle evaporation from
-c             fission fragment mass yields    
+c             fission fragment mass yields
 c
 c Excitation function per fission product
 c
-      do 910 iz=1,Ztarget   
-        do 910 ia=1,Atarget   
+      do 910 iz=1,Ztarget
+        do 910 ia=1,Atarget
           do 920 k=1,numinc
             xs1nat(k)=0.
             xs2nat(k)=0.
@@ -516,7 +516,7 @@ c
               open (2,status='old',file=resfile)
               read(2,'(////)',end=950,err=950)
               do 940 k=1,numinc
-                read(2,'(e10.3,e12.4,3x,e12.4)',end=950,err=940) 
+                read(2,'(e10.3,e12.4,3x,e12.4)',end=950,err=940)
      +            en(k),xs1,xs2
                 xs1nat(k)=xs1nat(k)+abun(i)*xs1
                 xs2nat(k)=xs2nat(k)+abun(i)*xs2
@@ -531,7 +531,7 @@ c
             write(3,'("# ")')
             write(3,'("# ")')
             write(3,'("# # energies =",i3)') numinc
-            write(3,'("#    E         xs")')                
+            write(3,'("#    E         xs")')
             if (flagffevap) then
               write(3,'("# E-incident   FF Yield   FP yield")')
               do 960 nen=1,numinc
@@ -548,7 +548,7 @@ c
           endif
   910 continue
 c
-c Mass distribution per incident energy  
+c Mass distribution per incident energy
 c
 c fyfile: file with fission yields
 c
@@ -582,11 +582,11 @@ c
           write(3,'("# E-incident = ",f7.3)') eninc(k)
           write(3,'("# ")')
           write(3,'("# ")')
-          write(3,'("# Mass    Yield   Corrected yield")')   
+          write(3,'("# Mass    Yield   Corrected yield")')
           do 1060 ia=1,Atarget
             write(3,'(i3,3x,1p,e12.4,3x,e12.4)') ia,xs1nat(ia),
      +        xs2nat(ia)
- 1060     continue         
+ 1060     continue
           close (unit=3)
         endif
  1010 continue
@@ -616,7 +616,7 @@ c
                 xsspec(i,k2,1)=0.
  1150         continue
 c
-c In general, the recoil spectra for the various isotopes are 
+c In general, the recoil spectra for the various isotopes are
 c all different. Therefore, we first read the recoil energy
 c grids and cross sections into memory.
 c
@@ -631,7 +631,7 @@ c
                 open (2,status='old',file=recfile)
                 read(2,'(////)',end=1170,err=1170)
                 do 1160 k2=1,numen2
-                  read(2,'(f7.3,e12.5)',end=1170,err=1160) 
+                  read(2,'(f7.3,e12.5)',end=1170,err=1160)
      +              enspec(i,k2),xsspec(i,k2,1)
                   neniso(i)=neniso(i)+1
  1160           continue
@@ -639,7 +639,7 @@ c
               endif
  1140       continue
 c
-c Make one unifying energy grid by removing double energies 
+c Make one unifying energy grid by removing double energies
 c and sorting the remaining energies.
 c
             if (specexist) then

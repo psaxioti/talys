@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : April 18, 2008
+c | Date  : May 11, 2011
 c | Task  : Excitation energy population
 c +---------------------------------------------------------------------
 c
@@ -19,19 +19,19 @@ c Ncomp    : neutron number index for compound nucleus
 c AA,A     : mass number of residual nucleus
 c odd      : odd (1) or even (0) nucleus
 c Nlast,NL : last discrete level
-c Ex,Eex   : excitation energy 
+c Ex,Eex   : excitation energy
 c dEx      : excitation energy bin
 c edis     : energy of level
 c deltaEx  : excitation energy bin for population arrays
-c locate   : subroutine to find value in ordered table 
+c locate   : subroutine to find value in ordered table
 c Exdist   : excitation energy of population distribution
-c npopbins : number of excitation energy bins for population 
+c npopbins : number of excitation energy bins for population
 c            distribution
 c Ea,Eb,.. : help variables
 c ignatyuk : function for energy dependent level density parameter a
 c maxex    : maximum excitation energy bin for compound nucleus
 c maxJ     : maximal J-value
-c jdis     : spin of level 
+c jdis     : spin of level
 c parlev   : parity of level
 c xspop    : population cross section
 c npopJ    : number of spins for population distribution
@@ -41,7 +41,7 @@ c spindis  : spin distribution
 c pardis   : parity distribution
 c xspopex  : population cross section summed over spin and parity
 c xspopnuc : population cross section per nucleus
-c feedexcl : feeding terms from compound excitation energy bin to 
+c feedexcl : feeding terms from compound excitation energy bin to
 c            residual excitation energy bin
 c xsinitpop: initial population cross section
 c popexcl  : population cross section of bin just before decay
@@ -61,6 +61,7 @@ c
           dEx=deltaEx(Zcomp,Ncomp)
         endif
         call locate(Exdist,0,npopbins,Eex,nen)
+        nen=max(0,nen)
         Ea=Exdist(nen)
         Eb=Exdist(nen+1)
         if (npopJ.eq.0) then

@@ -1,7 +1,7 @@
       function lambdapiplus(Zcomp,Ncomp,ppi,hpi,pnu,hnu)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 1, 2008
 c | Task  : Proton transition rates for n --> n+2
 c +---------------------------------------------------------------------
@@ -26,7 +26,7 @@ c *************************** Transition rates *************************
 c
 c lambdapiplus: proton transition rate for n --> n+2
 c Zcomp       : charge number index for compound nucleus
-c Ncomp       : neutron number index for compound nucleus 
+c Ncomp       : neutron number index for compound nucleus
 c ppi         : proton particle number
 c hpi         : proton hole number
 c pnu         : neutron particle number
@@ -42,7 +42,7 @@ c flagsurface : flag for surface effects in exciton model
 c primary     : flag to designate primary (binary) reaction
 c edepth      : depth of potential well
 c Efermi      : depth of Fermi well
-c Esurf       : well depth for surface interaction  
+c Esurf       : well depth for surface interaction
 c gp,gsp      : single-particle proton level density parameter
 c gn,gsn      : single-particle neutron level density parameter
 c flaggshell  : flag for energy dependence of single particle level
@@ -52,25 +52,25 @@ c ignatyuk    : function for energy dependent level density parameter a
 c Ecomp       : total energy of composite system
 c alev        : level density parameter
 c U           : excitation energy minus pairing energy
-c preeqpair   : pre-equilibrium pairing energy       
+c preeqpair   : pre-equilibrium pairing energy
 c pairmodel   : model for preequilibrium pairing energy
 c fac1,lplus  : help variable
 c factor1-3   : help variables
 c twopihbar   : 2*pi/hbar
-c Apauli2     : two-component Pauli blocking correction factor 
+c Apauli2     : two-component Pauli blocking correction factor
 c term1-2     : help variables
 c M2pipi      : square of proton-proton matrix element
 c M2pinu      : square of proton-neutron matrix element
 c finitewell  : correction function for finite well depth
 c
-c A. Analytical solution: The transition rates are taken from Kalbach, 
+c A. Analytical solution: The transition rates are taken from Kalbach,
 c    PRC33, 818 (1986).
 c
       lambdapiplus=0.
       h=hpi+hnu
       p=ppi+pnu
       n=p+h
-      if (n.eq.0) return  
+      if (n.eq.0) return
       A=Ainit-Zcomp-Ncomp
       call matrix(A,n)
       surfwell=flagsurface.and.h.eq.1.and.primary
@@ -78,7 +78,7 @@ c
         edepth=Esurf
       else
         edepth=Efermi
-      endif      
+      endif
       gsp=gp(Zcomp,Ncomp)
       gsn=gn(Zcomp,Ncomp)
       if (flaggshell) then
@@ -122,11 +122,11 @@ c Wompfac     : adjustable constant for OMP based transition rates
 c wvol        : absorption part of the optical potential averaged over
 c               the volume
 c hbar        : Planck's constant / 2.pi in MeV.s
-c densh,densp : help variables       
+c densh,densp : help variables
 c ratio       : state density ratio for hole scattering
 c termpipi1p,.: help variables
 c phtot       : total particle-hole state density
-c                       
+c
         L1pip=Apauli2(ppi+1,hpi+1,pnu,hnu)-Apauli2(ppi-1,hpi,pnu,hnu)
         L2pip=U-Apauli2(ppi-1,hpi,pnu,hnu)
         L1pih=Apauli2(ppi+1,hpi+1,pnu,hnu)-Apauli2(ppi,hpi-1,pnu,hnu)
@@ -149,16 +149,16 @@ c
         sumnupi1p=0.
         sumnupi1h=0.
         do 10 i=1,nexcbins
-          uupip=L1pip+(i-0.5)*dExpip   
-          uupih=L1pih+(i-0.5)*dExpih   
-          uunup=L1nup+(i-0.5)*dExnup   
-          uunuh=L1nuh+(i-0.5)*dExnuh   
+          uupip=L1pip+(i-0.5)*dExpip
+          uupih=L1pih+(i-0.5)*dExpih
+          uunup=L1nup+(i-0.5)*dExnup
+          uunuh=L1nuh+(i-0.5)*dExnuh
           if (flaggshell) then
             damp=ignatyuk(Zcomp,Ncomp,uupip,0)/alev(Zcomp,Ncomp)
             gsp=gp(Zcomp,Ncomp)*damp
             gsn=gn(Zcomp,Ncomp)*damp
           endif
-          if (preeqmode.eq.2) then  
+          if (preeqmode.eq.2) then
             lambdapipi1p=twopihbar*M2pipi*
      +        phdens2(Zcomp,Ncomp,2,1,0,0,gsp,gsn,uupip,edepth,surfwell)
             lambdapipi1h=twopihbar*M2pipi*

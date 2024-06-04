@@ -1,7 +1,7 @@
       subroutine gaulag(ngl,tgl,wgl)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
+c | Author: Stephane Hilaire
 c | Date  : July 9, 2004
 c | Task  : Calculation of Gauss-Laguerre arrays
 c +---------------------------------------------------------------------
@@ -51,17 +51,17 @@ c
       tgl(31)=9.8829542868283973E+01
       tgl(32)=1.1175139809793770E+02
 c
-c We have taken the square root of the original Gauss-Laguerre 
+c We have taken the square root of the original Gauss-Laguerre
 c weights, for numerical reasons.
 c
-      wgl(1)=0.3304819843083507    
-      wgl(2)=0.4587407851268658    
-      wgl(3)=0.4849878654872182    
-      wgl(4)=0.4426096880693881    
-      wgl(5)=0.3605326424695436    
-      wgl(6)=0.2656663769951280    
-      wgl(7)=0.1782159154205232    
-      wgl(8)=0.1091705767816519    
+      wgl(1)=0.3304819843083507
+      wgl(2)=0.4587407851268658
+      wgl(3)=0.4849878654872182
+      wgl(4)=0.4426096880693881
+      wgl(5)=0.3605326424695436
+      wgl(6)=0.2656663769951280
+      wgl(7)=0.1782159154205232
+      wgl(8)=0.1091705767816519
       wgl(9)=6.1145860813398685E-02
       wgl(10)=3.1317779401083899E-02
       wgl(11)=1.4658271344239885E-02

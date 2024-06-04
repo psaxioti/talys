@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 17, 2009
+c | Date  : June 8, 2011
 c | Task  : Write model parameters per nucleus to separate file
 c +---------------------------------------------------------------------
 c ****************** Declarations and common blocks ********************
@@ -20,8 +20,8 @@ c nuc : symbol of nucleus
 c
       Z=ZZ(Zix,Nix,0)
       A=AA(Zix,Nix,0)
-      write(11,'("#")') 
-      write(11,'("# Parameters for ",i3,a2)')  A,nuc(Z)
+      write(11,'("##")')
+      write(11,'("## Parameters for ",i3,a2)')  A,nuc(Z)
 c
 c ********************** Level density parameters **********************
 c
@@ -32,7 +32,7 @@ c D0           : experimental s-wave resonance spacing in eV
 c ibar         : fission barrier
 c nfisbar      : number of fission barrier parameters
 c Pshift       : adjustable pairing shift
-c deltaW       : shell correction in nuclear mass 
+c deltaW       : shell correction in nuclear mass
 c ldmodel      : level density model
 c T            : nuclear temperature
 c E0           : constant of temperature formula
@@ -41,7 +41,8 @@ c Ntop         : highest discrete level for temperature matching
 c Nlow         : lowest discrete level for temperature matching
 c s2adjust     : adjustable constant (Z,A,barrier-dependent) for spin
 c                cutoff parameter
-c flagcol      : flag for collective enhancement of level density
+c flagcolall   : flag for collective enhancement of level density
+c                for all nuclides
 c Krotconstant : normalization constant for rotational enhancement
 c aadjust....  : adjustable factors for level density parameters
 c                (default 1.)
@@ -51,10 +52,10 @@ c g            : single-particle level density parameter
 c gp           : single-particle proton level density parameter
 c gn           : single-particle neutron level density parameter
 c
-      write(11,'("#")') 
-      write(11,'("# Level density")')
-      write(11,'("#")') 
-      if (ldmodel.le.3) then
+      write(11,'("##")')
+      write(11,'("## Level density")')
+      write(11,'("##")')
+      if (ldmodel(Zix,Nix).le.3) then
         write(11,'("a       ",2i4,f10.5)') Z,A,alev(Zix,Nix)
         write(11,'("gammald ",2i4,f10.5)') Z,A,gammald(Zix,Nix)
         write(11,'("pair    ",2i4,f10.5)') Z,A,pair(Zix,Nix)
@@ -63,7 +64,7 @@ c
      +      Pshift(Zix,Nix,ibar),ibar
           write(11,'("deltaW  ",2i4,f10.5,i4)') Z,A,
      +      deltaW(Zix,Nix,ibar),ibar
-          if (ldmodel.eq.1) then
+          if (ldmodel(Zix,Nix).eq.1) then
             write(11,'("T       ",2i4,f10.5,i4)') Z,A,T(Zix,Nix,ibar),
      +        ibar
             write(11,'("E0      ",2i4,f10.5,i4)') Z,A,E0(Zix,Nix,ibar),
@@ -75,8 +76,8 @@ c
           write(11,'("Nlow    ",2i4,2i4)') Z,A,Nlow(Zix,Nix,ibar),ibar
           write(11,'("s2adjust ",2i4,f10.5,i4)') Z,A,
      +      s2adjust(Zix,Nix,ibar),ibar
-          if (flagcol) write(11,'("Krotconstant ",2i4,f10.5,i4)') Z,A,
-     +      Krotconstant(Zix,Nix,ibar),ibar
+          if (flagcolall) write(11,'("Krotconstant ",2i4,f10.5,i4)') 
+     +      Z,A,Krotconstant(Zix,Nix,ibar),ibar
    10   continue
         write(11,'("aadjust ",2i4,f10.5)') Z,A,aadjust(Zix,Nix)
       else
@@ -97,21 +98,21 @@ c
 c
 c ************************ Gamma-ray parameters ************************
 c
-c gamgam       : experimental total radiative width in eV
-c gammax       : number of l-values for gamma multipolarity 
-c sgr          : strength of GR     
+c gamgam       : total radiative width in eV
+c gammax       : number of l-values for gamma multipolarity
+c sgr          : strength of GR
 c egr          : energy of GR
 c ggr          : width of GR
 c strength     : model for E1 gamma-ray strength function
 c etable,ftable: constant to adjust tabulated strength functions
 c ngr          : number of GR
 c
-      write(11,'("#")') 
-      write(11,'("# Gamma-ray")')
-      write(11,'("#")') 
+      write(11,'("##")')
+      write(11,'("## Gamma-ray")')
+      write(11,'("##")')
       write(11,'("gamgam  ",2i4,f10.5)') Z,A,gamgam(Zix,Nix)
       write(11,'("gamgamadjust  ",2i4,f10.5)') Z,A,gamgamadjust(Zix,Nix)
-      do 110 l=1,gammax                      
+      do 110 l=1,gammax
         write(11,'("sgr     ",2i4,f8.3," M",i1)') Z,A,
      +    sgr(Zix,Nix,0,l,1),l
         write(11,'("egr     ",2i4,f8.3," M",i1)') Z,A,
@@ -141,34 +142,34 @@ c
 c
 c ************************** Fission parameters ************************
 c
-c flagfission: flag for fission 
+c flagfission: flag for fission
 c nfisbar    : number of fission barrier parameters
 c fbarrier   : height of fission barrier
-c fwidth     : width of fission barrier             
+c fwidth     : width of fission barrier
 c fismodelx  : fission model
 c widthc2    : width of class2 states
-c Rtransmom  : normalization constant for moment of inertia for 
+c Rtransmom  : normalization constant for moment of inertia for
 c              transition states
-c Rclass2mom : normalization constant for moment of inertia for 
+c Rclass2mom : normalization constant for moment of inertia for
 c              class 2 states
 c
       if (flagfission) then
-        write(11,'("#")') 
-        write(11,'("# Fission parameters")')
-        write(11,'("#")') 
-        do 210 ibar=1,nfisbar(Zix,Nix) 
+        write(11,'("##")')
+        write(11,'("## Fission parameters")')
+        write(11,'("##")')
+        do 210 ibar=1,nfisbar(Zix,Nix)
           if (fismodelx(Zix,Nix).ne.5) then
             write(11,'("fisbar  ",2i4,f10.5,i3)') Z,A,
      +        fbarrier(Zix,Nix,ibar),ibar
             write(11,'("fishw   ",2i4,f10.5,i3)') Z,A,
      +        fwidth(Zix,Nix,ibar),ibar
           endif
-          if (fismodelx(Zix,Nix).eq.5) then
+          if (fismodelx(Zix,Nix).eq.5.and.ibar.eq.1) then
             write(11,'("betafiscor ",2i4,f10.5)') Z,A,
      +        betafiscor(Zix,Nix)
             write(11,'("vfiscor    ",2i4,f10.5)') Z,A,vfiscor(Zix,Nix)
           endif
-          if (ibar.lt.nfisbar(Zix,Nix)) 
+          if (ibar.lt.nfisbar(Zix,Nix))
      +      write(11,'("class2width ",2i4,f10.5,i3)') Z,A,
      +      widthc2(Zix,Nix,ibar),ibar
           write(11,'("Rtransmom ",2i4,f10.5,i3)') Z,A,
@@ -177,7 +178,7 @@ c
      +      Rclass2mom(Zix,Nix,ibar),ibar
   210   continue
       endif
-      write(11,'("#---------------------------------------------")') 
-      return 
+      write(11,'("#---------------------------------------------")')
+      return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

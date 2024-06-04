@@ -3,7 +3,7 @@ c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning (adapted from Numerical Recipes)
 c | Date  : August 24, 2004
-c | Task  : Find value in ordered table       
+c | Task  : Find value in ordered table
 c +---------------------------------------------------------------------
 c
 c **************************** Declarations ****************************

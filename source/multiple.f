@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : September 1, 2008
+c | Date  : November 18, 2011
 c | Task  : Multiple emission
 c +---------------------------------------------------------------------
 c
@@ -11,22 +11,23 @@ c
       include "talys.cmb"
       integer      Zcomp,Ncomp,type,nen,nex,nexout,Zix,Nix,Z,N,A,odd,NL,
      +             J,idensfis,parity,J2,iang,p,h
-      real         popepsA,Exm,dEx,Exmin,popepsB,emissum(0:numpar),
-     +             Eaveragesum,Eout,ang,kalbach,Eaverage(0:numpar)
+      real         popepsA,xspopsave(0:numex),Exm,dEx,Exmin,popepsB,
+     +             xsmax,Smax,emissum(0:numpar),Eaveragesum,Eout,sumxs,
+     +             xsdif,ang,kalbach,Eaverage(0:numpar)
 c
 c ******************** Loop over nuclei ********************************
 c
-c Loop over all residual nuclei, starting with the initial compound 
+c Loop over all residual nuclei, starting with the initial compound
 c nucleus (Zcomp=0, Ncomp=0), and then according to decreasing Z and N.
 c
 c primary    : flag to designate primary (binary) reaction
 c flagomponly: flag to execute ONLY an optical model calculation
 c flaginitpop: flag for initial population distribution
-c excitation : subroutine for excitation energy population 
+c excitation : subroutine for excitation energy population
 c flagpop    : flag for output of population
 c Zcomp      : charge number index for compound nucleus
 c Ncomp      : neutron number index for compound nucleus
-c maxZ       : maximal number of protons away from the initial compound 
+c maxZ       : maximal number of protons away from the initial compound
 c              nucleus
 c maxN       : maximal number of neutrons away from the initial compound
 c              nucleus
@@ -34,14 +35,14 @@ c
       primary=.false.
       if (flagomponly) return
       if (flaginitpop) call excitation
-      if (flagpop) 
+      if (flagpop)
      +  write(*,'(/" ########## MULTIPLE EMISSION ##########")')
       do 10 Zcomp=0,maxZ
         do 10 Ncomp=0,maxN
 c
-c Continue for this compound nucleus only when it contains sufficient 
+c Continue for this compound nucleus only when it contains sufficient
 c reaction flux. If so, determine the nuclear structure for the residual
-c nuclei. Initialize emission spectrum for this compound nucleus. 
+c nuclei. Initialize emission spectrum for this compound nucleus.
 c Determine excitation energy grid for residual nuclei.
 c
 c xspopnuc  : population cross section per nucleus
@@ -51,19 +52,20 @@ c flagspec  : flag for output of spectra
 c ebegin    : first energy point of energy grid
 c eend      : last energy point of energy grid
 c xsemis    : emission spectrum from compound nucleus
-c xsmpeemis : multiple-preequilibrium emission spectrum from compound 
-c             nucleus     
+c xsmpeemis : multiple-preequilibrium emission spectrum from compound
+c             nucleus
 c numex     : maximal number of excitation energies (set in talys.cmb)
 c xspartial : emitted cross section flux per energy bin
 c xsmpe     : multiple-preequilibrium cross section per energy bin
 c mcontrib  : contribution to emission spectrum
 c mpecontrib: contribution to multiple pre-equilibrium emission spectrum
-c xsmpetot  : total multiple-preequilibrium cross section 
+c xsmpetot  : total multiple-preequilibrium cross section
 c Zindex,Zix: charge number index for residual nucleus
 c Nindex,Nix: neutron number index for residual nucleus
 c strucexist: flag to determine whether structure info for this nucleus
 c             already exists
-c structure : subroutine for nuclear structure parameters 
+c structure : subroutine for nuclear structure parameters
+c xspopsave : help variable for diagnosis
 c Dmulti    : depletion factor for multiple preequilibrium
 c exgrid    : subroutine to set excitation energy grid
 c
@@ -81,7 +83,7 @@ c
             do 40 nex=0,numex+1
               xspartial(type,nex)=0.
               xsmpe(type,nex)=0.
-              do 40 nexout=0,numex
+              do 40 nexout=0,numex+1
                 mcontrib(type,nex,nexout)=0.
                 mpecontrib(type,nex,nexout)=0.
    40       continue
@@ -95,18 +97,19 @@ c
             endif
    20     continue
           do 50 nex=0,numex
-            Dmulti(nex)=0.       
+            xspopsave(nex)=0.
+            Dmulti(nex)=0.
    50     continue
           call exgrid(Zcomp,Ncomp)
 c
-c If a new set of transmission coefficients for each residual 
-c nuclide is requested, we calculate inverse cross sections and 
+c If a new set of transmission coefficients for each residual
+c nuclide is requested, we calculate inverse cross sections and
 c transmission coefficients for this compound nucleus here.
 c
 c flagompall: flag for new optical model calculation for all residual
-c             nuclei         
+c             nuclei
 c basicxs   : subroutine for basic cross sections and transmission
-c             coefficients     
+c             coefficients
 c
           if (flagompall) call basicxs(Zcomp,Ncomp)
 c
@@ -118,18 +121,18 @@ c ZZ,Z         : charge number of residual nucleus
 c NN,N         : neutron number of residual nucleus
 c AA,A         : mass number of residual nucleus
 c odd          : odd (1) or even (0) nucleus
-c strucwrite   : flag for output of nuclear structure info 
+c strucwrite   : flag for output of nuclear structure info
 c flaglevels   : flag for output of discrete level information
 c levelsout    : subroutine for output of discrete levels
 c flagdensity  : flag for output of level densities
 c densityout   : subroutine for output of level density parameters
-c flagfisout   : flag for output of fission information    
+c flagfisout   : flag for output of fission information
 c fissionparout: subroutine for output for fission parameters
 c nuc          : symbol of nucleus
 c Exmax        : maximum excitation energy for residual nucleus
 c Nlast,NL     : last discrete level
 c maxex        : maximum excitation energy bin for compound nucleus
-c Ex           : excitation energy 
+c Ex           : excitation energy
 c xspopex      : population cross section summed over spin and parity
 c xspop        : population cross section
 c
@@ -158,10 +161,10 @@ c
               write(*,'(" Maximum excitation energy:",f8.3,
      +          " Discrete levels:",i3)') Exmax(Zcomp,Ncomp),NL
             endif
-            write(*,'(" bin    Ex    Popul.",10("    J=",f4.1)/)') 
+            write(*,'(" bin    Ex    Popul.",10("    J=",f4.1)/)')
      +        (J+0.5*odd,J=0,9)
             do 60 nex=0,maxex(Zcomp,Ncomp)
-              if (nex.le.NL) then 
+              if (nex.le.NL) then
                 write(*,'(1x,i3,f8.3,1p,e10.3,1p,10e10.3)') nex,
      +            Ex(Zcomp,Ncomp,nex),xspopex(Zcomp,Ncomp,nex),
      +            (max(xspop(Zcomp,Ncomp,nex,J,1),
@@ -173,21 +176,40 @@ c
               endif
    60       continue
           endif
-c 
+c
 c Loop 110: De-excitation of nucleus, starting at the highest excitation
 c energy bin.
 c
 c popepsA : limit for population cross sections per energy
 c idensfis: identifier to activate possible fission level densities
 c
-c Continue for this (Zcomp,Ncomp,nex) only when there is sufficient 
+c Continue for this (Zcomp,Ncomp,nex) only when there is sufficient
 c reaction flux in the excitation energy bin.
 c The fission transmission coefficients and level densities only need
 c to be calculated once, at the highest excitation energy.
 c
           popepsA=popeps/max(5*maxex(Zcomp,Ncomp),1)
           idensfis=1
+          if (flagpop) then
+            write(*,'(/" Population of each bin of Z=",i3," N=",i3,
+     +      " (",i3,a2,") before its decay"/)') Z,N,A,nuc(Z)
+            write(*,'(" bin    Ex    Popul.",10("    J=",f4.1)/)')
+     +        (J+0.5*odd,J=0,9)
+          endif
           do 110 nex=maxex(Zcomp,Ncomp),1,-1
+            if (flagpop) then
+              xspopsave(nex)=xspopex(Zcomp,Ncomp,nex)
+              if (nex.le.NL) then
+                write(*,'(1x,i3,f8.3,1p,e10.3,1p,10e10.3)') nex,
+     +            Ex(Zcomp,Ncomp,nex),xspopex(Zcomp,Ncomp,nex),
+     +            (max(xspop(Zcomp,Ncomp,nex,J,1),
+     +            xspop(Zcomp,Ncomp,nex,J,-1)),J=0,9)
+              else
+                write(*,'(1x,i3,f8.3,1p,e10.3,1p,10e10.3)') nex,
+     +            Ex(Zcomp,Ncomp,nex),xspopex(Zcomp,Ncomp,nex),
+     +            (xspop(Zcomp,Ncomp,nex,J,1),J=0,9)
+              endif
+            endif
 c
 c For exclusive channel cross section calculations, some variables
 c need to be stored in extra arrays.
@@ -208,7 +230,7 @@ c cascade: subroutine for gamma-ray cascade
 c Exinc  : excitation energy of entrance bin
 c
             if (nex.le.Nlast(Zcomp,Ncomp,0)) then
-              if (tau(Zcomp,Ncomp,nex).eq.0.) 
+              if (tau(Zcomp,Ncomp,nex).eq.0.)
      +          call cascade(Zcomp,Ncomp,nex)
               goto 110
             endif
@@ -251,7 +273,7 @@ c Prepare transmission coefficients and level densities. This can
 c be done outside the loops over spin and parity.
 c
 c densprepare: subroutine to prepare energy grid and level density
-c              information for compound nucleus           
+c              information for compound nucleus
 c
             call densprepare(Zcomp,Ncomp,idensfis)
             idensfis=0
@@ -283,7 +305,7 @@ c
               do 140 parity=-1,1,2
                 do 140 J=0,maxJ(Zcomp,Ncomp,nex)
 c
-c Continue for this (Zcomp,Ncomp,nex,J,P) only when there is sufficient 
+c Continue for this (Zcomp,Ncomp,nex,J,P) only when there is sufficient
 c reaction flux in the excitation energy bin. The correct value for J
 c is determined.
 c
@@ -291,15 +313,15 @@ c J2         : 2 * J
 c flagfission: flag for fission
 c nfisbar    : number of fission barrier parameters
 c tfission   : subroutine for fission transmission coefficients
-c compound   : subroutine for Hauser-Feshbach model for multiple 
+c compound   : subroutine for Hauser-Feshbach model for multiple
 c              emission
 c tfissionout: subroutine for output of fission transmission
 c              coefficients
 c
-                  if (xspop(Zcomp,Ncomp,nex,J,parity).lt.popepsB) 
+                  if (xspop(Zcomp,Ncomp,nex,J,parity).lt.popepsB)
      +              goto 140
                   J2=2*J+odd
-                  if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0) 
+                  if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0)
      +              call tfission(Zcomp,Ncomp,J2,parity)
                   call compound(Zcomp,Ncomp,nex,J2,parity)
   140         continue
@@ -309,12 +331,48 @@ c
 c
 c Make new population cross section per nucleus
 c
+c flagcompo : flag for output of cross section components
+c xspoppreeq: preequilibrium population cross section per nucleus
+c preeqpopex: pre-equilibrium population cross section summed over
+c             spin and parity
+c xspopcomp : compound population cross section per nucleus
+c xspopdir  : direct population cross section per nucleus
+c Fdir      : direct population fraction per nucleus
+c Fpreeq    : preequilibrium population fraction per nucleus
+c Fcomp     : compound population fraction per nucleus
+c
           xspopnuc(Zcomp,Ncomp)=xspopex(Zcomp,Ncomp,0)
           do 210 nex=1,Nlast(Zcomp,Ncomp,0)
-            if (tau(Zcomp,Ncomp,nex).ne.0.) 
-     +        xspopnuc(Zcomp,Ncomp)=xspopnuc(Zcomp,Ncomp)+
-     +          xspopex(Zcomp,Ncomp,nex)
+            if (tau(Zcomp,Ncomp,nex).ne.0.) xspopnuc(Zcomp,Ncomp)=
+     +        xspopnuc(Zcomp,Ncomp)+xspopex(Zcomp,Ncomp,nex)
   210     continue
+          if (flagcompo) then
+            xsmax=0.
+            Smax=0.
+            do 220 type=1,6
+              if (xsfeed(Zcomp,Ncomp,type).gt.xsmax) then
+                xsmax=xsfeed(Zcomp,Ncomp,type)
+                Smax=S(Zcomp,Ncomp,type)
+              endif
+  220       continue
+            do 230 nex=0,maxex(Zcomp,Ncomp)
+              if (Ex(Zcomp,Ncomp,nex).gt.Smax) goto 240
+              xspoppreeq(Zcomp,Ncomp)=xspoppreeq(Zcomp,Ncomp)+
+     +            preeqpopex(Zcomp,Ncomp,nex)
+  230       continue
+  240       xspoppreeq(Zcomp,Ncomp)=min(xspoppreeq(Zcomp,Ncomp),
+     +        xspopnuc(Zcomp,Ncomp)-xspopdir(Zcomp,Ncomp))
+            xspopcomp(Zcomp,Ncomp)=max(xspopnuc(Zcomp,Ncomp)-
+     +        xspoppreeq(Zcomp,Ncomp)-xspopdir(Zcomp,Ncomp),0.)
+            if (xspopnuc(Zcomp,Ncomp).gt.0.) then
+              Fdir(Zcomp,Ncomp)=xspopdir(Zcomp,Ncomp)/
+     +          xspopnuc(Zcomp,Ncomp)
+              Fpreeq(Zcomp,Ncomp)=xspoppreeq(Zcomp,Ncomp)/
+     +          xspopnuc(Zcomp,Ncomp)
+              Fcomp(Zcomp,Ncomp)=xspopcomp(Zcomp,Ncomp)/
+     +          xspopnuc(Zcomp,Ncomp)
+            endif
+          endif
 c
 c For exclusive channel calculation: Determine feeding terms.
 c
@@ -322,46 +380,46 @@ c numZchan: maximal number of outgoing proton units in individual
 c           channel description
 c numNchan: maximal number of outgoing neutron units in individual
 c           channel description
-c feedexcl: feeding terms from compound excitation energy bin to 
+c feedexcl: feeding terms from compound excitation energy bin to
 c           residual excitation energy bin
 c
           if (flagchannels.and.Zcomp.le.numZchan.and.
      +      Ncomp.le.numNchan) then
-            do 220 nex=maxex(Zcomp,Ncomp),1,-1
-              do 230 type=0,6
-                if (parskip(type)) goto 230
+            do 250 nex=maxex(Zcomp,Ncomp),1,-1
+              do 260 type=0,6
+                if (parskip(type)) goto 260
                 if (Zcomp.eq.0.and.Ncomp.eq.0.and.type.gt.0.and.
-     +            .not.flaginitpop) goto 230
+     +            .not.flaginitpop) goto 260
                 Zix=Zindex(Zcomp,Ncomp,type)
                 Nix=Nindex(Zcomp,Ncomp,type)
-                do 240 nexout=0,maxex(Zix,Nix)
+                do 270 nexout=0,maxex(Zix,Nix)
                   feedexcl(Zcomp,Ncomp,type,nex,nexout)=
      +              mcontrib(type,nex,nexout)
-  240           continue
-  230         continue
-  220       continue
+  270           continue
+  260         continue
+  250       continue
           endif
 c
 c Increase emission spectra after decay of mother excitation energy bin.
 c
 c compemission: subroutine compound emission spectra for continuum
 c emissum     : integrated emission spectrum
-c Eaverage    : average outgoing energy   
+c Eaverage    : average outgoing energy
 c Eaveragesum : help variable
 c xscomp      : compound emission spectrum
 c xsmpreeq    : multiple pre-equilibrium emission spectrum
-c flagddx     : flag for output of double-differential cross sections   
-c flagrecoil  : flag for calculation of recoils  
-c egrid       : outgoing energy grid 
-c Eout        : outgoing energy  
+c flagddx     : flag for output of double-differential cross sections
+c flagrecoil  : flag for calculation of recoils
+c egrid       : outgoing energy grid
+c Eout        : outgoing energy
 c nanglecont  : number of angles for continuum
 c ang         : angle
 c anglecont   : angle in degrees for continuum
 c deg2rad     : conversion factor for degrees to radians
 c xscompad    : compound emission angular distribution
 c xsmpreeqad  : multiple preequilibrium angular distribution
-c kalbach     : Kalbach function    
-c Einc        : incident energy in MeV 
+c kalbach     : Kalbach function
+c Einc        : incident energy in MeV
 c deltaE      : energy bin around outgoing energies
 c
           if (flagspec) then
@@ -378,9 +436,9 @@ c
                 if (flagddx.or.flagrecoil) then
                   Eout=egrid(nen)
                   do 330 iang=0,nanglecont
-                    ang=anglecont(iang)*deg2rad 
+                    ang=anglecont(iang)*deg2rad
                     xscompad(type,nen,iang)=xscompad(type,nen,iang)+
-     +                xsemis(type,nen)/fourpi     
+     +                xsemis(type,nen)/fourpi
                     xsmpreeqad(type,nen,iang)=xsmpreeqad(type,nen,iang)+
      +                xsmpeemis(type,nen)*kalbach(type,Einc,Eout,ang)
   330             continue
@@ -390,15 +448,15 @@ c
                 Eaveragesum=Eaveragesum+egrid(nen)*
      +            (xsemis(type,nen)+xsmpeemis(type,nen))*deltaE(nen)
   320         continue
-              if (emissum(type).gt.0.) 
+              if (emissum(type).gt.0.)
      +          Eaverage(type)=Eaveragesum/emissum(type)
 c
-c For ENDF-6 files, exclusive (n,gn), (n,gp) ... (n,ga) spectra are 
+c For ENDF-6 files, exclusive (n,gn), (n,gp) ... (n,ga) spectra are
 c required. This is stored here.
 c
-c flagendf  : flag for information for ENDF-6 file  
+c flagendf  : flag for information for ENDF-6 file
 c parinclude: logical to include outgoing particle
-c xsngnspec : total (projectile,gamma-ejectile) spectrum 
+c xsngnspec : total (projectile,gamma-ejectile) spectrum
 c
               if (flagendf.and.parinclude(0).and.
      +          Zcomp.eq.0.and.Ncomp.eq.0) then
@@ -414,17 +472,25 @@ c **** Write partial emission channels and production cross sections ***
 c
 c Particles
 c
+c sumxs: sum over emission channels
+c xsdif: difference between in-flux and out-flux per bin
+c
           Z=ZZ(Zcomp,Ncomp,0)
           N=NN(Zcomp,Ncomp,0)
           A=AA(Zcomp,Ncomp,0)
           if (flagpop) then
             write(*,'(/" Emitted flux per excitation energy bin of",
      +        " Z=",i3," N=",i3," (",i3,a2,"):"/)') Z,N,A,nuc(Z)
-            write(*,'(" bin    Ex    ",7(2x,a8,2x)/)') 
-     +        (parname(type),type=0,6)
+            write(*,'(" bin    Ex    ",7(2x,a8,2x),
+     +        "  Total     In - out"/)') (parname(type),type=0,6)
             do 410 nex=0,maxex(Zcomp,Ncomp)
-              write(*,'(1x,i3,f8.3,1p,7e12.5)') nex,Ex(Zcomp,Ncomp,nex),
-     +          (xspartial(type,nex),type=0,6)
+              sumxs=0.
+              do 415 type=0,6
+                sumxs=sumxs+xspartial(type,nex)
+  415         continue
+              xsdif=xspopsave(nex)-sumxs
+              write(*,'(1x,i3,f8.3,1p,9e12.5)') nex,Ex(Zcomp,Ncomp,nex),
+     +          (xspartial(type,nex),type=0,6),sumxs,xsdif
   410       continue
 c
 c Fission
@@ -446,7 +512,7 @@ c
 c p       : particle number
 c h       : hole number
 c xspopph : population cross section per particle-hole configuration
-c xspopph2: population cross section per two-component particle-hole 
+c xspopph2: population cross section per two-component particle-hole
 c           configuration
 c
             if (mulpreZN(Zcomp,Ncomp)) then
@@ -456,7 +522,7 @@ c
      +          "particle-hole configuration"/)')
               if (.not.flag2comp) then
                 write(*,'(" bin    Ex  Mpe ratio  neutron   proton",
-     +            "  ",10("  ",i1,"p",i1,"h    "))') 
+     +            "  ",10("  ",i1,"p",i1,"h    "))')
      +            ((p,h,p=1,h),h=1,4)
                 write(*,'("                      emission  emission"/)')
                 do 430 nex=Nlast(Zcomp,Ncomp,0)+1,maxex(Zcomp,Ncomp)
@@ -470,7 +536,7 @@ c
                 write(*,'(" bin    Ex  Mpe ratio  neutron   proton",
      +            11(2x,4i2))') 1,1,0,0, 0,0,1,1, 1,0,0,1,
      +            0,1,1,0, 1,1,1,0, 1,0,1,1, 2,1,0,0, 0,0,2,1, 2,2,0,0,
-     +            0,0,2,2, 1,1,1,1 
+     +            0,0,2,2, 1,1,1,1
                 write(*,'("                      emission  emission"/)')
                 do 440 nex=Nlast(Zcomp,Ncomp,0)+1,maxex(Zcomp,Ncomp)
                   write(*,'(1x,i3,f8.3,f8.5,1p,13e10.3)') nex,
@@ -490,7 +556,7 @@ c
                   Dmulti(nex)=0.
   440           continue
               endif
-              write(*,'(/"  Total             ",1p,2e10.3)') 
+              write(*,'(/"  Total             ",1p,2e10.3)')
      +          xsmpetot(1),xsmpetot(2)
             endif
 c
@@ -502,7 +568,7 @@ c
      +        "nuclei from Z=",i3," N=",i3," (",i3,a2,"):"/)')
      +        Z,N,A,nuc(Z)
             if (flagfission)
-     +        write(*,'(" fission  channel",23x,":",1p,e12.5)') 
+     +        write(*,'(" fission  channel",23x,":",1p,e12.5)')
      +        xsfeed(Zcomp,Ncomp,-1)
             do 450 type=0,6
               if (parskip(type)) goto 450
@@ -538,11 +604,11 @@ c
      +           "  Average emission energy"/)')
                 do 470 type=0,6
                   if (parskip(type)) goto 470
-                  write(*,'(1x,a8,1p,2(4x,e12.5),0p,10x,f8.3)') 
+                  write(*,'(1x,a8,1p,2(4x,e12.5),0p,10x,f8.3)')
      +              parname(type),xsfeed(Zcomp,Ncomp,type),
      +              emissum(type),Eaverage(type)
   470           continue
-              endif             
+              endif
             endif
 c
 c Final production cross section for ground state and isomer of nucleus
@@ -551,10 +617,10 @@ c
             write(*,'(/" Final production cross section of Z=",i3,
      +        " N=",i3," (",i3,a2,"):"/)') Z,N,A,nuc(Z)
             write(*,'(" Total       :",1p,e12.5)') xspopnuc(Zcomp,Ncomp)
-            write(*,'(" Ground state:",1p,e12.5)') 
+            write(*,'(" Ground state:",1p,e12.5)')
      +        xspopex(Zcomp,Ncomp,0)
             do 480 nex=1,Nlast(Zcomp,Ncomp,0)
-              if (tau(Zcomp,Ncomp,nex).ne.0.) 
+              if (tau(Zcomp,Ncomp,nex).ne.0.)
      +          write(*,'(" Level",i3,"    :",1p,e12.5)') nex,
      +            xspopex(Zcomp,Ncomp,nex)
   480       continue
@@ -563,7 +629,7 @@ c
 c ******* Add binary cross sections to initial compound nucleus ********
 c
 c xsngnsum  : sum over total (projectile,gamma-ejectile) cross sections
-c xsngn     : total (projectile,gamma-ejectile) cross section 
+c xsngn     : total (projectile,gamma-ejectile) cross section
 c xsbinary  : cross section from initial compound to residual nucleus
 c xsreacinc : reaction cross section for incident channel
 c feedbinary: feeding from first compound nucleus

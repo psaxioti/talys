@@ -14,16 +14,16 @@ c
 c
 c ************* Calculate continuum one-step cross sections ************
 c
-c parskip   : logical to skip outgoing particle 
+c parskip   : logical to skip outgoing particle
 c Zindex,Zix: charge number index for residual nucleus
-c Nindex,Nix: neutron number index for residual nucleus   
+c Nindex,Nix: neutron number index for residual nucleus
 c msdbins2  : number of energy points for MSD calculation
 c Emsdin    : incident MSD energy
 c specmass  : specific mass for target nucleus and all particles
 c Emsd      : MSD energy grid
-c xscont    : continuum one-step direct cross section for MSD 
+c xscont    : continuum one-step direct cross section for MSD
 c cmsd      : normalization factor for MSD
-c xscont1   : continuum one-step direct cross section for MSD 
+c xscont1   : continuum one-step direct cross section for MSD
 c             (unnormalized)
 c flagddx   : flag for output of double-differential cross sections
 c nanglecont: number of angles for continuum
@@ -36,7 +36,7 @@ c
         do 20 type=1,2
           if (parskip(type)) goto 20
           Zix=Zindex(0,0,type)
-          Nix=Nindex(0,0,type)    
+          Nix=Nindex(0,0,type)
           do 30 nen1=0,msdbins2
             Emsdin=real(specmass(Zix,Nix,itype)*Emsd(nen1))
             do 40 nen2=nen1,msdbins2
@@ -55,7 +55,7 @@ c
 c
 c ******************* First-step cross sections for MSD ****************
 c
-c msdstep0  : n-step cross section for MSD 
+c msdstep0  : n-step cross section for MSD
 c k0        : index of incident particle
 c msdstepad0: n-step angular distribution for MSD
 c

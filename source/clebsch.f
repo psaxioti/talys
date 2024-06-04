@@ -17,10 +17,10 @@ c
 c
 c ************** Calculation of Clebsch-Gordan coefficients ************
 c
-c Attention:  cg(j1,j2,j3,;m1,m2,m3) = (-1)**(j1+j2-m3)*  
-c                                      3-J(j1,j2,j3;m1,m2,-m3) 
-c 
-c from John.G. Wills ORNL-TM-1949 (August 1967) 
+c Attention:  cg(j1,j2,j3,;m1,m2,m3) = (-1)**(j1+j2-m3)*
+c                                      3-J(j1,j2,j3;m1,m2,-m3)
+c
+c from John.G. Wills ORNL-TM-1949 (August 1967)
 c                    and Comp.Phys.Comm. 2(1971)381
 c     O.Bersillon    August 1977
 c
@@ -81,8 +81,8 @@ c
 c
 c Form coefficients of sum
 c
-        c  = (g(i(11)) - g(i(11)-1) + g(i(1)) + g(i(2)) + g(i(3)) - 
-     +        g(i(10)) + g(i(4)) + g(i(5)) + g(i(6)) + g(i(7)) + 
+        c  = (g(i(11)) - g(i(11)-1) + g(i(1)) + g(i(2)) + g(i(3)) -
+     +        g(i(10)) + g(i(4)) + g(i(5)) + g(i(6)) + g(i(7)) +
      +        g(i(8)) + g(i(9)))*0.5
         j1 = i(1) - il
         j2 = i(4) - il
@@ -147,4 +147,4 @@ c
         if((m - 2*(m/2)) .ne. 0) clebsch = -clebsch
         return
       endif
-      end 
+      end

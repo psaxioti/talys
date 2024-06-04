@@ -1,7 +1,7 @@
       subroutine talysinitial
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : July 28, 2005
 c | Task  : Initialization of nuclear structure
 c +---------------------------------------------------------------------

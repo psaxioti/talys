@@ -6,12 +6,12 @@ c | Date  : December 1, 2008
 c | Task  : Determination of effective absorption optical potential
 c +---------------------------------------------------------------------
 c
-c R. Bonetti, S. Galbiati, and L. Milazzo-Colli, Lett. Nuov. Cim. 18, 
+c R. Bonetti, S. Galbiati, and L. Milazzo-Colli, Lett. Nuov. Cim. 18,
 c 557 (1977)
 c
 c ****************** Declarations and common blocks ********************
 c
-      include "talys.cmb" 
+      include "talys.cmb"
       real    dr,emax,e,sum1,sum2,radv,radd,rr,expo,fwsvol,fwssurf,
      +        term1,term2,wjlm,Rjlm
       integer Zix,Nix,nrbins,Z,nenend,k,nen,i
@@ -21,21 +21,21 @@ c
 c Zix,Zindex : charge number index for residual nucleus
 c Nix,Nindex : neutron number index for residual nucleus
 c k0         : index of incident particle
-c dr         : integration bin width 
+c dr         : integration bin width
 c emax       : maximum excitation energy
 c enincmax   : maximum incident energy
 c S          : separation energy
 c nenend,expo: help variables
 c jlmexist   : flag for existence of tabulated radial matter density
 c nrbins     : number of continuum excitation energy bins
-c e          : energy 
+c e          : energy
 c ZZ,Z       : charge number of residual nucleus
 c parZ       : charge number of particle
 c prodZ      : product of charges of projectile and target nucleus
 c mom        : subroutine for microscopic optical model (Eric Bauge)
-c optical    : subroutine for determination of optical potential 
-c radv       : imaginary volume nuclear radius 
-c radd       : imaginary surface nuclear radius 
+c optical    : subroutine for determination of optical potential
+c radv       : imaginary volume nuclear radius
+c radd       : imaginary surface nuclear radius
 c Atarget    : mass number of target nucleus
 c onethird   : 1/3
 c rhojlmn    : density for neutrons
@@ -44,14 +44,14 @@ c normjlm    : JLM potential normalization factors
 c potjlm     : JLM potential depth values
 c w,rw,aw    : imaginary volume potential, radius, diffuseness
 c wd,rwd,awd : imaginary surface potential, radius, diffuseness
-c rr         : running variable in integration over the radius 
-c fwsvol     : imaginary volume optical potential form factor 
+c rr         : running variable in integration over the radius
+c fwsvol     : imaginary volume optical potential form factor
 c fwssurf    : derivative of the imaginary surface optical potential
-c              form factor 
-c term1,term2: help variables 
+c              form factor
+c term1,term2: help variables
 c wjlm       : help variable
 c Rjlm       : JLM normalization factor
-c sum1,sum2  : help variables 
+c sum1,sum2  : help variables
 c wvol       : absorption part of the optical potential averaged over
 c              the volume
 c
@@ -61,7 +61,7 @@ c
       nenend=10*min(numen,int(emax+1.))
       do 10 k=1,2
 c
-c A. Phenomenological potential (always done, also for the case of 
+c A. Phenomenological potential (always done, also for the case of
 c    normalizing the JLM OMP)
 c
         nrbins=50
@@ -105,7 +105,7 @@ c
           prodZ=Z*parZ(k)
           do 40 nen=nenend,-80,-1
 c
-c For negative energies, the phenomenological OMP is adopted, normalized 
+c For negative energies, the phenomenological OMP is adopted, normalized
 c at the first positive energy point.
 c
             if (nen.lt.1) then

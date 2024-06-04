@@ -1,0 +1,281 @@
+Development of TALYS since release of TALYS-1.2
+
+- December 23, 2009
+
+********** Release of TALYS-1.2 **********
+
+- January 6, 2010
+
+Changed some of the defaults for 'micro y' (fully microscopic option). 
+Among others, the phmodel is kept to 1. Also 'strength 4' if 'micro y'.
+
+- January 8, 2010
+
+Tiny correction by Stephane Goriely
+in levels.f, line 153
+     if (massmodel.ne.2) then
+has been changed into
+     if (massmodel.le.1) then
+
+since in the case of D1M (massmodel=3), a spin and parity is also assigned.
+
+- January 21, 2010
+
+Solved a problem with Elow (eninclow in the source code) found by Dimitri
+Rochman: If the highest incident energy is smaller that Elow, Elow is set
+to zero (otherwise there would be no output of cross sections).
+
+- February 1, 2010
+
+Corrected an indexing problem for exclusive channels in channels.f
+For exotic nuclei sometimes the exclusive channel does not open up 
+at the right moment, so the idnum index is incorrect. This caused 
+a wrong extrapolation at thermal energies for Th-150(n,n')
+
+Added a small output extension for the branching ratios of 
+residual products
+
+- February 24 2010
+
+Added a correction for the indexing of exclusive channels
+(see also Feb 1). In the case of using 'rescue' files the capture 
+channel may appear to be closed while the (n,gf) channel, which is 
+not normalized, remains open. Variables chanopen, in channels.f,
+and chanexist, in strucinitial.f, are now reinitialized to true
+for the capture channel.
+
+Nikolaj Filatov found a few small bugs, or potential problems, in the Brosa
+subroutines. for fission yield calculations. These have now been corrected
+
+- March 2 2010
+
+Solved a precision problem in molprepare.f for width fluctuation 
+calculations Very small numbers were multiplied with very large numbers,
+leading to NaN's in some cases.
+
+The thermal (n,a) cross section in the thermal database was a factor a 
+million too high. This is corrected.
+
+- March 7 2010
+
+Erich Ormand found a Bug in Fu's pairing correction, important if
+pairmodel 1 (the default is pairmodel 2). The formula contains a factor
+(U/delta)**0.68 and not (U/delta**0.68) as coded. Formula corrected.
+
+- March 11 2010
+
+Solved an old problem, first mentioned by Arjan Plompen and now also by
+Alexander Konobeyev: Different compilers produce different answers for 
+the gamma spectrum at low energies. This was visible in  sample case 6.
+Solved this by a small correction in specemission.f and compemission.f.
+
+After advice of Yan Shengquan, I added a print of the compound nucleus 
+formation cross section per spin and parity value. This will only be 
+done if flagcheck y.
+
+- March 12 2010
+
+On the advice of Stephane Hilaire, S(Zcomp,Ncomp,1) was changed into
+S(Zcomp,Ncomp,k0) in the Kopecky-Uhl generalized Lorentzian part
+of fstrength.f
+
+- March 26 2010
+
+Separated subroutine preeqcomplex into subroutines stripping, knockout 
+and breakup.
+
+- March 28 2010
+
+Implemented Kalbach's new model for break-up reactions, documented
+in a FENDL-3 report (March 2010). For this, the Cbreak keyword was
+introduced, similar to Cknock and Cstrip. The new model is in 
+subroutine breakup.
+
+- March 30 2010
+
+After a problem discovered by Mihai Horoi, and on the advice of 
+Stephane Goriely, the limits to take transmission coefficients and 
+cross sections (popeps, etc.) into account are lowered for 
+astrophysical calculations.
+
+- April 9 2010
+
+Repaired a problem found by Tak Pui Lou. If 'compound n', as in
+sample case 9, no subroutine or function calculating gamma ray 
+strength functions should be called. This was ensured by changing 
+an if statement near the end of incident.f
+
+- April 14 2010
+
+Erich Ormand found a bug for the exciton model emission rates for
+the use of pairmodel=1 (Fu's pairing correction). The exciton number
+of the residual system should be taken in preeqpair, when appropriate.
+Changed emissionrate.f and emissionrate2.f for this.
+
+- May 20 2010
+
+Added the recoil flag to the endf.inf file, for ENDF evaluations
+
+- June 25 2010
+
+Ronald Murphy discovered an error for angular distributions to 
+discrete states for reactions other than inelastic scattering. 
+This problem occurs for low incident energies of complex particles
+such as alpha's. Subroutine angdis.f was corrected for this.
+
+- June 28 2010
+
+Ronald Murphy discovered another error for continuum angular 
+distributions. An if statement was removed from spectra.f
+
+- September 2 2010
+
+Generalized input of characters: filenames and other strings can 
+now also be given in uppercase
+
+- December 7 2010
+
+An input file of Mahdi Bakhtiari and Mahdi Sadeghi led me to a problem on 
+interpolation of (input) tabulated OMP parameters with the 
+optmod keyword. Solved in subroutine omppar.f.
+Also, they spotted an error in the manual on the outexcitation 
+keyword that I corrected, and it TALYS now stops if a microscopic
+level density model (ldmodel 4,5) is used in combination with 
+colenhance y  (which only works for phenomenological models). 
+
+- December 27 2010
+
+On the advice of Stephane Goriely, I wiped a problem with the JLM
+OMP under the carpet: for very neutron-rich nuclides the JLM potential
+by Bauge and Delaroche may produce negative reaction cross sections.
+Instead of stopping the TALYS calculation directly, we now set
+the reaction cross section to zero. Changed incidentread.f and 
+directread.f for this.
+
+- December 29 2010
+
+Adopted  Stephane Goriely's double folding alpha potential.
+A new subroutine foldalpha.f was added, and now alphaomp runs from 1
+to 5. The default for the alpha OMP remains unchanged.
+
+- January 3 2011
+
+Extended the flexibility for using level densities. It is now possible, 
+in one and the same calculation, to use different level density models
+for different nuclides. If the input file contains e.g.
+ldmodel 5
+ldmodel 24 52 1
+ldmodel 24 53 2
+then ldmodel 5 will be used for all nuclides, with the exception of
+Cr-52 and Cr-53 for which ldmodel 1 and 2, respectively, will be used.
+The level density model thus becomes an adjustable parameter of integer 
+type.
+
+- January 5 2011
+
+Changed the meaning of the keyword adddiscrete. For (n,p)...(n,alpha) 
+reactions discrete state cross sections are now always added to the energy 
+spectrum of the cumulative (n,xp)...(n,xa) spectra.
+
+- January 10 2011
+
+Changed a small cross section limit in preeqcorrect.f to allow
+calculation of very small alpha-induced cross sections of 
+astrophysical interest
+
+- February 3 2011
+
+Solved an error in the extrapolation of partial (n,p) cross sections 
+to thermal values.
+
+- February 22 2011
+
+Solved a consistency error in the GSM in densitypar.f, 
+found by Heedong Choi. After determination of the critical
+level density parameters, the global l.d. alimit should not be
+redefined.
+
+- April 13 2011
+
+Changed the lower input boundary for the Pygmy resonance width to 
+0.1 MeV, due to a problem found by Samantha Hammond.
+
+- May 10 2011
+
+Added 4 global deuteron OMP's, since the default model coming from 
+standard Watanabe folding does not perform well. A keyword 'deuteronomp'
+has been made to make a choice between the models:
+deuteronomp 1 --> Watanabe potential
+deuteronomp 2 --> Daehnick potential
+deuteronomp 3 --> Bojowald potential
+deuteronomp 4 --> Han potential
+deuteronomp 5 --> Haixia An potential
+
+- May 11 2011
+
+Added flexibility in the OMP adjustment factors. If necessary, all
+geometrical parameters can now be independently varied (e.g. we no longer
+necessarily have rw=rv, etc.)
+
+- May 11 2011
+
+Adopted new egridastro.f subroutine from Stephane Goriely  for a finer 
+energy grid in astrophysical calculations
+
+- June 27 2011
+
+On the advice of Kevin Kelley, I allowed the combination 'ecissave y' 
+and 'eciscalc n'. TALYS now checks whether transmission coefficients are 
+available from a previous run. If not, it will create them.
+
+- June 30 2011
+
+Corrected the treatment of the URR: there was an error in the rules
+for possible angular momentum combinations in urr.f, discovered by 
+Paul Koehler. I also included the calculation of the average gamma 
+width for the URR in the correct place, as suggested by Gilles Noguere.
+All URR related actions in TALYS can now be found by searching for 
+the variable flagurr.
+
+- July 1 2011
+
+Included the possibility to calculate the effective cross section
+for integral activation measurements, by folding the excitation 
+functions by an experimental flux. In talys/structure/flux, we have 
+stored more than 40 spectra, coming from the EASY package, which 
+have been used in past activation benchmarks. Such benchmark activities 
+should eventually be performed using (processed) nuclear data libraries, 
+especially for reactions containing a low energy resonance range, but it 
+is helpful to get an idea of the performance directly with TALYS as well. 
+A new keyword 'integral' has been introduced for this.
+
+- September 19 2011
+
+Adopted Gilles Noguere's subroutines for the calculation of 
+unresolved resonance parameters. The urr keyword now acts like the
+widthfluc keyword: it can be y, n or a value between 0 and 20 MeV
+for the on-set of the URR calculations. For more flexibility,
+also the keyword lurr (maximal l-value for URR calculations)
+and urrnjoy (to normalize capture and fission widths according
+to the NJOY URR method). The URR subroutines are urr.f, urrout.f,
+csunr2.f, unfac.f, gnrl.f and strengthfunc.f
+
+- September 19 2011
+
+In addition to making ldmodel nuclide-dependent, the same was done 
+for the colenhance keyword, i.e. for every nuclide in the
+chain the collective enhancement for the level density can be turned
+on and off.
+
+- November 17 2011
+
+Added the possibility to print the direct, pre-equilibrium and compound
+components of each cross section in the output files. This can be
+enabled with a new keyword: components
+
+- December 22 2011
+
+Added the possibility to calculate Maxwellian averaged cross sections (MACS).
+This was already implicitly available for the calculation of astrophysical 
+reaction rates, but now with the keywords 'astroE' and 'astroT' the MACS
+can be calculated at a user-specified energy, e.g. 30 keV, or temperature.

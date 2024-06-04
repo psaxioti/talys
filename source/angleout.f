@@ -1,7 +1,7 @@
       subroutine angleout
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : September 29, 2007
 c | Task  : Output of discrete angular distributions
 c +---------------------------------------------------------------------
@@ -28,8 +28,8 @@ c fileelastic : flag for elastic angular distribution on separate file
 c parsym      : symbol of particle
 c Atarget     : mass number of target nucleus
 c nuc         : symbol of nucleus
-c Ztarget     : charge number of target nucleus  
-c Einc        : incident energy in MeV 
+c Ztarget     : charge number of target nucleus
+c Einc        : incident energy in MeV
 c cleg0       : Legendre coefficient normalized to the first one
 c
       write(*,'(/" 8. Discrete state angular distributions")')
@@ -52,7 +52,7 @@ c
           write(discfile(3:9),'(f7.3)') Einc
           write(discfile(3:5),'(i3.3)') int(Einc)
           write(discfile(15:16),'(i2.2)') Ltarget
-          open (unit=1,status='unknown',file=discfile)  
+          open (unit=1,status='unknown',file=discfile)
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering Legendre coefficients")') parsym(k0),
      +      Atarget,nuc(Ztarget)
@@ -67,7 +67,7 @@ c
      +        tlegnor(k0,Ltarget,LL),cleg0(k0,Ltarget,LL)
    20     continue
           close (unit=1)
-        endif    
+        endif
       endif
 c
 c 2. Angular distributions
@@ -98,7 +98,7 @@ c
           write(discfile(3:9),'(f7.3)') Einc
           write(discfile(3:5),'(i3.3)') int(Einc)
           write(discfile(15:16),'(i2.2)') Ltarget
-          open (unit=1,status='unknown',file=discfile)  
+          open (unit=1,status='unknown',file=discfile)
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering angular distribution")') parsym(k0),
      +      Atarget,nuc(Ztarget)
@@ -106,14 +106,14 @@ c
           write(1,'("# ")')
           write(1,'("# # angles   =",i3)') nangle+1
           write(1,'("# Angle       xs            Direct",
-     +      "         Compound")')     
+     +      "         Compound")')
           do 40 iang=0,nangle
             write(1,'(f5.1,1p,3e16.5)') angle(iang),
      +        discad(k0,Ltarget,iang),directad(k0,Ltarget,iang),
      +        compad(k0,Ltarget,iang)
    40     continue
           close (unit=1)
-        endif    
+        endif
       else
         write(*,'(" Angle        Total            Direct",
      +    "       Compound       c.s/Rutherford"/)')
@@ -131,7 +131,7 @@ c
           write(discfile(3:9),'(f7.3)') Einc
           write(discfile(3:5),'(i3.3)') int(Einc)
           write(discfile(15:16),'(i2.2)') Ltarget
-          open (unit=1,status='unknown',file=discfile)  
+          open (unit=1,status='unknown',file=discfile)
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering angular distribution")') parsym(k0),
      +      Atarget,nuc(Ztarget)
@@ -139,14 +139,14 @@ c
           write(1,'("# ")')
           write(1,'("# # angles   =",i3)') nangle+1
           write(1,'("# Angle       xs            Direct",
-     +      "         Compound    c.s./Rutherford")')     
+     +      "         Compound    c.s./Rutherford")')
           do 60 iang=0,nangle
             write(1,'(f5.1,1p,4e16.5)') angle(iang),
      +        discad(k0,Ltarget,iang),directad(k0,Ltarget,iang),
      +        compad(k0,Ltarget,iang),ruth(iang)
    60     continue
           close (unit=1)
-        endif    
+        endif
       endif
 c
 c ************** Inelastic scattering angular distributions ************
@@ -155,7 +155,7 @@ c Zindex,Zix: charge number index for residual nucleus
 c Nindex,Nix: neutron number index for residual nucleus
 c nlev      : number of levels for nucleus
 c xsdisc    : total cross section for discrete state
-c fileangle : designator for angular distributions on separate file 
+c fileangle : designator for angular distributions on separate file
 c
       Zix=Zindex(0,0,k0)
       Nix=Nindex(0,0,k0)
@@ -184,7 +184,7 @@ c
             write(discfile(3:9),'(f7.3)') Einc
             write(discfile(3:5),'(i3.3)') int(Einc)
             write(discfile(15:16),'(i2.2)') i
-            open (unit=1,status='unknown',file=discfile)  
+            open (unit=1,status='unknown',file=discfile)
             write(1,'("# ",a1," + ",i3,a2,
      +        " Inelastic scattering Legendre coefficients"," - Level",
      +        i3)')  parsym(k0),Atarget,nuc(Ztarget),i
@@ -198,7 +198,7 @@ c
      +          cleg(k0,i,LL),tlegnor(k0,i,LL),cleg0(k0,i,LL)
   130       continue
             close (unit=1)
-          endif    
+          endif
   110   continue
       endif
 c
@@ -223,7 +223,7 @@ c
           write(discfile(3:9),'(f7.3)') Einc
           write(discfile(3:5),'(i3.3)') int(Einc)
           write(discfile(15:16),'(i2.2)') i
-          open (unit=1,status='unknown',file=discfile)  
+          open (unit=1,status='unknown',file=discfile)
           write(1,'("# ",a1," + ",i3,a2,
      +      " Inelastic scattering angular distribution",
      +      " - Level",i3)') parsym(k0),Atarget,nuc(Ztarget),i
@@ -236,13 +236,13 @@ c
      +        directad(k0,i,iang),compad(k0,i,iang)
   160     continue
           close (unit=1)
-        endif    
+        endif
   140 continue
 c
 c ********** Non-inelastic scattering angular distributions ************
 c
 c parskip  : logical to skip outgoing particle
-c xsdisctot: total cross section summed over discrete states 
+c xsdisctot: total cross section summed over discrete states
 c
       write(*,'(/" 8c. Angular distributions for other reactions")')
       do 210 type=0,6
@@ -275,7 +275,7 @@ c
               write(discfile(3:9),'(f7.3)') Einc
               write(discfile(3:5),'(i3.3)') int(Einc)
               write(discfile(15:16),'(i2.2)') i
-              open (unit=1,status='unknown',file=discfile)  
+              open (unit=1,status='unknown',file=discfile)
               write(1,'("# ",a1," + ",i3,a2," (",a1,",",a1,
      +          ") Legendre coefficients"," - Level",i3)') parsym(k0),
      +          Atarget,nuc(Ztarget),parsym(k0),parsym(type),i
@@ -290,13 +290,13 @@ c
      +            cleg0(type,i,LL)
   240       continue
             close (unit=1)
-          endif    
+          endif
   220     continue
         endif
 c
 c 2. Angular distributions
 c
-        write(*,'(/" 8c2. (",a1,",",a1,") angular distributions")') 
+        write(*,'(/" 8c2. (",a1,",",a1,") angular distributions")')
      +    parsym(k0),parsym(type)
         do 250 i=0,nlev(Zix,Nix)
           if (xsdisc(type,i).eq.0.) goto 250
@@ -317,7 +317,7 @@ c
             write(discfile(3:9),'(f7.3)') Einc
             write(discfile(3:5),'(i3.3)') int(Einc)
             write(discfile(15:16),'(i2.2)') i
-            open (unit=1,status='unknown',file=discfile)  
+            open (unit=1,status='unknown',file=discfile)
             write(1,'("# ",a1," + ",i3,a2," (",a1,",",a1,
      +        ") angular distributions - Level",i3)') parsym(k0),
      +        Atarget,nuc(Ztarget),parsym(k0),parsym(type),i
@@ -325,14 +325,14 @@ c
             write(1,'("# ")')
             write(1,'("# # angles   =",i3)') nangle+1
             write(1,'("# Angle      xs           Direct",
-     +        "        Compound")')     
+     +        "        Compound")')
             do 270 iang=0,nangle
               write(1,'(f5.1,1p,3e15.5)') angle(iang),
      +          discad(type,i,iang),directad(type,i,iang),
      +          compad(type,i,iang)
   270       continue
             close (unit=1)
-          endif    
+          endif
   250   continue
   210 continue
       return

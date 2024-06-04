@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 5, 2009
+c | Date  : December 22, 2011
 c | Task  : Energy dependent level density parameter a
 c +---------------------------------------------------------------------
 c
@@ -25,27 +25,29 @@ c alimit  : asymptotic level density parameter
 c aldlim  : asymptotic level density parameter
 c fU,damp : help variables
 c gammald : gamma-constant for asymptotic level density parameter
-c deltaW  : shell correction in nuclear mass 
+c deltaW  : shell correction in nuclear mass
 c
-c Formalism from Ignatyuk et al. Sov. Jour. Nuc. Phys. 21 (1975), 255. 
+c Formalism from Ignatyuk et al. Sov. Jour. Nuc. Phys. 21 (1975), 255.
 c
       U=Eex-delta(Zix,Nix,ibar)
       aldlim=alimit(Zix,Nix)
 c
-c 1. For very low Eex, i.e. U < 0, we use the first order Taylor 
+c 1. For very low Eex, i.e. U < 0, we use the first order Taylor
 c    expansion
 c
       if (U.le.0.) then
         damp=(1.+deltaW(Zix,Nix,ibar)*gammald(Zix,Nix))
       else
 c
-c 2. Higher energies 
+c 2. Higher energies
 c
-        fU=1.-exp(-gammald(Zix,Nix)*U)
+        expo=gammald(Zix,Nix)*U
+        fU=1.
+        if (abs(expo).le.80.) fU=1.-exp(-expo)
         damp=1.+fU*deltaW(Zix,Nix,ibar)/U
       endif
 c
-c Only for fission models with damping of collective effects in 
+c Only for fission models with damping of collective effects in
 c effective level density model. (Re-installed from TALYS-0.64).
 c Fermi distribution for asymptotic level density parameter. This takes
 c the damping of collective effects into account in a phenomenological

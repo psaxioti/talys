@@ -3,7 +3,7 @@ c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn, Arjan Koning, Stephane Hilaire,
 c |         Stephane Goriely and Pascal Romain
-c | Date  : May 25, 2009
+c | Date  : September 28, 2011
 c | Task  : Collective enhancement
 c +---------------------------------------------------------------------
 c
@@ -33,27 +33,27 @@ c ldmodel  : level density model
 c Exmatch  : matching energy for Ex
 c U        : excitation energy minus pairing energy
 c delta    : energy shift
-c pair     : total pairing correction              
+c pair     : total pairing correction
 c ignatyuk : function for energy dependent level density parameter a
-c Temp     : nuclear temperature 
+c Temp     : nuclear temperature
 c
       Krot=1.
       Krot0=1.
       Kvib=1.
       Kvib0=1.
       Kcoll=1.
-      if (.not.flagcol) return
-      if (ldmodel.eq.1.and.Eex.lt.Exmatch(Zix,Nix,ibar)) return
+      if (.not.flagcol(Zix,Nix)) return
+      if (ldmodel(Zix,Nix).eq.1.and.Eex.lt.Exmatch(Zix,Nix,ibar)) return
       U=Eex-delta(Zix,Nix,ibar)
       if (U.le.0.) return
       if (ibar.eq.0) then
         aldgs=ald
       else
-        aldgs=ignatyuk(Zix,Nix,Eex,0) 
+        aldgs=ignatyuk(Zix,Nix,Eex,0)
       endif
       Temp=sqrt(U/aldgs)
 c
-c 1. Specfic collective enhancement for Bruyeres-le-Chatel 
+c 1. Specific collective enhancement for Bruyeres-le-Chatel
 c    (Pascal Romain) fission model
 c
 c fismodel    : fission model
@@ -61,7 +61,7 @@ c flagcolldamp: flag for damping of collective effects in effective
 c               level density (without explicit collective enhancement)
 c               Only used for Bruyeres-le-Chatel (Pascal Romain) fission
 c               model
-c axtype      : type of axiality of barrier 
+c axtype      : type of axiality of barrier
 c               1: axial symmetry
 c               2: left-right asymmetry
 c               3: triaxial and left-right symmetry
@@ -95,7 +95,7 @@ c
 c
 c 2. Default calculation
 c
-c Calculation of Kvib     
+c Calculation of Kvib
 c
 c AA,A     : mass number of residual nucleus
 c avib     : level density parameter for vibrational model
@@ -109,7 +109,7 @@ c deltaU   : excitation energy change
 c Cvib     : constant for vibrational enhancement
 c onethird : 1/3
 c term     : help variable
-c deltaW   : shell correction in nuclear mass 
+c deltaW   : shell correction in nuclear mass
 c omegavib : energy of vibrational excitation
 c l        : multipolarity
 c nvib     : occupation number
@@ -159,7 +159,7 @@ c
 c
 c Calculation of damping function and Krot
 c
-c damper      : energy damping function 
+c damper      : energy damping function
 c Ufermi      : energy of Fermi distribution for damping of ground-state
 c             : rotational effects
 c cfermi      : width of Fermi distribution for damping of ground-state
@@ -182,7 +182,7 @@ c
 c Ufermibf : energy of Fermi distribution for damping of barrier
 c          : rotational effects
 c cfermibf : width of Fermi distribution for damping of barrier
-c          : rotational effects      
+c          : rotational effects
 c spincutbf: spin-cutoff parameter squared (perpendicular projection)
 c            for fission barrier
 c twopi    : 2.*pi
@@ -197,7 +197,7 @@ c
           if (axtype(Zix,Nix,ibar).eq.1) Krot0=spincutbf
           if (axtype(Zix,Nix,ibar).eq.2) Krot0=2.*spincutbf
           if (axtype(Zix,Nix,ibar).ge.3) then
-            aldf=ignatyuk(Zix,Nix,Eex,ibar) 
+            aldf=ignatyuk(Zix,Nix,Eex,ibar)
             term=spincutbf*sqrt(spincut(Zix,Nix,aldf,Eex,ibar)*
      +        (1.-twothird*abs(beta2(Zix,Nix,ibar))))
             if (axtype(Zix,Nix,ibar).eq.3) Krot0=0.5*sqrt(twopi)*term

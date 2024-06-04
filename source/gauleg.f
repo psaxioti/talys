@@ -1,7 +1,7 @@
       subroutine gauleg(ngl,tgl,wgl)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
+c | Author: Stephane Hilaire
 c | Date  : July 9, 2004
 c | Task  : Calculation of Gauss-Legendre arrays
 c +---------------------------------------------------------------------

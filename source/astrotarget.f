@@ -1,7 +1,7 @@
       subroutine astrotarget
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
+c | Author: Stephane Hilaire
 c | Date  : November 1, 2007
 c | Task  : Compound reaction for many target states
 c +---------------------------------------------------------------------
@@ -22,31 +22,31 @@ c
       double precision rhoinc,factor1,sumIPE,sumIP,rho,compterm,rhoel
       double precision sumIPas,suminl
 
-c 
+c
 c ********************** Astrophysical situation ***********************
 c
 c The astrophysical calculation may involve also the excited states of
-c the target located above the ground state of the nucleus or both 
-c below and above when dealing with a isomeric target. The temperature 
-c during the evolution of the universe or in stars is such that a 
-c nucleus can exist in various excited states. 
+c the target located above the ground state of the nucleus or both
+c below and above when dealing with a isomeric target. The temperature
+c during the evolution of the universe or in stars is such that a
+c nucleus can exist in various excited states.
 c This would in principle imply that the loops over the quantum number
-c must be performed for all possible inelastic channels. However, 
+c must be performed for all possible inelastic channels. However,
 c in practice these loops are reduced by a lumping approximation for
-c lprime and jprime quantum numbers which means that we only loop 
+c lprime and jprime quantum numbers which means that we only loop
 c over excited states number,spin and parity of the target nucleus.
 c
 c Zcomp    : charge number index for compound nucleus
 c Ncomp    : neutron number index for compound nucleus
-c Zixtarget: charge number index of target nucleus               
-c Nixtarget: neutron number index of target nucleus               
+c Zixtarget: charge number index of target nucleus
+c Nixtarget: neutron number index of target nucleus
 c k0       : index of incident particle
 c parspin  : spin of particle
-c flagcheck: flag for output of numerical checks 
+c flagcheck: flag for output of numerical checks
 c flagwidth: flag for width fluctuation calculation
 c maxex    : maximum excitation energy bin for residual nucleus
 c Ltarget  : excited level of target
-c l2maxhf  : 2 * lmaxhf            
+c l2maxhf  : 2 * lmaxhf
 c lmaxhf   : maximal l-value for transmission coefficients
 c Nlast,NL : last discrete level
 c parlev   : parity of level
@@ -61,7 +61,7 @@ c
       Ncomp=0
       Zixtarget=Zindex(Zcomp,Ncomp,k0)
       Nixtarget=Nindex(Zcomp,Ncomp,k0)
-      if (flagcheck.and.flagwidth) 
+      if (flagcheck.and.flagwidth)
      +  write(*,'(/"Flux check for astrophysical case"/)')
       do 10 nexastro=0,maxex(Zixtarget,Nixtarget)
         if (nexastro.eq.Ltarget) goto 10
@@ -78,13 +78,13 @@ c
           spin2beg=mod(int(2*jdis(Zixtarget,Nixtarget,0)),2)
           spin2end=2*maxJ(Zixtarget,Nixtarget,nexastro)
         endif
-c    
+c
 c 20: Sum over target parity
 c
 c Ptarget: target parity
 c
         do 20 Ptarget=Pbeg,Pend,2
-c    
+c
 c 30: Sum over target spin
 c
 c spin2target: 2 * target spin
@@ -100,7 +100,7 @@ c
             if (rhoinc.eq.0.) goto 30
             J2cnend=int(2*(lmaxhf(k0,nexastro)+parspin(k0)+spintarget))
             J2cnend=min(J2cnend,numJ)
-c    
+c
 c 110: Sum over Compound Nucleus parity
 c
 c parity: parity
@@ -115,21 +115,21 @@ c J2          : 2 * J
 c flagfission : flag for fission
 c nfisbar     : number of fission barrier parameters
 c tfission    : subroutine for fission transmission coefficients
-c astroprepare: subroutine to prepare information for astrophysical 
+c astroprepare: subroutine to prepare information for astrophysical
 c               compound nucleus calculations
-c Tinc        : transmission coefficients as a function of j and l 
+c Tinc        : transmission coefficients as a function of j and l
 c               for the incident channel
-c Tastroinc   : transmission coefficient for incident channel 
+c Tastroinc   : transmission coefficient for incident channel
 c               (Astrophysical case)
 c tnumi       : counter for width fluctuation calculation
 c denomhf     : denominator for compound nucleus formula
-c widthprepare: subroutine for preparation of width fluctuation 
+c widthprepare: subroutine for preparation of width fluctuation
 c               corrections
 
 
               do 120 J2=J2beg,J2cnend,2
                 J=J2/2
-                if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0) 
+                if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0)
      +            call tfission(Zcomp,Ncomp,J2,parity)
                 call astroprepare(Zcomp,Ncomp,J2,parity,spin2target,
      +            Ptarget,nexastro)
@@ -144,7 +144,7 @@ c               corrections
                   if (feed.lt.transeps) goto 120
                 endif
 c
-c 210: Sum over outgoing channels     
+c 210: Sum over outgoing channels
 c
 c fluxsum      : check for conservation of flux per P,J,j,l
 c wmode        : designator for width fluctuation model
@@ -154,7 +154,7 @@ c widthfluc    : subroutine for width fluctuation correction
 c factor1      : help variable
 c tfis         : fission transmission coefficients
 c xsbinary     : cross section from initial compound to residual nucleus
-c CNfactor     : factor for compound nucleus cross section: 
+c CNfactor     : factor for compound nucleus cross section:
 c                pi/[ k**2 (2s+1)(2I+1) ]
 c
                 fluxsum=0.
@@ -193,14 +193,14 @@ c
                   Nix=Nindex(Zcomp,Ncomp,type)
                   NL=Nlast(Zix,Nix,0)
 c
-c 220: Sum over outgoing excitation energies     
+c 220: Sum over outgoing excitation energies
 c
 c sumIPE    : compound contribution summed over residual spin and parity
 c             and energy
 c elastic   : designator for elastic channel
-c Pprimebeg : start of residual parity summation 
+c Pprimebeg : start of residual parity summation
 c parlev    : parity of level
-c Pprimeend : end of residual parity summation  
+c Pprimeend : end of residual parity summation
 c Irspin2beg: 2 * start of residual spin summation
 c jdis      : spin of level
 c Irspin2end: 2 * end of residual spin summation
@@ -211,15 +211,15 @@ c
                   sumIPE=0.
                   do 220 nexout=0,maxex(Zix,Nix)
                     l2maxhf=2*lmaxhf(type,nexout)
-                    elas1=(type.eq.k0.and.nexout.eq.nexastro) 
+                    elas1=(type.eq.k0.and.nexout.eq.nexastro)
                     if (nexout.le.NL) then
                       Pprimebeg=parlev(Zix,Nix,nexout)
-                      Pprimeend=Pprimebeg      
+                      Pprimeend=Pprimebeg
                       Irspin2beg=int(2.*jdis(Zix,Nix,nexout))
                       Irspin2end=Irspin2beg
                     else
                       Pprimebeg=-1
-                      Pprimeend=1      
+                      Pprimeend=1
                       J2res=J2+parspin2o
                       Irspin2beg=mod(J2res,2)
                       Irspin2end=J2res+l2maxhf
@@ -238,7 +238,7 @@ c Irspin2  : 2 * residual spin
 c Ir       : residual spin
 c rho      : integrated level density
 c Tout     : transmission coefficient
-c Tastroout: transmission coefficient for outgoing channel 
+c Tastroout: transmission coefficient for outgoing channel
 c            (Astrophysical case)
 c
                       do 240 Irspin2=Irspin2beg,Irspin2end,2
@@ -248,16 +248,16 @@ c
                         if (flagwidth) then
                           rho=Tastroout(0,type,nexout,Ir,Pprime)
                           if (rho.lt.1.0d-20) goto 240
-                          if (rho.ne.0.) 
+                          if (rho.ne.0.)
      +                      Tout=Tastroout(1,type,nexout,Ir,Pprime)/rho
                           if (type.ge.1) tnumo=tnumo+1
                           if (wmode.ge.1) then
                             ielas=0
-                            call widthfluc(ielas)    
+                            call widthfluc(ielas)
                             Wabinelastic=Wab
                             if (elastic) then
-                              ielas=1 
-                              call widthfluc(ielas)    
+                              ielas=1
+                              call widthfluc(ielas)
                               rhoel=rho
                             endif
                           endif
@@ -275,7 +275,7 @@ c xspopex   : population cross section summed over spin and parity
 c xscompcont: compound cross section for continuum
 c contrib   : contribution to emission spectrum
 c xspopnuc  : population cross section per nucleus
-c                             
+c
 c
                           if (ielas.eq.1) then
                              factor1=factor1+real((rho-1.)*Tinc*rho*Tout

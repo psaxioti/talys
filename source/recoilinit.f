@@ -44,7 +44,7 @@ c compmass      : compound nucleus mass
 c PtotCM        : compound initial momentum (or cm momentum)
 c Erecinit      : first compound nucleus recoil energy
 c etotcm        : compound nucleus total energy (relativistic invariant)
-c                             
+c
       integer   nbbins,numres
       parameter (nbbins=50,numres=5000)
       integer   iang,ierec,iex,in,iz,iej,type,nl

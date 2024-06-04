@@ -1,7 +1,7 @@
       function prodp(sx,tjl,numtjl,numtr,numinc)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
+c | Author: Stephane Hilaire
 c | Date  : September 10, 2004
 c | Task  : Calculation of the product of (1+t*x)**(1/20)
 c +---------------------------------------------------------------------
@@ -12,7 +12,7 @@ c
       integer          numtjl,numtr,numinc,i
       real             sx
       double precision tjl(0:5,numtr),tav,prodp
-c 
+c
 c **************** Calculation of the product of 1+t*x *****************
 c
 c prodp : product function for GOE

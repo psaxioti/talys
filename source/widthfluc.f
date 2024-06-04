@@ -16,7 +16,7 @@ c
 c ielas          : designator for elastic channel
 c tnumo,tnumi    : counters for width fluctuation calculation
 c numtrans       : number of transmission coefficients
-c numhill        : maximum number of Hill-Wheeler points 
+c numhill        : maximum number of Hill-Wheeler points
 c wmode          : designator for width fluctuation model
 c moldauer       : subroutine for Moldauer width fluctuation correction
 c tnum           : total number of transmission coefficients
@@ -24,11 +24,11 @@ c denomhf        : denominator for compound nucleus formula
 c nmold,xmold    : variables for Gauss-Legendre integration
 c tjlav,transjl  : array for width fluctuation calculation
 c freedom        : number of degrees of freedom
-c prodwidth      : product of widths            
+c prodwidth      : product of widths
 c Wab            : width fluctuation factor
 c hrtw           : subroutine for HRTW width fluctuation correction
-c sumhrtw,.......: variables for HRTW calculation      
-c goe            : subroutine for GOE triple integral width fluctuation 
+c sumhrtw,.......: variables for HRTW calculation
+c goe            : subroutine for GOE triple integral width fluctuation
 c                  correction
 c agoe1,.........: variables for GOE triple integral calculation
 c

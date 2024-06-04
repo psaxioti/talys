@@ -1,7 +1,7 @@
       function aldmatch(Zix,Nix,Eex,ibar)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire, Marieke Duijvestijn and Arjan Koning 
+c | Author: Stephane Hilaire, Marieke Duijvestijn and Arjan Koning
 c | Date  : April 7, 2006
 c | Task  : Effective level density parameter
 c +---------------------------------------------------------------------
@@ -22,9 +22,9 @@ c The effective level density parameter is obtained in three steps:
 c
 c 1. Create total level density in Fermi gas region
 c
-c Zix          : charge number index for residual nucleus  
-c Nix          : neutron number index for residual nucleus  
-c AA,A         : mass number of residual nucleus 
+c Zix          : charge number index for residual nucleus
+c Nix          : neutron number index for residual nucleus
+c AA,A         : mass number of residual nucleus
 c rjbegin,rj   : help variables
 c rhosum,factor: help variables
 c aldref       : level density parameter
@@ -53,9 +53,9 @@ c Kcoll     : total collective enhancement
 c rhoref    : help variable
 c
       call colenhance(Zix,Nix,Eex,aldref,ibar,Krot,Kvib,Kcoll)
-      rhoref=Kcoll*rhosum      
-c 
-c 3. Determine effective level density parameter by equating the 
+      rhoref=Kcoll*rhosum
+c
+c 3. Determine effective level density parameter by equating the
 c    rotational enhanced level density by a new effective
 c    total level density.
 c

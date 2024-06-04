@@ -1,8 +1,8 @@
       subroutine productionout
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : June 19, 2007   
+c | Author: Arjan Koning
+c | Date  : June 19, 2007
 c | Task  : Output of particle production cross sections
 c +---------------------------------------------------------------------
 c
@@ -17,13 +17,13 @@ c ************** Total particle production cross sections **************
 c
 c parskip     : logical to skip outgoing particle
 c parname     : name of particle
-c xsparticle  : total particle production cross section 
+c xsparticle  : total particle production cross section
 c multiplicity: particle multiplicity
 c
-      write(*,'(/" 3. Total particle production cross sections"/)') 
+      write(*,'(/" 3. Total particle production cross sections"/)')
       do 10 type=0,6
         if (parskip(type)) goto 10
-        write(*,'(1x,a8,"=",1p,e12.5,"    Multiplicity=",e12.5)') 
+        write(*,'(1x,a8,"=",1p,e12.5,"    Multiplicity=",e12.5)')
      +    parname(type),xsparticle(type),multiplicity(type)
 c
 c Write results to separate file
@@ -36,8 +36,8 @@ c parsym    : symbol of particle
 c k0        : index of incident particle
 c Atarget   : mass number of target nucleus
 c nuc       : symbol of nucleus
-c Ztarget   : charge number of target nucleus                   
-c numinc    : number of incident energies 
+c Ztarget   : charge number of target nucleus
+c numinc    : number of incident energies
 c eninc,Einc: incident energy in MeV
 c
         if (filetotal) then
@@ -57,7 +57,7 @@ c
           else
             open (unit=1,status='old',file=totfile)
             do 30 nen=1,nin+4
-              read(1,*,end=40,err=40) 
+              read(1,*,end=40,err=40)
    30       continue
           endif
           write(1,'(1p,e10.3,2e12.5)') Einc,xsparticle(type),
@@ -76,7 +76,7 @@ c
 c
 c Write results to separate file
 c
-c filefission: flag for fission cross sections on separate file 
+c filefission: flag for fission cross sections on separate file
 c
         if (filefission) then
           fisfile='fission.tot'//natstring(iso)
@@ -94,7 +94,7 @@ c
           else
             open (unit=1,status='old',file=fisfile)
             do 120 nen=1,nin+4
-              read(1,*,end=130,err=130) 
+              read(1,*,end=130,err=130)
   120       continue
           endif
           write(1,'(1p,e10.3,e12.5)') Einc,xsfistot

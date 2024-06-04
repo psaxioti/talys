@@ -1,8 +1,8 @@
       subroutine input1
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : December 15, 2009
+c | Author: Arjan Koning
+c | Date  : June 15, 2011
 c | Task  : Read input for first set of variables
 c +---------------------------------------------------------------------
 c
@@ -26,6 +26,7 @@ c elemexist  : logical for existence of element
 c enerexist  : logical for existence of energy
 c flagnatural: flag for calculation of natural element
 c flagmicro  : flag for completely microscopic Talys calculation
+c flagastro  : flag for calculation of astrophysics reaction rate
 c flagbest   : flag to use best set of adjusted parameters
 c bestpath   : alternative directory for best values
 c eninc      : incident energy in MeV
@@ -42,6 +43,7 @@ c
       enerexist=.false.
       flagnatural=.false.
       flagmicro=.false.
+      flagastro=.false.
       flagbest=.false.
       bestpath='                                        '
       do 5 i=0,numen6+2
@@ -52,9 +54,9 @@ c
       Starget='  '
 c
 c nlines     : number of input lines
-c getkeywords: subroutine to retrieve keywords and values from input 
+c getkeywords: subroutine to retrieve keywords and values from input
 c              line
-c inline     : input line                 
+c inline     : input line
 c word       : words on input line
 c key        : keyword
 c value      : value or string
@@ -92,12 +94,12 @@ c
 c
 c 4. The nuclear symbol or charge number is read
 c
-c numelem: number of elements   
+c numelem: number of elements
 c
         if (key.eq.'element') then
           elemexist=.true.
-          if (ch.ge.'0'.and.ch.le.'9') then 
-            read(value,*,end=500,err=500) Ztarget 
+          if (ch.ge.'0'.and.ch.le.'9') then
+            read(value,*,end=500,err=500) Ztarget
             if (Ztarget.lt.1.or.Ztarget.gt.numelem) goto 500
             goto 10
           else
@@ -118,7 +120,7 @@ c 6. The incident energy or file with incident energies is read
 c
         if (key.eq.'energy') then
           enerexist=.true.
-          if ((ch.ge.'0'.and.ch.le.'9').or.ch.eq.'.') then 
+          if ((ch.ge.'0'.and.ch.le.'9').or.ch.eq.'.') then
             read(value,*,end=500,err=500) eninc(1)
             goto 10
           else
@@ -128,11 +130,17 @@ c
           endif
         endif
 c
-c 7. Test for completely microscopic Talys calculation
+c 7. Test for completely microscopic and/or astrophysical calculation
 c
         if (key.eq.'micro') then
           if (ch.eq.'n') flagmicro=.false.
           if (ch.eq.'y') flagmicro=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 500
+          goto 10
+        endif
+        if (key.eq.'astro') then
+          if (ch.eq.'n') flagastro=.false.
+          if (ch.eq.'y') flagastro=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 500
           goto 10
         endif
@@ -154,19 +162,19 @@ c
 c The four main keywords MUST be present in the input file.
 c
       if (.not.projexist) then
-        write(*,'(" TALYS-error: projectile must be given")') 
+        write(*,'(" TALYS-error: projectile must be given")')
         stop
       endif
       if (.not.massexist) then
-        write(*,'(" TALYS-error: mass must be given")') 
+        write(*,'(" TALYS-error: mass must be given")')
         stop
       endif
       if (.not.elemexist) then
-        write(*,'(" TALYS-error: element must be given")') 
+        write(*,'(" TALYS-error: element must be given")')
         stop
       endif
       if (.not.enerexist) then
-        write(*,'(" TALYS-error: energy must be given")') 
+        write(*,'(" TALYS-error: energy must be given")')
         stop
       endif
 c
@@ -228,7 +236,7 @@ c
 c
 c ************* Process first set of input variables *******************
 c
-c 1. Assignment of index k0 to incident particle 
+c 1. Assignment of index k0 to incident particle
 c
 c flaginitpop: flag for initial population distribution
 c parsym     : symbol of particle
@@ -307,7 +315,7 @@ c
         eninc(0)=0.
         if (eninc(1).eq.0.) then
           inquire (file=energyfile,exist=lexist)
-          if (.not.lexist) then   
+          if (.not.lexist) then
             write(*,'(" TALYS-error: give a single incident energy ",
      +        "in the input file using the energy keyword ")')
             write(*,'(14x,"or specify a range of incident energies ",
@@ -322,7 +330,7 @@ c
 c
 c There is a maximum number of incident energies
 c
-c numenin : maximal number of incident energies 
+c numenin : maximal number of incident energies
 c
             if (nin.gt.numenin) then
               write(*,'(" TALYS-error: there are more than",i4,
@@ -345,7 +353,7 @@ c
 c
 c The number of incident energies is numinc
 c
-c numinc: number of incident energies 
+c numinc: number of incident energies
 c
           numinc=nin
           if (numinc.eq.0) then
@@ -354,11 +362,11 @@ c
             stop
           endif
 c
-c The minimum and maximum value of all the incident energies is 
+c The minimum and maximum value of all the incident energies is
 c determined.
 c
-c enincmin: minimum incident energy 
-c enincmax: maximum incident energy 
+c enincmin: minimum incident energy
+c enincmax: maximum incident energy
 c
           enincmin=eninc(1)
           enincmax=eninc(1)
@@ -389,7 +397,7 @@ c Pdist   : population distribution per spin and parity
 c pbeg    : help variable
 c
         inquire (file=energyfile,exist=lexist)
-        if (.not.lexist) then   
+        if (.not.lexist) then
           write(*,'(" TALYS-error: if projectile 0, specify a range",
      +        " of excitation energies in a file ",a73)') energyfile
           stop
@@ -408,7 +416,7 @@ c
         endif
         if (npopJ.gt.0.and.(npopP.lt.1.or.npopP.gt.2)) then
           write(*,'(" TALYS-error: 1 <= number of parities <= 2",
-     +      " in population distribution file")') 
+     +      " in population distribution file")')
           stop
         endif
         Exdist(0)=0.
@@ -419,7 +427,7 @@ c
  340    continue
 c
 c Only excitation energy distribution (no spins)
-c 
+c
         if (npopJ.eq.0) then
           do 350 nin=1,npopbins
             read(2,*,end=510,err=510) Exdist(nin),Pdistex(nin)
@@ -427,7 +435,7 @@ c
         else
 c
 c Spin-dependent excitation energy distribution (no total)
-c 
+c
           if (npopP.eq.1) then
             pbeg=1
           else
@@ -439,6 +447,14 @@ c
      +            (Pdist(nin,J,parity),J=0,npopJ-1)
  370        continue
  360      continue
+          do 375 nin=2,npopbins
+            if (Exdist(nin).le.Exdist(nin-1)) then
+              write(*,'(" TALYS-error: excitation energies must",
+     +          " be given in ascending order, or the number",
+     +          " of population bins is not correct")')
+              stop
+            endif
+ 375      continue
           if (npopP.eq.1) then
             do 380 nin=1,npopbins
               do 380 J=0,npopJ-1
@@ -477,22 +493,22 @@ c
   390   continue
   400   if (Starget(2:2).eq.' ') then
           if (Ltarget.eq.0) then
-            write(bestpath(lenbest+1:lenbest+5),'(a1,i3.3,"/")') 
-     +        Starget(1:1),Atarget 
+            write(bestpath(lenbest+1:lenbest+5),'(a1,i3.3,"/")')
+     +        Starget(1:1),Atarget
             write(bestpath(lenbest+6:lenbest+19),'(a14)') bestchar
           else
-            write(bestpath(lenbest+1:lenbest+6),'(a1,i3.3,"m/")') 
-     +        Starget(1:1),Atarget 
+            write(bestpath(lenbest+1:lenbest+6),'(a1,i3.3,"m/")')
+     +        Starget(1:1),Atarget
             write(bestpath(lenbest+7:lenbest+20),'(a14)') bestchar
           endif
         else
           if (Ltarget.eq.0) then
-            write(bestpath(lenbest+1:lenbest+6),'(a2,i3.3,"/")') 
-     +        Starget(1:2),Atarget 
+            write(bestpath(lenbest+1:lenbest+6),'(a2,i3.3,"/")')
+     +        Starget(1:2),Atarget
             write(bestpath(lenbest+7:lenbest+20),'(a14)') bestchar
           else
-            write(bestpath(lenbest+1:lenbest+7),'(a2,i3.3,"m/")') 
-     +        Starget(1:2),Atarget 
+            write(bestpath(lenbest+1:lenbest+7),'(a2,i3.3,"m/")')
+     +        Starget(1:2),Atarget
             write(bestpath(lenbest+8:lenbest+21),'(a14)') bestchar
           endif
         endif
@@ -506,7 +522,7 @@ c
         i=numlines-inum
         inline(i)=key
         do 420 k=1,80
-          if (inline(i)(k:k).ge.'A'.and.inline(i)(k:k).le.'Z') 
+          if (inline(i)(k:k).ge.'A'.and.inline(i)(k:k).le.'Z')
      +      inline(i)(k:k)=char(ichar(inline(i)(k:k))+32)
   420   continue
         goto 410

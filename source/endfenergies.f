@@ -14,14 +14,14 @@ c
 c
 c ************************ Basic ENDF-6 energy grid ********************
 c
-c ompenergyfile: file with energies for OMP calculation (ENDF files 
+c ompenergyfile: file with energies for OMP calculation (ENDF files
 c                only)
 c eninclow     : minimal incident energy for nuclear model calculations
 c Ein,e6,Eeps  : energies of ENDF-6 energy grid in MeV
 c eninclow     : minimal incident energy for nuclear model calculations
 c degrid       : energy increment
 c enincmax     : maximum incident energy
-c 
+c
 c The basic ENDF-6 energy grid we use is:
 c
 c         0.001 -   0.01 MeV  : dE= 0.001 MeV
@@ -33,7 +33,7 @@ c         7     -  20 MeV     : dE= 0.5 MeV
 c        20     - 100 MeV     : dE= 1.0 MeV
 c       100     - 200 MeV     : dE= 2.0 MeV
 c
-c This grid ensures that the total, elastic and reaction cross section  
+c This grid ensures that the total, elastic and reaction cross section
 c are calculated on a sufficiently precise energy grid.
 c However, this grid can be overwritten using the 'ompenergyfile'.
 c
@@ -65,8 +65,8 @@ c
         if (Eeps.gt.1.) degrid=0.1
         if (Eeps.gt.4.) degrid=0.2
         if (Eeps.gt.8.) degrid=0.5
-        if (Eeps.gt.20.) degrid=1. 
-        if (Eeps.gt.100.) degrid=2. 
+        if (Eeps.gt.20.) degrid=1.
+        if (Eeps.gt.100.) degrid=2.
         if (Eeps.gt.200.) goto 100
         goto 30
       endif
@@ -86,7 +86,7 @@ c
           do 130 nen=1,nensub
             if (eninc(nin).gt.e6(nen).and.eninc(nin).le.e6(nen+1)) then
               nenint=nen+1
-              goto 140    
+              goto 140
             endif
   130     continue
           goto 110
@@ -105,10 +105,10 @@ c k0        : index of incident particle
 c emax      : help variable
 c Zindex,Zix: charge number index for residual nucleus
 c Nindex,Nix: neutron number index for residual nucleus
-c Nlast     : last discrete level  
-c Ltarget   : excited level of target 
+c Nlast     : last discrete level
+c Ltarget   : excited level of target
 c Ethresh   : threshold incident energy for residual nucleus
-c idnum     : counter for exclusive channel 
+c idnum     : counter for exclusive channel
 c idchannel : identifier for exclusive channel
 c Ethrexcl  : threshold incident energy for exclusive channel
 c nen6      : total number of energies

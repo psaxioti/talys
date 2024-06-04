@@ -1,4 +1,4 @@
-      function vr3(z)                                                   
+      function vr3(z)
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
@@ -13,12 +13,12 @@ c U. Brosa.
 c
 c ****************** Declarations and common blocks ********************
 c
-      include "talys.cmb"                                               
-      real vr3,z,d                       
+      include "talys.cmb"
+      real vr3,z,d
 c
 c **********************************************************************
 c
-      d=totl-r1-r3                                                      
-      vr3=pi*((2.*r3**3-(d-z)**3)/3.+r3**2*(d-z))                       
-      return                                                            
-      end                                                               
+      d=totl-r1-r3
+      vr3=pi*((2.*r3**3-(d-z)**3)/3.+r3**2*(d-z))
+      return
+      end

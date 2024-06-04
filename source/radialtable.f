@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : October 22, 2007
+c | Date  : May 11, 2011
 c | Task  : Tabulated radial matter densities
 c +---------------------------------------------------------------------
 c
@@ -13,7 +13,7 @@ c
       character*4  radchar
       character*90 radfile
       integer      Zix,Nix,Z,A,ia,i,nradjlm,j
-      real         h,dr,rp0,rp1,rn0,rn1,ap,an
+      real         h,dr,rp0,rp1,rn0,rn1,ap,an,expo
 c
 c ****************** Read radial matter densities **********************
 c
@@ -85,16 +85,26 @@ c
           if (rn0.gt.0..and.rn1.gt.0.) an=-log(rn0/rn1)/h
           do 50 i=nradjlm+1,numjlm
              dr=h*(i-nradjlm)
-             rhojlmp(Zix,Nix,i,j)=rp0*exp(-ap*dr)
-             rhojlmn(Zix,Nix,i,j)=rn0*exp(-an*dr)
+             if (j.eq.1) radjlm(Zix,Nix,i)=radjlm(Zix,Nix,nradjlm)+dr
+             expo=ap*dr
+             if (abs(expo).le.80.) rhojlmp(Zix,Nix,i,j)=rp0*exp(-expo)
+             expo=an*dr
+             if (abs(expo).le.80.) rhojlmn(Zix,Nix,i,j)=rn0*exp(-expo)
    50     continue
    40   continue
       endif
 c
 c Set JLM flags
 c
-      jlmexist(Zix,Nix,1)=.true.
-      jlmexist(Zix,Nix,2)=.true.
+c flagjlm : flag for using semi-microscopic JLM OMP
+c alphaomp: alpha optical model (1=normal, 2= McFadden-Satchler,
+c           3-5= folding potential)
+
+      if (flagjlm) then
+        jlmexist(Zix,Nix,1)=.true.
+        jlmexist(Zix,Nix,2)=.true.
+      endif
+      if (alphaomp.ge.3) jlmexist(Zix,Nix,6)=.true.
    60 close (unit=2)
       return
       end

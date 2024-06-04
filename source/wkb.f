@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Roberto Capote, Arjan Koning, and Stephane Goriely
-c | Date  : December 18, 2009
+c | Date  : August 27, 2010
 c | Task  : Initialization of WKB approximation for fission
 c +---------------------------------------------------------------------
 c
@@ -24,7 +24,7 @@ c initializes iiextr() and nextr
       nextr=min(nextr,2*numbar-1)
       nbarr = nextr/2 + 1
       nbar=nbarr
-c     nwell = nextr/2 
+c     nwell = nextr/2
 c     Fitting parabola
       filewkb='         '
       write(filewkb,'("wkb",2i3.3)') Z,A
@@ -46,8 +46,8 @@ c     Fitting parabola
         endif
 c--------------------------------------------------
 c       Initializes parabola's parameters
-c 
-c       The real height of the barrier is used (not the fitted 
+c
+c       The real height of the barrier is used (not the fitted
 c       parabola height)
 c
         Vheight(j) = vfis(iiextr(j))
@@ -55,9 +55,9 @@ c
         if (mod(j,2).eq.1) then
           ii=(j+1)/2
           fbarrier(Zix,Nix,ii)=vfis(iiextr(j))
-          fwidth(Zix,Nix,ii)=width 
+          fwidth(Zix,Nix,ii)=width
         endif
-c       The real position of the barrier is used (not the fitted 
+c       The real position of the barrier is used (not the fitted
 c       parabola centr)
         Vpos(j) = betafis(iiextr(j))
 c--------------------------------------------------
@@ -79,7 +79,7 @@ c     ustep = 0.01d0
 C==================================================================
       if (flagfisout)
      &  write(22,'(1x,A5,2x,18(A10,1x))')  ' Uexc', '   Tdir   ',
-     &  'TaTb/Ta+Tb','    Ta    ','    Tb    ', '    Tc    ' 
+     &  'TaTb/Ta+Tb','    Ta    ','    Tb    ', '    Tc    '
 C
 C     ENERGY LOOP
 C
@@ -100,7 +100,7 @@ C
         Uwkb(Zix,Nix,i)=uexc
         do j=1,nbar
           Twkb(Zix,Nix,i,j)=tff(2*j-1)
-          write(22,'("i=",i2," E=",f8.3," j=",i2," T=",1p,e12.3)') 
+          write(22,'("i=",i2," E=",f8.3," j=",i2," T=",1p,e12.3)')
      &      i,uexc,j,Twkb(Zix,Nix,i,j)
         enddo
       enddo
@@ -160,7 +160,7 @@ C     Below is an square root of (MIU divided by 2)
       DO k=1, 2*numbar ! barriers and wells
         phase(k) = 0.d0
         tff(k)   = 0.d0
-	  tdirv(k) = 0.d0
+        tdirv(k) = 0.d0
       enddo
 C-----------------------------------------------------------------------
 C     Momentum integrals are calculated
@@ -185,9 +185,9 @@ C
             else
               dmom=-50.
             endif
-            phase(k)   = min(dmom,50.d0)
+            phase(k)   = min(dmom,50.)
             tff(k) = 1.d0/(1.d0 + DEXP(2.d0*dmom))
-            if (flagfisout) 
+            if (flagfisout)
      &      write(22,'(1x,A6,I2,A10,d10.4,A3,d10.4,A15)')
      &      ' BARR ',k,'  Mom.Int=',dmom,' T=',tff(k),' (Hill-Wheeler)'
 
@@ -207,7 +207,7 @@ C
      &                   ' phase integral is not accurate (',
      &        abserr/dmom*100.d0,' %)'
             endif
-            phase(k) = min(dmom,50.d0)
+            phase(k) = min(dmom,50.)
             tff(k) = 1.d0/(1.d0 + DEXP(2.d0*phase(k)))
 C
             if (flagfisout) then
@@ -219,7 +219,7 @@ C
          phasecal=0.
          do ieps=1,50
            eps=eps+deps
-           if (mod(ieps,5).eq.0) 
+           if (mod(ieps,5).eq.0)
      &     write(22,'(10x,"eps=",f6.3," Vdef-E=",f8.3)') eps,
      &       vdef(eps)-Uexc
            if (vdef(eps).ge.Uexc.and.vdef(eps+deps).ge.Uexc)
@@ -227,7 +227,7 @@ C
      &       (vdef(eps+deps)-Uexc)**0.5)/2.*deps
          enddo
          if (phasecal.lt.30.)
-     &     write(22,'(10x," Kcal=",f10.4," Tcal=",1p,e12.4)') 
+     &     write(22,'(10x," Kcal=",f10.4," Tcal=",1p,e12.4)')
      &     phasecal,1./(1.+exp(2.*phasecal))
          endif
 
@@ -239,7 +239,7 @@ C         WELLS
 
             if(uexcit.LE.Vheight(k)) then
 C
-C           Excitation energies below the well 
+C           Excitation energies below the well
 C
             phase(k) = 0.d0
 
@@ -249,16 +249,16 @@ C           For excitation energies above the well the transmission
 C           coefficient is calculated by WKB method
 C
             epsa = FindIntersect(uexcit,iiextr(k-1),iiextr(k),.true.)
-	    epsb = FindIntersect(uexcit,iiextr(k),iiextr(k+1),.true.)
+            epsb = FindIntersect(uexcit,iiextr(k),iiextr(k+1),.true.)
 C
 C           Calculating phase integral for real shape
 C
             dmom = GaussLegendre41(Fmoment,epsa,epsb,abserr)
-         if (flagfisout.and.dmom.gt.0.d0.and.abserr.gT.dmom*0.03) 
+         if (flagfisout.and.dmom.gt.0.d0.and.abserr.gT.dmom*0.03)
      &        write(22,*) ' WARNING: For extremum ',k,
      &        ' phase integral is not accurate (',
      &        abserr/dmom*100.d0,' %)'
-            phase(k) = min(dmom,50.d0)
+            phase(k) = min(dmom,50.)
             if (flagfisout)
      &    write(22,'(1x,A6,I2, A10,f7.4,A4,f7.4,1x,A9,d10.4,A3,d10.4)')
      &      ' WELL ',k,' at beta2 ',epsa,' to ',epsb,
@@ -281,18 +281,16 @@ C
          if(k.gt.1) then
            tdirv(k) = tff(k)*tdirv(k+2) /
      &     (1.d0 + 2.d0*sqrt(dmom)*cos(2.d0*phase(k+1)) + dmom)
-	   else
+         else
            tdirv(1) = tff(1)*tdirv(3) /
      &     (1.d0 + 2.d0*sqrt(dmom)*cos(2.d0*phase(2)) + dmom)
-	   endif 
+         endif
       enddo
-
-	tdir = tdirv(1) 
-
-	dummy = 1.d0/(1.d0/tff(1) + 1.d0/tff(3)) 
-	if(nextr.gt.3) 
+        tdir = tdirv(1)
+        dummy = 1.d0/(1.d0/tff(1) + 1.d0/tff(3))
+        if(nextr.gt.3)
      &  dummy = 1.d0/(1.d0/tff(1) + 1.d0/tff(3) + 1.d0/tff(5))
-        
+
       if (flagfisout) write(22,'(1x,f5.2,2x,21(d10.4,1x))')
      &   uexc,tdir,dummy,(tff(j),j=1,nextr),(phase(j),j=1,nextr)
 
@@ -363,8 +361,8 @@ C     Local variables
       INTEGER idef
       real vi, vip, ei, eip
 C
-C     The four lines below is a very simple (and unefficient) search
-C     Should be replaced by efficient search routine to locate the 
+C     The four lines below is a very simple (and inefficient) search
+C     Should be replaced by efficient search routine to locate the
 C     element idef of the array betafis()
       idef=1
       do while (EPS.GT.betafis(idef) .and. idef.LE.nbeta)
@@ -395,12 +393,12 @@ C         V(beta2) = Excitation Energy
 C
 C     If solution not found, then assign first or last point
 C     of the interval depending on whether we are solving the equation
-C     in the rigth(left) side of the barrier(well) case
+C     in the right(left) side of the barrier(well) case
 C
       include "talys.cmb"
 c     IMPLICIT NONE
       INTEGER ja, jb
-	  real uexc
+          real uexc
       LOGICAL iswell
 c     INCLUDE 'vdeform.inc'
 C
@@ -583,7 +581,7 @@ C
         ABSCM1 = HLGTH1*XGK(JTWM1)
         RESG1 = RESG1+WG(J)*FSUM
         RESK1 = RESK1+WGK(JTW)*FSUM+WGK(JTWM1)*
-     &	      (F(CENTR1-ABSCM1)+F(CENTR1+ABSCM1))
+     &              (F(CENTR1-ABSCM1)+F(CENTR1+ABSCM1))
       ENDDO
 
       GaussLegendre41 = RESK1*HLGTH1

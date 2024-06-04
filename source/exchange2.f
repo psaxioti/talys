@@ -33,7 +33,7 @@ c tpiplus,....   : help variables
 c lambdapiplus   : proton transition rate for n --> n+2
 c lambdanuplus   : neutron transition rate for n --> n+2
 c lambdapinu     : proton-neutron transition rate for n --> n
-c lambdanupi     : neutron-proton transition rate for n --> n 
+c lambdanupi     : neutron-proton transition rate for n --> n
 c n              : exciton number
 c emissionrate2  : subroutine for two-component emission rate
 c wemistot2,wemis: total two-component emission rate per exciton number
@@ -48,8 +48,8 @@ c
       do 10 ppi=ppi0,maxpar
         hpi=hpi0+ppi-ppi0
         do 20 pnu=pnu0,maxpar
-          hnu=hnu0+pnu-pnu0          
-          p=ppi+pnu          
+          hnu=hnu0+pnu-pnu0
+          p=ppi+pnu
           h=hpi+hnu
           if (p.gt.maxpar.or.h.gt.maxpar) goto 20
           tpiplus=lambdapiplus(Zcomp,Ncomp,ppi,hpi,pnu,hnu)

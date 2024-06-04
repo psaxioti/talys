@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 30, 2006   
+c | Date  : May 30, 2006
 c | Task  : Retrieve keywords and values from input line
 c +---------------------------------------------------------------------
 c
@@ -14,10 +14,10 @@ c
 c
 c **************** Read keywords and values from input line ************
 c
-c line     : input line                 
+c line     : input line
 c word     : words on input line
 c chprev,ch: character
-c nkey     : word counter       
+c nkey     : word counter
 c ibeg     : index to mark begin of word
 c iend     : index to mark end of word
 c

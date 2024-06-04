@@ -1,9 +1,9 @@
       subroutine gammapar(Zix,Nix)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : August 5, 2009
-c | Task  : Gamma ray parameters 
+c | Author: Arjan Koning
+c | Date  : December 20, 2011
+c | Task  : Gamma ray parameters
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -12,15 +12,15 @@ c
       logical      lexist
       character*4  gamchar
       character*90 gamfile
-      integer      Zix,Nix,Z,A,N,ia,irad,l,nen
-      real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom,ee,fe1,
-     +             fstrength,factor
+      integer      Zix,Nix,Z,A,N,ia,irad,l,nen,it
+      real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom,ee,
+     +             fe1(numTqrpa),fstrength,factor,temp,dtemp
 c
 c ***************** Default giant resonance parameters *****************
 c
-c We use indices to indicate the type of radiation, the multipolarity 
-c and the number of the peak (which sometimes is two). They are 
-c (0(M) or 1(E), l, number), i.e. egr(0,1,1) means a constant for 
+c We use indices to indicate the type of radiation, the multipolarity
+c and the number of the peak (which sometimes is two). They are
+c (0(M) or 1(E), l, number), i.e. egr(0,1,1) means a constant for
 c M1-radiation and egr(1,2,1) a constant for E2-radiation.
 c
 c 1. Read experimental E1 values from GR parameter file
@@ -40,8 +40,8 @@ c egr    : energy of GR
 c ggr    : width of GR
 c sgr    : strength of GR
 c
-c GDR parameters from the table can always be overruled by a value 
-c given in the input file.      
+c GDR parameters from the table can always be overruled by a value
+c given in the input file.
 c
       Z=ZZ(Zix,Nix,0)
       A=AA(Zix,Nix,0)
@@ -62,7 +62,7 @@ c
       if (ggr(Zix,Nix,1,1,2).eq.0.) ggr(Zix,Nix,1,1,2)=gg2
    20 close (unit=2)
 c
-c 1. Default GR parameterization compiled by Kopecky in RIPL 
+c 1. Default GR parameterization compiled by Kopecky in RIPL
 c    IAEA-TECDOC-1034, August 1998.
 c
 c onethird: 1/3
@@ -112,7 +112,7 @@ c irad    : variable to indicate M(=0) or E(=1) radiation
 c ngr     : number of GR
 c strength: model for E1 gamma-ray strength function
 c
-      do 130 irad=0,1   
+      do 130 irad=0,1
         do 130 l=1,gammax
           if (egr(Zix,Nix,irad,l,2).ne.0..and.
      +      sgr(Zix,Nix,irad,l,2).ne.0..and.
@@ -130,11 +130,13 @@ c numgamqrpa   : number of energies for QRPA strength function
 c eqrpa        : energy grid for QRPA strength function
 c fe1qrpa,fe1  : tabulated QRPA strength function
 c etable,ftable: constant to adjust tabulated strength functions
+c nTqrpa       : number of temperatures for QRPA
+c Tqrpa        : temperature for QRPA
 c qrpaexist    : flag for existence of tabulated QRPA strength functions
 c
-      if (strength.eq.3) 
+      if (strength.eq.3)
      +  gamfile=path(1:lenpath)//'gamma/hfbcs/'//gamchar
-      if (strength.eq.4) 
+      if (strength.eq.4)
      +  gamfile=path(1:lenpath)//'gamma/hfb/'//gamchar
       inquire (file=gamfile,exist=lexist)
       if (.not.lexist) goto 210
@@ -147,11 +149,23 @@ c
   230   continue
         goto 220
       endif
+      nTqrpa=1
       do 240 nen=1,numgamqrpa
-        read(2,'(f9.3,1p,e12.3)') ee,fe1
+        read(2,'(f9.3,1p,20e12.3)') ee,(fe1(it),it=1,nTqrpa)
         eqrpa(Zix,Nix,nen)=ee+etable(Zix,Nix)
-        fe1qrpa(Zix,Nix,nen)=onethird*pi2h2c2*fe1*ftable(Zix,Nix)
+        do 250 it=1,nTqrpa
+          fe1qrpa(Zix,Nix,nen,it)=onethird*pi2h2c2*fe1(it)*
+     +      ftable(Zix,Nix)
+  250   continue
   240 continue
+      if (nTqrpa.gt.1) then
+        dtemp=0.2
+        temp=-dtemp
+        do 260 it=1,nTqrpa
+          temp=temp+dtemp
+          Tqrpa(it)=temp
+  260   continue
+      endif
       qrpaexist(Zix,Nix)=.true.
   210 close (unit=2)
 c

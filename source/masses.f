@@ -1,9 +1,9 @@
       subroutine masses
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : May 22, 2009
-c | Task  : Nuclear masses 
+c | Author: Arjan Koning
+c | Date  : July 21, 2011
+c | Task  : Nuclear masses
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -19,14 +19,14 @@ c
 c ************************ Read nuclear masses *************************
 c
 c Zix        : charge number index for residual nucleus
-c maxZ       : maximal number of protons away from initial compound 
+c maxZ       : maximal number of protons away from initial compound
 c              nucleus
 c Z          : charge number of residual nucleus
 c Zinit      : charge number of initial compound nucleus
 c Nbegin     : first N to be included
 c Ninit      : neutron number of initial compound nucleus
-c maxN       : maximal number of neutrons away from initial compound 
-c              nucleus 
+c maxN       : maximal number of neutrons away from initial compound
+c              nucleus
 c Nend       : last N to be included
 c Abegin     : first A to be included
 c Aend       : last A to be included
@@ -43,32 +43,32 @@ c N          : neutron number of residual nucleus
 c Nix        : neutron number index for residual nucleus
 c massnucleus: mass of nucleus in amu as read from user input file
 c massexcess : mass excess in MeV as read from user input file
-c amu        : atomic mass unit in MeV  
-c nucmass    : mass of nucleus 
+c amu        : atomic mass unit in MeV
+c nucmass    : mass of nucleus
 c massmodel  : model for theoretical nuclear mass
 c flagexpmass: flag for using experimental nuclear mass if available
 c beta2,beta4: deformation parameters
 c gsspin     : ground state spin
 c gsparity   : ground state parity
-c flagduflo  : flag to check whether Duflo-Zuker calculation is 
+c flagduflo  : flag to check whether Duflo-Zuker calculation is
 c              required
 c A          : mass number of residual nucleus
 c Ainit      : mass number of initial compound nucleus
 c
-c We read both the experimental masses, from Audi-Wapstra (1995), and 
+c We read both the experimental masses, from Audi-Wapstra (1995), and
 c the theoretical masses from the masstable.
-c The default option is to adopt the experimental nuclear mass, when 
-c available. We also read the experimental and theoretical mass excess, 
-c to enable a more precise calculation of separation energies. If we 
-c need separation energies and specific masses for nuclides up to 
-c (maxZ,maxN), we need nuclear masses up to (maxZ+4,maxN+4). 
+c The default option is to adopt the experimental nuclear mass, when
+c available. We also read the experimental and theoretical mass excess,
+c to enable a more precise calculation of separation energies. If we
+c need separation energies and specific masses for nuclides up to
+c (maxZ,maxN), we need nuclear masses up to (maxZ+4,maxN+4).
 c
 c There are also input options for theoretical mass models:
 c massmodel 0: Duflo-Zuker
 c massmodel 1: Moeller
-c massmodel 2: Goriely HFB-Skyrme model 
-c massmodel 3: HFB-Gogny D1M model 
-c where, if massmodel 1, 2 or 3, massmodel 0 is used when no tabulated 
+c massmodel 2: Goriely HFB-Skyrme model
+c massmodel 3: HFB-Gogny D1M model
+c where, if massmodel 1, 2 or 3, massmodel 0 is used when no tabulated
 c values are available.
 c Also, with the input option expmass n  the use of experimental
 c masses can be disabled.
@@ -84,7 +84,7 @@ c
         if (flagexpmass) then
           massfile=path(1:lenpath)//'masses/audi/'//masschar
           inquire (file=massfile,exist=lexist)
-          if (lexist) then 
+          if (lexist) then
             open (unit=1,status='old',file=massfile)
    20       read(1,'(4x,i4,2f12.6)',end=30) ia,expmass1,expmexc1
             if (ia.lt.Abegin) goto 20
@@ -100,13 +100,13 @@ c
         if (massmodel.eq.1)
      +    massfile=path(1:lenpath)//'masses/moller/'//masschar
         if (massmodel.eq.0.or.massmodel.eq.2)
-     +    massfile=path(1:lenpath)//'masses/hfb17/'//masschar
+     +    massfile=path(1:lenpath)//'masses/hfb/'//masschar
         if (massmodel.eq.3)
      +    massfile=path(1:lenpath)//'masses/hfbd1m/'//masschar
         inquire (file=massfile,exist=lexist)
-        if (lexist) then 
+        if (lexist) then
           open (unit=1,status='old',file=massfile)
-   40     read(1,'(4x,i4,2f12.6,2f8.4,20x,f4.1,i2)',end=50) 
+   40     read(1,'(4x,i4,2f12.6,2f8.4,20x,f4.1,i2)',end=50)
      +      ia,thmass1,thmexc1,b2,b4,gs,p
           if (ia.lt.Abegin) goto 40
           if (ia.gt.Aend) goto 50
@@ -155,7 +155,7 @@ c
    70   continue
    60 continue
 c
-c The target nucleus MUST be present in the masstable. This is to 
+c The target nucleus MUST be present in the masstable. This is to
 c avoid unbound nuclei.
 c
 c parZ: charge number of particle
@@ -164,18 +164,18 @@ c k0  : index of incident particle
 c
       if (nucmass(parZ(k0),parN(k0)).eq.0.) then
         write(*,'(" TALYS-error: Target nucleus not in masstable")')
-        stop                                                    
+        stop
       endif
 c
 c ********* Use analytical mass formula for remaining nuclei ***********
 c
-c duflo  : Analytical mass formula of Duflo-Zuker 
+c duflo  : Analytical mass formula of Duflo-Zuker
 c exc    : mass excess
 c parmass: mass of particle in a.m.u.
 c dumexc : theoretical mass excess from Duflo-Zuker formula
 c
-c If a residual nucleus is not in the experimental/theoretical mass 
-c table, or if massmodel=0, we use the analytical formula of 
+c If a residual nucleus is not in the experimental/theoretical mass
+c table, or if massmodel=0, we use the analytical formula of
 c Duflo-Zuker.
 c
       if (flagduflo) then
@@ -190,7 +190,7 @@ c
             A=Z+N
             thmass1=A+exc/amu
             if (nucmass(Zix,Nix).eq.0) nucmass(Zix,Nix)=thmass1
-            if (expmass(Zix,Nix).eq.0..and.massmodel.eq.0) 
+            if (expmass(Zix,Nix).eq.0..and.massmodel.eq.0)
      +        nucmass(Zix,Nix)=thmass1
             if (massmodel.eq.0) thmexc(Zix,Nix)=dumexc(Zix,Nix)
   120     continue

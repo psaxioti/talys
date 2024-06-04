@@ -1,8 +1,8 @@
       subroutine specemission(Zcomp,Ncomp,nex,idorg,type,nexout)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : September 26, 2006
+c | Author: Arjan Koning
+c | Date  : March 11, 2010
 c | Task  : Exclusive emission cross sections for continuum
 c +---------------------------------------------------------------------
 c
@@ -21,7 +21,7 @@ c
 c Zcomp      : charge number index for compound nucleus
 c Ncomp      : neutron number index for compound nucleus
 c specemis   : exclusive emission contribution
-c popexcl    : population cross section of bin just before decay  
+c popexcl    : population cross section of bin just before decay
 c speceps    : limit for cross section spectra
 c Exinc      : excitation energy of entrance bin
 c Ex,Exout   : excitation energy
@@ -52,7 +52,7 @@ c possible excitation energy bin nexmax for the residual nuclei.
 c As reference, we take the top of the mother bin. The maximal
 c residual excitation energy Exm is obtained by subtracting the
 c separation energy from this. The bin in which this Exm falls
-c is denoted by nexmax.        
+c is denoted by nexmax.
 c
       do 10 nen=0,numen
         specemis(nen)=0.
@@ -118,7 +118,7 @@ c For the residual discrete state, it is checked whether the mother
 c excitation bin is such a boundary case. This is done by adding the
 c particle separation energy to the excitation energy of the residual
 c discrete state.
-c     
+c
         Exm=Exout+SS
         if (Exm.le.Ex0plus.and.Exm.gt.Ex0min) then
           Eout=0.5*(Ex0plus+Exm)-SS-Exout
@@ -135,7 +135,7 @@ c
 c After the bottom (emin) and top (emax) of the excitation energy
 c bin have been determined. Then the begin and end points for the
 c spectrum are located.
-c     
+c
 c locate       : subroutine to find value in ordered table
 c Ebottom      : bottom of outgoing energy bin
 c eend         : last energy point of energy grid
@@ -145,7 +145,7 @@ c dEhalf       : half of emission bin
 c
       call locate(Ebottom,ebegin(type),eend(type),emin,nenbeg)
       call locate(Ebottom,ebegin(type),eend(type),emax,nenend)
-      nenbeg=max(nenbeg,1)                                        
+      nenbeg=max(nenbeg,1)
       if (nenend.lt.nenbeg) return
       dE=emax-emin
       dEhalf=0.5*dE
@@ -153,7 +153,7 @@ c
 c For the interpolation, we first determine the feeding from adjacent
 c mother bins. Note that we interpolate the whole product of terms
 c from the exclusive cross section that depend on excitation energy.
-c 
+c
 c feed0,.......: help variable
 c xsexcl       : exclusive cross section per excitation energy
 c xso00,....   : cross section on excitation energy grid
@@ -163,23 +163,23 @@ c feedm,feedp..: help variables
 c
       feed0=0.
       if (popexcl(Zcomp,Ncomp,nex).ne.0.)
-     + feed0=xsexcl(idorg,nex)/popexcl(Zcomp,Ncomp,nex)  
+     + feed0=xsexcl(idorg,nex)/popexcl(Zcomp,Ncomp,nex)
       xso00=feedexcl(Zcomp,Ncomp,type,nex,nexout)*feed0
       if (xso00.eq.0.) return
       feedm=0.
       if (popexcl(Zcomp,Ncomp,nex-1).ne.0.)
-     +  feedm=xsexcl(idorg,nex-1)/popexcl(Zcomp,Ncomp,nex-1)  
+     +  feedm=xsexcl(idorg,nex-1)/popexcl(Zcomp,Ncomp,nex-1)
       xsom0=feedexcl(Zcomp,Ncomp,type,nex-1,nexout)*feedm
       feedp=0.
       if (popexcl(Zcomp,Ncomp,nex+1).ne.0.)
-     +  feedp=xsexcl(idorg,nex+1)/popexcl(Zcomp,Ncomp,nex+1)  
+     +  feedp=xsexcl(idorg,nex+1)/popexcl(Zcomp,Ncomp,nex+1)
       xsop0=feedexcl(Zcomp,Ncomp,type,nex+1,nexout)*feedp
 c
 c Decay from continuum to continuum.
 c We need to interpolate between adjacent residual bins. They are also
 c determined. For the lowest emission energies we ensure that the limit
 c is zero for zero outgoing energy.
-c   
+c
       if (nexout.gt.NL) then
         xso0m=feedexcl(Zcomp,Ncomp,type,nex,nexout-1)*feed0
         xsopm=feedexcl(Zcomp,Ncomp,type,nex+1,nexout-1)*feedp
@@ -189,13 +189,13 @@ c
 c
 c A. Emission energy lower than the average emission energy.
 c    Interpolate with lower bins.
-c 
+c
 c edist       : help variable
 c term,term1..: help variables
 c
           if (egrid(nen).le.Eout) then
             edist=Eout-egrid(nen)
-            if (emin.eq.0.) then
+            if (emin.le.0.0001) then
               term=xso00*(1.-edist/dEhalf)
             else
               term1=xso00+0.5*edist/dE*(xsom0-xso00)
@@ -220,18 +220,18 @@ c
 c
 c Each emission energy that is possible within the transition from bin
 c to bin gets a weight.
-c  
+c
 c weight: weight of emission energy bin
 c deltaE: energy bin around outgoing energies
 c
           term=max(term,0.)
-          weight(nen)=term*deltaE(nen)                                
+          weight(nen)=term*deltaE(nen)
   120   continue
       else
 c
 c Decay from continuum to discrete.
 c We only need to interpolate between adjacent mother bins.
-c 
+c
         do 130 nen=nenbeg,nenend
           if (egrid(nen).le.Eout) then
             edist=Eout-egrid(nen)
@@ -257,7 +257,7 @@ c The end points of the bin are taken into account and this is
 c corrected in weight. There are also cases where the excitation
 c energy bin falls completely in the emission energy bin
 c (nenbeg=nenend).
-c 
+c
 c fracbot,fractop: help variables
 c Etop           : top of outgoing energy bin
 c sumweight      : help variable
@@ -270,11 +270,11 @@ c
       else
         weight(nenbeg)=weight(nenbeg)*(1.-fracbot)
         weight(nenend)=weight(nenend)*(1.-fractop)
-      endif                                            
+      endif
 c
 c The weights are summed to ensure that we get exact flux conservation
 c by normalizing with sumweight.
-c   
+c
       sumweight=0.
       do 140 nen=nenbeg,nenend
         sumweight=sumweight+weight(nen)
@@ -283,8 +283,8 @@ c
 c
 c The contribution for mother bin --> residual bin is added to the
 c spectrum.
-c  
-c factor: help variable                    
+c
+c factor: help variable
 c
       do 150 nen=nenbeg,nenend
         factor=xso00/sumweight

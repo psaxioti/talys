@@ -1,7 +1,7 @@
       subroutine exciton2
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 9, 2004
 c | Task  : Two-component exciton model
 c +---------------------------------------------------------------------
@@ -23,17 +23,17 @@ c p        : particle number
 c maxpar   : maximal particle number
 c ppi      : proton particle number
 c ppi0     : initial proton number
-c hpi      : proton hole number       
-c pnu      : neutron particle number       
+c hpi      : proton hole number
+c pnu      : neutron particle number
 c pnu0     : initial neutron number
-c hnu      : neutron hole number       
+c hnu      : neutron hole number
 c lifetime2: subroutine for calculation of lifetime of two-component
 c            exciton state
 c
 c For each exciton number, we subsequently calculate the emission rates
-c and exchange terms (both in subroutine exchange2) and the lifetime of 
+c and exchange terms (both in subroutine exchange2) and the lifetime of
 c the exciton state.
-c 
+c
       Zcomp=0
       Ncomp=0
       Ecomp=Etotal
@@ -49,20 +49,20 @@ c
 c
 c ************* Calculation of pre-equilibrium cross section ***********
 c
-c h         : hole number     
+c h         : hole number
 c n         : exciton number
 c factor,xs : help variables
 c xsflux    : cross section flux
 c Spre      : time-integrated strength of two-component exciton state
 c parskip   : logical to skip outgoing particle
 c preeqmode : designator for pre-equilibrium model
-c ebegin    : first energy point of energy grid 
-c eend      : last energy point of energy grid 
+c ebegin    : first energy point of energy grid
+c eend      : last energy point of energy grid
 c wemission2: two-component emission rate
 c xsstep    : preequilibrium cross section per particle type, stage
 c             and outgoing energy
 c xsstep2   : two-component preequilibrium cross section
-c xspreeq   : preequilibrium cross section per particle type and 
+c xspreeq   : preequilibrium cross section per particle type and
 c             outgoing energy
 c
 c The lifetimes and emission rates are processed into pre-equilibrium
@@ -91,14 +91,14 @@ c distribution. The result is normalized with the sum of RnJ over J.
 c As an alternative, the Hauser-Feshbach spin distribution is adopted.
 c
 c flagpespin: flag for pre-equilibrium spin distribution or compound
-c             spin distribution for pre-equilibrium cross section  
+c             spin distribution for pre-equilibrium cross section
 c parity    : parity
 c J         : total angular momentum
 c maxJph    : maximal spin for particle-hole states
 c xspreeqJP : preequilibrium cross section per particle type,
 c             outgoing energy, spin and parity
 c RnJ       : spin distribution for particle-hole states
-c RnJsum    : (2J+1)*sum over spin distributions 
+c RnJsum    : (2J+1)*sum over spin distributions
 c
               if (flagpespin) then
                 do 150 parity=-1,1,2

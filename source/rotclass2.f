@@ -14,11 +14,11 @@ c
 c
 c ******************* Rotational bands building ************************
 c
-c Calculation of maximum energy of class2 states 
-c      
+c Calculation of maximum energy of class2 states
+c
 c Zix       : charge number index for residual nucleus
 c Nix       : neutron number index for residual nucleus
-c nfisbar   : number of fission barriers 
+c nfisbar   : number of fission barriers
 c Emaxclass2: maximum energy for class2 states
 c fbarrier  : height of fission barriers
 c fecont    : start of continuum energy
@@ -48,7 +48,7 @@ c pfisc2hb    : parity of head band class2 states
 c rj,itstot   : help variables
 c Erot        : rotational energy
 c minertc2    : moment of inertia for class2 states set
-c Eband       : help variable     
+c Eband       : help variable
 c numrot      : number of rotational states
 c efisc2hb    : energy of head band class2 states
 c efisc2rot   : energy of rotational class2 states

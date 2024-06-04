@@ -23,8 +23,8 @@ c Eex    : excitation energy
 c P      : pairing energy
 c ibar   : fission barrier number, zero for states on ground state
 c Exmatch: matching point for Ex
-c fermi  : function for Fermi gas level density formula    
-c pair   : pairing energy 
+c fermi  : function for Fermi gas level density formula
+c pair   : pairing energy
 c expo   : help variable
 c E0     : constant of temperature formula
 c T      : nuclear temperature
@@ -33,7 +33,7 @@ c
 c
 c 1. Fermi Gas
 c
-        gilcam=fermi(Zix,Nix,ald,Eex,P,ibar)     
+        gilcam=fermi(Zix,Nix,ald,Eex,P,ibar)
       else
 c
 c 2. Constant temperature

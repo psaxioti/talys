@@ -1,8 +1,8 @@
       subroutine inverse(Zcomp,Ncomp)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : July 7, 2004
+c | Author: Arjan Koning
+c | Date  : June 27, 2011
 c | Task  : Calculation of total, reaction and elastic cross sections
 c |         and transmission coefficients for outgoing particles and
 c |         energy grid
@@ -11,6 +11,7 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      logical lexist
       integer Zcomp,Ncomp,Z,A
 c
 c ************************** ECIS calculation **************************
@@ -22,9 +23,9 @@ c csfile   : file with inverse reaction cross sections
 c ZZ,Z     : charge number of residual nucleus
 c AA,A     : mass number of residual nucleus
 c
-c All transmission coefficients calculated by ECIS will be written on a 
-c file trZZZAAA, where ZZZ and AAA are the charge and mass number in 
-c (i3.3) format. The reaction cross sections will be written to 
+c All transmission coefficients calculated by ECIS will be written on a
+c file trZZZAAA, where ZZZ and AAA are the charge and mass number in
+c (i3.3) format. The reaction cross sections will be written to
 c csZZZAAA.
 c
       transfile='tr000000     '
@@ -55,24 +56,45 @@ c
         write(transfile(6:8),'(i3)') A
         write(csfile(6:8),'(i3)') A
       endif
-c 
-c Calculate transmission coefficients and inverse reaction cross 
+c
+c Calculate transmission coefficients and inverse reaction cross
 c sections.
 c
-c invexist   : logical to determine necessity of new inverse cross      
+c invexist   : logical to determine necessity of new inverse cross
 c              section and transmission coefficients calculation
-c inverseecis: subroutine for ECIS calculation for outgoing particles 
+c inverseecis: subroutine for ECIS calculation for outgoing particles
 c              and energy grid
 c
       if (.not.invexist(Zcomp,Ncomp)) call inverseecis(Zcomp,Ncomp)
       invexist(Zcomp,Ncomp)=.true.
-c 
+c
+c Modification 5/5/11 by Kevin Kelley
+c If the user has specified 'eciscalc n' and a cs/tr file pair is not
+c present, go ahead and call the inverseecis subroutine to produce them.
+c This is a little more user friendly than terminating 3/4 of the way
+c through a calculation.
+c This may save a lot of time in cases with 'optmodall y' when many
+c cross sections and transmission coefficients are calculated, and
+c which could then be transferred from directory to directory.
+c
+      if (.not.flageciscalc) then
+        inquire(file=csfile,exist=lexist)
+        if (lexist) inquire(file=transfile,exist=lexist)
+        if (.not.lexist) then
+          flageciscalc=.true.
+          call inverseecis(Zcomp,Ncomp)
+          flageciscalc=.false.
+        endif
+        invexist(Zcomp,Ncomp)=.true.
+      endif
+c End modification 5/5/11 by Kevin Kelley
+c
 c Read transmission coefficients and inverse reaction cross sections.
 c
-c inverseread: subroutine to read ECIS results for outgoing particles 
+c inverseread: subroutine to read ECIS results for outgoing particles
 c              and energy grid
-c inversenorm: subroutine for normalization of reaction cross sections 
-c              and transmission coefficients  
+c inversenorm: subroutine for normalization of reaction cross sections
+c              and transmission coefficients
 c flaginverse: flag for output of transmission coefficients and inverse
 c              reaction cross sections
 c inverseout : subroutine for reaction output for outgoing channels

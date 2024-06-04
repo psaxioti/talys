@@ -1,8 +1,8 @@
       subroutine exgrid(Zcomp,Ncomp)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : August 19, 2007
+c | Author: Arjan Koning
+c | Date  : October 23, 2011
 c | Task  : Set excitation energy grid
 c +---------------------------------------------------------------------
 c
@@ -10,10 +10,11 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer          Zcomp,Ncomp,Zdeep,Ndeep,type,Zix,Nix,Zmother,
-     +                 Nmother,NL,A,odd,nex,Aix,nexbins,Pbeg,Pprime,Ir
+     +                 Nmother,NL,A,odd,nex,Aix,nexbins,ldmod,Pbeg,
+     +                 Pprime,Ir
       real             Edif,excont,dEx,Rodd,Exout,Ex1min,Ex1plus,ald,
      +                 spincut,Rspin
-      double precision rho1,rho2,rho3,density,r1log,r2log,r3log        
+      double precision rho1,rho2,rho3,density,r1log,r2log,r3log
 c
 c ********************* Set maximum excitation energy ******************
 c
@@ -40,8 +41,8 @@ c determine the maximum possible excitation energy for each nucleus,
 c given the incident energy.
 c
       if (flagomponly.and..not.flagcomp) return
-      Zdeep=Zcomp                                                      
-      Ndeep=Ncomp                                                      
+      Zdeep=Zcomp
+      Ndeep=Ncomp
       do 10 type=1,6
         if (parskip(type)) goto 10
         Zix=Zindex(Zcomp,Ncomp,type)
@@ -64,23 +65,23 @@ c
             Exmax(Zix,Nix)=max(Exmax0(Zix,Nix),0.)
    40     continue
    30   continue
-   20 continue              
+   20 continue
 c
 c ******* Define excitation energy grid for residual nuclei ************
 c
 c The excitation energies are given by the array Ex. The first NL values
-c of Ex correspond to the discrete level excitation energies of the 
-c residual nucleus specified by (Zix,Nix). The NL+1th value corresponds 
-c to the first continuum energy bin. The continuum bins have a width of 
+c of Ex correspond to the discrete level excitation energies of the
+c residual nucleus specified by (Zix,Nix). The NL+1th value corresponds
+c to the first continuum energy bin. The continuum bins have a width of
 c deltaEx. The continuum part of the target and initial compound nucleus
 c are divided into nbins equidistant energy bins where nbins was given
 c in the input file or set by default. The continuum parts of the
 c other residual nuclides are also divided in equidistant bins. For the
-c first generation of nuclides (within 4 mass units of the initial 
-c compound nucleus), the number of bins is equal to that of target. For 
-c nuclides more than 8 mass units away, half the number of bins is 
+c first generation of nuclides (within 4 mass units of the initial
+c compound nucleus), the number of bins is equal to that of target. For
+c nuclides more than 8 mass units away, half the number of bins is
 c chosen. For intermediate nuclides, an interpolated number is adopted.
-c In sum, for each nucleus the excitation energy range is completely 
+c In sum, for each nucleus the excitation energy range is completely
 c filled by equidistant bins. The bin widths thus gradually change.
 c
 c Nlast,NL   : last discrete level
@@ -88,13 +89,14 @@ c maxex      : maximum excitation energy bin for compound nucleus
 c deltaEx,dEx: excitation energy bin for population arrays
 c Qres       : Q-value for residual nucleus
 c targetE    : energy of target
+c Ltarget    : excited level of target
 c k0         : index of incident particle
-c Etotal     : total energy of compound system (target + projectile) 
+c Etotal     : total energy of compound system (target + projectile)
 c Ethresh    : threshold incident energy for residual nucleus
 c edis       : energy of level
-c specmass   : specific mass for target nucleus     
+c specmass   : specific mass for target nucleus
 c
-c The Q-value for residual nuclides is determined, both for the ground 
+c The Q-value for residual nuclides is determined, both for the ground
 c state and for possible isomers.
 c
       do 110 type=0,6
@@ -108,6 +110,8 @@ c
           Edif=Exmax0(Zix,Nix)-Etotal
           Qres(Zix,Nix,0)=S(0,0,k0)+targetE+Edif
         endif
+        if (Ltarget.ne.0.and.Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) 
+     +    Qres(Zix,Nix,0)=targetE
         do 120 nex=0,NL
           if (Ethresh(Zix,Nix,nex).eq.0.) then
             Qres(Zix,Nix,nex)=Qres(Zix,Nix,0)-edis(Zix,Nix,nex)
@@ -157,14 +161,15 @@ c
   140   nexmax(type)=maxex(Zix,Nix)
 c
 c ****** Determine level densities on basic excitation energy grid *****
-c                                                                       
+c
 c odd     : odd (1) or even (0) nucleus
 c AA,A    : mass number of residual nucleus
-c Rodd    : term to determine integer or half-integer spins    
+c Rodd    : term to determine integer or half-integer spins
 c ald     : level density parameter
-c Ex,Exout: excitation energy    
+c ldmodel : level density model
+c Ex,Exout: excitation energy
 c Ex1min  : lower boundary of residual bin
-c Ex1plus : upper boundary of residual bin      
+c Ex1plus : upper boundary of residual bin
 c maxJ    : maximal J-value
 c spincut : spin cutoff factor
 c numJ    : maximal J-value
@@ -173,19 +178,20 @@ c The calculation of level densities can be done outside many loops of
 c various quantum numbers performed in other subroutines. Therefore,
 c we store the level density as function of residual nucleus, excitation
 c energy (nex), spin (Ir) and parity (Pprime) in the array rhogrid.
-c                   
+c
         A=AA(Zcomp,Ncomp,type)
         odd=mod(A,2)
-        Rodd=0.5*odd         
+        Rodd=0.5*odd
         ald=real(A)/8.
+        ldmod=ldmodel(Zix,Nix)
         do 210 nex=NL+1,maxex(Zix,Nix)
-          Exout=Ex(Zix,Nix,nex)       
+          Exout=Ex(Zix,Nix,nex)
           Ex1min=Exout-0.5*dEx
-          Ex1plus=Exout+0.5*dEx  
-c 
+          Ex1plus=Exout+0.5*dEx
+c
 c Here we define the maximum J that can be reached in a given excitation
 c energy bin. By default, this maxJ value is set to 3*sigma where
-c sigma is the square root of the spin cut-off parameter of the level 
+c sigma is the square root of the spin cut-off parameter of the level
 c density.
 c
          maxJ(Zix,Nix,nex)=max(3.*sqrt(spincut(Zix,Nix,ald,Exout,0)),5.)
@@ -197,18 +203,17 @@ c coefficients. Instead of taking this product exactly at the middle of
 c the excitation energy bins, we get a better numerical result by
 c performing a logarithmic average over the bin for the level density,
 c using the middle, top and bottom.
-c             
+c
 c flagparity: flag for non-equal parity distribution
 c Pbeg      : help variable
 c Pprime    : parity
 c Ir,Rspin  : residual spin
 c rho1-3    : help variables
 c density   : level density
-c ldmodel   : level density model
-c r1log,..  : help variables             
-c rhogrid   : integrated level density            
+c r1log,..  : help variables
+c rhogrid   : integrated level density
 c
-c For an equiprobable parity distribution for level densities, the loop 
+c For an equiprobable parity distribution for level densities, the loop
 c over Pprime only needs to be performed once and the result for the
 c level density is equal for both parities.
 c
@@ -220,10 +225,10 @@ c
           do 220 Pprime=Pbeg,1,2
             do 230 Ir=0,maxJ(Zix,Nix,nex)
               Rspin=real(Ir)+Rodd
-              rho1=density(Zix,Nix,Ex1min,Rspin,Pprime,0,ldmodel)*
+              rho1=density(Zix,Nix,Ex1min,Rspin,Pprime,0,ldmod)*
      +          (1.+1.d-10)
-              rho2=density(Zix,Nix,Exout,Rspin,Pprime,0,ldmodel)
-              rho3=density(Zix,Nix,Ex1plus,Rspin,Pprime,0,ldmodel)*
+              rho2=density(Zix,Nix,Exout,Rspin,Pprime,0,ldmod)
+              rho3=density(Zix,Nix,Ex1plus,Rspin,Pprime,0,ldmod)*
      +          (1.+1.d-10)
               r1log=log(rho1)
               r2log=log(rho2)
@@ -237,8 +242,8 @@ c
               endif
               if (.not.flagparity)
      +          rhogrid(Zix,Nix,nex,Ir,-1)=rhogrid(Zix,Nix,nex,Ir,1)
-  230       continue                                  
-  220     continue                                  
+  230       continue
+  220     continue
   210   continue
   110 continue
       end

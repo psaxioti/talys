@@ -3,9 +3,9 @@
      +  s3,s4,s5,numtr,numinc)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
+c | Author: Stephane Hilaire
 c | Date  : January 24, 2007
-c | Task  : Preparation of GOE triple integral width fluctuation 
+c | Task  : Preparation of GOE triple integral width fluctuation
 c |         correction
 c +---------------------------------------------------------------------
 c

@@ -38,9 +38,9 @@ c levinger: Levinger parameter
 c freedeut: free deuteron cross section
 c fpauli  : Pauli-blocking function of Chadwick
 c xsqd    : photo-absorption cross section from QD part
-c Ntarget : neutron number of target nucleus  
-c Ztarget : charge number of target nucleus  
-c Atarget : mass number of target nucleus  
+c Ntarget : neutron number of target nucleus
+c Ztarget : charge number of target nucleus
+c Atarget : mass number of target nucleus
 c
       levinger=6.5
       if (Egamma.gt.2.224) then

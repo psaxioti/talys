@@ -1,15 +1,15 @@
       subroutine ddxout
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : May 22, 2009
+c | Author: Arjan Koning
+c | Date  : July 28, 2011
 c | Task  : Output of double-differential cross sections
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*13 ddxfile
+      character*26 ddxfile
       integer      type,nen,iang,i
       real         Eo(0:numen2),enf,fac,xsa,xsb,xs1,xs2,xs3,xs4,xs5,
      +             Eout,angf
@@ -38,8 +38,8 @@ c                separate file: angular distribution
 c natstring    : string extension for file names
 c iso          : counter for isotope
 c locate       : subroutine to find value in ordered table
-c deltaE       : energy bin around outgoing energies  
-c parsym       : symbol of particle 
+c deltaE       : energy bin around outgoing energies
+c parsym       : symbol of particle
 c Einc         : incident energy in MeV
 c xsa,....     : help variables
 c
@@ -47,14 +47,14 @@ c 1. Angular distributions per outgoing energy
 c
       if (ddxmode.eq.1.or.ddxmode.eq.3) then
         write(*,'(/" 9. Double-differential cross sections per",
-     +    " outgoing energy")') 
+     +    " outgoing energy")')
         do 10 type=1,6
           if (parskip(type)) goto 10
           if (xsparticle(type).eq.0.) goto 10
           do 20 nen=ebegin(type),eendout(type)
             Eo(nen)=espec(type,nen)
             if (xssumout(type,nen).eq.0.) goto 20
-            write(*,'(/" DDX for outgoing ",a8," at ",f7.3," MeV"/)') 
+            write(*,'(/" DDX for outgoing ",a8," at ",f7.3," MeV"/)')
      +        parname(type),Eo(nen)
             write(*,'(" Angle   Total      Direct  ",
      +        "   Pre-equil.  Mult. preeq   Compound"/)')
@@ -69,18 +69,20 @@ c
             enf=fileddxe(type,i)
             call locate(Eo,ebegin(type),eendout(type),enf,nen)
             fac=(enf-Eo(nen))/deltaE(nen)
-            ddxfile=' ddx000_0.mev'//natstring(iso)
+            ddxfile=' ddxE000.000E000.0.MeV'//natstring(iso)
             write(ddxfile(1:1),'(a1)') parsym(type)
-            write(ddxfile(5:9),'(f5.1)') enf
-            write(ddxfile(5:7),'(i3.3)') int(enf)
-            open (unit=1,status='unknown',file=ddxfile)     
+            write(ddxfile(6:12),'(f7.3)') Einc
+            write(ddxfile(6:8),'(i3.3)') int(Einc)
+            write(ddxfile(14:18),'(f5.1)') enf
+            write(ddxfile(14:16),'(i3.3)') int(enf)
+            open (unit=1,status='unknown',file=ddxfile)
             write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum")')
      +        parsym(k0),Atarget,nuc(Ztarget),parname(type)
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# E-emission = ",f7.3)') enf
             write(1,'("# # angles =",i3)') nanglecont+1
             write(1,'("# Angle    Total       Direct    Pre-equil.",
-     +        "  Mult. preeq  Compound")')      
+     +        "  Mult. preeq  Compound")')
             do 50 iang=0,nanglecont
               xsa=xssumoutad(type,nen,iang)
               xsb=xssumoutad(type,nen+1,iang)
@@ -105,10 +107,10 @@ c
 c
 c Results in LAB frame
 c
-c flagrecoil   : flag for calculation of recoils              
+c flagrecoil   : flag for calculation of recoils
 c flaglabddx   : flag for calculation of DDX in LAB system
-c iejlab       : number of ejectile lab bins  
-c Eejlab       : center of ejectile lab bin                
+c iejlab       : number of ejectile lab bins
+c Eejlab       : center of ejectile lab bin
 c ddxejlab     : LAB ddx array
 c
           if (flagrecoil.and.flaglabddx) then
@@ -117,7 +119,7 @@ c
               write(*,'(/" DDX for outgoing ",a8," at ",f7.3," MeV",
      +          " in LAB frame")') parname(type),Eo(nen)
               write(*,'(" Angle   Cross section"/)')
-              do 70 iang=0,nanglecont   
+              do 70 iang=0,nanglecont
                 write(*,'(1x,f5.1,1p,e12.5)') anglecont(iang),
      +            ddxejlab(type,nen,iang)
    70         continue
@@ -126,11 +128,13 @@ c
               enf=fileddxe(type,i)
               call locate(Eo,1,iejlab(type),enf,nen)
               fac=(enf-Eo(nen))/deltaE(nen)
-              ddxfile=' ddx000_0.lab'//natstring(iso)
+              ddxfile=' ddxE000.000E000.0.lab'//natstring(iso)
               write(ddxfile(1:1),'(a1)') parsym(type)
-              write(ddxfile(5:9),'(f5.1)') enf
-              write(ddxfile(5:7),'(i3.3)') int(enf)
-              open (unit=1,status='unknown',file=ddxfile)     
+              write(ddxfile(6:12),'(f7.3)') Einc
+              write(ddxfile(6:8),'(i3.3)') int(Einc)
+              write(ddxfile(14:18),'(f5.1)') enf
+              write(ddxfile(14:16),'(i3.3)') int(enf)
+              open (unit=1,status='unknown',file=ddxfile)
               write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum",
      +          " in LAB system")') parsym(k0),Atarget,nuc(Ztarget),
      +          parname(type)
@@ -159,7 +163,7 @@ c
       if (ddxmode.eq.2.or.ddxmode.eq.3) then
         anginc=180./nanglecont
         write(*,'(/" 9. Double-differential cross sections per",
-     +    " outgoing angle")') 
+     +    " outgoing angle")')
         do 110 type=1,6
           if (parskip(type)) goto 110
           if (xsparticle(type).eq.0.) goto 110
@@ -180,11 +184,13 @@ c
             angf=fileddxa(type,i)
             call locate(anglecont,0,nanglecont,angf,iang)
             fac=(angf-anglecont(iang))/anginc
-            ddxfile=' ddx000_0.deg'//natstring(iso)
+            ddxfile=' ddxE000.000A000.0.deg'//natstring(iso)
             write(ddxfile(1:1),'(a1)') parsym(type)
-            write(ddxfile(5:9),'(f5.1)') angf
-            write(ddxfile(5:7),'(i3.3)') int(angf)
-            open (unit=1,status='unknown',file=ddxfile)     
+            write(ddxfile(6:12),'(f7.3)') Einc
+            write(ddxfile(6:8),'(i3.3)') int(Einc)
+            write(ddxfile(14:18),'(f5.1)') angf
+            write(ddxfile(14:16),'(i3.3)') int(angf)
+            open (unit=1,status='unknown',file=ddxfile)
             write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum")')
      +        parsym(k0),Atarget,nuc(Ztarget),parname(type)
             write(1,'("# E-incident = ",f7.3)') Einc
@@ -192,7 +198,7 @@ c
             write(1,'("# # energies =",i3)')
      +        eendout(type)-ebegin(type)+1
             write(1,'("# E-out    Total       Direct    Pre-equil.",
-     +        "  Mult. preeq  Compound")')      
+     +        "  Mult. preeq  Compound")')
             do 150 nen=ebegin(type),eendout(type)
               Eout=espec(type,nen)
               xsa=xssumoutad(type,nen,iang)
@@ -232,11 +238,13 @@ c
               angf=fileddxa(type,i)
               call locate(anglecont,0,nanglecont,angf,iang)
               fac=(angf-anglecont(iang))/anginc
-              ddxfile=' ddx000_0.lab'//natstring(iso)
+              ddxfile=' ddxE000.000A000.0.lab'//natstring(iso)
               write(ddxfile(1:1),'(a1)') parsym(type)
-              write(ddxfile(5:9),'(f5.1)') angf
-              write(ddxfile(5:7),'(i3.3)') int(angf)
-              open (unit=1,status='unknown',file=ddxfile)     
+              write(ddxfile(6:12),'(f7.3)') Einc
+              write(ddxfile(6:8),'(i3.3)') int(Einc)
+              write(ddxfile(14:18),'(f5.1)') angf
+              write(ddxfile(14:16),'(i3.3)') int(angf)
+              open (unit=1,status='unknown',file=ddxfile)
               write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum",
      +          " in LAB system")') parsym(k0),Atarget,nuc(Ztarget),
      +          parname(type)

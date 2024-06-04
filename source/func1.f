@@ -1,7 +1,7 @@
       function func1(a,b,c,t1,t2,dab)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
+c | Author: Stephane Hilaire
 c | Date  : August 22, 2004
 c | Task  : Calculation of the x,x1,x2 terms for GOE
 c +---------------------------------------------------------------------

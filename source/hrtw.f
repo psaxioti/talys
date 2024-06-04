@@ -1,7 +1,7 @@
       subroutine hrtw(tjl,na,nb,st,sv,v,w,res,numtr,ielas)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
+c | Author: Stephane Hilaire
 c | Date  : February 6, 2007
 c | Task  : HRTW width fluctuation correction
 c +---------------------------------------------------------------------
@@ -21,7 +21,7 @@ c tjl             : transmission coefficients
 c na,nb           : counters for width fluctuation calculation
 c st              : denominator of compound nucleus formula
 c res             : width fluctuation factor
-c numtr           : number of transmission coefficients  
+c numtr           : number of transmission coefficients
 c ielas           : designator for elastic channel
 c dab,tt,sv,w,res1: help variables
 c

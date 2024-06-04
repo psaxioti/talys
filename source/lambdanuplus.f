@@ -1,7 +1,7 @@
       function lambdanuplus(Zcomp,Ncomp,ppi,hpi,pnu,hnu)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 1, 2008
 c | Task  : Neutron transition rates for n --> n+2
 c +---------------------------------------------------------------------
@@ -26,7 +26,7 @@ c *************************** Transition rates *************************
 c
 c lambdanuplus: neutron transition rate for n --> n+2
 c Zcomp       : charge number index for compound nucleus
-c Ncomp       : neutron number index for compound nucleus 
+c Ncomp       : neutron number index for compound nucleus
 c ppi         : proton particle number
 c hpi         : proton hole number
 c pnu         : neutron particle number
@@ -35,14 +35,14 @@ c h           : hole number
 c p           : particle number
 c n           : exciton number
 c A           : mass number of compound nucleus
-c Ainit       : mass number of initial compound nucleus 
+c Ainit       : mass number of initial compound nucleus
 c matrix      : subroutine for matrix element for exciton model
 c surfwell    : flag for surface effects in finite well
 c flagsurface : flag for surface effects in exciton model
 c primary     : flag to designate primary (binary) reaction
 c edepth      : depth of potential well
 c Efermi      : depth of Fermi well
-c Esurf       : well depth for surface interaction 
+c Esurf       : well depth for surface interaction
 c gp,gsp      : single-particle proton level density parameter
 c gn,gsn      : single-particle neutron level density parameter
 c flaggshell  : flag for energy dependence of single particle level
@@ -52,25 +52,25 @@ c ignatyuk    : function for energy dependent level density parameter a
 c Ecomp       : total energy of composite system
 c alev        : level density parameter
 c U           : excitation energy minus pairing energy
-c preeqpair   : pre-equilibrium pairing energy       
+c preeqpair   : pre-equilibrium pairing energy
 c pairmodel   : model for preequilibrium pairing energy
 c fac1,lplus  : help variable
 c twopihbar   : 2*pi/hbar
 c factor1-3   : help variables
-c Apauli2     : two-component Pauli blocking correction factor 
+c Apauli2     : two-component Pauli blocking correction factor
 c term1-2     : help variables
 c M2nunu      : square of neutron-neutron matrix element
 c M2nupi      : square of neutron-proton matrix element
 c finitewell  : correction function for finite well depth
 c
-c A. Analytical solution: The transition rates are taken from Kalbach, 
+c A. Analytical solution: The transition rates are taken from Kalbach,
 c    PRC33, 818 (1986).
 c
       lambdanuplus=0.
       h=hpi+hnu
       p=ppi+pnu
       n=p+h
-      if (n.eq.0) return  
+      if (n.eq.0) return
       A=Ainit-Zcomp-Ncomp
       call matrix(A,n)
       surfwell=flagsurface.and.h.eq.1.and.primary
@@ -78,7 +78,7 @@ c
         edepth=Esurf
       else
         edepth=Efermi
-      endif         
+      endif
       gsp=gp(Zcomp,Ncomp)
       gsn=gn(Zcomp,Ncomp)
       if (flaggshell) then
@@ -122,7 +122,7 @@ c Wompfac     : adjustable constant for OMP based transition rates
 c wvol        : absorption part of the optical potential averaged over
 c               the volume
 c hbar        : Planck's constant / 2.pi in MeV.s
-c densh,densp : help variables       
+c densh,densp : help variables
 c ratio       : state density ratio for hole scattering
 c termpipip,..: help variables
 c phtot       : total particle-hole state density
@@ -158,7 +158,7 @@ c
             gsp=gp(Zcomp,Ncomp)*damp
             gsn=gn(Zcomp,Ncomp)*damp
           endif
-          if (preeqmode.eq.2) then  
+          if (preeqmode.eq.2) then
             lambdanunu1p=twopihbar*M2nunu*
      +        phdens2(Zcomp,Ncomp,0,0,2,1,gsp,gsn,uunup,edepth,surfwell)
             lambdanunu1h=twopihbar*M2nunu*
@@ -199,7 +199,7 @@ c
                   ratio=densh/densp
                 else
                   ratio=1.
-                endif       
+                endif
                 lambdanunu1h=2.*Weff/hbar*ratio
               endif
               if (j.eq.3) lambdapinu1p=2.*Weff/hbar
@@ -212,7 +212,7 @@ c
                   ratio=densh/densp
                 else
                   ratio=1.
-                endif       
+                endif
                 lambdapinu1h=2.*Weff/hbar*ratio
               endif
    20       continue

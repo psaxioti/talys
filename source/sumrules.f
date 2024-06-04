@@ -1,7 +1,7 @@
       subroutine sumrules
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : July 1, 2004
 c | Task  : Giant resonance sum rules
 c +---------------------------------------------------------------------
@@ -15,18 +15,18 @@ c
 c ******************* Strength of giant resonances *********************
 c
 c Sgmr    : sum rule for giant monopole resonance
-c Atarget : mass number of target nucleus 
+c Atarget : mass number of target nucleus
 c Egrcoll : energy of giant resonance
 c Ggrcoll : width of giant resonance
 c Sgqr    : sum rule for giant quadrupole resonance
-c onethird: 1/3    
+c onethird: 1/3
 c twothird: 2/3
 c Sgor    : sum rule for giant octupole resonance
 c Sleor   : sum rule for low energy octupole resonance
 c Sheor   : sum rule for high energy octupole resonance
 c
 c Using sum rules for giant resonances, the collective strength in the
-c continuum is determined. 
+c continuum is determined.
 c
       Sgmr=23.*Atarget**(-5./3.)
       Egrcoll(0,1)=18.7-0.025*Atarget
@@ -54,7 +54,7 @@ c numlev2: maximum number of levels
 c deform : deformation parameter
 c deftype: deformation length (D) or parameter (B)
 c edis   : energy of level
-c jdis   : spin of level 
+c jdis   : spin of level
 c
       Zcomp=0
       Ncomp=0
@@ -63,7 +63,7 @@ c
       do 10 i=1,numlev2
         deform1=deform(Zix,Nix,i)
         if (deform1.ne.0.) then
-          if (deftype(Zix,Nix).eq.'D') 
+          if (deftype(Zix,Nix).eq.'D')
      +      deform1=deform1/(1.24*Atarget**onethird)
           betasq=deform1*deform1
           edis1=edis(Zix,Nix,i)

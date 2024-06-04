@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : October 4, 2007
+c | Date  : January 2, 2011
 c | Task  : Tabulated level densities
 c +---------------------------------------------------------------------
 c
@@ -12,7 +12,8 @@ c
       logical          lexist
       character*4      denchar
       character*90     denfile
-      integer          Zix,Nix,Z,A,ibar,nloop,ploop,ia,parity,nex,J
+      integer          Zix,Nix,Z,A,ibar,nloop,ldmod,ploop,ia,parity,
+     +                 nex,J
       real             Ktriax,Eex,ald,ignatyuk,spincut,term
       double precision pardisloc,ldtot,ld2j1(0:numJ)
 c
@@ -21,7 +22,7 @@ c
 c Zix        : charge number index for residual nucleus
 c Nix        : neutron number index for residual nucleus
 c ZZ,Z       : charge number of residual nucleus
-c AA,A,ia    : mass number of residual nucleus 
+c AA,A,ia    : mass number of residual nucleus
 c flagfission: flag for fission
 c nfisbar    : number of fission barrier parameters
 c ldmodel    : level density model
@@ -41,7 +42,8 @@ c
       write(denchar(2:4),'(i3.3)') Z
       nloop=0
       if (flagfission) nloop=nfisbar(Zix,Nix)
-      if (ldmodel.eq.5) then
+      ldmod=ldmodel(Zix,Nix)
+      if (ldmod.eq.5) then
         ploop=-1
         pardisloc=1.
       else
@@ -55,7 +57,7 @@ c
 c Ground state
 c
         if (ibar.eq.0) then
-          if (ldmodel.eq.4) then
+          if (ldmod.eq.4) then
             denfile=
      +       path(1:lenpath)//'density/ground/goriely/'//denchar//'.tab'
           else
@@ -67,7 +69,7 @@ c
 c First barrier
 c
         if (ibar.eq.1) then
-          if (ldmodel.eq.4) then
+          if (ldmod.eq.4) then
             denfile=path(1:lenpath)//'density/fission/goriely/inner/'
      +        //denchar
           else
@@ -79,7 +81,7 @@ c
 c Second barrier
 c
         if (ibar.eq.2) then
-          if (ldmodel.eq.4) then
+          if (ldmod.eq.4) then
             denfile=path(1:lenpath)//'density/fission/goriely/outer/'
      +        //denchar
           else
@@ -90,7 +92,7 @@ c
 c
 c Third barrier
 c
-        if (ibar.eq.3.and.ldmodel.eq.5) 
+        if (ibar.eq.3.and.ldmod.eq.5)
      +    denfile=path(1:lenpath)//'density/fission/hilaire/Max3/'
      +      //denchar
 c
@@ -102,17 +104,17 @@ c
           do 20 parity=1,ploop,-2
    30       read(2,'(/31x,i3//)',end=10) ia
             if (A.ne.ia) then
-              do 40 nex=1,nendens+1
+              do 40 nex=1,nendens(Zix,Nix)+1
                 read(2,'()')
    40         continue
               goto 30
-            else    
+            else
               ldexist(Zix,Nix,ibar)=.true.
-              do 50 nex=1,nendens
-                read(2,'(24x,e9.2,9x,30e9.2)',err=100) 
+              do 50 nex=1,nendens(Zix,Nix)
+                read(2,'(24x,e9.2,9x,30e9.2)',err=100)
      +            ldtot,(ld2j1(J),J=0,29)
 c
-c Determination of the mass-asymmetric enhancement factor for fission 
+c Determination of the mass-asymmetric enhancement factor for fission
 c barrier
 c
 c Ktriax  : level density enhancement factor for triaxial shapes
@@ -128,11 +130,11 @@ c
                     Eex=edens(nex)
                     ald=ignatyuk(Zix,Nix,Eex,ibar)
                     term=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
-                    if (axtype(Zix,Nix,ibar).eq.3) 
+                    if (axtype(Zix,Nix,ibar).eq.3)
      +                Ktriax=0.5*sqrt(twopi)*term
-                    if (axtype(Zix,Nix,ibar).eq.4) 
+                    if (axtype(Zix,Nix,ibar).eq.4)
      +                Ktriax=sqrt(twopi)*term
-                    if (axtype(Zix,Nix,ibar).eq.5) 
+                    if (axtype(Zix,Nix,ibar).eq.5)
      +                Ktriax=2.*sqrt(twopi)*term
                   endif
                 endif
@@ -158,13 +160,13 @@ c
    20     continue
         endif
 c
-c Special case: make parity-independent level densities from 
-c parity-dependent tables (e.g. for testing the impact of 
+c Special case: make parity-independent level densities from
+c parity-dependent tables (e.g. for testing the impact of
 c parity-dependence).
 c
-        if (ldmodel.eq.5.and.ldexist(Zix,Nix,ibar).and..not.flagparity) 
+        if (ldmod.eq.5.and.ldexist(Zix,Nix,ibar).and..not.flagparity)
      +    then
-          do 110 nex=1,nendens
+          do 110 nex=1,nendens(Zix,Nix)
             ldtottableP(Zix,Nix,nex,1,ibar)=0.5*
      +        (ldtottableP(Zix,Nix,nex,-1,ibar)+
      +        ldtottableP(Zix,Nix,nex,1,ibar))
@@ -179,6 +181,6 @@ c
       return
   100 write(*,'(" TALYS-error: Wrong level density table for",
      +  " Z=",i3," A=",i3)') Z,A
-      stop    
+      stop
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

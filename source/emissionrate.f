@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 1, 2008
+c | Date  : April 14, 2010
 c | Task  : Emission rates for exciton model
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical surfwell,surfgam
-      integer Zcomp,Ncomp,p,h,n,type,Zix,Nix,aejec,nen,nen1,pres
+      integer Zcomp,Ncomp,p,h,n,type,Zix,Nix,aejec,nen,nen1,pres,nres
       real    gs,gsg,ignatyuk,edepth,U,preeqpair,phcomp,phcompg,
      +        wemissum(0:numparx,0:numparx,0:numen),Qfac,Ewell,phdens,
      +        Eout,xs,factor,Eres,phres1,phres2,g2E,branchplus,
@@ -30,20 +30,20 @@ c               density parameter g
 c ignatyuk    : function for energy dependent level density parameter a
 c Ecomp       : total energy of composite system
 c alev        : level density parameter
-c surfwell    : flag for surface effects in finite well 
+c surfwell    : flag for surface effects in finite well
 c flagsurface : flag for surface effects in exciton model
 c primary     : flag to designate primary (binary) reaction
 c edepth      : depth of potential well
-c Esurf       : well depth for surface interaction      
+c Esurf       : well depth for surface interaction
 c Efermi      : depth of Fermi well
 c U,Ures      : excitation energy minus pairing energy
 c preeqpair   : pre-equilibrium pairing energy
 c pairmodel   : model for preequilibrium pairing energy
-c phcomp      : particle-hole state density for compound system 
+c phcomp      : particle-hole state density for compound system
 c phdens      : function for particle-hole state density
 c phcompg     : particle-hole state density for compound system (gamma)
 c wemistot    : total emission rate per exciton number
-c wemispart   : emission rate per particle and exciton number 
+c wemispart   : emission rate per particle and exciton number
 c wemission   : emission rate per particle, exciton number and energy
 c wemissum    : emission rate per exciton number and energy
 c parskip     : logical to skip outgoing particle
@@ -52,17 +52,17 @@ c Nindex,Nix  : neutron number index for residual nucleus
 c aejec,parA  : mass number of leading particle
 c Qfactor,Qfac: Q-factor for neutron/proton distinction
 c Ewell       : depth of potential well
-c ebegin      : first energy point of energy grid 
-c eend        : last energy point of energy grid 
+c ebegin      : first energy point of energy grid
+c eend        : last energy point of energy grid
 c egrid,Eout  : energies of basic energy grid in MeV
 c factor,xs   : help variables
 c wfac        : factor for emission rate
 c xsreac      : reaction cross section
-c Eres        : total energy of residual system 
+c Eres        : total energy of residual system
 c S           : separation energy per particle
 c
-c The emission rates are derived from detailed balance, see 
-c the manual.      
+c The emission rates are derived from detailed balance, see
+c the manual.
 c
       n=p+h
       gs=g(Zcomp,Ncomp)
@@ -101,7 +101,7 @@ c
           Ewell=Efermi
         else
           Ewell=edepth
-        endif    
+        endif
         if (phcomp.le.1.e-10) goto 20
         if (type.eq.0.and.phcompg.le.1.e-10) goto 20
         do 40 nen=ebegin(type),eend(type)
@@ -112,7 +112,7 @@ c
 c
 c Avoid anomalies at the drip line
 c
-          if (type.le.2) Eres=min(Eres,Ecomp)     
+          if (type.le.2) Eres=min(Eres,Ecomp)
 c
 c Check if outgoing energy exceeds maximal possible energy
 c
@@ -126,12 +126,12 @@ c
 c 1. Gamma emission rates
 c
 c surfgam   : flag for surface effects for photons (always false)
-c phres1-2  : particle-hole state density for residual system 
+c phres1-2  : particle-hole state density for residual system
 c g2E       : help variable
 c branchplus: branching ratio for n-2 --> n
 c branchzero: branching ratio for n --> n
 c phratio   : ratio between residual and compound particle-hole density
-c Rgamma    : adjustable parameter for pre-equilibrium gamma decay    
+c Rgamma    : adjustable parameter for pre-equilibrium gamma decay
 c
 c Gamma emission is only included for primary pre-equilibrium decay
 c and n <= 7.
@@ -153,19 +153,21 @@ c
               branchzero=gsg*n/(gsg*n+g2E)
               phratio=(branchplus*phres1+branchzero*phres2)/phcompg
               wemission(type,p,h,nen)=Rgamma*factor*phratio
-              wemissum(p,h,nen)=wemission(type,p,h,nen) 
+              wemissum(p,h,nen)=wemission(type,p,h,nen)
             endif
           else
 c
 c 2. Particle emission rates
 c
 c pres : help variable
-c phres: particle-hole state density for residual system 
+c nres : exciton number for residual system
+c phres: particle-hole state density for residual system
 c
             pres=p-aejec
+            nres=n-aejec
             if (pres.lt.0.or.h.eq.0) goto 40
-            Ures=max(Eres-preeqpair(Zix,Nix,n,Eres,pairmodel),
-     +        preeqpair(Zix,Nix,n,Eres,pairmodel))
+            Ures=max(Eres-preeqpair(Zix,Nix,nres,Eres,pairmodel),
+     +        preeqpair(Zix,Nix,nres,Eres,pairmodel))
             phres=phdens(Zix,Nix,pres,h,gs,Ures,Ewell,surfwell)
             phratio=phres/phcomp
             wemission(type,p,h,nen)=factor*phratio*Qfac

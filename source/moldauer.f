@@ -2,7 +2,7 @@
      +  res,numtr,ielas)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
+c | Author: Stephane Hilaire
 c | Date  : August 22, 2004
 c | Task  : Moldauer width fluctuation correction
 c +---------------------------------------------------------------------

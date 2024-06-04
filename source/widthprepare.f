@@ -13,19 +13,19 @@ c
 c ******************* Choice of width fluctuation model ****************
 c
 c wmode          : designator for width fluctuation model
-c molprepare     : subroutine for preparation of Moldauer width 
+c molprepare     : subroutine for preparation of Moldauer width
 c                  fluctuation correction
 c transjl,tjlav  : array for width fluctuation calculation
 c tnum,tnuminc   : counter for width fluctuation calculation
 c denomhf        : denominator for compound nucleus formula
 c nmold,xmold,...: variables for Gauss-Legendre integration
 c freedom        : number of degrees of freedom
-c prodwidth      : product of widths            
+c prodwidth      : product of widths
 c numtrans       : number of transmission coefficients
-c hrtwprepare    : subroutine for preparation of HRTW width fluctuation 
+c hrtwprepare    : subroutine for preparation of HRTW width fluctuation
 c                  correction
-c sumhrtw,.......: variables for HRTW calculation      
-c goeprepare     : subroutine for preparation of GOE triple integral 
+c sumhrtw,.......: variables for HRTW calculation
+c goeprepare     : subroutine for preparation of GOE triple integral
 c                  width fluctuation correction
 c agoe1,.........: variables for GOE triple integral calculation
 c

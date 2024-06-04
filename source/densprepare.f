@@ -1,18 +1,18 @@
       subroutine densprepare(Zcomp,Ncomp,idfis)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : August 5, 2009
-c | Task  : Prepare energy grid, level density and transmission 
+c | Author: Arjan Koning
+c | Date  : January 2, 2011
+c | Task  : Prepare energy grid, level density and transmission
 c |         coefficient information for compound nucleus
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer          Zcomp,Ncomp,idfis,type,Zix,Nix,A,NL,odd,nexout,
-     +                 Pprime,Ir,l,irad,updown,nen,na,nb,nc,ibar,ibk,
-     +                 ibin,J,parity
+      integer          Zcomp,Ncomp,idfis,type,Zix,Nix,A,NL,odd,ldmod,
+     +                 nexout,Pprime,Ir,l,irad,updown,nen,na,nb,nc,ibar,
+     +                 ibk,ibin,J,parity
       real             Ex0plus,Ex0min,Efs,SS,Rodd,dEx,dExhalf,Exout,
      +                 Rboundary,Ex1min,Ex1plus,Eout,emax,emin,Exm,
      +                 Rspin,Egamma,fstrength,Ea,Eb,Ec,ta,tb,tc,tint,
@@ -23,15 +23,15 @@ c ************ Determine energetically allowed transitions *************
 c
 c  10: Loop over particle types
 c
-c Zcomp     : charge number index for compound nucleus 
-c Ncomp     : neutron number index for compound nucleus 
+c Zcomp     : charge number index for compound nucleus
+c Ncomp     : neutron number index for compound nucleus
 c idfis     : fission identifier
 c Ex0plus   : upper boundary of entrance bin
 c Exinc     : excitation energy of entrance bin
 c dExinc    : excitation energy bin for mother nucleus
 c Ex0min    : lower boundary of entrance bin
 c Efs       : fast particle energy for gamma ray strength function
-c SS,S      : separation energy per particle  
+c SS,S      : separation energy per particle
 c parskip   : logical to skip outgoing particle
 c Zindex,Zix: charge number index for residual nucleus
 c Nindex,Nix: neutron number index for residual nucleus
@@ -66,11 +66,11 @@ c Rboundary  : factor taking into count first accessible mother bin for
 c              discrete state
 c
 c There are 4 types of decay:
-c 1. From discrete state to discrete state: This happens for 
+c 1. From discrete state to discrete state: This happens for
 c    the primary compound nucleus, which is formed at an energy
 c    Etotal and can decay to a discrete state of a residual nucleus
 c    (e.g. compound elastic scattering).
-c 2. From discrete state to continuum: This happens for 
+c 2. From discrete state to continuum: This happens for
 c    the primary compound nucleus, which is formed at an energy
 c    Etotal and can decay to the continuum of a residual nucleus.
 c    (e.g. continuum inelastic scattering).
@@ -78,14 +78,14 @@ c 3. From continuum to discrete state: This happens for multiple
 c    emission, where a residual nucleus can be populated in a continuum
 c    excitation energy bin which can decay to a discrete state of
 c    another residual nucleus.
-c 4. From continuum to continuum: This happens for multiple emission, 
+c 4. From continuum to continuum: This happens for multiple emission,
 c    where a residual nucleus can be populated in a continuum
-c    excitation energy bin which can decay to a continuum bin of 
+c    excitation energy bin which can decay to a continuum bin of
 c    another residual nucleus.
 c
 c Types 3 and 4 are subject to boundary effects, i.e. they can represent
 c cases where not the entire mother bin can have decayed to the residual
-c bin or level, because of the particle separation energy. The end 
+c bin or level, because of the particle separation energy. The end
 c points need to be taken care of by a proper normalization.
 c
         dEx=deltaEx(Zix,Nix)
@@ -94,10 +94,10 @@ c
           Exout=Ex(Zix,Nix,nexout)
           Rboundary=1.
 c
-c Types 1 and 2. Decay from the primary compound nucleus. 
-c No special care needs to be taken. The residual bin/level is 
-c characterized by an excitation energy Exout. For transitions to the 
-c continuum, the bins is further characterized by a top Ex1plus and a 
+c Types 1 and 2. Decay from the primary compound nucleus.
+c No special care needs to be taken. The residual bin/level is
+c characterized by an excitation energy Exout. For transitions to the
+c continuum, the bins is further characterized by a top Ex1plus and a
 c bottom Ex1min.
 c
 c primary: flag to designate primary (binary) reaction
@@ -117,9 +117,9 @@ c Type 3. Decay from continuum to continuum. For most residual continuum
 c bins, no special care needs to be taken and the emission energy Eout
 c that characterizes the transition is simply the average between the
 c highest energetic transition that is possible (emax, from the top of
-c the mother bin to the bottom of the residual bin) and the lowest 
-c (emin). However, the highest residual bin (nexout=nexmax) is 
-c characterized by different energies (Ex1plus is the maximal residual 
+c the mother bin to the bottom of the residual bin) and the lowest
+c (emin). However, the highest residual bin (nexout=nexmax) is
+c characterized by different energies (Ex1plus is the maximal residual
 c excitation energy and Exout is shifted from its original position).
 c If some transitions from mother to residual bin are forbidden, the
 c factor Rboundary takes care of the correction.
@@ -149,11 +149,11 @@ c
               Eout=0.5*(emin+emax)
             else
 c
-c Type 4. Decay from continuum to discrete. The lowest possible mother 
-c excitation bin can not entirely decay to the discrete state. 
-c For the residual discrete state, it is checked whether the mother 
-c excitation bin is such a boundary case. This is done by adding the 
-c particle separation energy to the excitation energy of the residual 
+c Type 4. Decay from continuum to discrete. The lowest possible mother
+c excitation bin can not entirely decay to the discrete state.
+c For the residual discrete state, it is checked whether the mother
+c excitation bin is such a boundary case. This is done by adding the
+c particle separation energy to the excitation energy of the residual
 c discrete state. The correction is put in Rboundary.
 c
 c Exm: help variable
@@ -177,41 +177,41 @@ c excitation energy (nexout), spin (Ir) and parity (Pprime) in the
 c array rho0.
 c
 c Pprime  : parity
-c parlev  : parity of level 
+c parlev  : parity of level
 c Ir,Rspin: residual spin
 c jdis    : spin of level
 c rho0    : integrated level density
-c maxJ    : maximal J-value 
-c rhogrid : integrated level density   
+c maxJ    : maximal J-value
+c rhogrid : integrated level density
 c
 c For discrete states, the level density is set to Rboundary.
 c
           if (nexout.le.NL) then
             Pprime=parlev(Zix,Nix,nexout)
             Ir=int(jdis(Zix,Nix,nexout))
-            rho0(type,nexout,Ir,Pprime)=dble(Rboundary)
+            rho0(type,nexout,Ir,Pprime)=Rboundary
           else
 c
-c For decay to the continuum we use a spin and parity dependent level 
+c For decay to the continuum we use a spin and parity dependent level
 c density.
 c
             do 110 Pprime=-1,1,2
               do 120 Ir=0,maxJ(Zix,Nix,nexout)
                 rho0(type,nexout,Ir,Pprime)=
-     +            dble(Rboundary)*rhogrid(Zix,Nix,nexout,Ir,Pprime)
+     +            Rboundary*rhogrid(Zix,Nix,nexout,Ir,Pprime)
   120         continue
   110       continue
           endif
 c
 c ************* Interpolation of transmission coefficients *************
-c   
+c
 c 1. Gamma transmission coefficients
 c
 c lmaxhf   : maximal l-value for transmission coefficients
 c gammax   : number of l-values for gamma multipolarity
 c Egamma   : gamma energy
 c irad     : variable to indicate M(=0) or E(=1) radiation
-c Tgam     : gamma transmission coefficients 
+c Tgam     : gamma transmission coefficients
 c twopi    : 2.*pi
 c gnorm    : gamma normalization factor
 c fstrength: gamma ray strength function
@@ -232,12 +232,12 @@ c
           else
 c
 c 2. Particle transmission coefficients
-c   
+c
 c updown    : spin index for transmission coefficient
 c Tjl,Tjlnex: transmission coefficients as a function of
 c             particle type, energy, spin and l-value
 c Tl,Tlnex  : transmission coefficients as a function of
-c             particle type, energy and l-value (averaged over spin)  
+c             particle type, energy and l-value (averaged over spin)
 c egrid     : outgoing energy grid
 c ebegin    : first energy point of energy grid
 c eend      : last energy point of energy grid
@@ -259,7 +259,7 @@ c
             if (ebegin(type).ge.eend(type)) goto 20
 c
 c To get the transmission coefficients on the excitation energy grid,
-c Tjlnex, from those on the emission energy grid, Tjl, we use 
+c Tjlnex, from those on the emission energy grid, Tjl, we use
 c interpolation of the second order.
 c
             call locate(egrid,ebegin(type),eend(type),Eout,nen)
@@ -305,7 +305,7 @@ c
           endif
    20   continue
         if (nexmax(type).gt.0) lmaxhf(type,nexmax(type))=
-     +    lmaxhf(type,nexmax(type)-1)          
+     +    lmaxhf(type,nexmax(type)-1)
    10 continue
       if (flaginitpop) then
         lmaxhf(k0,0)=gammax
@@ -315,18 +315,18 @@ c
 c
 c **** Calculate fission level densities and Hill-Wheeler terms ********
 c
-c flagfission       : flag for fission  
-c nfisbar           : number of fission barrier parameters       
+c flagfission       : flag for fission
+c nfisbar           : number of fission barrier parameters
 c exfis             : help variable
-c fecont            : start of continuum energy  
+c fecont            : start of continuum energy
 c nbintfis,numbinfis: number of bins
 c dExmin,dEx        : energy bin
 c elowest,elow,emid : help variables
 c dExhalf           : help variable
-c eintfis           : excitation energy for fission   
+c eintfis           : excitation energy for fission
 c parity            : parity
-c numJ              : maximal J-value  
-c rhofis            : integrated level density  
+c numJ              : maximal J-value
+c rhofis            : integrated level density
 c density           : level density
 c
       if ((flagfission).and.(idfis.eq.1)) then
@@ -334,6 +334,7 @@ c
         odd=mod(A,2)
         Rodd=0.5*odd
         if (nfisbar(Zcomp,Ncomp).ne.0) then
+          ldmod=ldmodel(Zcomp,Ncomp)
           do 310 ibar=1,nfisbar(Zcomp,Ncomp)
             if (primary) then
               exfis=Exinc-fecont(Zcomp,Ncomp,ibar)
@@ -361,9 +362,9 @@ c
                 do 340 J=0,numJ
                   Rspin=J+Rodd
                   rhofis(ibk,J,parity,ibar)=
-     +              density(Zcomp,Ncomp,elow,Rspin,parity,ibar,ldmodel)
+     +              density(Zcomp,Ncomp,elow,Rspin,parity,ibar,ldmod)
                   rhofis(ibk+1,J,parity,ibar)=
-     +              density(Zcomp,Ncomp,emid,Rspin,parity,ibar,ldmodel)
+     +              density(Zcomp,Ncomp,emid,Rspin,parity,ibar,ldmod)
   340           continue
   330         continue
               ibk=ibk+2

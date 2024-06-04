@@ -2,17 +2,18 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 5, 2009
-c | Task  : Gamma ray strength functions 
+c | Date  : December 20, 2011
+c | Task  : Gamma ray strength functions
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer Zcomp,Ncomp,irad,l,i,nen
+      integer Zcomp,Ncomp,irad,l,i,nen,nT,it,jt,itemp
       real    fstrength,Efs,Egamma,sgr1,egr1,ggr1,kgr1,egr2,ggr2,Egam2,
      +        e,Tnuc,ggredep0,ggredep,enum,denom,factor1,factor2,eb,ee,
-     +        Eq(0:numgamqrpa),gamb,game,f1,tpr1,epr1,gpr1,epr2,gpr2
+     +        Eq(0:numgamqrpa),gamb,game,f1,f2,fb,fe,tpr1,epr1,gpr1,
+     +        epr2,gpr2,Tb,Te
 c
 c ************************* Strength functions *************************
 c
@@ -29,12 +30,12 @@ c ggr,ggr1 : width of GR
 c kgr,kgr1 : constant for gamma-ray strength function
 c egr2,ggr2: help variables
 c Egam2    : help variable
-c strength : strength function of Kopecky-Uhl (1) or Brink-Axel (2) 
+c strength : strength function of Kopecky-Uhl (1) or Brink-Axel (2)
 c
 c Models for E1 gamma-ray strength function:
 c
 c 1. Kopecky-Uhl
-c 2. Brink-Axel 
+c 2. Brink-Axel
 c 3. Goriely HFBCS
 c 4. Goriely HFB
 c 5. Goriely Hybrid model
@@ -69,8 +70,8 @@ c
         Tnuc=0.
         if (strength.eq.1.and.l.eq.1.and.irad.eq.1) then
           if (k0.gt.0.or.Egamma.ne.Einc) then
-            e=min(Efs,20.)+S(Zcomp,Ncomp,1)-delta(Zcomp,Ncomp,0)-Egamma
-            if (e.gt.0..and.alev(Zcomp,Ncomp).gt.0.) 
+            e=min(Efs,20.)+S(Zcomp,Ncomp,k0)-delta(Zcomp,Ncomp,0)-Egamma
+            if (e.gt.0..and.alev(Zcomp,Ncomp).gt.0.)
      +        Tnuc=sqrt(e/alev(Zcomp,Ncomp))
           endif
           ggredep0=ggr1*twopi**2*Tnuc**2/egr2
@@ -104,35 +105,76 @@ c eb,ee,....: help variables
 c
         if ((strength.eq.3.or.strength.eq.4).and.qrpaexist(Zcomp,Ncomp)
      +    .and.l.eq.1.and.irad.eq.1) then
-          do 110 nen=0,numgamqrpa
-            Eq(nen)=eqrpa(Zcomp,Ncomp,nen)
-  110     continue
-          if (Egamma.le.Eq(numgamqrpa)) then
-            call locate(Eq,0,numgamqrpa,Egamma,nen)
-            eb=Eq(nen)
-            ee=Eq(nen+1)
-            gamb=fe1qrpa(Zcomp,Ncomp,nen)
-            game=fe1qrpa(Zcomp,Ncomp,nen+1)
-            if (gamb.gt.0..and.game.gt.0.) then
-              f1=log10(gamb)+(Egamma-eb)/(ee-eb)*
-     +          (log10(game)-log10(gamb))
-              fstrength=10.**f1
+          if ((k0.gt.0.or.Egamma.ne.Einc).and.nTqrpa.gt.1) then
+            e=min(Efs,20.)+S(Zcomp,Ncomp,k0)-delta(Zcomp,Ncomp,0)-Egamma
+            if (e.gt.0..and.alev(Zcomp,Ncomp).gt.0.)
+     +        Tnuc=sqrt(e/alev(Zcomp,Ncomp))
+            nT=nTqrpa
+            do 110 it=1,nTqrpa
+              if (Tqrpa(it).gt.Tnuc) then
+                nT=it-1
+                goto 120
+              endif
+  110       continue
+  120       Tb=Tqrpa(nT)
+            if (nT.lt.nTqrpa) then
+              Te=Tqrpa(nT+1)
             else
-              fstrength=gamb+(Egamma-eb)/(ee-eb)*(game-gamb)
+              Te=Tb
             endif
+            itemp=2
           else
-            eb=Eq(numgamqrpa-1)
-            ee=Eq(numgamqrpa)
-            gamb=fe1qrpa(Zcomp,Ncomp,numgamqrpa-1)
-            game=fe1qrpa(Zcomp,Ncomp,numgamqrpa)
-            if (gamb.gt.0..and.game.gt.0.) then
-              f1=log10(gamb)+(Egamma-eb)/(ee-eb)*
-     +          (log10(game)-log10(gamb))
-              fstrength=10.**f1
+            Tb=0.
+            Te=0.
+            itemp=1
+            nT=1
+          endif
+          do 130 nen=0,numgamqrpa
+            Eq(nen)=eqrpa(Zcomp,Ncomp,nen)
+  130     continue
+          do 140 it=1,itemp
+            jt=nT
+            if (it.eq.2) jt=nT+1
+            if (jt.gt.nTqrpa) jt=nTqrpa
+            if (Egamma.le.Eq(numgamqrpa)) then
+              call locate(Eq,0,numgamqrpa,Egamma,nen)
+              eb=Eq(nen)
+              ee=Eq(nen+1)
+              gamb=fe1qrpa(Zcomp,Ncomp,nen,jt)
+              game=fe1qrpa(Zcomp,Ncomp,nen+1,jt)
+              if (gamb.gt.0..and.game.gt.0.) then
+                f1=log10(gamb)+(Egamma-eb)/(ee-eb)*
+     +            (log10(game)-log10(gamb))
+                f2=10.**f1
+              else
+                f2=gamb+(Egamma-eb)/(ee-eb)*(game-gamb)
+              endif
             else
-              fstrength=gamb+(Egamma-eb)/(ee-eb)*(game-gamb)
+              eb=Eq(numgamqrpa-1)
+              ee=Eq(numgamqrpa)
+              gamb=fe1qrpa(Zcomp,Ncomp,numgamqrpa-1,jt)
+              game=fe1qrpa(Zcomp,Ncomp,numgamqrpa,jt)
+              if (gamb.gt.0..and.game.gt.0.) then
+                f1=log10(gamb)+(Egamma-eb)/(ee-eb)*
+     +            (log10(game)-log10(gamb))
+                f2=10.**f1
+              else
+                f2=gamb+(Egamma-eb)/(ee-eb)*(game-gamb)
+              endif
+            endif
+            if (it.eq.1) fb=f2
+            if (it.eq.2) fe=f2
+  140     continue
+          if (nTqrpa.gt.1.and.Tb.ne.Te) then
+            if (fb.gt.0..and.fe.gt.0.) then
+              f1=log10(fb)+(Tnuc-Tb)/(Te-Tb)*
+     +          (log10(fe)-log10(fb))
+              f2=10.**f1
+            else
+              f2=fb+(Tnuc-Tb)/(Te-Tb)*(fe-fb)
             endif
           endif
+          fstrength=f2
         endif
 c
 c 5. Goriely Hybrid model
@@ -140,7 +182,7 @@ c
         if (strength.eq.5.and.l.eq.1.and.irad.eq.1) then
           if (k0.gt.0.or.Egamma.ne.Einc) then
             e=min(Efs,20.)+S(Zcomp,Ncomp,1)-delta(Zcomp,Ncomp,0)-Egamma
-            if (e.gt.0..and.alev(Zcomp,Ncomp).gt.0.) 
+            if (e.gt.0..and.alev(Zcomp,Ncomp).gt.0.)
      +        Tnuc=sqrt(e/alev(Zcomp,Ncomp))
           endif
           if (Egamma.gt.0.) then
@@ -155,7 +197,7 @@ c
 c
 c Inclusion of additional extra strength (Pygmy Resonance),
 c only if explicitly specified in the input
-c 
+c
       tpr1=tpr(Zcomp,Ncomp,irad,l)
       if (Egamma.gt.0.001.and.tpr1.gt.0.) then
         epr1=epr(Zcomp,Ncomp,irad,l)
@@ -169,7 +211,7 @@ c
         fstrength=fstrength+kgr1*tpr1*enum/denom
       endif
 c
-c Reduction of gamma-strength for isospin forbidden transitions into 
+c Reduction of gamma-strength for isospin forbidden transitions into
 c Z=N nuclei
 c
 c fiso: correction factor for isospin forbidden transitions

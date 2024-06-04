@@ -1,7 +1,7 @@
       subroutine hrtwprepare(tjl,numtjl,st,tav,sv,v,w,numtr,numinc)
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
+c | Author: Stephane Hilaire
 c | Date  : January 24, 2007
 c | Task  : Preparation of HRTW width fluctuation correction
 c +---------------------------------------------------------------------
@@ -23,7 +23,7 @@ c niter : number of iterations
 c numtjl: number of transmission coefficients
 c tav   : average transmission coefficients
 c tjl   : transmission coefficients
-c 
+c
       niter=60
       do 10 i=1,numtr
         tav(i)=0.
@@ -32,7 +32,7 @@ c
         if (tjl(0,i).gt.0.) tav(i)=tjl(1,i)/tjl(0,i)
    20 continue
 c
-c Calculation of sum over t**2 
+c Calculation of sum over t**2
 c
 c st2: help variable
 c
@@ -45,7 +45,7 @@ c Initialisation for HRTW calculation
 c
 c factor,t,f,sv: help variables
 c v,w          : variables for final HRTW calculation
-c 
+c
       factor=real(4.*st2/(st*st+3.*st2))
       do 40 i=1,numtjl+1
         t=tav(i)
@@ -65,7 +65,7 @@ c
       do 60 ni=1,niter
         sv=0.
 c
-c Sum over v 
+c Sum over v
 c
         do 70 i=numinc+1,numtjl+1
           sv=sv+v(i)*tjl(0,i)

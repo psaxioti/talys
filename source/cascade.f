@@ -1,8 +1,8 @@
       subroutine cascade(Zcomp,Ncomp,nex)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : September 24, 2009
+c | Author: Arjan Koning
+c | Date  : November 17, 2011
 c | Task  : Gamma-ray cascade
 c +---------------------------------------------------------------------
 c
@@ -19,13 +19,13 @@ c Ncomp      : neutron number index for compound nucleus
 c nex        : excitation energy bin of compound nucleus
 c jdis,J,Jres: spin of level
 c parity,Pres: parity
-c parlev     : parity of level 
+c parlev     : parity of level
 c xsJP,xspop : population cross section for spin and parity
 c branchratio: gamma-ray branching ratio to level
 c branchlevel: level to which branching takes place
 c intens     : total gamma intensity
 c xspopex    : population cross section summed over spin and parity
-c xspartial  : emitted cross section flux per energy bin         
+c xspartial  : emitted cross section flux per energy bin
 c numZchan   : maximal number of outgoing proton units in individual
 c              channel description
 c numNchan   : maximal number of outgoing neutron units in individual

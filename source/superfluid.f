@@ -26,7 +26,7 @@ c U         : effective excitation energy
 c pair      : total pairing correction
 c Pshift    : adjustable pairing shift
 c Ucrit     : critical U
-c fermi     : function for Fermi gas level density formula    
+c fermi     : function for Fermi gas level density formula
 c phi2      : help variable
 c Df        : determinant
 c Dcrit     : critical determinant
@@ -43,7 +43,7 @@ c
       U=Eex+pair(Zix,Nix)+Pshift(Zix,Nix,ibar)
       if (U.gt.0.) then
         if (U.gt.Ucrit(Zix,Nix)) then
-          superfluid=fermi(Zix,Nix,ald,Eex,P,ibar)     
+          superfluid=fermi(Zix,Nix,ald,Eex,P,ibar)
         else
           phi2=1.-U/Ucrit(Zix,Nix)
           Df=Dcrit(Zix,Nix)*(1.-phi2)*(1.+phi2)*(1.+phi2)

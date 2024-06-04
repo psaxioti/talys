@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       integer ppi,hpi,pnu,hnu,p
       real    term1,term2,term3,term4,term5,term6,term7,term8
-c     
+c
 c **************** Calculation of total strength ***********************
 c
 c ppi         : proton particle number
@@ -54,9 +54,9 @@ c
           term6=PP2(ppi,hpi,pnu-1,hnu-1)*Gpiplus(ppi,hpi,pnu-1,hnu-1)
         endif
         if (pnu.lt.maxpar.and.hnu.lt.maxpar)  then
-          if (ppi.gt.ppi0.and.hpi.gt.hpi0) 
+          if (ppi.gt.ppi0.and.hpi.gt.hpi0)
      +      term5=Gnupi(ppi-1,hpi-1,pnu+1,hnu+1)
-          if (ppi-1.gt.ppi0.and.hpi-1.gt.hpi0) 
+          if (ppi-1.gt.ppi0.and.hpi-1.gt.hpi0)
      +      term3=PP2(ppi-2,hpi-2,pnu+1,hnu+1)*
      +      Gpiplus(ppi-2,hpi-2,pnu+1,hnu+1)
         endif
@@ -65,7 +65,7 @@ c
      +      term8=Gpinu(ppi+1,hpi+1,pnu-1,hnu-1)
           if (pnu-1.gt.pnu0.and.hnu-1.ge.hnu0)
      +      term7=PP2(ppi+1,hpi+1,pnu-2,hnu-2)*
-     +      Gnuplus(ppi+1,hpi+1,pnu-2,hnu-2)   
+     +      Gnuplus(ppi+1,hpi+1,pnu-2,hnu-2)
         endif
         PP2(ppi,hpi,pnu,hnu)=term1+term2+Lexc(ppi,hpi,pnu,hnu)*
      +    ((term3+term4)*term5+(term6+term7)*term8)

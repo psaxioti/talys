@@ -1,7 +1,7 @@
       subroutine angdisrecoil
 c
 c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire 
+c | Author: Stephane Hilaire
 c | Date  : September 12, 2004
 c | Task  : Recoil angular distributions for discrete states
 c +---------------------------------------------------------------------
@@ -211,7 +211,7 @@ c
 c
 c EJECTILE and RECOIL TREATMENT
 c
-c Ejectile and recoil LAB angles and energies deduced from CM points 
+c Ejectile and recoil LAB angles and energies deduced from CM points
 c
             call cm2lab(type)
 c
@@ -283,7 +283,7 @@ c
                     else
                       iys=iymax-iymod
                   endif
-                  if (areaejlab(type,ix,iymod).gt.0.) 
+                  if (areaejlab(type,ix,iymod).gt.0.)
      +              ddxejlabdis(type,ix,iys)=ddxejlabdis(type,ix,iys)+
      +                        ddxLAB/areaejlab(type,ix,iymod)*
      +                        scovej1(ix,iymod)
@@ -297,7 +297,7 @@ c
                     else
                       iys=iymax-iymod
                   endif
-                  if (areaejlab(type,ix,iymod).gt.0.) 
+                  if (areaejlab(type,ix,iymod).gt.0.)
      +              ddxejlabdis(type,ix,iys)=ddxejlabdis(type,ix,iys)+
      +                        ddxLAB/areaejlab(type,ix,iymod)*
      +                        scovej2(ix,iymod)
@@ -305,12 +305,12 @@ c
               enddo
             endif
 c
-c We check if Recoil energies are greater than the maximum 
+c We check if Recoil energies are greater than the maximum
 c value calculated. If it is so we accordingly modify the
 c maximum recoil energy, the recoil area array as well as
 c the recoil spectrum array in the lab
 c
-c nanglerec   : number of recoil angles 
+c nanglerec   : number of recoil angles
 c
             irenorm=0
             Emaxi=Erecmax(Zix,Nix,maxenrec)
@@ -418,7 +418,7 @@ c We add the renormalized discrete component to the total ddxejlab array
 c
           if (flaglabddx) then
             renorm=1.0
-            if (sumang.ne.xsCMlev.and.sumang.ge.1.e-30) 
+            if (sumang.ne.xsCMlev.and.sumang.ge.1.e-30)
      +        renorm=xsCMlev/sumang
             do ix=1,iejlab(type)
               do iy=0,nanglecont

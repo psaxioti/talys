@@ -18,15 +18,15 @@ c Cmulti     : constant for second and higher steps
 c specmass   : specific mass for target nucleus and all particles
 c parZ       : charge number of particle
 c k0         : index for incident particle
-c parN       : neutron number of particle   
+c parN       : neutron number of particle
 c amu4pi2h2c2: amu/(4*pi*pi*clight*clight*hbar**2) in mb**-1.MeV**-1
-c parskip    : logical to skip outgoing particle 
-c maxmsd     : number of MSD steps    
+c parskip    : logical to skip outgoing particle
+c maxmsd     : number of MSD steps
 c msdbins2   : number of energy points for MSD calculation
-c msdstep0   : n-step cross section for MSD 
-c factor1-2  : help variables      
+c msdstep0   : n-step cross section for MSD
+c factor1-2  : help variables
 c Emsd       : MSD energy grid
-c xscont     : continuum one-step direct cross section for MSD 
+c xscont     : continuum one-step direct cross section for MSD
 c parmass    : mass of particle in a.m.u.
 c dEmsd      : energy bin for MSD
 c
@@ -54,16 +54,16 @@ c ******************* Multi-step angular distributions *****************
 c
 c flagddx    : flag for output of double-differential cross sections
 c dang       : angle step
-c pi         : pi       
+c pi         : pi
 c nanglecont : number of angles for continuum
 c msdstepad0 : n-step angular distribution for MSD
 c iangout    : outgoing angle index
 c iangint    : intermediate angle index
 c fac1-2,tot1: help variables
 c nangleint  : number of possibilities to link intermediate angle to
-c              final angle 
+c              final angle
 c angint     : intermediate angle
-c deg2rad    : conversion factor for degrees to radians     
+c deg2rad    : conversion factor for degrees to radians
 c xscontad   : continuum one-step direct angular distribution for MSD
 c anglecont  : angle in degrees for continuum
 c
@@ -86,7 +86,7 @@ c
                   fac2=msdstepad0(k0,ns-1,nenint,iangint)*
      +              Emsd(nenint)
                   do 180 iang=0,nanglecont
-                    factor1=fac1*nangleint(iangout,iangint,iang)*	
+                    factor1=fac1*nangleint(iangout,iangint,iang)*
      +                xscontad(type,type,nenint,nenout,iang)
                     factor2=fac2*nangleint(iangout,iangint,iang)*
      +                xscontad(k0,type,nenint,nenout,iang)

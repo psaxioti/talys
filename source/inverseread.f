@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning, Stephane Hilaire, Eric Bauge and Pascal Romain
-c | Date  : June 22, 2007
+c | Date  : December 27, 2010
 c | Task  : Read ECIS results for outgoing particles and energy grid
 c +---------------------------------------------------------------------
 c
@@ -19,17 +19,17 @@ c ************ Read total, reaction and elastic cross section **********
 c
 c Zcomp     : charge number index for compound nucleus
 c Ncomp     : neutron number index for compound nucleus
-c csfile    : file with inverse reaction cross sections      
+c csfile    : file with inverse reaction cross sections
 c parskip   : logical to skip outgoing particle
 c ebegin    : first energy point of energy grid
-c eendmax   : last energy point of energy grid for maximum incident 
+c eendmax   : last energy point of energy grid for maximum incident
 c             energy
 c xs        : help variable
 c xstot     : total cross section (neutrons only) for
 c xsreac    : reaction cross section
 c xsopt     : optical model reaction cross section
 c xselas    : total elastic cross section (neutrons only)
-c ecisstatus: status of ECIS file  
+c ecisstatus: status of ECIS file
 c
       inquire (file=csfile,exist=lexist)
       if (.not.lexist) then
@@ -37,7 +37,7 @@ c
      +    " should always be done with ecissave y and",
      +    " eciscalc y")')
         stop
-      endif    
+      endif
       open (unit=3,status='unknown',file=csfile)
       do 10 type=1,6
         if (parskip(type)) goto 10
@@ -45,14 +45,14 @@ c
           read(3,'()')
           if (type.eq.1) then
             read(3,*) xs
-            xstot(type,nen)=real(xs)
+            xstot(type,nen)=max(real(xs),0.)
           endif
           read(3,*) xs
-          xsreac(type,nen)=real(xs)
-          xsopt(type,nen)=real(xs)
+          xsreac(type,nen)=max(real(xs),0.)
+          xsopt(type,nen)=xsreac(type,nen)
           if (type.eq.1) then
             read(3,*) xs
-            xselas(type,nen)=real(xs)
+            xselas(type,nen)=max(real(xs),0.)
           endif
    20   continue
    10 continue
@@ -62,7 +62,7 @@ c ******************* Read transmission coefficients *******************
 c
 c transfile  : file with transmission coefficients
 c Zindex,Zix : charge number index for residual nucleus
-c Nindex,Nix : neutron number index for residual nucleus    
+c Nindex,Nix : neutron number index for residual nucleus
 c groundspin2: 2 * spin of ground state
 c jdis       : spin of level
 c nJ         : number of total J values for transmission coefficients
@@ -76,7 +76,7 @@ c              particle type, energy, spin and l-value
 c numl       : maximal number of l-values in TALYS
 c colltype   : type of collectivity (D, V or R)
 c flagrot    : flag for use of rotational optical model per
-c              outgoing particle, if available  
+c              outgoing particle, if available
 c factor     : help variable
 c ispin      : spin index
 c parspin    : spin of particle
@@ -86,7 +86,7 @@ c energy, spin and  l-value. For spin-1/2 particles, we use the
 c indices -1 and 1 for the two spin values. For spin-1 particles,
 c we use -1, 0 and 1 and for spin-0 particles we use 0 only.
 c
-c For rotational nuclei, the rotational transmission 
+c For rotational nuclei, the rotational transmission
 c coefficients are transformed into into spherical equivalents.
 c
       open (unit=7,status='unknown',file=transfile)
@@ -124,15 +124,15 @@ c
 c ************** Processing of transmission coefficients ***************
 c
 c Transmission coefficients averaged over spin and determination of
-c maximal l-value. ECIS stops its output of transmission coefficients 
-c somewhat too early. For the highest l values the transmission 
-c coefficient for (l+spin) is not written in the output. Since these 
+c maximal l-value. ECIS stops its output of transmission coefficients
+c somewhat too early. For the highest l values the transmission
+c coefficient for (l+spin) is not written in the output. Since these
 c are small numbers we put them equal to the value for (l-spin).
 c
-c eend      : last energy point of energy grid 
+c eend      : last energy point of energy grid
 c Tl        : transmission coefficients as a function of
 c             particle type, energy and l-value (averaged over spin)
-c translimit: limit for transmission coefficient 
+c translimit: limit for transmission coefficient
 c teps      : help variable
 c transeps  : limit for transmission coefficient
 c lmax      : maximal l-value for transmission coefficients
@@ -145,7 +145,7 @@ c
         if (type.ne.3.and.type.ne.6) then
           do 220 nen=ebegin(type),eend(type)
             do 230 l=0,numl
-              if (Tjl(type,nen,-1,l).ne.0.and.Tjl(type,nen,1,l).eq.0) 
+              if (Tjl(type,nen,-1,l).ne.0.and.Tjl(type,nen,1,l).eq.0)
      +          Tjl(type,nen,1,l)=Tjl(type,nen,-1,l)
               if (Tjl(type,nen,-1,l).eq.0.and.Tjl(type,nen,1,l).ne.0.
      +          and.l.gt.0) Tjl(type,nen,-1,l)=Tjl(type,nen,1,l)
@@ -168,12 +168,12 @@ c
         if (type.eq.3) then
           do 240 nen=ebegin(type),eend(type)
             do 250 l=0,numl
-              if (Tjl(type,nen,-1,l).ne.0.and.Tjl(type,nen,0,l).eq.0) 
+              if (Tjl(type,nen,-1,l).ne.0.and.Tjl(type,nen,0,l).eq.0)
      +          Tjl(type,nen,0,l)=Tjl(type,nen,-1,l)
-              if (Tjl(type,nen,-1,l).ne.0.and.Tjl(type,nen,1,l).eq.0) 
+              if (Tjl(type,nen,-1,l).ne.0.and.Tjl(type,nen,1,l).eq.0)
      +          Tjl(type,nen,1,l)=Tjl(type,nen,-1,l)
               if (Tjl(type,nen,-1,l).eq.0.and.Tjl(type,nen,1,l).ne.0.
-     +          and.l.gt.0) 
+     +          and.l.gt.0)
      +          Tjl(type,nen,-1,l)=Tjl(type,nen,1,l)
               Tl(type,nen,l)=((2*l+3)*Tjl(type,nen,1,l)+
      +          (2*l+1)*Tjl(type,nen,0,l)+

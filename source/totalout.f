@@ -1,8 +1,8 @@
       subroutine totalout
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : November 1, 2007   
+c | Author: Arjan Koning
+c | Date  : November 1, 2007
 c | Task  : Output of total cross sections
 c +---------------------------------------------------------------------
 c
@@ -32,26 +32,26 @@ c xscompnonel : total compound non-elastic cross section
 c xselastot   : total elastic cross section (shape + compound)
 c
       if (Einc.ge.0.001) then
-        write(*,'(/" ########### REACTION SUMMARY FOR E=",f9.5, 
+        write(*,'(/" ########### REACTION SUMMARY FOR E=",f9.5,
      +    " ###########"/)') Einc
       else
         write(*,'(/" ########### REACTION SUMMARY FOR E=",1p,e12.5,
      +    " ###########"/)') Einc
       endif
       write(*,'(" Center-of-mass energy: ",f7.3/)') eninccm
-      write(*,'(" 1. Total (binary) cross sections"/)') 
+      write(*,'(" 1. Total (binary) cross sections"/)')
       if (k0.eq.1) write(*,'(" Total           =",1p,e12.5)') xstotinc
-      if (k0.eq.1) write(*,'("   Shape elastic   =",1p,e12.5)') 
+      if (k0.eq.1) write(*,'("   Shape elastic   =",1p,e12.5)')
      +  xselasinc
       write(*,'("   Reaction        =",1p,e12.5)') xsreacinc
       write(*,'("     Compound elastic=",1p,e12.5)') xscompel
       write(*,'("     Non-elastic     =",1p,e12.5)') xsnonel
       write(*,'("       Direct          =",1p,e12.5)') xsdirdiscsum
       write(*,'("       Pre-equilibrium =",1p,e12.5)') xspreeqsum
-      if (flaggiant) write(*,'("       Giant resonance =",1p,e12.5)') 
+      if (flaggiant) write(*,'("       Giant resonance =",1p,e12.5)')
      +  xsgrsum
       write(*,'("       Compound non-el =",1p,e12.5)') xscompnonel
-      if (k0.eq.1) write(*,'("     Total elastic   =",1p,e12.5)') 
+      if (k0.eq.1) write(*,'("     Total elastic   =",1p,e12.5)')
      +  xselastot
 c
 c Write results to separate file
@@ -59,13 +59,13 @@ c
 c filetotal: flag for total cross sections on separate file
 c natstring: string extension for file names
 c iso      : counter for isotope
-c numinclow: number of incident energies below Elow 
+c numinclow: number of incident energies below Elow
 c parsym   : symbol of particle
 c k0       : index of incident particle
 c Atarget  : mass number of target nucleus
 c nuc      : symbol of nucleus
-c Ztarget  : charge number of target nucleus                   
-c numinc   : number of incident energies 
+c Ztarget  : charge number of target nucleus
+c numinc   : number of incident energies
 c
       if (filetotal) then
         totfile='total.tot'//natstring(iso)
@@ -88,7 +88,7 @@ c
         else
           open (unit=1,status='old',file=totfile)
           do 20 nen=1,nin+4
-            read(1,*,end=30,err=30) 
+            read(1,*,end=30,err=30)
    20     continue
         endif
         write(1,'(1p,e10.3,2x,9e11.4)') Einc,xsnonel,xselastot,
@@ -113,7 +113,7 @@ c
         else
           open (unit=1,status='old',file=totfile)
           do 50 nen=1,nin+4
-            read(1,*,end=60,err=60) 
+            read(1,*,end=60,err=60)
    50     continue
         endif
         write(1,'(1p,e10.3,2x,e11.4)') Einc,xstotinc
@@ -136,7 +136,7 @@ c
         else
           open (unit=1,status='old',file=totfile)
           do 80 nen=1,nin+4
-            read(1,*,end=90,err=90) 
+            read(1,*,end=90,err=90)
    80     continue
         endif
         write(1,'(1p,e10.3,2x,e11.4)') Einc,xselastot
@@ -159,7 +159,7 @@ c
         else
           open (unit=1,status='old',file=totfile)
           do 110 nen=1,nin+4
-            read(1,*,end=120,err=120) 
+            read(1,*,end=120,err=120)
   110     continue
         endif
         write(1,'(1p,e10.3,2x,e11.4)') Einc,xsnonel

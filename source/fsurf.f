@@ -17,13 +17,13 @@ c
 c
 c **********************************************************************
 c
-      if (epscloc) 10,20,30 
+      if (epscloc) 10,20,30
  10   dum=sqrt(1.+epscloc**2)
       fsurf=(alog(-epscloc+dum)-epscloc*dum)/(-2.*epscloc*dum**(1./3.))
-      return                                                            
- 20   fsurf=1.                                                          
-      return                                                            
+      return
+ 20   fsurf=1.
+      return
  30   dum=sqrt(1.-epscloc**2)
       fsurf=(asin(epscloc)+epscloc*dum)/(2.*epscloc*dum**(1./3.))
-      return                                                            
-      end                                                               
+      return
+      end

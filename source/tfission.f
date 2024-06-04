@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Pascal Romain
-c | Date  : February 18, 2009
+c | Date  : October 25, 2011
 c | Task  : Fission transmission coefficients
 c +---------------------------------------------------------------------
 c
@@ -26,7 +26,7 @@ c parity         : parity of target
 c dExinc         : excitation energy bin for mother nucleus
 c deltaEx        : excitation energy bin for population arrays
 c tf             : help variable
-c Eex            : excitation energy 
+c Eex            : excitation energy
 c Exinc          : excitation energy of entrance bin
 c tfisdown,tfisup: fission transmission coefficients
 c tfis           : fission transmission coefficients
@@ -34,8 +34,8 @@ c numhill        : maximum number of Hill-Wheeler points
 c tfisA          : transmission coefficient for Hill-Wheeler magnitude
 c rhofisA        : integrated level density corresponding to tfisA
 c
-c The fission transmission coefficients decrease very rapidly with 
-c excitation energy. Therefore, we calculate them at the endpoints and 
+c The fission transmission coefficients decrease very rapidly with
+c excitation energy. Therefore, we calculate them at the endpoints and
 c at the middle of each excitation energy bin. With this information, we
 c can do logarithmic integration in subroutine compound.
 c
@@ -65,7 +65,7 @@ c
 c 1. One barrier
 c
 c nfisbar   : number of fission barrier parameters
-c t1barrier : subroutine for fission transmission coefficient for one 
+c t1barrier : subroutine for fission transmission coefficient for one
 c             barrier
 c tfb1,rnfb1: help variables
 c
@@ -73,7 +73,7 @@ c
           call t1barrier(Zcomp,Ncomp,J2,parity,1,tfb1,rnfb1,Eex,iloop)
           tf=tfb1
         endif
-c      
+c
 c 2. Two barriers
 c
 c transeps: absolute limit for transmission coefficient
@@ -106,11 +106,10 @@ c
      +        efisc2rot(Zcomp,Ncomp,1,nfisc2rot(Zcomp,Ncomp,1)))
             term2=efisc2rot(Zcomp,Ncomp,1,nfisc2rot(Zcomp,Ncomp,1))-
      +        efisc2rot(Zcomp,Ncomp,1,1)
+            damper=1.
             if (term2.gt.0.) then
               expo=24.*term1/term2
-              damper=1./(1.+exp(expo))
-            else
-              damper=1.
+              if (abs(expo).le.80.) damper=1./(1.+exp(expo))
             endif
             wo2=0.5*widthc2(Zcomp,Ncomp,1)
             wo2damp=wo2*damper
@@ -133,7 +132,7 @@ c
             if (tfii.gt.0.) tf=tfii
           endif
         endif
-c      
+c
 c 3. Three barriers
 c
         if (nfisbar(Zcomp,Ncomp).eq.3) then
@@ -161,17 +160,15 @@ c
      +        efisc2rot(Zcomp,Ncomp,2,nfisc2rot(Zcomp,Ncomp,2)))
             term22=efisc2rot(Zcomp,Ncomp,2,nfisc2rot(Zcomp,Ncomp,2))-
      +        efisc2rot(Zcomp,Ncomp,2,1)
+            damper1=1.
             if (term21.gt.0.) then
               expo=24.*term11/term21
-              damper1=1./(1.+exp(expo))
-            else
-              damper1=1.
+              if (abs(expo).le.80.) damper1=1./(1.+exp(expo))
             endif
+            damper2=1.
             if (term22.gt.0.) then
               expo=24.*term12/term22
-              damper2=1./(1.+exp(expo))
-            else
-              damper2=1.
+              if (abs(expo).le.80.) damper2=1./(1.+exp(expo))
             endif
             wo2=0.5*widthc2(Zcomp,Ncomp,1)
             wo2damp1=wo2*damper1

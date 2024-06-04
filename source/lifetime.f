@@ -1,7 +1,7 @@
       subroutine lifetime(Zcomp,Ncomp,p,h)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 9, 2004
 c | Task  : Calculation of lifetime of exciton state
 c +---------------------------------------------------------------------
@@ -14,8 +14,8 @@ c
 c
 c ******************** Never-come-back solution ************************
 c
-c Zcomp           : charge number index for compound nucleus   
-c Ncomp           : neutron number index for compound nucleus   
+c Zcomp           : charge number index for compound nucleus
+c Ncomp           : neutron number index for compound nucleus
 c p               : particle number
 c h               : hole number
 c p0              : initial particle number

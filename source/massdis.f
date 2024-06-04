@@ -20,11 +20,11 @@ c ************************** Mass yields *******************************
 c
 c fiseps    : limit for fission cross section per nucleus
 c Rfiseps   : ratio for limit for fission cross section per nucleus
-c xsfistot  : total fission cross section 
-c nummass   : number of masses 
+c xsfistot  : total fission cross section
+c nummass   : number of masses
 c yielda    : mass yield
 c yieldacor : corrected mass yield
-c numelem   : number of elements  
+c numelem   : number of elements
 c yieldaz   : isotopic yield
 c yieldazcor: corrected isotopic yield
 c
@@ -46,9 +46,9 @@ c maxZ       : maximal number of protons away from the initial
 c              compound nucleus
 c Ncomp      : neutron number index for compound nucleus
 c maxN       : maximal number of neutrons away from the initial
-c              compound nucleus 
-c ZZ,Z       : charge number of residual nucleus  
-c AA,A       : mass number of residual nucleus  
+c              compound nucleus
+c ZZ,Z       : charge number of residual nucleus
+c AA,A       : mass number of residual nucleus
 c Zindex,Zix : charge number index for residual nucleus
 c Nindex,Nix : neutron number index for residual nucleus
 c maxex      : maximum excitation energy bin for compound nucleus
@@ -57,22 +57,22 @@ c iskip,istep: help variables
 c xsbinary   : cross section from initial compound to residual nucleus
 c Ex         : excitation energy
 c partfisxs  : partial fission cross section
-c fisfeedex  : fission contribution from excitation energy bin  
-c brosafy    : subroutine for fission fragment yields based on Brosa 
-c              model 
-c disa       : normalised fission fragment mass yield per excitation 
-c              energy bin 
-c disacor    : normalised fission product mass yield per excitation 
-c              energy bin 
-c disaz      : normalised fission fragment isotope yield 
-c              per excitation energy bin 
-c disazcor   : normalised fission product isotope yield 
-c              per excitation energy bin 
+c fisfeedex  : fission contribution from excitation energy bin
+c brosafy    : subroutine for fission fragment yields based on Brosa
+c              model
+c disa       : normalised fission fragment mass yield per excitation
+c              energy bin
+c disacor    : normalised fission product mass yield per excitation
+c              energy bin
+c disaz      : normalised fission fragment isotope yield
+c              per excitation energy bin
+c disazcor   : normalised fission product isotope yield
+c              per excitation energy bin
 c
       do 20 Zcomp=0,maxZ
         do 20 Ncomp=0,maxN
 c
-c Brosa parameters available between Z=72 and Z=96, outside this range 
+c Brosa parameters available between Z=72 and Z=96, outside this range
 c we adopt the values of the boundary nuclides
 c
           Z=ZZ(Zcomp,Ncomp,0)
@@ -141,7 +141,7 @@ c parsym   : symbol of particle
 c k0       : index of incident particle
 c Atarget  : mass number of target nucleus
 c nuc      : symbol of nucleus
-c Ztarget  : charge number of target nucleus    
+c Ztarget  : charge number of target nucleus
 c
       yieldfile='yield000.000.fis'//natstring(iso)
       write(yieldfile(6:12),'(f7.3)') Einc
@@ -151,7 +151,7 @@ c
      +  parsym(k0),Atarget,nuc(Ztarget)
       write(1,'("# E-incident = ",f7.3)') Einc
       write(1,'("# ")')
-      write(1,'("# ")') 
+      write(1,'("# ")')
       write(1,'("# Mass    Yield   Corrected yield")')
       do 70 k=1,Atarget
         write(1,'(i3,3x,1p,e12.4,3x,e12.4)') k,yielda(k),yieldacor(k)
@@ -162,9 +162,9 @@ c Write ff/fp residual production
 c
 c fpexist   : flag for existence of fission product
 c fpfile    : file with fission product
-c numinc    : number of incident energies   
+c numinc    : number of incident energies
 c flagffevap: flag for calculation of particle evaporation from
-c             fission fragment mass yields    
+c             fission fragment mass yields
 c eninc     : incident energy in MeV
 c
       do 80 k=1,Atarget
@@ -178,24 +178,24 @@ c
             write(1,'("# ",a1," + ",i3,a2,": ff yield of ",i3,a2)')
      +        parsym(k0),Atarget,nuc(Ztarget),k,nuc(i)
             write(1,'("# ")')
-            write(1,'("# # energies =",i3)') numinc  
+            write(1,'("# # energies =",i3)') numinc
             write(1,'("# ")')
             if (flagffevap) then
               write(1,'("# E-incident   FF Yield   FP yield")')
               do 100 nen=1,nin-1
                 write(1,'(1p,e10.3,e12.4,3x,e12.4)') eninc(nen),0.,0.
-  100         continue      
+  100         continue
             else
               write(1,'("# E-incident   FF Yield")')
               do 110 nen=1,nin-1
                 write(1,'(1p,e10.3,e12.4)') eninc(nen),0.
-  110         continue      
+  110         continue
             endif
           else
             open (unit=1,status='old',file=fpfile)
             do 120 nen=1,nin+4
               read(1,*,end=130,err=130)
-  120       continue       
+  120       continue
           endif
           if (flagffevap) then
             write(1,'(1p,e10.3,e12.4,3x,e12.4)')
@@ -205,6 +205,6 @@ c
           endif
   130     close (unit=1)
    90   continue
-   80 continue              
+   80 continue
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

@@ -1,9 +1,9 @@
       block data constants0
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : March 7, 2007
-c | Task  : Constants and basic properties of particles 
+c | Author: Arjan Koning
+c | Date  : December 22, 2011
+c | Task  : Constants and basic properties of particles
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -39,7 +39,7 @@ c
       data (parmass(indx),indx=0,6) /0.,1.008664904,1.007276470,
      +  2.013553214,3.016049268,3.016029310,4.002603250/
       data (excmass(indx),indx=0,6) /0.,8.664923e-3,7.825032e-3,
-     +  1.4101778e-2,1.6049268e-2,1.6029310e-2,2.603250e-3/       
+     +  1.4101778e-2,1.6049268e-2,1.6029310e-2,2.603250e-3/
       data (parspin(indx),indx=0,6) /0.,0.5,0.5,1.,0.5,0.5,0./
 c
 c ************************ Nuclear symbols *****************************
@@ -73,13 +73,16 @@ c
 c *********************** Fundamental constants ************************
 c
 c pi    : pi
-c amu   : atomic mass unit in MeV 
+c amu   : atomic mass unit in MeV
 c e2    : square of elementary charge in MeV.fm
 c hbar  : Planck's constant / 2.pi in MeV.s
 c clight: speed of light in vacuum in m/s
+c kT    : energy kT expressed in MeV corresponding to a
+c         temperature T9=1
 c
       data pi /3.14159265358979323/
       data amu,e2 /931.49386,1.439965161/
       data hbar,clight /6.5821220e-22,2.99792458e8/
+      data kT /0.086173/
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

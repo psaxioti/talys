@@ -1,7 +1,7 @@
       subroutine exciton
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 7, 2004
 c | Task  : Exciton model
 c +---------------------------------------------------------------------
@@ -21,14 +21,14 @@ c Etotal      : total energy of compound system (target + projectile)
 c p           : particle number
 c p0          : initial particle number
 c maxpar      : maximal particle number
-c h           : hole number       
+c h           : hole number
 c emissionrate: subroutine for emission rate
 c lifetime    : subroutine for calculation of lifetime of exciton state
 c
-c For each exciton number, we subsequently calculate the emission 
-c rates and the lifetime of the exciton state according to the 
+c For each exciton number, we subsequently calculate the emission
+c rates and the lifetime of the exciton state according to the
 c never-come-back approximation.
-c 
+c
       Zcomp=0
       Ncomp=0
       Ecomp=Etotal
@@ -46,12 +46,12 @@ c xsflux   : cross section flux
 c tauexc   : mean lifetime
 c parskip  : logical to skip outgoing particle
 c preeqmode: designator for pre-equilibrium model
-c ebegin   : first energy point of energy grid 
-c eend     : last energy point of energy grid 
+c ebegin   : first energy point of energy grid
+c eend     : last energy point of energy grid
 c wemission: emission rate
 c xsstep   : preequilibrium cross section per particle type, stage
 c            and outgoing energy
-c xspreeq  : preequilibrium cross section per particle type and 
+c xspreeq  : preequilibrium cross section per particle type and
 c            outgoing energy
 c
 c The lifetimes and emission rates are processed into pre-equilibrium
@@ -78,14 +78,14 @@ c distribution. The result is normalized with the sum of RnJ over J.
 c As an alternative, the Hauser-Feshbach spin distribution is adopted.
 c
 c flagpespin: flag for pre-equilibrium spin distribution or compound
-c             spin distribution for pre-equilibrium cross section  
+c             spin distribution for pre-equilibrium cross section
 c parity    : parity
 c J         : total angular momentum
 c maxJph    : maximal spin for particle-hole states
 c xspreeqJP : preequilibrium cross section per particle type,
 c             outgoing energy, spin and parity
 c RnJ       : spin distribution for particle-hole states
-c RnJsum    : (2J+1)*sum over spin distributions 
+c RnJsum    : (2J+1)*sum over spin distributions
 c
             if (flagpespin) then
               do 140 parity=-1,1,2

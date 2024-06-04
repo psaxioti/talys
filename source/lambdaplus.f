@@ -1,7 +1,7 @@
       function lambdaplus(Zcomp,Ncomp,p,h)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 1, 2008
 c | Task  : Transition rates for n --> n+2
 c +---------------------------------------------------------------------
@@ -22,18 +22,18 @@ c *************************** Transition rates *************************
 c
 c lambdaplus : transition rate for n --> n+2
 c Zcomp      : charge number index for compound nucleus
-c Ncomp      : neutron number index for compound nucleus 
+c Ncomp      : neutron number index for compound nucleus
 c p          : particle number
 c h          : hole number
 c n          : exciton number
 c A          : mass number of compound nucleus
-c Ainit      : mass number of initial compound nucleus 
+c Ainit      : mass number of initial compound nucleus
 c matrix     : subroutine for matrix element for exciton model
 c surfwell   : flag for surface effects in finite well
-c flagsurface: flag for surface effects in exciton model       
-c primary    : flag to designate primary (binary) reaction 
+c flagsurface: flag for surface effects in exciton model
+c primary    : flag to designate primary (binary) reaction
 c edepth     : depth of potential well
-c Esurf      : well depth for surface interaction   
+c Esurf      : well depth for surface interaction
 c Efermi     : depth of Fermi well
 c gs,g       : single-particle level density parameter
 c flaggshell : flag for energy dependence of single particle level
@@ -42,7 +42,7 @@ c ignatyuk   : function for energy dependent level density parameter a
 c Ecomp      : total energy of composite system
 c alev       : level density parameter
 c U          : excitation energy minus pairing energy
-c preeqpair  : pre-equilibrium pairing energy       
+c preeqpair  : pre-equilibrium pairing energy
 c pairmodel  : model for preequilibrium pairing energy
 c
       lambdaplus=0.
@@ -55,18 +55,18 @@ c
         edepth=Esurf
       else
         edepth=Efermi
-      endif   
+      endif
       gs=g(Zcomp,Ncomp)
       if (flaggshell) gs=gs*ignatyuk(Zcomp,Ncomp,Ecomp,0)/
      +  alev(Zcomp,Ncomp)
       U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp,pairmodel)
 c
 c A. Analytical solution
-c    First we calculate the transition density for the infinite well as 
-c    given by Oblozinsky et al (Nuc Phys A226, 347 (1974)) and then 
+c    First we calculate the transition density for the infinite well as
+c    given by Oblozinsky et al (Nuc Phys A226, 347 (1974)) and then
 c    multiply it by the finite well correction function.
 c
-c preeqmode    : designator for pre-equilibrium model   
+c preeqmode    : designator for pre-equilibrium model
 c factor1,lplus: help variables
 c twopihbar    : 2*pi/hbar
 c M2           : square of matrix element
@@ -81,11 +81,11 @@ c
         if (term1.le.0.or.term2.le.0.) return
         term12=term1/term2
         if (term12.lt.0.01) return
-        lplus=factor1*term1**2*(term12**(n-1))  
-        lambdaplus=lplus*finitewell(p+1,h+1,U,edepth,surfwell)       
+        lplus=factor1*term1**2*(term12**(n-1))
+        lambdaplus=lplus*finitewell(p+1,h+1,U,edepth,surfwell)
       else
 c
-c B. Numerical solution: Transition rates based on either matrix 
+c B. Numerical solution: Transition rates based on either matrix
 c    element (preeqmode=2) or optical model (preeqmode=3).
 c
 c L1p,...      : integration limits
@@ -98,8 +98,8 @@ c lambda1p     : collision probability for particle
 c lambda1h     : collision probability for hole
 c phdens       : particle-hole state density
 c Zratio,Nratio: help variables
-c Zinit        : charge number of initial compound nucleus  
-c Ninit        : neutron number of initial compound nucleus  
+c Zinit        : charge number of initial compound nucleus
+c Ninit        : neutron number of initial compound nucleus
 c Zix          : charge number index for residual nucleus
 c Nix          : neutron number index for residual nucleus
 c eopt         : energy for optical model calculation
@@ -111,7 +111,7 @@ c                the volume
 c densh,densp  : help variables
 c term1p,term1h: help variables
 c ratio        : state density ratio for hole scattering
-c hbar         : Planck's constant / 2.pi in MeV.s   
+c hbar         : Planck's constant / 2.pi in MeV.s
 c phtot        : total particle-hole state density
 c
         L1p=Apauli(p+1,h+1)-Apauli(p-1,h)

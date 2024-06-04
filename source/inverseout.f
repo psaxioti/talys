@@ -1,8 +1,8 @@
       subroutine inverseout(Zcomp,Ncomp)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : October 5, 2006   
+c | Author: Arjan Koning
+c | Date  : October 5, 2006
 c | Task  : Reaction output for outgoing channels
 c +---------------------------------------------------------------------
 c
@@ -20,16 +20,16 @@ c flagtransen: flag for output of transmission coefficients per energy
 c parskip    : logical to skip outgoing particle
 c Zindex     : charge number index for residual nucleus
 c Nindex     : neutron number index for residual nucleus
-c ebegin     : first energy point of energy grid 
-c eend       : last energy point of energy grid 
+c ebegin     : first energy point of energy grid
+c eend       : last energy point of energy grid
 c e          : outgoing energy in CM
-c egrid      : outgoing energy grid 
+c egrid      : outgoing energy grid
 c specmass   : specific mass
 c parname    : name of particle
 c lmax       : maximal l-value for transmission coefficients
-c Tjl        : transmission coefficients as a function of particle 
+c Tjl        : transmission coefficients as a function of particle
 c              type, energy, spin and l-value
-c Tl         : transmission coefficients as a function of particle 
+c Tl         : transmission coefficients as a function of particle
 c              type, energy and l-value (averaged over spin)
 c
       write(*,'(/" ########## TRANSMISSION COEFFICIENTS AND",

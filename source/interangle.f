@@ -18,18 +18,18 @@ c angstep       : angle step in degrees
 c nanglecont    : number of angles for continuum
 c iangout       : outgoing angle index
 c angout        : outgoing angle
-c deg2rad       : conversion factor for degrees to radians 
+c deg2rad       : conversion factor for degrees to radians
 c anglecont     : angle in degrees for continuum
 c iangint       : intermediate angle index
 c angint        : intermediate angle
 c cosine,sine   : help variables
-c twopi         : 2.*pi       
-c rad2deg       : conversion factor for radians to degrees  
+c twopi         : 2.*pi
+c rad2deg       : conversion factor for radians to degrees
 c phi,cosgam,gam: help variables
 c nangleint     : number of possibilities to link intermediate angle to
-c                 final angle 
+c                 final angle
 c
-c This is necessary to transform the ingoing angle of the second step 
+c This is necessary to transform the ingoing angle of the second step
 c and link it with the outgoing angle of the first step.
 c
       angstep=180./nanglecont
@@ -41,18 +41,18 @@ c
           sine=sin(angout)*sin(angint)
           do 30 iang=0,numangcont
             nangleint(iangout,iangint,iang)=0
-   30     continue                                                     
+   30     continue
           do 40 iphi=0,2*nanglecont-1
             phi=real(iphi)*0.5/nanglecont*twopi
             cosgam=cosine+cos(phi)*sine
             if (abs(cosgam).gt.1.0) cosgam=1.0
-            gam=acos(cosgam)*rad2deg    
+            gam=acos(cosgam)*rad2deg
             iang=int((gam+angstep/2.)/angstep)
             nangleint(iangout,iangint,iang)=
      +        nangleint(iangout,iangint,iang)+1
-   40     continue                                                     
-   20   continue                                                     
-   10 continue                                                     
+   40     continue
+   20   continue
+   10 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

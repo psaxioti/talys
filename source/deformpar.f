@@ -1,7 +1,7 @@
       subroutine deformpar(Zix,Nix)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : June 12, 2009
 c | Task  : Deformation parameters
 c +---------------------------------------------------------------------
@@ -11,8 +11,8 @@ c
       include "talys.cmb"
       logical      lexist,first2,first3,first4
       character*1  colltype1,deftype1,leveltype1
-      character*4  defchar  
-      character*90 deffile  
+      character*4  defchar
+      character*90 deffile
       integer      Zix,Nix,Z,N,A,ia,ndisc,i,natpar,k,iirot,idef,irot,ii,
      +             nex,distance,k2,odd,vibband1,lband1,Kmag1,iphonon1,
      +             nrotlev,type,ibar
@@ -43,17 +43,17 @@ c 1. Inquire whether file is present
 c
       if (deformfile(Zix)(1:1).ne.' ') then
         deffile=deformfile(Zix)
-      else   
+      else
         deffile=path(1:lenpath)//'deformation/'//defchar
-      endif   
+      endif
       inquire (file=deffile,exist=lexist)
       if (.not.lexist) goto 150
       open (unit=2,status='old',file=deffile)
 c
 c 2. Search for the isotope under consideration
-c 
+c
 c ia          : mass number from deformation parameter file
-c ndisc       : number of lines on discrete level file for nucleus 
+c ndisc       : number of lines on discrete level file for nucleus
 c colltype1,..: help variables
 c
    10 read(2,'(4x,2i4,2(3x,a1))',end=140) ia,ndisc,colltype1,deftype1
@@ -66,7 +66,7 @@ c
 c
 c Initialization
 c
-c numrotcc: number of rotational deformation parameters        
+c numrotcc: number of rotational deformation parameters
 c deform1 : deformation parameter
 c
       do 30 i=1,numrotcc
@@ -74,8 +74,8 @@ c
    30 continue
 c
 c 3. Read deformation parameters
-c 
-c flagspher : flag to force spherical optical model   
+c
+c flagspher : flag to force spherical optical model
 c iirot,....: help variables
 c deftype   : deformation length (D) or parameter (B)
 c nex       : level number
@@ -85,15 +85,15 @@ c maxrot    : number of included excited rotational levels
 c leveltype : type of level (rotational (R) or vibrational (V))
 c vibband   : band number of level
 c maxband   : highest vibrational level added to rotational model
-c iphonon   : phonon (1 or 2)            
-c Kmag,Kband: magnetic quantum number   
+c iphonon   : phonon (1 or 2)
+c Kmag,Kband: magnetic quantum number
 c defpar    : deformation parameter
 c lband     : angular momentum
 c nrot      : number of deformation parameters for rotational nucleus
 c rotpar    : deformation parameters for rotational nucleus
 c
 c The coupling scheme is read from the nuclear structure database.
-c Different actions are performed if the requested calculation is for a 
+c Different actions are performed if the requested calculation is for a
 c spherical (S), vibrational (V) or a rotational (R) nucleus.
 c
       if (colltype1.ne.'R'.and.colltype1.ne.'A'.and.colltype1.ne.'V')
@@ -121,7 +121,7 @@ c
           endif
           leveltype(Zix,Nix,nex)=leveltype1
           vibband(Zix,Nix,i)=vibband1
-          if (colltype(Zix,Nix).eq.'R'.and.vibband1.gt.maxband) 
+          if (colltype(Zix,Nix).eq.'R'.and.vibband1.gt.maxband)
      +      leveltype1='D'
           iphonon(Zix,Nix,i)=max(iphonon1,1)
           if (leveltype1.eq.'R'.and.rotpar(Zix,Nix,1).eq.0.) then
@@ -152,16 +152,16 @@ c
 c For DWBA, we only include natural parity states.
 c
 c natpar : natural parity
-c jdis   : spin of level 
+c jdis   : spin of level
 c parlev : parity of level
 c deform : deformation parameter
 c indexcc: level index for coupled channel
 c ndef   : number of collective levels
 c
             natpar=sgn(int(jdis(Zix,Nix,nex)))
-            if (parlev(Zix,Nix,nex).eq.natpar) 
+            if (parlev(Zix,Nix,nex).eq.natpar)
      +        deform(Zix,Nix,nex)=deform1(1)
-	    if (i.gt.1.and.i.le.numrotcc+1.and.leveltype1.eq.'R') 
+            if (i.gt.1.and.i.le.numrotcc+1.and.leveltype1.eq.'R')
      +        deform(Zix,Nix,nex)=rotpar(Zix,Nix,i-1)
           else
             ii=ii+1
@@ -174,22 +174,22 @@ c
 c
 c ******************** Default deformation parameters ******************
 c
-c distance: number of nucleons to closest magic number    
+c distance: number of nucleons to closest magic number
 c odd     : odd (1) or even (0) nucleus
 c
 c Automatic assignment of rotational deformation parameters.
-c Calculate distance to closest magic number as a measure for 
+c Calculate distance to closest magic number as a measure for
 c deformation.
 c
   150 distance=1000
       do 160 k2=1,8
         distance=min(abs(N-magic(k2)),distance)
         distance=min(abs(Z-magic(k2)),distance)
-  160 continue    
+  160 continue
       odd=mod(A,2)
 c
 c Read rotational deformation parameters
-c     
+c
 c flagautorot  : flag for automatic rotational coupled channels
 c                calculations for A > 150
 c deformmodel  : model for theoretical deformation parameters
@@ -224,7 +224,7 @@ c
         nrot(Zix,Nix)=2
         rotpar(Zix,Nix,1)=beta2(Zix,Nix,0)
         rotpar(Zix,Nix,2)=beta4(Zix,Nix)
-        deftype(Zix,Nix)='B' 
+        deftype(Zix,Nix)='B'
   200   close (unit=2)
         if (odd.eq.0) goto 400
       endif
@@ -242,9 +242,9 @@ c
   310 continue
 c
 c Assign vibrational deformation parameters
-c     
-c Systematics for first 2+, 3- and 4+ vibrational states, derived 
-c from individual deformation parameters. Also, we assign small 
+c
+c Systematics for first 2+, 3- and 4+ vibrational states, derived
+c from individual deformation parameters. Also, we assign small
 c deformation parameter to all remaining discrete levels.
 c
 c first2-4: flag to determine first state of specific spin
@@ -253,32 +253,32 @@ c edis    : energy of level
 c
       if (odd.ne.0) goto 400
       if (colltype(Zix,Nix).ne.'S') then
-        first2=.false.   
-        first3=.false.   
-        first4=.false.   
+        first2=.false.
+        first3=.false.
+        first4=.false.
       else
-        first2=.true.   
-        first3=.true.   
-        first4=.true.   
+        first2=.true.
+        first3=.true.
+        first4=.true.
       endif
       type=2*Zix+Nix
       do 320 k=0,numlev
         if (k.eq.0.and.type.eq.k0) goto 320
-        if (colltype(Zix,Nix).ne.'S'.and.leveltype(Zix,Nix,k).eq.'V') 
+        if (colltype(Zix,Nix).ne.'S'.and.leveltype(Zix,Nix,k).eq.'V')
      +    goto 320
-        if (colltype(Zix,Nix).eq.'A'.and.leveltype(Zix,Nix,k).eq.'R') 
+        if (colltype(Zix,Nix).eq.'A'.and.leveltype(Zix,Nix,k).eq.'R')
      +    goto 320
-        if (colltype(Zix,Nix).eq.'R'.and.leveltype(Zix,Nix,k).eq.'R') 
+        if (colltype(Zix,Nix).eq.'R'.and.leveltype(Zix,Nix,k).eq.'R')
      +    goto 320
         if (jdis(Zix,Nix,k).eq.0.) goto 320
         if (first2.and.jdis(Zix,Nix,k).eq.2..and.
      +      parlev(Zix,Nix,k).eq.1) then
-          if (leveltype(Zix,Nix,k).ne.'R'.and.deform(Zix,Nix,k).eq.0.) 
+          if (leveltype(Zix,Nix,k).ne.'R'.and.deform(Zix,Nix,k).eq.0.)
      +      then
             deform(Zix,Nix,k)=0.40*exp(-0.012*A)+
      +        0.025*min(distance,5)
             if (edis(Zix,Nix,k).le.0.1) deform(Zix,Nix,k)=0.02
-            if (deftype(Zix,Nix).eq.'D') 
+            if (deftype(Zix,Nix).eq.'D')
      +        deform(Zix,Nix,k)=deform(Zix,Nix,k)*1.24*(A**onethird)
           endif
           first2=.false.
@@ -290,7 +290,7 @@ c
      +      then
             deform(Zix,Nix,k)=0.35*exp(-0.008*A)
             if (edis(Zix,Nix,k).le.0.1) deform(Zix,Nix,k)=0.02
-            if (deftype(Zix,Nix).eq.'D') 
+            if (deftype(Zix,Nix).eq.'D')
      +        deform(Zix,Nix,k)=deform(Zix,Nix,k)*1.24*(A**onethird)
           endif
           first3=.false.
@@ -302,7 +302,7 @@ c
      +      then
             deform(Zix,Nix,k)=0.20*exp(-0.006*A)
             if (edis(Zix,Nix,k).le.0.1) deform(Zix,Nix,k)=0.02
-            if (deftype(Zix,Nix).eq.'D') 
+            if (deftype(Zix,Nix).eq.'D')
      +        deform(Zix,Nix,k)=deform(Zix,Nix,k)*1.24*(A**onethird)
           endif
           first4=.false.
@@ -311,7 +311,7 @@ c
         if (deform(Zix,Nix,k).ne.0.) goto 320
         natpar=sgn(int(jdis(Zix,Nix,k)))
         if (parlev(Zix,Nix,k).eq.natpar) deform(Zix,Nix,k)=0.02
-        if (deftype(Zix,Nix).eq.'D') 
+        if (deftype(Zix,Nix).eq.'D')
      +    deform(Zix,Nix,k)=deform(Zix,Nix,k)*1.24*(A**onethird)
   320 continue
 c
@@ -321,7 +321,7 @@ c R       : radius
 c onethird: 1/3
 c Irigid0 : undeformed rigid body value of moment of inertia
 c parmass : mass of particle in a.m.u.
-c amu     : atomic mass unit in MeV  
+c amu     : atomic mass unit in MeV
 c hbarc   : hbar.c in MeV.fm
 c Irigid  : rigid body value of moment of inertia
 c

@@ -3,7 +3,7 @@ c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
 c | Date  : May 25, 2009
-c | Task  : Initialization of arrays for basic cross sections 
+c | Task  : Initialization of arrays for basic cross sections
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -19,12 +19,12 @@ c gammax    : number of l-values for gamma multipolarity
 c xstot     : total cross section (neutrons only) for
 c xsreac    : reaction cross section
 c xsopt     : optical model reaction cross section
-c xselas    : total elastic cross section (neutrons only)     
+c xselas    : total elastic cross section (neutrons only)
 c numl      : maximum l-value (set in talys.cmb)
-c Tl        : transmission coefficients as a function of particle type, 
-c             energy and l-value (averaged over spin) 
-c Tjl       : transmission coefficients as a function of particle type, 
-c             energy, spin and l-value  
+c Tl        : transmission coefficients as a function of particle type,
+c             energy and l-value (averaged over spin)
+c Tjl       : transmission coefficients as a function of particle type,
+c             energy, spin and l-value
 c
       do 10 nen=0,numen
         do 10 type=0,6

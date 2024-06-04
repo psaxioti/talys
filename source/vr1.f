@@ -1,4 +1,4 @@
-      function vr1(z)                                                   
+      function vr1(z)
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
@@ -13,11 +13,11 @@ c U. Brosa.
 c
 c ****************** Declarations and common blocks ********************
 c
-      include "talys.cmb"                                               
-      real vr1,z                         
+      include "talys.cmb"
+      real vr1,z
 c
 c **********************************************************************
 c
-      vr1=pi*((2.*r1**3-z**3)/3.+r1**2*z)                               
-      return                                                            
-      end                                                               
+      vr1=pi*((2.*r1**3-z**3)/3.+r1**2*z)
+      return
+      end

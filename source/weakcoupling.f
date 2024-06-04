@@ -1,7 +1,7 @@
       subroutine weakcoupling(Zix,Nix,type)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : July 5, 2004
 c | Task  : Weak coupling model
 c +---------------------------------------------------------------------
@@ -17,16 +17,16 @@ c ************************* Weak coupling model ************************
 c
 c Zix  : charge number index for residual nucleus
 c Nix  : neutron number index for residual nucleus
-c ZZ,Z : charge number of residual nucleus  
-c NN,N : neutron number of residual nucleus  
-c AA,A : mass number of residual nucleus  
+c ZZ,Z : charge number of residual nucleus
+c NN,N : neutron number of residual nucleus
+c AA,A : mass number of residual nucleus
 c Zcore: charge number of core nucleus
-c core : even-even core for weakcoupling (-1 or 1)  
+c core : even-even core for weakcoupling (-1 or 1)
 c Ncore: neutron number of core nucleus
 c Zinit: charge number of initial compound nucleus
 c Ninit: neutron number of initial compound nucleus
 c
-c The even-even core is determined by subtracting or adding the extra 
+c The even-even core is determined by subtracting or adding the extra
 c nucleon.
 c
       Z=ZZ(Zix,Nix,0)
@@ -43,7 +43,7 @@ c
       Nix=abs(Ninit-Ncore)
       Z=Zcore
 c
-c The levels and deformation parameters for the core nucleus are 
+c The levels and deformation parameters for the core nucleus are
 c retrieved.
 c
 c strucexist: flag to determine whether structure info for this nucleus
@@ -53,7 +53,7 @@ c deformpar : subroutine for deformation parameters
 c Zixcore   : charge number index for core nucleus
 c Nixcore   : neutron number index for core nucleus
 c parZ      : charge number of particle
-c parN      : neutron number of particle   
+c parN      : neutron number of particle
 c
       if (.not.strucexist(Zix,Nix)) call levels(Zix,Nix)
       call deformpar(Zix,Nix)
@@ -69,8 +69,8 @@ c 10: Loop over core states
 c
 c numlev2   : maximum number of levels
 c k0        : index of incident particle
-c leveltype : type of level (rotational (R) or vibrational (V)) 
-c deform    : deformation parameter 
+c leveltype : type of level (rotational (R) or vibrational (V))
+c deform    : deformation parameter
 c edis      : energy of level
 c
       do 10 i=0,numlev2

@@ -26,7 +26,7 @@ c
       else
         funcfismode=exp(-80.)/(exp(-80.)+exp(expo-80.))
       endif
-      if (Epar.gt.0.) 
+      if (Epar.gt.0.)
      +  funcfismode=funcfismode*density(Zix,Nix,Epar,0.,1,0,1)
       return
       end

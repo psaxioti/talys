@@ -1,9 +1,9 @@
       subroutine levelsout(Zix,Nix)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 3, 2009
-c | Task  : Output of discrete levels 
+c | Task  : Output of discrete levels
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -27,22 +27,22 @@ c nlev       : number of levels for nucleus
 c edis       : energy of level
 c jdis       : spin of level
 c cparity    : parity of level (character)
-c parlev     : parity of level 
+c parlev     : parity of level
 c tau        : lifetime of state in seconds
 c jassign    : flag for assignment of spin
 c passign    : flag for assignment of parity
-c ENSDF      : string from original ENSDF discrete level file  
+c ENSDF      : string from original ENSDF discrete level file
 c nbranch    : number of branching levels
 c branchratio: gamma-ray branching ratio to level
 c bassign    : flag for assignment of branching ratio
 c
       Z=ZZ(Zix,Nix,0)
       N=NN(Zix,Nix,0)
-      A=AA(Zix,Nix,0)       
+      A=AA(Zix,Nix,0)
       write(*,'(/" NUCLEAR STRUCTURE INFORMATION FOR Z=",i3," N=",i3,
      +  " (",i3,a2,") ")') Z,N,A,nuc(Z)
       write(*,'(/" Mass in a.m.u.     : ",f10.6)') nucmass(Zix,Nix)
-      write(*,'(/" Separation energies:")') 
+      write(*,'(/" Separation energies:")')
       write(*,'(/" Particle        S         "/)')
       do 10 type=1,6
         if (parskip(type)) goto 10
@@ -64,11 +64,11 @@ c
      +      jassign(Zix,Nix,i),passign(Zix,Nix,i),ENSDF(Zix,Nix,i)
         endif
         do 30 k=1,nbranch(Zix,Nix,i)
-          write(*,'(31x,"--->",i3,2x,f8.4,18x,a1)') 
+          write(*,'(31x,"--->",i3,2x,f8.4,18x,a1)')
      +      branchlevel(Zix,Nix,i,k),branchratio(Zix,Nix,i,k)*100.,
      +      bassign(Zix,Nix,i,k)
    30   continue
    20 continue
-      return 
+      return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

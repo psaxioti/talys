@@ -1,9 +1,9 @@
       subroutine excitonout
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : October 5, 2006   
-c | Task  : Output of exciton model parameters 
+c | Author: Arjan Koning
+c | Date  : October 5, 2006
+c | Task  : Output of exciton model parameters
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -26,7 +26,7 @@ c maxpar    : maximal particle number
 c h         : hole number
 c n         : exciton number
 c matrix    : subroutine for matrix element for exciton model
-c Ainit     : mass number of initial compound nucleus 
+c Ainit     : mass number of initial compound nucleus
 c M2        : square of matrix element
 c
       write(*,'(/" 1. Matrix element for E= ",f7.3/)') Ecomp
@@ -37,7 +37,7 @@ c
         n=p+h
         call matrix(Ainit,n)
         write(*,'(1x,2i2,2x,1p,e12.5)') p,h,M2
-   10 continue      
+   10 continue
 c
 c 2. Output of Q-factors
 c
@@ -47,13 +47,13 @@ c
       write(*,'(/" 2. Q-factors"/)')
       write(*,'("  p h  ",6(a8,1x),/)') (parname(type),type=1,6)
       do 20 p=p0,maxpar
-        h=p-p0       
+        h=p-p0
         write(*,'(1x,2i2,7f9.5)') p,h,(Qfactor(type,p),type=1,6)
    20 continue
 c
 c 3. Output of emission rates or escape widths
 c
-c wemispart: emission rate per particle and exciton number 
+c wemispart: emission rate per particle and exciton number
 c wemistot : total emission rate per exciton number
 c hbar     : Planck's constant / 2.pi in MeV.s
 c
@@ -80,19 +80,19 @@ c
       write(*,'(/" 4. Internal transition rates or damping widths,",
      +  " total widths"/)')
       write(*,'(" A. Internal transition rates ( /sec)"/)')
-      write(*,'("  p h    lambdaplus"/)') 
+      write(*,'("  p h    lambdaplus"/)')
       do 50 p=p0,maxpar
         h=p-p0
         write(*,'(1x,2i2,1p,e15.5)') p,h,lambdaplus(0,0,p,h)
    50 continue
       write(*,'(/" B. Damping widths (MeV)"/)')
-      write(*,'("  p h     gammaplus"/)') 
+      write(*,'("  p h     gammaplus"/)')
       do 60 p=p0,maxpar
         h=p-p0
         write(*,'(1x,2i2,1p,e15.5)') p,h,lambdaplus(0,0,p,h)*hbar
    60 continue
       write(*,'(/" C. Total widths (MeV)"/)')
-      write(*,'("  p h     gammatot"/)') 
+      write(*,'("  p h     gammatot"/)')
       do 70 p=p0,maxpar
         h=p-p0
         write(*,'(1x,2i2,1p,e15.5)') p,h,
@@ -115,7 +115,7 @@ c
 c tauexc: mean lifetime
 c
       write(*,'(/" 6. Lifetimes")')
-      write(*,'(/"  p h   mean lifetime"/)') 
+      write(*,'(/"  p h   mean lifetime"/)')
       do 90 p=p0,maxpar
         h=p-p0
         write(*,'(1x,2i2,1p,e15.5)') p,h,tauexc(p,h)

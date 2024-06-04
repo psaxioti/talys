@@ -1,8 +1,8 @@
       subroutine input4
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : August 5, 2009
+c | Author: Arjan Koning
+c | Date  : December 19, 2011
 c | Task  : Read input for fourth set of variables
 c +---------------------------------------------------------------------
 c
@@ -15,57 +15,59 @@ c
 c
 c ************** Defaults for fourth set of input variables ************
 c
-c flagmain    : flag for main output 
+c flagmain    : flag for main output
 c flagbasic   : flag for output of basic information and results
-c flagpop     : flag for output of population 
-c flagcheck   : flag for output of numerical checks 
+c flagpop     : flag for output of population
+c flagcheck   : flag for output of numerical checks
 c flagoutomp  : flag for output of optical model parameters
 c flagdirect  : flag for output of direct reaction cross sections
-c flaginverse : flag for output of transmission coefficients and 
+c flaginverse : flag for output of transmission coefficients and
 c               inverse reaction cross sections
 c flaggamma   : flag for output of gamma-ray information
 c flaglevels  : flag for output of discrete level information
-c flagdensity : flag for output of level densities       
-c flagdisc    : flag for output of discrete state cross sections 
-c flagfisout  : flag for output of fission information   
+c flagdensity : flag for output of level densities
+c flagdisc    : flag for output of discrete state cross sections
+c flagfisout  : flag for output of fission information
 c flagfission : flag for fission
 c flagtransen : flag for output of transmission coefficients per energy
-c flagpeout   : flag for output of pre-equilibrium results 
-c flagang     : flag for output of angular distributions 
+c flagpeout   : flag for output of pre-equilibrium results
+c flagang     : flag for output of angular distributions
 c ddxmode     : mode for double-differential cross sections: 0: None,
 c               1: Angular distributions, 2: Spectra per angle, 3: Both
 c flaglegendre: flag for output of Legendre coefficients
-c flagspec    : flag for output of spectra 
+c flagspec    : flag for output of spectra
 c flagrecoil  : flag for calculation of recoils
 c flagddx     : flag for output of double-differential cross sections
 c flagoutdwba : flag for output of DWBA cross sections for MSD
 c flaggamdis  : flag for output of discrete gamma-ray intensities
 c flageciscomp: flag for compound nucleus calculation by ECIS
 c flagoutecis : flag for output of ECIS results
-c flagurr     : flag for output of unresolved resonance parameters
-c flagompall  : flag for new optical model calculation for all 
+c flagompall  : flag for new optical model calculation for all
 c               residual nuclei
 c flagecissave: flag for saving ECIS input and output files
 c numinc      : number of incident energies
 c flagexc     : flag for output of excitation functions
 c flagnatural : flag for calculation of natural element
-c eadd        : on-set incident energy for addition of discrete states 
-c               to spectra 
-c eaddel      : on-set incident energy for addition of elastic peak    
-c               to spectra 
+c eadd        : on-set incident energy for addition of discrete states
+c               to spectra
+c eaddel      : on-set incident energy for addition of elastic peak
+c               to spectra
+c Emaxtalys   : maximum acceptable energy for TALYS
 c flagelectron: flag for application of electron conversion coefficient
 c flagspher   : flag to force spherical optical model
 c flagcoulomb : flag for Coulomb excitation calculation with ECIS
-c flagcol     : flag for collective enhancement of level density
-c flagcolldamp: flag for damping of collective effects in effective 
+c flagcolldamp: flag for damping of collective effects in effective
 c               level density (without explicit collective enhancement)
 c               Only used for Bruyeres-le-Chatel (Pascal Romain) fission
 c               model
 c flagctmglob : flag for global CTM model (no discrete level info)
 c cglobal     : global constant to adjust tabulated level densities
 c pglobal     : global constant to adjust tabulated level densities
-c alphaomp    : alpha optical model (1=normal, 2= McFadden-Satchler)
-c soswitch    : switch for deformed spin-orbit calculation and sequential 
+c alphaomp    : alpha optical model (1=normal, 2= McFadden-Satchler,
+c               3-5= folding potential)
+c deuteronomp : deuteron optical model (1=normal, 2=Daehnick,
+c               3=Bojowald, 4=Han-Shi-Shen, 5=An-Cai)
+c soswitch    : switch for deformed spin-orbit calculation and sequential
 c               iterations in ECIS
 c flagpartable: flag for output of model parameters on separate file
 c maxchannel  : maximal number of outgoing particles in individual
@@ -75,9 +77,16 @@ c massmodel   : model for theoretical nuclear mass
 c pairmodel   : model for preequilibrium pairing energy
 c flagmicro   : flag for completely microscopic Talys calculation
 c fismodel    : fission model
-c fismodelalt : alternative fission model for default barriers 
+c fismodelalt : alternative fission model for default barriers
+c eurr        : off-set incident energy for URR calculation
+c lurr        : maximal orbital angular momentum for URR
+c flagurrnjoy : normalization of URR parameters with NJOY method
 c flagendf    : flag for information for ENDF-6 file
-c flagchannels: flag for exclusive channels calculation 
+c Atarget     : mass of target nucleus
+c flagurr     : flag for output of unresolved resonance parameters
+c k0          : index of incident particle
+c flagcomp    : flag for compound nucleus calculation
+c flagchannels: flag for exclusive channels calculation
 c flagendfdet : flag for detailed ENDF-6 information per channel
 c
       flagmain=.true.
@@ -103,15 +112,14 @@ c
       flagoutdwba=.false.
       flaggamdis=.false.
       flagoutecis=flageciscomp
-      flagurr=.false.
       if (flagompall) then
         flagecissave=.true.
       else
         flagecissave=.false.
       endif
 c
-c By default, we assume that with more than one incident energy output 
-c of excitation functions (e.g. residual production cross sections as a 
+c By default, we assume that with more than one incident energy output
+c of excitation functions (e.g. residual production cross sections as a
 c function of incident energy) are wanted.
 c
       if (numinc.eq.1) then
@@ -123,8 +131,8 @@ c
       eadd=0.
       eaddel=0.
       flagelectron=.true.
-      flagspher=.false.      
-      flagcoulomb=.true.      
+      flagspher=.false.
+      flagcoulomb=.true.
       flagpartable=.false.
       maxchannel=4
       pairmodel=2
@@ -133,18 +141,22 @@ c
       else
         fismodel=1
       endif
-      fismodelalt=4     
-      if (flagfission) then
-        flagcol=.true.
-      else
-        flagcol=.false.
-      endif
+      fismodelalt=4
       flagcolldamp=.false.
       flagctmglob=.false.
       cglobal=1.e-20
       pglobal=1.e-20
       alphaomp=1
+      deuteronomp=1
       soswitch=3.
+      if (k0.ne.1.or..not.flagcomp) then
+        eurr=0.
+      else
+        eurr=-1.
+      endif
+      flagurr=.false.
+      lurr=2
+      flagurrnjoy=.true.
 c
 c If the results of TALYS are used to create ENDF-6 data files,
 c several output flags are automatically set.
@@ -152,9 +164,16 @@ c
       if (flagendf) then
         flagcheck=.true.
         flagdisc=.true.
-        eadd=20.
-        eaddel=250.
+        if (k0.eq.1) then
+          if (Atarget.gt.20) flagurr=.true.
+          eadd=20.
+          eaddel=Emaxtalys
+        endif
         if (flagfission) flagfisout=.true.
+        if (k0.eq.3) then
+          ddxmode=2
+          flagddx=.true.
+        endif
         flagang=.true.
         flaglegendre=.true.
         flagspec=.true.
@@ -169,9 +188,9 @@ c
 c **************** Read fourth set of input variables ******************
 c
 c nlines     : number of input lines
-c getkeywords: subroutine to retrieve keywords and values from input 
+c getkeywords: subroutine to retrieve keywords and values from input
 c              line
-c inline     : input line                 
+c inline     : input line
 c word       : words on input line
 c key        : keyword
 c value      : value or string
@@ -190,7 +209,7 @@ c
 c Test for keywords
 c
 c flagrot: flag for use of rotational optical model per
-c          outgoing particle, if available       
+c          outgoing particle, if available
 c
         if (key.eq.'outmain') then
           if (ch.eq.'n') flagmain=.false.
@@ -315,12 +334,6 @@ c
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
         endif
-        if (key.eq.'urr') then
-          if (ch.eq.'n') flagurr=.false.
-          if (ch.eq.'y') flagurr=.true.
-          if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
-        endif
         if (key.eq.'ecissave') then
           if (ch.eq.'n') flagecissave=.false.
           if (ch.eq.'y') flagecissave=.true.
@@ -339,7 +352,7 @@ c
             goto 10
           endif
           if (ch.eq.'n') then
-            eadd=250.
+            eadd=Emaxtalys
             goto 10
           endif
           read(value,*,end=200,err=200) eadd
@@ -351,7 +364,7 @@ c
             goto 10
           endif
           if (ch.eq.'n') then
-            eaddel=250.
+            eaddel=Emaxtalys
             goto 10
           endif
           read(value,*,end=200,err=200) eaddel
@@ -362,7 +375,7 @@ c
           if (ch.eq.'y') flagelectron=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
-        endif                    
+        endif
         if (key.eq.'spherical') then
           if (ch.eq.'n') flagspher=.false.
           if (ch.eq.'y') then
@@ -373,16 +386,10 @@ c
           endif
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
-        endif               
+        endif
         if (key.eq.'coulomb') then
           if (ch.eq.'n') flagcoulomb=.false.
           if (ch.eq.'y') flagcoulomb=.true.
-          if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
-        endif
-        if (key.eq.'colenhance') then
-          if (ch.eq.'n') flagcol=.false.
-          if (ch.eq.'y') flagcol=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
         endif
@@ -403,23 +410,44 @@ c
           if (ch.eq.'y') flagpartable=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
-        endif                    
+        endif
+        if (key.eq.'urr') then
+          flagurr=.true.
+          if (ch.eq.'y') goto 10
+          if (ch.eq.'n') then
+            eurr=0.
+            flagurr=.false.
+            goto 10
+          endif
+          read(value,*,end=200,err=200) eurr
+          goto 10
+        endif
+        if (key.eq.'lurr') then
+          read(value,*,end=200,err=200) lurr
+          goto 10
+        endif
+        if (key.eq.'urrnjoy') then
+          if (ch.eq.'n') flagurrnjoy=.false.
+          if (ch.eq.'y') flagurrnjoy=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
         if (key.eq.'maxchannel') then
           read(value,*,end=200,err=200) maxchannel
           goto 10
-        endif                    
+        endif
         if (key.eq.'pairmodel') then
           read(value,*,end=200,err=200) pairmodel
           goto 10
-        endif                    
+        endif
         if (key.eq.'fismodel') then
           read(value,*,end=200,err=200) fismodel
           goto 10
-        endif                    
+        endif
         if (key.eq.'fismodelalt') then
-          read(value,*,end=200,err=200) fismodelalt   
+          read(value,*,end=200,err=200) fismodelalt
           goto 10
-        endif                    
+        endif
         if (key.eq.'cglobal') then
           read(value,*,end=200,err=200) cglobal
           goto 10
@@ -431,11 +459,15 @@ c
         if (key.eq.'alphaomp') then
           read(value,*,end=200,err=200) alphaomp
           goto 10
-        endif                    
+        endif
+        if (key.eq.'deuteronomp') then
+          read(value,*,end=200,err=200) deuteronomp
+          goto 10
+        endif
         if (key.eq.'soswitch') then
           read(value,*,end=200,err=200) soswitch
           goto 10
-        endif                    
+        endif
    10 continue
       return
   200 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)

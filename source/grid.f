@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : September 23, 2009
+c | Date  : October 9, 2011
 c | Task  : Energy and angle grid
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical lexist
-      integer nen,nen0,type,iang,mt
+      integer nen,nen0,type,iang,mt,is
       real    Eout,degrid,Eeps,coulfactor,dang,angval,angmin,angmax,val
 c
 c ************************ Basic outgoing energy grid ******************
@@ -19,7 +19,7 @@ c egrid,Eout,Eeps: energies of basic energy grid in MeV
 c degrid         : energy increment
 c segment        : number of segments to divide emission energy grid
 c maxen          : total number of energies
-c 
+c
 c The basic outgoing energy grid we use is:
 c
 c         0.001, 0.002, 0.005    MeV
@@ -28,12 +28,13 @@ c         0.1-   2 MeV : dE= 0.1 MeV
 c         2  -   4 MeV : dE= 0.2 MeV
 c         4  -  20 MeV : dE= 0.5 MeV
 c        20  -  40 MeV : dE= 1.0 MeV
-c        40  - 250 MeV : dE= 2.0 MeV
+c        40  - 200 MeV : dE= 2.0 MeV
+c        above 200 MeV : dE= 5.0 MeV
 c
-c This grid ensures that the calculation for outgoing energies of a few 
+c This grid ensures that the calculation for outgoing energies of a few
 c MeV (around the evaporation peak) is sufficiently precise, whereas at
-c higher energies a somewhat coarser energy grid can be used. For the 
-c same reason, this energy grid is used for the calculation of 
+c higher energies a somewhat coarser energy grid can be used. For the
+c same reason, this energy grid is used for the calculation of
 c transmission coefficients.
 c The grid can be further subdivided with the segment keyword.
 c
@@ -56,14 +57,20 @@ c
       if (Eeps.gt.4.) degrid=0.5/segment
       if (Eeps.gt.20.) degrid=1./segment
       if (Eeps.gt.40.) degrid=2./segment
+      if (Eeps.gt.200.) degrid=5./segment
       goto 10
    20 maxen=nen
+      if (maxen.gt.numen) then
+        write(*,'(" TALYS-error: number of energies too large - ",
+     +    "increase numen in talys.cmb or lower Emaxtalys")')
+        stop
+      endif
 c
 c The widths of the bins around the emission energies are set.
 c
 c deltaE : energy bin around outgoing energies
-c Etop   : top of outgoing energy bin  
-c Ebottom: bottom of outgoing energy bin  
+c Etop   : top of outgoing energy bin
+c Ebottom: bottom of outgoing energy bin
 c
       do 30 nen=2,maxen-1
         deltaE(nen)=0.5*(egrid(nen+1)-egrid(nen-1))
@@ -80,19 +87,19 @@ c
 c
 c ******************** Set lower limit for energy grid *****************
 c
-c ebegin    : first energy point of energy grid 
-c Atarget   : mass number of target nucleus 
+c ebegin    : first energy point of energy grid
+c Atarget   : mass number of target nucleus
 c coulfactor: constant for Coulomb barrier
 c coullimit : energy limit for charged particle OMP calculation
 c parskip   : logical to skip outgoing particle
 c coulbar   : Coulomb barrier
 c
-c For charged particles it is not necessary, or even numerically 
-c possible, to calculate transmission coefficients and cross sections 
-c for very low energies. Therefore, we relate their energy grids to the 
-c corresponding Coulomb barrier. The first outgoing energy is a factor 
+c For charged particles it is not necessary, or even numerically
+c possible, to calculate transmission coefficients and cross sections
+c for very low energies. Therefore, we relate their energy grids to the
+c corresponding Coulomb barrier. The first outgoing energy is a factor
 c of coulfactor lower than the Coulomb barrier. The last outgoing energy
-c of the grid depends on the incident energy and is initialized later 
+c of the grid depends on the incident energy and is initialized later
 c in the energies subroutine.
 c
       ebegin(0)=1
@@ -114,7 +121,7 @@ c ********* Set upper limit for energy grid and other energies *********
 c
 c Einc    : incident energy in MeV
 c enincmax: maximum incident energy
-c energies: subroutine for energies         
+c energies: subroutine for energies
 c eendmax : last energy point of energy grid for maximum incident energy
 c eend    : last energy point of energy grid
 c
@@ -131,16 +138,16 @@ c TALYS performs full nuclear reaction calculations for incident
 c energies above Elow only. We keep track of the number of lower
 c energies, for which simple empirical cross section estimates are made.
 c
-c eninclow : minimal incident energy for nuclear model calculations 
-c D0       : s-wave resonance spacing in keV 
+c eninclow : minimal incident energy for nuclear model calculations
+c D0       : s-wave resonance spacing in keV
 c D0theo   : theoretical s-wave resonance spacing
 c E1v      : energy at end of 1/v region
-c eninc    : incident energy in MeV  
-c locate   : subroutine to find value in ordered table      
+c eninc    : incident energy in MeV
+c locate   : subroutine to find value in ordered table
 c numinc   : number of incident energies
 c numinclow: number of incident energies below Elow
 c
-c For excitation functions that extend to very low incident energies, 
+c For excitation functions that extend to very low incident energies,
 c the energy at the end of the 1/v region and the energy at the end
 c of the resonance region are also inserted.
 c
@@ -173,12 +180,12 @@ c
       endif
       numinclow=0
       do 330 nen=1,numinc
-        if (eninc(nen).lt.eninclow) numinclow=numinclow+1      
+        if (eninc(nen).lt.eninclow) numinclow=numinclow+1
   330 continue
 c
 c ************** Set limit for transmission coefficients ***************
 c
-c translimit: limit for transmission coefficient 
+c translimit: limit for transmission coefficient
 c transpower: power for transmission coefficient limit
 c
   400 translimit=1./(10**transpower)
@@ -188,10 +195,10 @@ c
 c 1. Discrete angular distributions
 c
 c dang  : delta angle
-c nangle: number of angles 
+c nangle: number of angles
 c angle : angle in degrees
 c
-      dang=180./nangle             
+      dang=180./nangle
       do 410 iang=0,nangle
         angle(iang)=iang*dang
   410 continue
@@ -270,11 +277,11 @@ c
 c
 c *** Open files with basic reaction information for incident channel **
 c
-c flagecissave: flag for saving ECIS input and output files          
+c flagecissave: flag for saving ECIS input and output files
 c ecisstatus  : status of ECIS file
 c flaginccalc : flag for new ECIS calculation for incident channel
 c flagendf    : flag for information for ENDF-6 file
-c flagendfecis: flag for new ECIS calculation for ENDF-6 files     
+c flagendfecis: flag for new ECIS calculation for ENDF-6 files
 c
       if (flagecissave) then
         ecisstatus='keep'
@@ -287,7 +294,7 @@ c
           write(*,'(" TALYS-error: The first calculation of a run",
      +      " should always be done with ecissave y and inccalc y")')
           stop
-        endif     
+        endif
         open (unit=13,status='old',file='incident.cs')
         open (unit=17,status='old',file='incident.tr')
         open (unit=18,status='old',file='incident.ang')
@@ -300,15 +307,16 @@ c
           write(*,'(" TALYS-error: The first calculation of a run",
      +      " should always be done with ecissave y and endfecis y")')
           stop
-        endif     
+        endif
         open (unit=23,status='old',file='endf.cs')
       endif
 c
-c To fit data very precisely, a "normal" TALYS calculation may not 
-c suffice. Therefore, as a final "rescue" an option is included to read 
+c To fit data very precisely, a "normal" TALYS calculation may not
+c suffice. Therefore, as a final "rescue" an option is included to read
 c incident energy dependent adjustment factors for the most important
 c cross sections. The MT number from the ENDF-6 format is used as index.
 c
+c flagrescue: flag for final rescue: normalization to data
 c Crescue   : adjustment factor for this incident energy
 c Nrescue   : number of energies for adjustment factors
 c Erescue   : energy grid for adjustment factors
@@ -317,34 +325,38 @@ c grescue   : global multiplication factor for incident energy dependent
 c             adjustment factors
 c rescuefile: file with incident energy dependent adjustment factors
 c
-      do 510 mt=1,nummt
-        Nrescue(mt)=0
-        Crescue(mt)=1.
-        do 520 nen=1,numen6
-          Erescue(mt,nen)=0.
-          frescue(mt,nen)=grescue(mt)
-  520   continue
-        if (rescuefile(mt)(1:1).ne.' ') then
-          open (unit=2,status='old',file=rescuefile(mt))
-          nen=1
-  530     read(2,*,end=540) Erescue(mt,nen),val
-          frescue(mt,nen)=grescue(mt)*val
-          if (nen.gt.1.and.(Erescue(mt,nen).le.Erescue(mt,nen-1))) then
-            write(*,'(" TALYS-error: energies in rescuefile must",
-     +          " be given in ascending order")')
-            stop
-          endif
-          nen=nen+1
-          if (nen.gt.numen6+1) then
-            write(*,'(" TALYS-error: number of lines in rescuefile > ",
-     +        i4)') numen6
-            stop
-          endif
-          goto 530
-  540     Nrescue(mt)=nen-1
-          close (unit=2)
-        endif
-  510 continue
+      if (flagrescue) then
+        do 510 mt=1,nummt
+          do 520 is=-1,1
+            Crescue(mt,is)=1.
+            do 530 nen=1,numen6
+              Erescue(mt,is,nen)=0.
+              frescue(mt,is,nen)=grescue(mt,is)
+  530       continue
+            if (rescuefile(mt,is)(1:1).ne.' ') then
+              open (unit=2,status='old',file=rescuefile(mt,is))
+              nen=1
+  540         read(2,*,end=550) Erescue(mt,is,nen),val
+              frescue(mt,is,nen)=grescue(mt,is)*val
+              if (nen.gt.1.and.(Erescue(mt,is,nen).le.
+     +          Erescue(mt,is,nen-1))) then
+                write(*,'(" TALYS-error: energies in rescuefile must",
+     +            " be given in ascending order")')
+                stop
+              endif
+              nen=nen+1
+              if (nen.gt.numen6+1) then
+                write(*,'(" TALYS-error: number of lines in",
+     +            " rescuefile >",i6)') numen6
+                stop
+              endif
+              goto 540
+  550         Nrescue(mt,is)=nen-1
+              close (unit=2)
+            endif
+  520     continue
+  510   continue
+      endif
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

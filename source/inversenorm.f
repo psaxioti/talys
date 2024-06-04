@@ -3,7 +3,7 @@ c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
 c | Date  : May 19, 2009
-c | Task  : Normalization and extrapolation of reaction cross sections 
+c | Task  : Normalization and extrapolation of reaction cross sections
 c |         and transmission coefficients
 c +---------------------------------------------------------------------
 c
@@ -20,17 +20,17 @@ c Ncomp     : neutron number index for compound nucleus
 c parskip   : logical to skip outgoing particle
 c flagsys   : flag for reaction cross section from systematics
 c ZZ,Z      : charge number of residual nucleus
-c AA,A      : mass number of residual nucleus  
+c AA,A      : mass number of residual nucleus
 c xsprev    : help variable
 c threshnorm: normalization factor at trheshold
 c ebegin    : first energy point of energy grid
-c eendmax   : last energy point of energy grid for maximum incident 
+c eendmax   : last energy point of energy grid for maximum incident
 c             energy
 c xsopt     : optical model reaction cross section
-c enuc      : incident energy in MeV per nucleon    
-c egrid     : outgoing energy grid 
+c enuc      : incident energy in MeV per nucleon
+c egrid     : outgoing energy grid
 c parA      : mass number of particle
-c tripathi  : function for semi-empirical reaction cross section of 
+c tripathi  : function for semi-empirical reaction cross section of
 c             Tripathi et al.
 c xstripathi: help variable
 c parZ      : charge number of particle
@@ -39,10 +39,10 @@ c xsreac    : reaction cross section
 c xselas    : total elastic cross section (neutrons only)
 c lcc,l     : orbital angular momentum
 c numl      : maximal number of l-values in TALYS
-c Tl        : transmission coefficients as a function of particle type, 
+c Tl        : transmission coefficients as a function of particle type,
 c             energy and l-value (averaged over spin)
 c ispin     : spin index
-c Tjl       : transmission coefficients as a function of particle type, 
+c Tjl       : transmission coefficients as a function of particle type,
 c             energy, spin and l-value
 c
 c The normalization is only performed if the option for semi-empirical

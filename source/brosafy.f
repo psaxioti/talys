@@ -47,15 +47,15 @@ c parmass        : mass of particle in a.m.u.
 c mn             : neutron mass in MeV
 c mp             : proton mass in MeV
 c noff           : number of neutrons away from heaviest isotope given
-c                  in structure data base of a certain element 
+c                  in structure data base of a certain element
 c numoff         : number of isotopes for which information is present
-c                  in structure data base for a certain element      
+c                  in structure data base for a certain element
 c bf_sl/st/st2   : SL, ST I and ST II outer fission barrier heights
 c bfsplin        : barrier height splin fit parameters
 c bfsplin_sl,....: SL barrier height splin fit parameters
-c bindgs         : ground-state binding energy 
+c bindgs         : ground-state binding energy
 c gschar         : structure database ground-state binding energy file
-c gsfile         : full path for structure database file 
+c gsfile         : full path for structure database file
 c
 c     constants
 c
@@ -109,7 +109,7 @@ c
 c amassmax: heaviest isotope for which parameters have been calculated
 c amassar : mass array
 c massdif : mass difference between amassmax and the nucleus studied
-c index1,2: denote array elements used to interpolate 
+c index1,2: denote array elements used to interpolate
 c
 c      determine position nucleus in array
 c
@@ -155,7 +155,7 @@ c hwinter : barrier widths used for interpolation
 c filen   : file name
 c barfile : path of barrier parameter file in structure data base
 c lexist  : logical to determine existence of barfile
-c numtemp : running variable denoting the numtempth temperature  
+c numtemp : running variable denoting the numtempth temperature
 c Tmax    : maximal temperatures for which structure data is available
 c
 c     read in ground state binding energy as function of T
@@ -187,7 +187,7 @@ c
          close (unit=2)
       endif
 c
-c      superlong (sl), standard 1 (st), standard 2 (st2) loop      
+c      superlong (sl), standard 1 (st), standard 2 (st2) loop
 c
       do 1000, iloop=1,3
          do 18, k=1,9
@@ -225,7 +225,7 @@ c
             if(amassdum.EQ.amassar(index1))then
                rmass=(1/(clight*clight))*(Z*mp+(A-Z)*mn-
      +              bindgs(1,1))
-               bfinter(i,1)=bar 
+               bfinter(i,1)=bar
                hwinter(i,1)=hbar*sqrt(width*1.D+30/rmass)
                i=i+1
             endif
@@ -233,10 +233,10 @@ c
                if(amassdum.EQ.amassar(index2))then
                   rmass=(1/(clight*clight))*(Z*mp+(A-Z)*mn-
      +                 bindgs(1,2))
-                  bfinter(k,2)=bar         
+                  bfinter(k,2)=bar
                   hwinter(k,2)=hbar*sqrt(width*1.D+30/rmass)
                   k=k+1
-               endif               
+               endif
             endif
             goto 20
  21         continue
@@ -259,9 +259,9 @@ c
                do 32, k=1,9
                   if(bfinter(k,1).NE.0.and.bfinter(k,2).NE.0.)then
                      massdif=abs(amassar(index1)-A)
-                     bf(k)= bfinter(k,1)+ 
+                     bf(k)= bfinter(k,1)+
      +                    (massdif/3.)*(bfinter(k,2)-bfinter(k,1))
-                     hw(k)= hwinter(k,1)+ 
+                     hw(k)= hwinter(k,1)+
      +                    (massdif/3.)*(hwinter(k,2)-hwinter(k,1))
                      numtemp=k
                   endif
@@ -295,16 +295,16 @@ c
          call spline(temps,hw,numtemp,2.e+30,2.e+30,hwsplin)
 c
 c ald      : level density parameter
-c ignatyuk : function for energy dependent level density parameter 
+c ignatyuk : function for energy dependent level density parameter
 c Tmp      : temperature
 c excfis   : excitation energy at fission
-c trans    : subroutine to determine transmission coefficients 
+c trans    : subroutine to determine transmission coefficients
 c            per fission mode
 c trof     : transmission coefficients per fission mode
-c sl,st,st2: SL,ST I, ST II transmission coefficients 
+c sl,st,st2: SL,ST I, ST II transmission coefficients
 c stot     : sum of sl, st, and st2
 c
-c      calculate transmission coefficient trcof 
+c      calculate transmission coefficient trcof
 c
          ald=ignatyuk(Zix,Nix,excfis,0)
          Tmp=sqrt(excfis/ald)
@@ -315,7 +315,7 @@ c
             call trans(Zix,Nix,transm)
             trcof=transm
          else
-            trcof=0.
+            trcof=0.d0
          endif
 c
 c      fill arrays with trcof, bf, bfsplin
@@ -373,25 +373,25 @@ c fmzcor     : corrected fission fragment isotope yield
 c hmneck     : mean mass heavy fragment at scission point
 c elneck     : nucleus half length at scission point
 c Eneck      : prescission energy
-c hmneckinter: mean mass heavy fragment at scission point used 
+c hmneckinter: mean mass heavy fragment at scission point used
 c              for interpolation
-c elneckinter: nucleus half length at scission point used for 
+c elneckinter: nucleus half length at scission point used for
 c              interpolation
 c Eneckinter : prescission energy used for interpolation
-c hmsplin    : mean mass heavy fragment at scission point 
+c hmsplin    : mean mass heavy fragment at scission point
 c              splin fit parameters
-c elsplin    : nucleus half length at scission point splin 
+c elsplin    : nucleus half length at scission point splin
 c              fit parameters
 c Esplin     : prescission energy splin fit parameters
 c precfile   : path with prescission shape info in structure data base
 c Edefo      : excitation energy at scission
-c et         : energy gain at scission with respect to ground state 
+c et         : energy gain at scission with respect to ground state
 c BFT        : temperature-dependent barrier height
 c fraction   : fraction of potential energy gain available as internal
 c              excitation energy at scission
-c neck       : subroutine to determine mass and isotope yield per 
+c neck       : subroutine to determine mass and isotope yield per
 c              fission mode
-c      
+c
 c
 c      MASS DISTRIBUTION
 c      second loop over fission modes starts here
@@ -469,7 +469,7 @@ c
                elneck(k)=elneck_st(k)
                Eneck(k)=Eneck_st(k)
                goto 300
-            endif            
+            endif
  300     continue
          if(dont)goto 17998
 c
@@ -516,13 +516,13 @@ c
                   if(hmneckinter(k,1).NE.0.and.
      +                 hmneckinter(k,2).NE.0.)then
                      massdif=abs(amassar(index1)-A)
-                     hmneck(k)= hmneckinter(k,1)+ 
+                     hmneck(k)= hmneckinter(k,1)+
      +                    (massdif/3.)*(hmneckinter(k,2)
      +                    -hmneckinter(k,1))
-                     elneck(k)= elneckinter(k,1)+ 
+                     elneck(k)= elneckinter(k,1)+
      +                    (massdif/3.)*(elneckinter(k,2)
      +                    -elneckinter(k,1))
-                     Eneck(k)= Eneckinter(k,1)+ 
+                     Eneck(k)= Eneckinter(k,1)+
      +                    (massdif/3.)*(Eneckinter(k,2)
      +                    -Eneckinter(k,1))
                   endif
@@ -543,7 +543,7 @@ c      spline fitting to neck input parameters
 c
          call spline(temps,hmneck,numtemp,2.e+30,2.e+30,hmsplin)
          call spline(temps,elneck,numtemp,2.e+30,2.e+30,elsplin)
-         call spline(temps,Eneck,numtemp,2.e+30,2.e+30,Esplin)         
+         call spline(temps,Eneck,numtemp,2.e+30,2.e+30,Esplin)
 c
 c      calculate excitation energy at scission (including an iteration
 c      to calculate Edefo and ET consistently, one iteration suffices)
@@ -628,22 +628,22 @@ c
                   fmzcor_st2(k,i)=fmzcor(k,i)*st2
  510           continue
             endif
-         endif            
+         endif
 c
 c      end loop over sl, st and st2 modes
 c
  2000 continue
 c
-c disa      : normalised fission fragment mass yield per excitation 
-c             energy bin 
-c disacor   : normalised fission product mass yield per excitation 
-c             energy bin 
-c disaz     : normalised fission fragment isotope yield 
-c             per excitation energy bin 
-c disazcor  : normalised fission product isotope yield 
-c             per excitation energy bin 
+c disa      : normalised fission fragment mass yield per excitation
+c             energy bin
+c disacor   : normalised fission product mass yield per excitation
+c             energy bin
+c disaz     : normalised fission fragment isotope yield
+c             per excitation energy bin
+c disazcor  : normalised fission product isotope yield
+c             per excitation energy bin
 c flagffevap: flag for calculation of particle evaporation from
-c             fission fragment mass yields    
+c             fission fragment mass yields
 c
       somtot=1.
       do 4000,k=1,nummass

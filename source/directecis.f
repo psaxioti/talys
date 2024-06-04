@@ -18,14 +18,14 @@ c
 c rotational      : flag for rotational input
 c vibrational     : flag for vibrational input
 c jlmloc          : flag for JLM OMP
-c legendre        : logical for output of Legendre coefficients     
+c legendre        : logical for output of Legendre coefficients
 c title           : title of ECIS input file
 c ecis1,ecis2     : 100 input flags ('T' or 'F') for ECIS
 c flagrel         : flag for relativistic kinematics
 c ncoll           : number of nuclear states
 c iterm           : number of iterations
-c flagstate       : flag for optical model potential for each excited 
-c                   state 
+c flagstate       : flag for optical model potential for each excited
+c                   state
 c npp             : number of optical potentials
 c hint            : integration step size h
 c rmatch          : matching radius
@@ -48,12 +48,12 @@ c
 c Specific ECIS flags:
 c ecis1(30)=T : DWBA
 c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
-c ecis2(14)=T : output of inelastic angular distribution 
-c ecis2(15)=T : output of Legendre coefficients        
+c ecis2(14)=T : output of inelastic angular distribution
+c ecis2(15)=T : output of Legendre coefficients
 c
       open (unit=9,status='unknown',file='ecisdisc.inp')
       rotational=.false.
-      vibrational=.true.  
+      vibrational=.true.
       jlmloc=.false.
       legendre=.true.
       title='Direct discrete cross sections by DWBA            '
@@ -66,7 +66,7 @@ c
         npp=ncoll
       else
         npp=1
-      endif 
+      endif
       hint=0.
       rmatch=0.
 c
@@ -91,30 +91,30 @@ c
 c
 c ******************* Write ECIS input files ***************************
 c
-c parskip   : logical to skip outgoing particle  
+c parskip   : logical to skip outgoing particle
 c Zindex,Zix: charge number index for residual nucleus
 c Nindex,Nix: neutron number index for residual nucleus
-c AA,A      : mass number of residual nucleus     
+c AA,A      : mass number of residual nucleus
 c deftype   : deformation length (D) or parameter (B)
 c disp      : flag for dispersive optical model
 c efer      : Fermi energy
-c w2disp,...: constants for imaginary potentials  
+c w2disp,...: constants for imaginary potentials
 c odd       : odd (1) or even (0) nucleus
 c resmass   : mass of residual nucleus
-c nucmass   : mass of nucleus   
-c idvib     : identifier for existence of vibrational state inside 
+c nucmass   : mass of nucleus
+c idvib     : identifier for existence of vibrational state inside
 c             rotational model
 c tarspin   : spin of target nucleus
-c tarparity : parity of target nucleus     
+c tarparity : parity of target nucleus
 c anginc    : angle increment
 c nangle    : number of angles
 c
       do 10 type=k0,k0
-        if (parskip(type)) goto 10  
+        if (parskip(type)) goto 10
         Zix=Zindex(0,0,type)
         Nix=Nindex(0,0,type)
         A=AA(0,0,type)
-        if (deftype(Zix,Nix).eq.'B') ecis1(6:6)='F'   
+        if (deftype(Zix,Nix).eq.'B') ecis1(6:6)='F'
         if (disp(Zix,Nix,k0)) then
           ecis1(10:10)='T'
           efer=ef(Zix,Nix,k0)
@@ -124,35 +124,35 @@ c
         endif
         odd=mod(A,2)
         resmass=nucmass(Zix,Nix)
-        idvib(1)=0       
-        idvib(2)=0       
+        idvib(1)=0
+        idvib(2)=0
         tarspin=0.
-        tarparity='+'     
+        tarparity='+'
         anginc=180./nangle
 c
 c 1. Direct collective states
 c
-c numlev2  : maximum number of levels       
-c deform   : deformation parameter 
+c numlev2  : maximum number of levels
+c deform   : deformation parameter
 c eoutdis  : outgoing energy of discrete state reaction
 c Elevel   : energy of level
-c edis     : energy of level                    
+c edis     : energy of level
 c Q        : Q-value for target nucleus
 c eninccm  : center-of-mass incident energy in MeV
 c parA     : mass number of particle
 c Jlevel   : spin of level
-c jdis     : spin of level        
+c jdis     : spin of level
 c Plevel   : parity of level
 c cparity  : parity (character)
-c parlev   : parity of level  
+c parlev   : parity of level
 c jcore    : spin of level of core nucleus
 c pcore    : parity of level of core nucleus
 c nlev,nlev: number of excited levels for nucleus
 c iband    : band number of level
-c Jband    : angular momentum    
+c Jband    : angular momentum
 c Kmag     : magnetic quantum number
-c iph      : phonon (1 or 2)      
-c vibbeta  : vibrational deformation parameter     
+c iph      : phonon (1 or 2)
+c vibbeta  : vibrational deformation parameter
 c ecisinput: subroutine to create ECIS input file
 c
         do 20 i=0,numlev2
@@ -186,7 +186,7 @@ c 2. Giant resonance states
 c
 c nanglecont: number of angles for continuum
 c betagr    : deformation parameter for giant resonance
-c Egrcoll   : energy of giant resonance  
+c Egrcoll   : energy of giant resonance
 c sgn       : +1 for even argument, -1 for odd argument
 c
         if (type.eq.k0) then
@@ -210,7 +210,7 @@ c
    30     continue
         endif
    10 continue
-      write(9,'("fin")') 
+      write(9,'("fin")')
       close (unit=9)
       legendre=.false.
 c
@@ -220,7 +220,7 @@ c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
 c ecis06t    : subroutine ecis06, adapted for TALYS
-c ecisstatus : status of ECIS file  
+c ecisstatus : status of ECIS file
 c
       if (flagoutecis) then
         outfile='ecisdisc.out '

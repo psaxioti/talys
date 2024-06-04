@@ -1,7 +1,7 @@
       subroutine excitoninit
 c
 c +---------------------------------------------------------------------
-c | Author: Marieke Duijvestijn and Arjan Koning 
+c | Author: Marieke Duijvestijn and Arjan Koning
 c | Date  : July 9, 2004
 c | Task  : Initialization of exciton model parameters
 c +---------------------------------------------------------------------
@@ -18,22 +18,22 @@ c Factors for the emission rate.
 c
 c wfac      : factor for emission rate
 c pi2h3c2   : 1/(pi*pi*clight*clight*hbar**3) in mb**-1.MeV**-3.s**-1
-c Zcomp     : charge number index for compound nucleus 
-c Ncomp     : neutron number index for compound nucleus 
+c Zcomp     : charge number index for compound nucleus
+c Ncomp     : neutron number index for compound nucleus
 c parskip   : logical to skip outgoing particle
 c Zindex    : charge number index for residual nucleus
-c Nindex    : neutron number index for residual nucleus  
+c Nindex    : neutron number index for residual nucleus
 c amupi2h3c2: amu/(pi*pi*clight*clight*hbar**3) in mb**-1.MeV**-2.s**-1
 c parspin   : spin of particle
-c redumass  : reduced mass 
+c redumass  : reduced mass
 c
       wfac(0)=pi2h3c2
       Zcomp=0
       Ncomp=0
       do 10 type=1,6
         if (parskip(type)) goto 10
-        Zix=Zindex(Zcomp,Ncomp,type)  
-        Nix=Nindex(Zcomp,Ncomp,type)  
+        Zix=Zindex(Zcomp,Ncomp,type)
+        Nix=Nindex(Zcomp,Ncomp,type)
         wfac(type)=amupi2h3c2*(2.*parspin(type)+1.)*
      +    redumass(Zix,Nix,type)
    10 continue

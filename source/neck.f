@@ -8,7 +8,7 @@ c +---------------------------------------------------------------------
 c
 c *************************** Comments ********************************
 c
-c This subroutine is based on the subroutine neck originally developed 
+c This subroutine is based on the subroutine neck originally developed
 c by U. Brosa (version 28.7.89).
 c
 c ****************** Declarations and common blocks ********************
@@ -30,7 +30,7 @@ c
       external fidi,rpoint,evap
       data r0,xnu,rayl/1.15,1.0,11.00/
 c
-c determine mass and charge grid (depending whether evaporation 
+c determine mass and charge grid (depending whether evaporation
 c correction is required)
 c
       Zix=Zinit-Z
@@ -49,8 +49,8 @@ c
          zstepsize=1.
       endif
 c
-c di   : nucleon number density 
-c vtot : total volume of the complex 
+c di   : nucleon number density
+c vtot : total volume of the complex
 c rp,rt: radii of projectile and target
 c c    : curvature of neck
 c r    : ratio of neck contribution
@@ -128,7 +128,7 @@ c
       imax=di*vr2(z1,z2,z3)*astepnum
 c
 c In this loop the properties of the different fragmentations are
-c calculated, as tke(a,z), neutron number rn(a,z), and yield wgt(a), 
+c calculated, as tke(a,z), neutron number rn(a,z), and yield wgt(a),
 c zdis(a,z).
 c
       jmx=0
@@ -232,7 +232,7 @@ c
  3    continue
       jimax=jmx
 c
-c mass and charge distributions, with(out) corrections for evaporated 
+c mass and charge distributions, with(out) corrections for evaporated
 c neutrons
 c
       sumw=0.

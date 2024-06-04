@@ -1,7 +1,7 @@
       subroutine residual
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : August 14, 2008
 c | Task  : Residual production cross sections
 c +---------------------------------------------------------------------
@@ -14,13 +14,13 @@ c
 c ************************ Cross sections ******************************
 c
 c flagomponly: flag to execute ONLY an optical model calculation
-c xsresprod  : total residual production (= reaction) cross section 
+c xsresprod  : total residual production (= reaction) cross section
 c maxA       : maximal number of nucleons away from the initial compound
 c              nucleus
 c Acomp      : mass number index for compound nucleus
 c xsmassprod : residual production cross section per mass unit
 c Zcomp      : charge number index for compound nucleus
-c maxZ       : maximal number of protons away from the initial compound 
+c maxZ       : maximal number of protons away from the initial compound
 c              nucleus
 c Ncomp      : neutron number index for compound nucleus
 c maxN       : maximal number of neutrons away from the initial compound

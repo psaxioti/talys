@@ -1,7 +1,7 @@
       subroutine raynalcomp
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : December 17, 2007
 c | Task  : ECIS calculation of compound cross sections (reference only)
 c +---------------------------------------------------------------------
@@ -197,8 +197,8 @@ c Atarget        : mass number of target nucleus
 c onethird       : 1/3
 c Einc           : incident energy in MeV
 c numl           : maximum l-value (set in talys.cmb)
-c parN           : neutron number of particle 
-c cparity        : parity of target (character)     
+c parN           : neutron number of particle
+c cparity        : parity of target (character)
 c tarparity      : parity of target
 c resmass,tarmass: mass of target nucleus
 c prodZ          : product of charges of projectile and target nucleus
@@ -227,11 +227,11 @@ c
 c
 c ******************* Write ECIS input file ****************************
 c
-c eciscompound: subroutine to create ECIS input file for compound cross 
+c eciscompound: subroutine to create ECIS input file for compound cross
 c               section
 c
       call eciscompound
-      write(1,'("fin")') 
+      write(1,'("fin")')
       close (unit=1)
 c
 c ************************** ECIS calculation **************************
@@ -243,11 +243,11 @@ c
       if (flagoutecis) then
         call ecis06t('eciscomp.inp ','eciscomp.out ',
      +    'ecis06.comcs ','ecis06.comin ','null         ',
-     +    'ecis06.comang','ecis06.comleg')  
+     +    'ecis06.comang','ecis06.comleg')
       else
         call ecis06t('eciscomp.inp ',nulldev,
      +    'ecis06.comcs ','ecis06.comin ','null         ',
-     +    'ecis06.comang','ecis06.comleg')  
+     +    'ecis06.comang','ecis06.comleg')
       endif
       return
       end

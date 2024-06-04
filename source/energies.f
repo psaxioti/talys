@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 15, 2009
+c | Date  : September 19, 2011
 c | Task  : Energies
 c +---------------------------------------------------------------------
 c
@@ -17,7 +17,7 @@ c ****************************** Energies ******************************
 c
 c Center-of-mass energy and wave number
 c
-c 1. Relativistic case: Ecm = sqrt[ (m+M)**2 + 2ME ] -(m+M) 
+c 1. Relativistic case: Ecm = sqrt[ (m+M)**2 + 2ME ] -(m+M)
 c                           = 2ME / { sqrt [ (m+M)**2 + 2ME ] + (m+M) }
 c
 c For incident photons, we always take the relativistic case.
@@ -29,7 +29,7 @@ c ma,eps : help variables
 c parmass: mass of particle in a.m.u.
 c tarmass: mass of target nucleus
 c Einc   : incident energy in MeV
-c amu    : atomic mass unit in MeV 
+c amu    : atomic mass unit in MeV
 c eninccm: center-of-mass incident energy in MeV
 c wavenum: wave number
 c
@@ -43,11 +43,11 @@ c
      +    ((ma1+ma2)**2+2.*ma2*Einc/amu)))
       else
 c
-c 2. Non-relativistic case: Ecm = E*M/(m+M)  
-c                          
+c 2. Non-relativistic case: Ecm = E*M/(m+M)
+c
 c specmass: specific mass for target nucleus and all particles
 c parZ    : charge number of particle
-c parN    : neutron number of particle   
+c parN    : neutron number of particle
 c redumass: reduced mass
 c hbarc   : hbar.c in MeV.fm
 c Etotal  : total energy of compound system (target + projectile)
@@ -79,7 +79,7 @@ c
             goto 30
           endif
    20   continue
-   30   if (eend(type).gt.ebegin(type)) 
+   30   if (eend(type).gt.ebegin(type))
      +    eend(type)=max(eend(type),ebegin(type)+3)
         eendhigh=max(eendhigh,eend(type))
    10 continue
@@ -129,6 +129,8 @@ c ************ Set pre-equilibrium and compound nucleus flags **********
 c
 c ewfc       : off-set incident energy for width fluctuation calculation
 c flagwidth  : flag for width fluctuation calculation
+c eurr       : off-set incident energy for URR calculation
+c flagurr    : flag for output of unresolved resonance parameters
 c flagang    : flag for output of angular distributions
 c flagcompang: flag for compound angular distribution calculation
 c epreeq     : on-set incident energy for preequilibrium calculation
@@ -144,9 +146,9 @@ c eaddel     : on-set incident energy for addition of elastic peak
 c              to spectra
 c flagadd    : flag for addition of discrete states to spectra
 c flagaddel  : flag for addition of elastic peak to spectra
-c numZ       : maximal number of protons away from initial compound 
+c numZ       : maximal number of protons away from initial compound
 c              nucleus
-c numN       : maximal number of neutrons away from initial compound 
+c numN       : maximal number of neutrons away from initial compound
 c              nucleus
 c mulpreZN   : logical for multiple pre-equilibrium per nucleus
 c
@@ -154,6 +156,11 @@ c
         flagwidth=.true.
       else
         flagwidth=.false.
+      endif
+      if (Einc.le.eurr)  then
+        flagurr=.true.
+      else
+        flagurr=.false.
       endif
       if (k0.eq.1.and.flagang.and.Einc.le.50.)  then
         flagcompang=.true.

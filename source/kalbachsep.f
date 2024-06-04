@@ -35,7 +35,7 @@ c
         Ab=real(A)
         Zc=real(Zinit)
         Zb=real(Z)
-        Nc=Ac-Zc       
+        Nc=Ac-Zc
         Nb=Ab-Zb
         Ib=0.
         if (parsym(type).eq.'d') Ib=2.225

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : February 10, 2009
+c | Date  : September 28, 2011
 c | Task  : Level density parameters
 c +---------------------------------------------------------------------
 c
@@ -13,8 +13,8 @@ c
       character*4      denchar
       character*22     denformat
       character*90     denfile
-      integer          Zix,Nix,Z,N,A,ia,Nlow0,Ntop0,ibar,imax,imin,i,
-     +                 oddZ,oddN
+      integer          Zix,Nix,Z,N,A,ldmod,ia,Nlow0,Ntop0,ibar,imax,
+     +                 imin,i,oddZ,oddN
       real             ald0,pshift0,scutoffsys,sigsum,denom,rj,sd,ald,
      +                 Spair,fU,difprev,factor,argum
       double precision mldm,mliquid1,mliquid2
@@ -36,12 +36,12 @@ c
       Z=ZZ(Zix,Nix,0)
       N=NN(Zix,Nix,0)
       A=AA(Zix,Nix,0)
+      ldmod=ldmodel(Zix,Nix)
 c
 c
 c *********** Read values from level density parameter file ************
 c
 c denchar   : string for level density file
-c ldmodel   : level density model
 c denfile   : level density parameter file
 c path      : directory containing structure files to be read
 c flagcol   : flag for collective enhancement of level density
@@ -52,7 +52,7 @@ c Nlow      : lowest discrete level for temperature matching
 c Ntop      : highest discrete level for temperature matching
 c flagasys  : flag for all level density parameters a from systematics
 c alev      : level density parameter
-c aadjust...: adjustable factors for level density parameters 
+c aadjust...: adjustable factors for level density parameters
 c             (default 1.)
 c Pshift    : adjustable pairing shift
 c ctable    : constant to adjust tabulated level densities
@@ -60,25 +60,25 @@ c ptable    : constant to adjust tabulated level densities
 c
 c Level density parameters from the table can always be overruled
 c by values given in the input file. With flagasys, all experimental
-c level density parameters a from the table can be overruled by the 
+c level density parameters a from the table can be overruled by the
 c systematics.
 c We allow a maximum of Ntop=50
 c
       denchar='z   '
       write(denchar(2:4),'(i3.3)') Z
-      if (ldmodel.eq.1) 
+      if (ldmod.eq.1)
      +  denfile=path(1:lenpath)//'density/ground/ctm/'//denchar
-      if (ldmodel.eq.2) 
+      if (ldmod.eq.2)
      +  denfile=path(1:lenpath)//'density/ground/bfm/'//denchar
-      if (ldmodel.eq.3) 
+      if (ldmod.eq.3)
      +  denfile=path(1:lenpath)//'density/ground/gsm/'//denchar
-      if (ldmodel.eq.4) 
+      if (ldmod.eq.4)
      +  denfile=path(1:lenpath)//'density/ground/goriely/'//denchar
-      if (ldmodel.eq.5) 
+      if (ldmod.eq.5)
      +  denfile=path(1:lenpath)//'density/ground/hilaire/'//denchar
       inquire (file=denfile,exist=lexist)
       if (.not.lexist) goto 30
-      if (flagcol.and.ldmodel.le.3) then
+      if (flagcol(Zix,Nix).and.ldmod.le.3) then
         denformat='(4x,i4,32x,2i4,2f12.5)'
       else
         denformat='(4x,3i4,2f12.5)'
@@ -90,10 +90,10 @@ c
       if (Nlow(Zix,Nix,0).eq.-1) Nlow(Zix,Nix,0)=Nlow0
       if (Ntop(Zix,Nix,0).eq.-1) Ntop(Zix,Nix,0)=min(Ntop0,50)
       if (.not.flagasys) then
-        if (ldmodel.le.3) then
+        if (ldmod.le.3) then
           if (alev(Zix,Nix).eq.0.) alev(Zix,Nix)=aadjust(Zix,Nix)*ald0
           do 20 ibar=0,nfisbar(Zix,Nix)
-            if (Pshift(Zix,Nix,ibar).eq.1.e-20) 
+            if (Pshift(Zix,Nix,ibar).eq.1.e-20)
      +        Pshift(Zix,Nix,ibar)=pshift0
    20     continue
         else
@@ -109,7 +109,7 @@ c ibar     : fission barrier
 c nfisbar  : number of fission barrier parameters
 c Nlast    : last discrete level
 c nlev     : number of excited levels for nucleus
-c nfistrrot: number of rotational transition states for barrier 
+c nfistrrot: number of rotational transition states for barrier
 c
       do 40 ibar=0,nfisbar(Zix,Nix)
         if (ibar.eq.0) then
@@ -139,7 +139,7 @@ c First assign the systematics value, then overrule in case of enough
 c discrete level info.
 c
       scutoffsys=(0.83*(A**0.26))**2
-      do 50 ibar=0,nfisbar(Zix,Nix)      
+      do 50 ibar=0,nfisbar(Zix,Nix)
         scutoffdisc(Zix,Nix,ibar)=scutoffsys
         if (ldparexist(Zix,Nix)) then
           imax=Ntop(Zix,Nix,ibar)
@@ -165,7 +165,7 @@ c
    60     continue
           sd=0.
           if (denom.ne.0.) sd=sigsum/(3.*denom)
-          if (sd.gt.scutoffsys/3..and.sd.lt.scutoffsys*3.) 
+          if (sd.gt.scutoffsys/3..and.sd.lt.scutoffsys*3.)
      +      scutoffdisc(Zix,Nix,ibar)=sd
         endif
    50 continue
@@ -174,7 +174,7 @@ c Check input of various level density parameters
 c
 c inpalev    : logical to determine existence of input value for a
 c inpdeltaW  : logical to determine existence of input value for deltaW
-c deltaW     : shell correction in nuclear mass 
+c deltaW     : shell correction in nuclear mass
 c nucmass    : mass of nucleus
 c shellmodel : model for shell correction energy
 c mldm       : liquid drop mass
@@ -213,12 +213,12 @@ c
       inpalimit=.true.
       if (alimit(Zix,Nix).eq.0.) then
         inpalimit=.false.
-        alimit(Zix,Nix)=alphald*A+betald*(A**twothird)
+        alimit(Zix,Nix)=alphald(Zix,Nix)*A+betald(Zix,Nix)*(A**twothird)
       endif
       inpgammald=.true.
       if (gammald(Zix,Nix).eq.-1.) then
         inpgammald=.false.
-        gammald(Zix,Nix)=gammashell1/(A**onethird)+gammashell2
+        gammald(Zix,Nix)=gammashell1(Zix,Nix)/(A**onethird)+gammashell2
       endif
 c
 c The Ignatyuk formula implies that alev, deltaW, gammald and alimit can
@@ -245,10 +245,10 @@ c
 c Defaults
 c
       if (pair(Zix,Nix).eq.1.e-20) then
-        if (ldmodel.eq.3) then
+        if (ldmod.eq.3) then
           pair(Zix,Nix)=(oddZ+oddN)*delta0(Zix,Nix)
         else
-          if (ldmodel.eq.2) then
+          if (ldmod.eq.2) then
             pair(Zix,Nix)=(1.-oddZ-oddN)*delta0(Zix,Nix)
           else
             pair(Zix,Nix)=(2.-oddZ-oddN)*delta0(Zix,Nix)
@@ -256,11 +256,11 @@ c
         endif
       endif
       do 70 ibar=0,nfisbar(Zix,Nix)
-        if (Pshift(Zix,Nix,ibar).eq.1.e-20) 
-     +    Pshift(Zix,Nix,ibar)=Pshiftconstant
+        if (Pshift(Zix,Nix,ibar).eq.1.e-20)
+     +    Pshift(Zix,Nix,ibar)=Pshiftconstant(Zix,Nix)
  70   continue
 c
-c Generalized superfluid model. The critical functions are 
+c Generalized superfluid model. The critical functions are
 c calculated here.
 c
 c Tcrit    : critical temperature
@@ -273,7 +273,7 @@ c Ucrit    : critical U
 c Scrit    : critical entropy
 c Dcrit    : critical determinant
 c
-      if (ldmodel.eq.3) then
+      if (ldmod.eq.3) then
         Tcrit(Zix,Nix)=0.567*delta0(Zix,Nix)
         ald=alimit(Zix,Nix)
         difprev=0.
@@ -308,9 +308,9 @@ c
  100    continue
       endif
 c
-c 1. If no experimental level density parameter is available, 
+c 1. If no experimental level density parameter is available,
 c    i.e. as determined from the neutron resonance spacing, use the
-c    Ignatyuk formula to derive the level density parameter at the 
+c    Ignatyuk formula to derive the level density parameter at the
 c    separation energy.
 c
 c Spair    : help variable
@@ -325,42 +325,44 @@ c
       else
 c
 c 2. If an experimental level density parameter is available, then we
-c    impose the extra boundary boundary condition that it should be 
+c    impose the extra boundary boundary condition that it should be
 c    equal to the energy dependent level density parameter at the
 c    neutron separation energy. There are various possibilities.
 c    If alimit is not given as input, we re-adjust it.
 c
-        if (.not.inpalimit) then
-          fU=1.-exp(-gammald(Zix,Nix)*Spair)
-          factor=1.+fU*deltaW(Zix,Nix,0)/Spair
-          alimit(Zix,Nix)=alev(Zix,Nix)/factor
-        else
-c 
+        if (ldmod.ne.3) then
+          if (.not.inpalimit) then
+            fU=1.-exp(-gammald(Zix,Nix)*Spair)
+            factor=1.+fU*deltaW(Zix,Nix,0)/Spair
+            alimit(Zix,Nix)=alev(Zix,Nix)/factor
+          else
+c
 c If both alev and alimit are explicitly given as input, we
 c re-adjust deltaW, provided it is not given as input.
 c
-          if (.not.inpdeltaW) then
-            fU=1.-exp(-gammald(Zix,Nix)*Spair)
-            factor=alev(Zix,Nix)/alimit(Zix,Nix)-1.
-            deltaW(Zix,Nix,0)=Spair*factor/fU
-          else
+            if (.not.inpdeltaW) then
+              fU=1.-exp(-gammald(Zix,Nix)*Spair)
+              factor=alev(Zix,Nix)/alimit(Zix,Nix)-1.
+              deltaW(Zix,Nix,0)=Spair*factor/fU
+            else
 c
 c Determine gammald if alev, alimit and deltaW are given by input.
 c
 c argum: help variable
 c
-            argum=1.-Spair/deltaW(Zix,Nix,0)*
-     +        (alev(Zix,Nix)/alimit(Zix,Nix)-1.)
-            if (argum.gt.0..and.argum.lt.1.) then
-              gammald(Zix,Nix)=-1./Spair*log(argum)
-            else
+              argum=1.-Spair/deltaW(Zix,Nix,0)*
+     +          (alev(Zix,Nix)/alimit(Zix,Nix)-1.)
+              if (argum.gt.0..and.argum.lt.1.) then
+                gammald(Zix,Nix)=-1./Spair*log(argum)
+              else
 c
-c If gammald can not be solved or is unphysical (this may happen for 
+c If gammald can not be solved or is unphysical (this may happen for
 c certain parameter combinations) we re-adjust the shell correction.
 c
-              fU=1.-exp(-gammald(Zix,Nix)*Spair)
-              factor=alev(Zix,Nix)/alimit(Zix,Nix)-1.
-              deltaW(Zix,Nix,0)=Spair*factor/fU
+                fU=1.-exp(-gammald(Zix,Nix)*Spair)
+                factor=alev(Zix,Nix)/alimit(Zix,Nix)-1.
+                deltaW(Zix,Nix,0)=Spair*factor/fU
+              endif
             endif
           endif
         endif
@@ -376,7 +378,7 @@ c flagcolldamp: flag for damping of collective effects in effective
 c               level density (without explicit collective enhancement)
 c               Only used for Bruyeres-le-Chatel (Pascal Romain) fission
 c               model
-c axtype      : type of axiality of barrier 
+c axtype      : type of axiality of barrier
 c                  1: axial symmetry
 c                  2: left-right asymmetry
 c                  3: triaxial and left-right symmetry
@@ -401,7 +403,7 @@ c
             endif
           endif
   110   continue
-        if (nfisbar(Zix,Nix).eq.1.and.fbarrier(Zix,Nix,1).eq.0.) 
+        if (nfisbar(Zix,Nix).eq.1.and.fbarrier(Zix,Nix,1).eq.0.)
      +    deltaW(Zix,Nix,1)=deltaW(Zix,Nix,2)
       endif
 c

@@ -1,7 +1,7 @@
       subroutine dwbaecis
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : October 16, 2007
 c | Task  : ECIS calculations of DWBA for MSD
 c +---------------------------------------------------------------------
@@ -29,7 +29,7 @@ c
       open (unit=9,status='unknown',file='ecisdwba.inp')
       title='DWBA cross sections for MSD                       '
       ecis1='FFFFFFFFFFFTFFFFFFFFFFFFFFFTFTFFFFFFFFFFFFFFFFFFFF'
-      ecis2='FFFFFFFFTFFFFTFFTTTFTTTFTFFFFFFFFFFFFFFFFFFFTFFFFF'    
+      ecis2='FFFFFFFFTFFFFTFFTTTFTTTFTFFFFFFFFFFFFFFFFFFFTFFFFF'
       if (flagrel) ecis1(8:8)='T'
       ncoll=maxJmsd+2
       iterm=1
@@ -47,7 +47,7 @@ c onethird  : 1/3
 c projmass  : mass of projectile
 c Einc      : incident energy in MeV
 c numl      : maximum l-value (set in talys.cmb)
-c betamsd   : deformation parameter 
+c betamsd   : deformation parameter
 c k0        : index of incident particle
 c angbeg    : first angle
 c anginc    : angle increment
@@ -70,11 +70,11 @@ c
 c ***************** Loop over possible one-step reactions **************
 c
 c flagoutdwba  : flag for output of DWBA cross sections for MSD
-c parskip      : logical to skip outgoing particle 
+c parskip      : logical to skip outgoing particle
 c Zindex,Zix   : charge number index for residual nucleus
-c Nindex,Nix   : neutron number index for residual nucleus   
+c Nindex,Nix   : neutron number index for residual nucleus
 c QQ           : Q-value
-c S            : separation energy per particle 
+c S            : separation energy per particle
 c flagonestep  : flag for continuum one-step direct only
 c nen1end      : help variable
 c msdbins2     : number of energy points for MSD calculation
@@ -82,16 +82,16 @@ c Emsdin       : incident MSD energy
 c specmass     : specific mass for target nucleus
 c Emsd         : MSD energy grid
 c Emsdout      : outgoing MSD energy
-c Exmsd        : excitation energy for MSD energy grid 
+c Exmsd        : excitation energy for MSD energy grid
 c flagecisdwba : flag for new ECIS calculation for DWBA for MSD
-c ecisdwbamac  : subroutine to create ECIS input file for macroscopic 
+c ecisdwbamac  : subroutine to create ECIS input file for macroscopic
 c                DWBA calculation for MSD
 c dwbaread     : subroutine to read ECIS results for DWBA for MSD
 c dwbaout      : subroutine for output of ECIS results for DWBA for MSD
 c dwbaint      : subroutine to interpolate DWBA cross sections for MSD
-c onecontinuumA: subroutine for unnormalized one-step direct cross 
+c onecontinuumA: subroutine for unnormalized one-step direct cross
 c                sections for MSD
-c onestepA     : subroutine for unnormalized one-step direct cross 
+c onestepA     : subroutine for unnormalized one-step direct cross
 c                sections for outgoing energy grid
 c
       if (flagoutdwba) write(*,
@@ -99,7 +99,7 @@ c
 c
 c *************************** Macroscopic MSD **************************
 c
-c 2. First exchange one-step reaction for multi-step 
+c 2. First exchange one-step reaction for multi-step
 c
       do 10 ii=1,2
         if (ii.eq.2) then
@@ -108,7 +108,7 @@ c
             write(*,'(" TALYS-error: The first calculation of a run",
      +        " should always be done with ecissave y and ecisdwba y")')
             stop
-          endif      
+          endif
           open (unit=8,status='unknown',file='ecis06.msdang')
           open (unit=10,status='unknown',file='ecis06.msdin')
         endif
@@ -144,7 +144,7 @@ c
    20   continue
         if (flagonestep) goto 300
 c
-c 3. Inelastic one-step reaction for multi-step 
+c 3. Inelastic one-step reaction for multi-step
 c
         do 110 type=1,2
           if (parskip(type)) goto 110
@@ -171,7 +171,7 @@ c
           endif
   110   continue
 c
-c 4. Second exchange one-step reaction for multi-step 
+c 4. Second exchange one-step reaction for multi-step
 c
         do 210 itype=1,2
           if (parskip(itype)) goto 210
@@ -208,7 +208,7 @@ c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
 c ecis06t    : subroutine ecis06, adapted for TALYS
-c ecisstatus : status of ECIS file  
+c ecisstatus : status of ECIS file
 c
           if (flagoutecis) then
             outfile='ecisdwba.out '
@@ -217,7 +217,7 @@ c
           endif
           call ecis06t('ecisdwba.inp ',outfile,
      +      'ecis06.msdcs ','ecis06.msdin ','null         ',
-     +      'ecis06.msdang','null         ')  
+     +      'ecis06.msdang','null         ')
           open (unit=9,status='unknown',file='ecisdwba.inp')
           close (unit=9,status=ecisstatus)
         endif

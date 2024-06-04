@@ -1,4 +1,4 @@
-      function fcoul(epscloc)                        
+      function fcoul(epscloc)
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
@@ -19,10 +19,10 @@ c **********************************************************************
 c
       if (epscloc) 10,20,30
  10   fcoul=(1.+epscloc**2)**(1./3.)/epscloc*atan(epscloc)
-      return                                                            
- 20   fcoul=1.                                                          
-      return                                                            
+      return
+ 20   fcoul=1.
+      return
  30   fcoul=(1.-epscloc**2)**(1./3.)/(2.*epscloc)*
      +  alog((1.+epscloc)/(1.-epscloc))
-      return                                                            
-      end                                                               
+      return
+      end

@@ -19,9 +19,9 @@ c ir          : counter for xr,yr
 c
 c a,b     : coefficient of the segment line if segment // neither
 c           to the x-axis nor to the y-axis
-c xa,ya   : intersection of the segment with the vertical axis linking 
+c xa,ya   : intersection of the segment with the vertical axis linking
 c           (xl,yl) with (xl,yu)
-c xb,yb   : intersection of the segment with the vertical axis linking 
+c xb,yb   : intersection of the segment with the vertical axis linking
 c           (xu,yl) with (xu,yu)
 c xc,yc   : intersection of the segment with the horizontal axis linking
 c           (xl,yl) with (xu,yl)
@@ -67,7 +67,7 @@ c
         return
       endif
 c
-c normal segment crossing the bin 
+c normal segment crossing the bin
 c
       a=(ys-ye)/(xs-xe)
       b=ys-a*xs

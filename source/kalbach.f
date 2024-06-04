@@ -19,7 +19,7 @@ c kalbach   : Kalbach function
 c Ein       : incident energy
 c Eout      : outgoing energy
 c ang       : angle
-c Et1,c1,...: constants of Kalbach systematics 
+c Et1,c1,...: constants of Kalbach systematics
 c Smyers    : Myers-Swiatecki separation energy
 c k0        : index of incident particle
 c akal      : Kalbach 'a' parameter
@@ -27,7 +27,7 @@ c fourpi    : 4.*pi
 c
 c  Systematics of Kalbach: Phys. Rev. C37, 2350, (1987)
 c
-c Since we separate the pre-equilibrium (xspreeqad) and compound 
+c Since we separate the pre-equilibrium (xspreeqad) and compound
 c (xscompad) angular distribution in the output we only need to take
 c the forward peaked component of the Kalbach formula to calculate the
 c pre-equilibrium angular distribution.
@@ -41,7 +41,7 @@ c
       if (k0.eq.0.or.type.eq.0) then
         kalbach=1./fourpi
       else
-        ea=Ein+Smyers(k0) 
+        ea=Ein+Smyers(k0)
         Ek1=min(ea,Et1)
         Ek3=min(ea,Et3)
         eb=Eout+Smyers(type)

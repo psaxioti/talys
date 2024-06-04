@@ -1,7 +1,7 @@
       subroutine totalxs
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
+c | Author: Arjan Koning
 c | Date  : October 4, 2007
 c | Task  : Total cross sections
 c +---------------------------------------------------------------------
@@ -13,12 +13,12 @@ c
 c
 c *********************** Specific cross sections **********************
 c
-c flagchannels: flag for exclusive channels calculation 
+c flagchannels: flag for exclusive channels calculation
 c parskip     : logical to skip outgoing particle
 c xsexclusive : exclusive single channel cross section
 c xschannel   : channel cross section
 c idnum       : counter for exclusive channel
-c idchannel   : identifier for exclusive channel   
+c idchannel   : identifier for exclusive channel
 c xsexclcont  : exclusive single channel cross section for continuum
 c xsdisctot   : total cross section summed over discrete states
 c
@@ -48,10 +48,10 @@ c *************** Total particle production cross sections *************
 c
 c xsparticle  : total particle production cross section
 c Zcomp       : charge number index for compound nucleus
-c maxZ        : maximal number of protons away from the initial 
+c maxZ        : maximal number of protons away from the initial
 c               compound nucleus
 c Ncomp       : neutron number index for compound nucleus
-c maxN        : maximal number of neutrons away from the initial 
+c maxN        : maximal number of neutrons away from the initial
 c               compound nucleus
 c xsfeed      : cross section from compound to residual nucleus
 c multiplicity: particle multiplicity
@@ -64,7 +64,7 @@ c
           do 120 Ncomp=0,maxN
             xsparticle(type)=xsparticle(type)+xsfeed(Zcomp,Ncomp,type)
   120   continue
-        if (xsreacinc.ne.0.) 
+        if (xsreacinc.ne.0.)
      +    multiplicity(type)=xsparticle(type)/xsreacinc
   110 continue
 c

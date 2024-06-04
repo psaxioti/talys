@@ -53,7 +53,7 @@ c
 c
 c Check triangular inequalities, find no. of terms in sum,
 c divide I's by 2
-c 
+c
       n = i(16)
       do j=1,12
         k = i(j)/2
@@ -109,4 +109,4 @@ c
         racah = real(h*s)
       endif
       return
-      end  
+      end

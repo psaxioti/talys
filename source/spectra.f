@@ -1,8 +1,8 @@
       subroutine spectra
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : May 5, 2008
+c | Author: Arjan Koning
+c | Date  : January 5, 2011
 c | Task  : Creation of spectra
 c +---------------------------------------------------------------------
 c
@@ -26,7 +26,7 @@ c parZ              : charge number of particle
 c parN              : neutron number of particle
 c flagadd           : flag for addition of discrete states to spectra
 c flagnatural       : flag for calculation of natural element
-c Elast             : last outgoing energy for smoothed discrete 
+c Elast             : last outgoing energy for smoothed discrete
 c                     contribution
 c Einc              : incident energy in MeV
 c elwidth           : width of elastic peak in MeV
@@ -43,19 +43,19 @@ c parA              : mass number of particle
 c convfac1,.....    : conversion factor for reference system
 c xsdiscout         : total smoothed cross section for discrete state
 c xsgr              : smoothed giant resonance cross section
-c xspreeq,xspreeqout: preequilibrium cross section per particle type 
+c xspreeq,xspreeqout: preequilibrium cross section per particle type
 c                     and outgoing energy
 c xsmpreeq          : multiple pre-equilibrium emission spectrum
 c xsmpreeqout       : multiple pre-equilibrium emission spectrum
-c xscomp,xscompout  : compound emission spectrum     
-c flagddx           : flag for output of double-differential cross 
-c                     sections 
+c xscomp,xscompout  : compound emission spectrum
+c flagddx           : flag for output of double-differential cross
+c                     sections
 c nanglecont        : number of angles for continuum
 c xsdiscoutad       : smoothed angular distribution for discrete state
 c xsgrad            : smoothed giant resonance angular distribution
-c xspreeqoutad      : preequilibrium angular distribution per particle 
+c xspreeqoutad      : preequilibrium angular distribution per particle
 c                     type
-c xsmpreeqoutad     : multiple preequilibrium angular distribution 
+c xsmpreeqoutad     : multiple preequilibrium angular distribution
 c xscompoutad       : compound emission angular distribution
 c xscompad          : compound emission angular distribution
 c flagendf          : flag for information for ENDF-6 file
@@ -67,21 +67,21 @@ c Eout              : outgoing energy
 c Ea,Eb,factor      : help variables
 c flagaddel         : flag for addition of elastic peak to spectra
 c diswidth          : width of discrete level peak
-c eninccm           : center-of-mass incident energy in MeV        
+c eninccm           : center-of-mass incident energy in MeV
 c fac1,fac2         : help variables
 c sqrttwopi         : sqrt(2.*pi)
 c gauss             : Gaussian contribution
 c iangdisc          : counter for discrete angle
 c nangle            : number of angles
 c directad          : direct angular distribution
-c discad            : discrete state angular distribution 
+c discad            : discrete state angular distribution
 c
       xsdisc(k0,Ltarget)=xselastot
       do 10 type=0,6
         if (parskip(type)) goto 10
         if (xsparticle(type).eq.0.) goto 10
         NL=Nlast(parZ(type),parN(type),0)
-        if (flagadd) then
+        if (flagadd.or.type.ge.2) then
           if (flagnatural) then
             Elast=Einc-6.-elwidth
           else
@@ -119,7 +119,7 @@ c
    30       continue
           endif
    20   continue
-        if (.not.flagadd) goto 100
+        if (.not.(flagadd.or.type.ge.2)) goto 100
         if (flagendf) then
           fine=2
         else
@@ -178,8 +178,7 @@ c
             if (flagddx) then
               do 70 iang=0,nanglecont
                 iangdisc=real(iang*nangle)/nanglecont
-                if (directad(type,i,iangdisc).ne.0.) 
-     +            xsdiscoutad(type,nenout,iang)=
+                  xsdiscoutad(type,nenout,iang)=
      +            xsdiscoutad(type,nenout,iang)+
      +            gauss*discad(type,i,iangdisc)
    70         continue
@@ -190,7 +189,7 @@ c
 c ************************ Create total spectra ************************
 c
 c xssumout  : cross section summed over mechanisms
-c preeqratio: pre-equilibrium ratio 
+c preeqratio: pre-equilibrium ratio
 c xssumoutad: angular distribution summed over mechanisms
 c
   100   do 110 nen=ebegin(type),eendout(type)
