@@ -58,4 +58,4 @@ c
       endif
       return
       end
-Copyright (C) 2005  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

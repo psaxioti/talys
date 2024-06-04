@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : December 21, 2011
+c | Date  : October 23, 2013
 c | Task  : Compound reaction for initial compound nucleus
 c +---------------------------------------------------------------------
 c
@@ -21,7 +21,8 @@ c
       real             Tinc,fluxsum,ratio,Tout,Rspin,angfac,rJ,rlin,
      +                 rjin,rlout,rjout,phase,rLL,clin,clebsch,ra1in,
      +                 racah,ra2in,clout,ra1out,ra2out,Ablatt
-      double precision factor1,sumIPE,sumIP,sumIPas,rho,sumjl,compterm
+      double precision factor1,fisterm,sumIPE,sumIP,sumIPas,rho,sumjl,
+     +                 compterm
 c
 c *** Check if initial compound nucleus calculation needs to be done ***
 c
@@ -100,6 +101,7 @@ c
         do 10 l=0,lmaxinc
           Tjlnex(k0,Ltarget,updown,l)=Tjlinc(updown,l)
    10 continue
+      nex=maxex(Zcomp,Ncomp)
 c
 c Initialisation of total astrophysical transmission coefficient
 c
@@ -167,7 +169,7 @@ c
         do 120 J2=J2beg,J2end,2
           J=J2/2
           if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0)
-     +      call tfission(Zcomp,Ncomp,J2,parity)
+     +      call tfission(Zcomp,Ncomp,nex,J2,parity)
           call compprepare(Zcomp,Ncomp,J2,parity)
           if (denomhf.eq.0.) goto 120
           if (flagwidth) call widthprepare
@@ -258,6 +260,7 @@ c tfis         : fission transmission coefficients
 c xsbinary     : cross section from initial compound to residual nucleus
 c CNfactor     : factor for compound nucleus cross section:
 c                pi/[ k**2 (2s+1)(2I+1) ]
+c fisfeedJP    : fission contribution from excitation energy bin per J,P
 c
               fluxsum=0.
 c
@@ -268,27 +271,31 @@ c cross section. Also the transmission coefficient index for width
 c fluctuations is increased.
 c
               if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0) then
-                if (flagwidth.or.flagcompang) then
+                if (flagwidth.or.flagcompang.or.flagurr) then
                   tnumo=tnum
                   if (flagwidth.and.wmode.ge.1) then
                     tnumo=tnum-numhill
                     factor1=0.
-                    do 150 ihill=1,numhill
-                      tnumo=tnumo+1
-                      ratio=tfisA(J,parity,ihill)/tfisA(J,parity,0)
-                      if (ratio.eq.0.) goto 150
-                      call widthfluc(0)
-                      factor1=factor1+
-     +                  real(Tinc*tfis(J,parity)/denomhf*Wab)*ratio
-  150               continue
-                    fluxsum=fluxsum+factor1
+                    if (tfisA(J,parity,0).gt.0.) then
+                      do 150 ihill=1,numhill
+                        tnumo=tnumo+1
+                        ratio=tfisA(J,parity,ihill)/tfisA(J,parity,0)
+                        if (ratio.eq.0.) goto 150
+                        call widthfluc(0)
+                        factor1=factor1+
+     +                    real(Tinc*tfis(J,parity)/denomhf*Wab)*ratio
+  150                 continue
+                      fluxsum=fluxsum+factor1
+                    endif
                   else
                     factor1=real(Tinc*tfis(J,parity)/denomhf)
                   endif
                 else
                   factor1=real(feed*tfis(J,parity)/denomhf)
                 endif
-                xsbinary(-1)=xsbinary(-1)+CNfactor*(J2+1.)*factor1
+                fisterm=CNfactor*(J2+1.)*factor1
+                xsbinary(-1)=xsbinary(-1)+fisterm
+                fisfeedJP(0,0,maxex(0,0)+1,J,parity)=fisterm
 c
 c Extract (L,J) dependent parameters for URR (Gilles Noguere)
 c
@@ -408,7 +415,7 @@ c On-set of loop over jprime in the case of width fluctuations or
 c angular distributions.
 c
                       sumjl=0.
-                      if (flagwidth.or.flagcompang) then
+                      if (flagwidth.or.flagcompang.or.flagurr) then
                         jj2primebeg=abs(J2-Irspin2)
                         jj2primeend=J2+Irspin2
                       endif
@@ -422,7 +429,7 @@ c
 c On-set of loop over lprime in the case of width fluctuations or
 c angular distributions.
 c
-                        if (flagwidth.or.flagcompang) then
+                        if (flagwidth.or.flagcompang.or.flagurr) then
                           l2primebeg=abs(jj2prime-parspin2o)
                           l2primeend=jj2prime+parspin2o
                           l2primeend=min(l2primeend,l2maxhf)
@@ -435,7 +442,7 @@ c
 c We include photons as a special case, with the multipole radiation
 c selection rules (irad=0: M-transition, irad=1: E-transition)
 c
-                          if (flagwidth.or.flagcompang) then
+                          if (flagwidth.or.flagcompang.or.flagurr) then
 c
 c 1. Photons
 c
@@ -633,11 +640,13 @@ c Determine angular momentum range for URR calculation
 c
 c Turrljinc   : incident channel (l,j) transmission coefficient for
 c               URR calculation
+c Purrlj      : (l,j) parity for URR calculation
 c lminU,lmaxU : minimal and maximal orbital angular momentum
 c JminU,JmaxU : minimal and maximal total angular momentum
 c
               if (flagurr.and.l.le.lurr) then
                 Turrljinc(l,J)=Turrljinc(l,J)+Tinc
+                Purrlj(l,J)=parity
                 if (l.le.lminU) lminU=l
                 if (l.ge.lmaxU) lmaxU=l
                 if (J.le.JminU(l)) JminU(l)=J
@@ -685,7 +694,6 @@ c flagfisout : flag for output of fission information
 c tfissionout: subroutine for output of fission transmission
 c              coefficients
 c
-      nex=maxex(Zcomp,Ncomp)
       if (flagfisout) call tfissionout(Zcomp,Ncomp,nex)
 c
 c **** ECIS calculation of compound cross sections (reference only) ****
@@ -701,4 +709,4 @@ c
       if (flageciscomp) call raynalcomp
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

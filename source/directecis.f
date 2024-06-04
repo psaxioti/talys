@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 17, 2009
+c | Date  : August 19, 2013
 c | Task  : ECIS calculation of direct cross section
 c +---------------------------------------------------------------------
 c
@@ -91,6 +91,7 @@ c
 c
 c ******************* Write ECIS input files ***************************
 c
+c flagecisinp: flag for existence of ecis input file
 c parskip   : logical to skip outgoing particle
 c Zindex,Zix: charge number index for residual nucleus
 c Nindex,Nix: neutron number index for residual nucleus
@@ -109,6 +110,7 @@ c tarparity : parity of target nucleus
 c anginc    : angle increment
 c nangle    : number of angles
 c
+      flagecisinp=.false.
       do 10 type=k0,k0
         if (parskip(type)) goto 10
         Zix=Zindex(0,0,type)
@@ -178,6 +180,7 @@ c
           Kmag(1)=0
           iph(2)=1
           vibbeta(1)=deform(Zix,Nix,i)
+          flagecisinp=.true.
           call ecisinput(Zix,Nix,type,Einc,rotational,vibrational,
      +      jlmloc)
    20   continue
@@ -205,11 +208,13 @@ c
               vibbeta(1)=betagr(l,i)
               if (deftype(Zix,Nix).eq.'D')
      +          vibbeta(1)=vibbeta(1)*rv*real(Atarget)**onethird
+              flagecisinp=.true.
               call ecisinput(Zix,Nix,type,Einc,rotational,vibrational,
      +          jlmloc)
    30     continue
         endif
    10 continue
+      if (.not.flagecisinp) return
       write(9,'("fin")')
       close (unit=9)
       legendre=.false.
@@ -219,7 +224,7 @@ c
 c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
-c ecis06t    : subroutine ecis06, adapted for TALYS
+c ecist      : subroutine ecis, adapted for TALYS
 c ecisstatus : status of ECIS file
 c
       if (flagoutecis) then
@@ -227,10 +232,10 @@ c
       else
         outfile=nulldev
       endif
-      call ecis06t('ecisdisc.inp ',outfile,'ecis06.dircs ',
-     +  'ecis06.dirin ','null         ','ecis06.dirang','ecis06.dirleg')
+      call ecist('ecisdisc.inp ',outfile,'ecis.dircs   ',
+     +  'ecis.dirin   ','null         ','ecis.dirang  ','ecis.dirleg  ')
       open (unit=9,status='unknown',file='ecisdisc.inp')
       close (unit=9,status=ecisstatus)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

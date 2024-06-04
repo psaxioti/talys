@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 29, 2010
+c | Date  : August 19, 2013
 c | Task  : ECIS calculation for incident particle on ENDF-6 energy grid
 c +---------------------------------------------------------------------
 c
@@ -210,6 +210,7 @@ c flagrel  : flag for relativistic kinematics
 c disp     : flag for dispersive optical model
 c efer     : Fermi energy
 c w2disp,..: constants for imaginary potentials
+c flagecisinp: flag for existence of ecis input file
 c nen6     : total number of energies
 c e        : energy in MeV
 c e6       : energies of ENDF-6 energy grid in MeV
@@ -228,6 +229,7 @@ c
         d3disp=d3(Zix,Nix,k0)
         d2disp=d2(Zix,Nix,k0)
       endif
+      flagecisinp=.false.
       do 110 nen=1,nen6
         e=real(e6(nen))
         if (k0.gt.1.and.e.lt.coullimit(k0)) goto 110
@@ -275,18 +277,20 @@ c
      +      e.le.2.*Elevel(ncoll)) e=0.1*Elevel(ncoll)
           if (flagrel) ecis1(8:8)='T'
         endif
+        flagecisinp=.true.
         call ecisinput(Zix,Nix,k0,e,rotational,vibrational,jlmloc)
   110 continue
+      if (.not.flagendfecis) return
+      if (.not.flagecisinp) return
       write(9,'("fin")')
       close (unit=9)
-      if (.not.flagendfecis) return
 c
 c ************ ECIS calculation for outgoing energies ******************
 c
 c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
-c ecis06t    : subroutine ecis06, adapted for TALYS
+c ecist      : subroutine ecis, adapted for TALYS
 c ecisstatus : status of ECIS file
 c
       if (flagoutecis) then
@@ -294,10 +298,10 @@ c
       else
         outfile=nulldev
       endif
-      call ecis06t('ecisendf.inp ',outfile,'ecis06.endfcs',
-     +  'ecis06.endfin','null         ','null         ','null         ')
+      call ecist('ecisendf.inp ',outfile,'ecis.endfcs  ',
+     +  'ecis.endfin  ','null         ','null         ','null         ')
       open (unit=9,status='unknown',file='ecisendf.inp')
       close (unit=9,status=ecisstatus)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

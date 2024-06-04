@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 20, 2011
+c | Date  : April 27, 2013
 c | Task  : ECIS calculation for incident energy
 c +---------------------------------------------------------------------
 c
@@ -240,7 +240,7 @@ c
           endif
           iqmax=8
         endif
-        inelfile='ecis06.incin '
+        inelfile='ecis.incin '
       endif
 c
 c ************** Calculate optical potential parameters ****************
@@ -326,7 +326,7 @@ c
 c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
-c ecis06t    : subroutine ecis06, adapted for TALYS
+c ecist      : subroutine ecis, adapted for TALYS
 c ecisstatus : status of ECIS file
 c
       if (flagoutecis) then
@@ -334,10 +334,10 @@ c
       else
         outfile=nulldev
       endif
-      call ecis06t('ecisinc.inp  ',outfile,'ecis06.inccs ',inelfile,
-     +  'ecis06.inctr ','ecis06.incang','ecis06.incleg')
+      call ecist('ecisinc.inp  ',outfile,'ecis.inccs   ',inelfile,
+     +  'ecis.inctr   ','ecis.incang  ','ecis.incleg  ')
       open (unit=9,status='unknown',file='ecisinc.inp')
       close (unit=9,status=ecisstatus)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

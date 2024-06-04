@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 19, 2007
+c | Date  : June 10, 2012
 c | Task  : Output of particle production cross sections
 c +---------------------------------------------------------------------
 c
@@ -35,7 +35,7 @@ c numinclow : number of incident energies below Elow
 c parsym    : symbol of particle
 c k0        : index of incident particle
 c Atarget   : mass number of target nucleus
-c nuc       : symbol of nucleus
+c Starget   : symbol of target nucleus
 c Ztarget   : charge number of target nucleus
 c numinc    : number of incident energies
 c eninc,Einc: incident energy in MeV
@@ -46,7 +46,7 @@ c
           if (nin.eq.numinclow+1) then
             open (unit=1,status='unknown',file=totfile)
             write(1,'("# ",a1," + ",i3,a2," Total ",a8," production")')
-     +        parsym(k0),Atarget,nuc(Ztarget),parname(type)
+     +        parsym(k0),Atarget,Starget,parname(type)
             write(1,'("# Q-value    =",1p,e12.5)') Q(type)
             write(1,'("# ")')
             write(1,'("# # energies =",i3)') numinc
@@ -83,7 +83,7 @@ c
           if (nin.eq.numinclow+1) then
             open (unit=1,status='unknown',file=fisfile)
             write(1,'("# ",a1," + ",i3,a2,"   : (",a1,",f)        ",
-     +        "  Total")') parsym(k0),Atarget,nuc(Ztarget),parsym(k0)
+     +        "  Total")') parsym(k0),Atarget,Starget,parsym(k0)
             write(1,'("# ")')
             write(1,'("# ")')
             write(1,'("# # energies =",i3)') numinc
@@ -103,4 +103,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 5, 2006
+c | Date  : June 10, 2012
 c | Task  : Natural abundances
 c +---------------------------------------------------------------------
 c
@@ -24,6 +24,7 @@ c ch     : character
 c abfile : isotopic abundance file
 c abchar : help variable
 c Ztarget: charge number of target nucleus
+c Starget: symbol of target nucleus
 c path   : directory containing structure files to be read
 c lenpath: length of pathname
 c ia     : mass number from abundance table
@@ -83,7 +84,7 @@ c
       write(*,'(/" Calculation for multi-isotope case"/)')
       write(*,'("  Isotope Abundance"/)')
       do 150 i=1,isonum
-        write(*,'(2x,i3,a2,f11.6)') isotope(i),nuc(Ztarget),abun(i)
+        write(*,'(2x,i3,a2,f11.6)') isotope(i),Starget,abun(i)
   150 continue
 c
 c Create file name extensions
@@ -102,4 +103,4 @@ c
      +  abfile
       stop
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

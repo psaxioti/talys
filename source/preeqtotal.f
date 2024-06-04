@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : March 28, 2010
+c | Date  : January 21, 2012
 c | Task  : Total pre-equilibrium cross sections
 c +---------------------------------------------------------------------
 c
@@ -127,8 +127,9 @@ c ppi0          : initial proton number
 c pnu           : neutron particle number
 c pnu0          : initial neutron number
 c xsstep2       : two-component preequilibrium cross section
-c flagpespin    : flag for pre-equilibrium spin distribution or compound
-c                 spin distribution for pre-equilibrium cross section
+c pespinmodel   : model for pre-equilibrium spin distribution or
+c                 compound spin distribution for pre-equilibrium cross
+c                 section
 c parity        : parity
 c maxJph        : maximal spin for particle-hole states
 c xspreeqJP     : preequilibrium cross section per particle type,
@@ -170,7 +171,7 @@ c
      +              norm
   160         continue
             endif
-            if (flagpespin) then
+            if (pespinmodel.eq.3) then
               do 170 parity=-1,1,2
                 do 170 J=0,maxJph
                   xspreeqJP(type,nen,J,parity)=
@@ -196,4 +197,4 @@ c
   210 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

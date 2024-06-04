@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire, Marieke Duijvestijn and Arjan Koning
-c | Date  : December 20, 2011
+c | Date  : February 16, 2012
 c | Task  : Fission parameters
 c +---------------------------------------------------------------------
 c
@@ -71,9 +71,9 @@ c
       if (fislocal.eq.1) then
         fisfile=path(1:lenpath)//'fission/barrier/'//fischar
         inquire (file=fisfile,exist=lexist)
-        if (.not.lexist) goto 100
+        if (.not.lexist) goto 120
         open (unit=2,status='old',file=fisfile)
-  110   read(2,'(4x,i4,4x,1x,2(f8.2),5x,2(f8.2))',end=100)
+  110   read(2,'(4x,i4,4x,1x,2(f8.2),5x,2(f8.2))',end=120)
      +    ia,bar1,hw1,bar2,hw2
         if (A.ne.ia) goto 110
         if (fbarrier(Zix,Nix,1).eq.0.) fbarrier(Zix,Nix,1)=bar1
@@ -82,6 +82,7 @@ c
         if (fwidth(Zix,Nix,2).eq.0.) fwidth(Zix,Nix,2)=hw2
         if (nfisbar(Zix,Nix).ne.3) nfisbar(Zix,Nix)=2
         close (unit=2)
+  120   if (nfisbar(Zix,Nix).eq.0) fislocal=2
       endif
 c
 c Fismodel 2: Mamdouh parameters

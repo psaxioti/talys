@@ -2,13 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 22, 2011
+c | Date  : December 23, 2012
 c | Task  : Constants and basic properties of particles
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      integer indx
 c
 c ****************** General properties of particles *******************
 c
@@ -72,17 +73,21 @@ c
 c
 c *********************** Fundamental constants ************************
 c
-c pi    : pi
-c amu   : atomic mass unit in MeV
-c e2    : square of elementary charge in MeV.fm
-c hbar  : Planck's constant / 2.pi in MeV.s
-c clight: speed of light in vacuum in m/s
-c kT    : energy kT expressed in MeV corresponding to a
-c         temperature T9=1
+c pi      : pi
+c amu     : atomic mass unit in MeV
+c e2      : square of elementary charge in MeV.fm
+c hbar    : Planck's constant / 2.pi in MeV.s
+c clight  : speed of light in vacuum in m/s
+c kT      : energy kT expressed in MeV corresponding to a
+c           temperature T9=1
+c emass   : electron mass in MeV/c^2
+c avogadro: Avogadro's number
+c qelem   : elementary charge in C
 c
       data pi /3.14159265358979323/
       data amu,e2 /931.49386,1.439965161/
       data hbar,clight /6.5821220e-22,2.99792458e8/
-      data kT /0.086173/
+      data kT,emass /0.086173,0.510999/
+      data avogadro,qelem /6.0221367e23,1.6021773e-19/
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

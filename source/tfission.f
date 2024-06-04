@@ -1,15 +1,16 @@
-      subroutine tfission(Zcomp,Ncomp,J2,parity)
+      subroutine tfission(Zcomp,Ncomp,nex,J2,parity)
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Pascal Romain
-c | Date  : October 25, 2011
+c | Date  : December 30, 2011
 c | Task  : Fission transmission coefficients
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer          Zcomp,Ncomp,J2,parity,J,iloop,ihill,ic2,jc2,pc2
+      integer          Zcomp,Ncomp,nex,J2,parity,J,iloop,ihill,ic2,jc2,
+     +                 pc2
       real             Eex,term1,term2,damper,expo,ec2,wo2,diffnrj,
      +                 wo2damp,boost,boostmax,Ecut,Ecut1,Ecut2,term11,
      +                 term21,term12,term22,damper1,damper2,wo2damp1,
@@ -42,7 +43,7 @@ c
 c J and parity are in loops outside this subroutine
 c
       J=J2/2
-      dExinc=deltaEx(Zcomp,Ncomp)
+      dExinc=deltaEx(Zcomp,Ncomp,nex)
       do 10 iloop=1,3
         tf=0.
         if (iloop.eq.1) then
@@ -220,4 +221,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

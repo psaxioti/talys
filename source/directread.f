@@ -2,13 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : September 17, 2011
+c | Date  : April 27, 2013
 c | Task  : Read ECIS results for direct cross section
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      logical lexist
       integer          type,Zix,Nix,NL,i,iS,nS,k,nleg,l,iang,itype
       real             levelenergy,xsdwbatot
       double precision xs,ddl
@@ -31,9 +32,11 @@ c xs              : help variable
 c xsdirdisc       : direct cross section for discrete state
 c dorigin         : origin of direct cross section (Direct or Preeq)
 c
-      open (unit=8,status='unknown',file='ecis06.dirang')
-      open (unit=9,status='unknown',file='ecis06.dirleg')
-      open (unit=10,status='unknown',file='ecis06.dirin')
+      inquire (file='ecis.dirang',exist=lexist)
+      if (.not.lexist) return
+      open (unit=8,status='unknown',file='ecis.dirang')
+      open (unit=9,status='unknown',file='ecis.dirleg')
+      open (unit=10,status='unknown',file='ecis.dirin')
       do 10 type=k0,k0
         if (parskip(type)) goto 10
         Zix=Zindex(0,0,type)
@@ -171,8 +174,8 @@ c
       close (unit=8,status=ecisstatus)
       close (unit=9,status=ecisstatus)
       close (unit=10,status=ecisstatus)
-      open (unit=3,status='unknown',file='ecis06.dircs')
+      open (unit=3,status='unknown',file='ecis.dircs')
       close (unit=3,status=ecisstatus)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

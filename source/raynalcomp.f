@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 17, 2007
+c | Date  : April 27, 2013
 c | Task  : ECIS calculation of compound cross sections (reference only)
 c +---------------------------------------------------------------------
 c
@@ -124,7 +124,7 @@ c
         Zix=0
         Nix=0
         aldcomp(0)=alev(Zix,Nix)
-        Umcomp(0)=Exmatch(Zix,Nix,0)-pair(Zix,Nix)
+        Umcomp(0)=max(Exmatch(Zix,Nix,0)-pair(Zix,Nix),0.)
         tempcomp(0)=T(Zix,Nix,0)
         E0comp(0)=E0(Zix,Nix,0)
         Excomp(0)=Umcomp(0)+pair(Zix,Nix)
@@ -145,7 +145,7 @@ c
         Zix=Zindex(0,0,type)
         Nix=Nindex(0,0,type)
         ethrcm=eninccm+Q(type)
-        econt=edis(Zix,Nix,NLmax)+0.5*deltaEx(Zix,Nix)
+        econt=edis(Zix,Nix,NLmax)+0.5*deltaEx(Zix,Nix,NLmax+1)
         if (econt.lt.ethrcm) then
           ilevel=ilevel+1
           typecomp(ilevel)=type
@@ -158,7 +158,7 @@ c
           prodZcomp(ilevel)=parZ(type)*Z
           ildens=ildens+1
           aldcomp(ildens)=alev(Zix,Nix)
-          Umcomp(ildens)=Exmatch(Zix,Nix,0)-pair(Zix,Nix)
+          Umcomp(ildens)=max(Exmatch(Zix,Nix,0)-pair(Zix,Nix),0.)
           tempcomp(ildens)=T(Zix,Nix,0)
           E0comp(ildens)=E0(Zix,Nix,0)
           Excomp(ildens)=Umcomp(ildens)+pair(Zix,Nix)
@@ -237,18 +237,18 @@ c
 c ************************** ECIS calculation **************************
 c
 c flagoutecis: flag for output of ECIS results
-c ecis06t    : subroutine ecis06, adapted for TALYS
+c ecist      : subroutine ecis, adapted for TALYS
 c nulldev    : null device
 c
       if (flagoutecis) then
-        call ecis06t('eciscomp.inp ','eciscomp.out ',
-     +    'ecis06.comcs ','ecis06.comin ','null         ',
-     +    'ecis06.comang','ecis06.comleg')
+        call ecist('eciscomp.inp ','eciscomp.out ',
+     +    'ecis.comcs   ','ecis.comin   ','null         ',
+     +    'ecis.comang  ','ecis.comleg  ')
       else
-        call ecis06t('eciscomp.inp ',nulldev,
-     +    'ecis06.comcs ','ecis06.comin ','null         ',
-     +    'ecis06.comang','ecis06.comleg')
+        call ecist('eciscomp.inp ',nulldev,
+     +    'ecis.comcs   ','ecis.comin   ','null         ',
+     +    'ecis.comang  ','ecis.comleg  ')
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

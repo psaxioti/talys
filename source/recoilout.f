@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : April 9, 2009
+c | Date  : November 1, 2012
 c | Task  : Output of recoils
 c +---------------------------------------------------------------------
 c
@@ -37,6 +37,7 @@ c sumcm     : total residual production in the CM frame
 c xselasinc : total elastic cross section (neutrons only) for incident
 c             channel
 c filerecoil: flag for recoil spectra on separate file
+c Starget   : symbol of target nucleus
 c Einc      : incident energy in MeV
 c
       write(*,'(/" 8. Recoil spectra")')
@@ -69,8 +70,8 @@ c
           write(recfile(14:20),'(f7.3)') Einc
           write(recfile(14:16),'(i3.3)') int(Einc)
           open (unit=1,status='unknown',file=recfile)
-          write(1,'("# ",a1," + ",i3,a2,": Recoil spectrum for",i3,a2)')
-     +      parsym(k0),Atarget,nuc(Ztarget),A,nuc(Z)
+          write(1,'("# ",a1," + ",i3,a2,": Recoil spectrum for ",
+     +      i3,a2)') parsym(k0),Atarget,Starget,A,nuc(Z)
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
           write(1,'("# # energies =",i3)') maxenrec+1
@@ -84,4 +85,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 28, 2011
+c | Date  : June 10, 2012
 c | Task  : Output of double-differential cross sections
 c +---------------------------------------------------------------------
 c
@@ -35,6 +35,7 @@ c xscompoutad  : compound emission angular distribution
 c ddxecount    : counter for double-differential cross section files
 c fileddxe     : designator for double-differential cross sections on
 c                separate file: angular distribution
+c Starget      : symbol of target nucleus
 c natstring    : string extension for file names
 c iso          : counter for isotope
 c locate       : subroutine to find value in ordered table
@@ -77,7 +78,7 @@ c
             write(ddxfile(14:16),'(i3.3)') int(enf)
             open (unit=1,status='unknown',file=ddxfile)
             write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum")')
-     +        parsym(k0),Atarget,nuc(Ztarget),parname(type)
+     +        parsym(k0),Atarget,Starget,parname(type)
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# E-emission = ",f7.3)') enf
             write(1,'("# # angles =",i3)') nanglecont+1
@@ -136,7 +137,7 @@ c
               write(ddxfile(14:16),'(i3.3)') int(enf)
               open (unit=1,status='unknown',file=ddxfile)
               write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum",
-     +          " in LAB system")') parsym(k0),Atarget,nuc(Ztarget),
+     +          " in LAB system")') parsym(k0),Atarget,Starget,
      +          parname(type)
               write(1,'("# E-incident = ",f7.3)') Einc
               write(1,'("# E-emission = ",f7.3)') enf
@@ -192,7 +193,7 @@ c
             write(ddxfile(14:16),'(i3.3)') int(angf)
             open (unit=1,status='unknown',file=ddxfile)
             write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum")')
-     +        parsym(k0),Atarget,nuc(Ztarget),parname(type)
+     +        parsym(k0),Atarget,Starget,parname(type)
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# Angle      = ",f7.3)') angf
             write(1,'("# # energies =",i3)')
@@ -246,7 +247,7 @@ c
               write(ddxfile(14:16),'(i3.3)') int(angf)
               open (unit=1,status='unknown',file=ddxfile)
               write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum",
-     +          " in LAB system")') parsym(k0),Atarget,nuc(Ztarget),
+     +          " in LAB system")') parsym(k0),Atarget,Starget,
      +          parname(type)
               write(1,'("# E-incident = ",f7.3)') Einc
               write(1,'("# Angle      = ",f7.3)') angf
@@ -265,4 +266,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : September 27, 2011
+c | Date  : December 2, 2013
 c | Task  : Read input for third set of variables
 c +---------------------------------------------------------------------
 c
@@ -33,7 +33,7 @@ c epreeq      : on-set incident energy for preequilibrium calculation
 c Emaxtalys   : maximum acceptable energy for TALYS
 c emulpre     : on-set incident energy for multiple preequilibrium
 c               calculation
-c flagpespin  : flag for pre-equilibrium spin distribution or compound
+c pespinmodel : model for pre-equilibrium spin distribution or compound
 c               spin distribution for pre-equilibrium cross section
 c maxband     : highest vibrational level added to rotational model
 c maxrot      : number of included excited rotational levels
@@ -47,12 +47,15 @@ c flag2comp   : flag for two-component pre-equilibrium model
 c flagchannels: flag for exclusive channels calculation
 c flagfission : flag for fission
 c Atarget     : mass number of target nucleus
+c fislim      : mass above which nuclide fissions
 c ldmodelall  : level density model for all nuclides
 c flagparity  : flag for non-equal parity distribution
 c flaghbstate : flag for head band states in fission
 c flagclass2  : flag for class2 states in fission
 c flagbasic   : flag for output of basic information and results
 c flageciscomp: flag for compound nucleus calculation by ECIS
+c flagcpang   : flag for compound angular distribution calculation for
+c               incident charged particles
 c flagecisdwba: flag for new ECIS calculation for DWBA for MSD
 c flagonestep : flag for continuum one-step direct only
 c flaglocalomp: flag for local (y) or global (n) optical model
@@ -78,6 +81,8 @@ c               density parameter g
 c flagmassdis : flag for calculation of fission fragment mass yields
 c flagffevap  : flag for calculation of particle evaporation from
 c               fission fragment mass yields
+c fymodel     : fission yield model, 1: Brosa 2: GEF
+c flagfisfeed : flag for output of fission per excitation bin
 c flagendf    : flag for information for ENDF-6 file
 c flagendfdet : flag for detailed ENDF-6 information per channel
 c flagrecoil  : flag for calculation of recoils
@@ -105,7 +110,11 @@ c
         epreeq=-1.
       endif
       emulpre=20.
-      flagpespin=.false.
+      if (k0.le.1) then
+        pespinmodel=1
+      else
+        pespinmodel=2
+      endif
       maxband=0
       maxrot=2
       if (k0.ge.1) then
@@ -126,12 +135,12 @@ c
       flag2comp=.true.
       flagchannels=.false.
       flagfission=.false.
-      if (Atarget.gt.209) flagfission=.true.
+      if (Atarget.gt.fislim) flagfission=.true.
 c
 c ldmodel=5 (Combinatorial HFB model) has parity-dependent
 c level densities.
 c
-      if (ldmodelall.eq.5) then
+      if (ldmodelall.ge.5) then
         flagparity=.true.
       else
         flagparity=.false.
@@ -140,6 +149,7 @@ c
       flagclass2=.true.
       flagbasic=.false.
       flageciscomp=.false.
+      flagcpang=.false.
       flagecisdwba=.true.
       flagonestep=.false.
       flaglocalomp=.true.
@@ -163,7 +173,9 @@ c
       flagasys=.false.
       flaggshell=.false.
       flagmassdis=.false.
-      flagffevap=.false.
+      flagffevap=.true.
+      fymodel=2
+      flagfisfeed=.false.
       flagendf=.false.
       if (k0.le.1) then
         flagendfdet=.true.
@@ -300,9 +312,15 @@ c
           goto 110
         endif
         if (key.eq.'preeqspin') then
-          if (ch.eq.'n') flagpespin=.false.
-          if (ch.eq.'y') flagpespin=.true.
-          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          if (ch.eq.'n') then
+            pespinmodel=1
+            goto 110
+          endif
+          if (ch.eq.'y') then
+            pespinmodel=3
+            goto 110
+          endif
+          read(value,*,end=300,err=300) pespinmodel
           goto 110
         endif
         if (key.eq.'giantresonance') then
@@ -362,6 +380,12 @@ c
         if (key.eq.'eciscompound') then
           if (ch.eq.'n') flageciscomp=.false.
           if (ch.eq.'y') flageciscomp=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
+        if (key.eq.'cpang') then
+          if (ch.eq.'n') flagcpang=.false.
+          if (ch.eq.'y') flagcpang=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif
@@ -476,6 +500,16 @@ c
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif
+        if (key.eq.'fisfeed') then
+          if (ch.eq.'n') flagfisfeed=.false.
+          if (ch.eq.'y') flagfisfeed=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
+        if (key.eq.'fymodel') then
+          read(value,*,end=300,err=300) fymodel
+          goto 110
+        endif
         if (key.eq.'endf') then
           if (ch.eq.'n') flagendf=.false.
           if (ch.eq.'y') flagendf=.true.
@@ -559,4 +593,4 @@ c
   300 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
       stop
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

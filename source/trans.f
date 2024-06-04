@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : February 25, 2010
+c | Date  : November 28, 2013
 c | Task  : Transmission coefficients per fission mode
 c +---------------------------------------------------------------------
 c
@@ -28,6 +28,7 @@ c
      +    then
           sold=snew
           i=i+1
+          if (i.gt.10) goto 20
           call trapzd(Zix,Nix,xa,xb,snew,i)
           goto 10
         else
@@ -35,10 +36,11 @@ c
           if (icount.eq.2) goto 20
           sold=snew
           i=i+1
+          if (i.gt.10) goto 20
           call trapzd(Zix,Nix,xa,xb,snew,i)
           goto 10
         endif
  20     transm=snew
       endif
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

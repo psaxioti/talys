@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 14, 2011
+c | Date  : December 9, 2013
 c | Task  : Two-component multiple preequilibrium model
 c +---------------------------------------------------------------------
 c
@@ -43,6 +43,15 @@ c pre-equilibrium emission to occur.
 c
       if (Zcomp.eq.0.and.Ncomp.eq.0) return
       sumfeed=0.
+      do ipn=0,numparx
+        do ipp=0,numparx
+          do nexout=0,numex
+            do type=1,2
+              factor(type,nexout,ipn,ipp)=0.
+            enddo
+          enddo
+        enddo
+      enddo
       do 10 ipp=0,maxpar
         do 10 ihp=0,maxpar
           do 10 ipn=0,maxpar
@@ -151,6 +160,9 @@ c
           sumterm=0.
           do 140 type=1,2
             sumtype(type)=0.
+            do nexout=0,numex
+              term(type,nexout)=0.
+            enddo
             if (parskip(type)) goto 140
             Zix=Zindex(Zcomp,Ncomp,type)
             Nix=Nindex(Zcomp,Ncomp,type)
@@ -161,7 +173,6 @@ c
               if (ipp-zejec.lt.0) goto 140
               if (ipn-nejec.lt.0) goto 140
             endif
-            dEx=deltaEx(Zix,Nix)
 c
 c 150: Loop over residual excitation energy bins
 c
@@ -194,10 +205,10 @@ c mpecontrib: contribution to multiple pre-equilibrium emission spectrum
 c xspopex   : population cross section summed over spin and parity
 c
             do 150 nexout=Nlast(Zix,Nix,0)+1,nexmax(type)
+              dEx=deltaEx(Zix,Nix,nexout)
               Eex=Ex(Zix,Nix,nexout)
               Eo=Exinc-Eex-S(Zcomp,Ncomp,type)
               call locate(egrid,ebegin(type),eend(type),Eo,nen)
-              term(type,nexout)=0.
               if (mpreeqmode.eq.2) then
                 if (omegaph.gt.0.) then
                   gsp=gp(Zix,Nix)
@@ -377,4 +388,4 @@ c
       preeqpopex(Zcomp,Ncomp,nex)=preeqpopex(Zcomp,Ncomp,nex)-summpe
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

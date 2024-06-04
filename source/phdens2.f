@@ -3,7 +3,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 25, 2009
+c | Date  : December 13, 2013
 c | Task  : Two-component particle-hole state density
 c +---------------------------------------------------------------------
 c
@@ -50,8 +50,7 @@ c
       phdens2=0.
       if (ppi.lt.0.or.hpi.lt.0.or.pnu.lt.0.or.hnu.lt.0) return
       if (ppi+hpi+pnu+hnu.eq.0) return
-      if (phmodel.eq.1.or.Zix.gt.numZph.or.Nix.gt.numNph.or.
-     +  .not.phexist2(Zix,Nix,ppi,hpi,pnu,hnu)) then
+      if (phmodel.eq.1.or..not.phexist2(Zix,Nix,ppi,hpi,pnu,hnu)) then
         Ap=Apauli2(ppi,hpi,pnu,hnu)
         factorn=(pnu*pnu+hnu*hnu+pnu+hnu)/(4.*gsn)
         factorp=(ppi*ppi+hpi*hpi+ppi+hpi)/(4.*gsp)
@@ -101,4 +100,4 @@ c
       if (phdens2.lt.1.e-10) phdens2=0.
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

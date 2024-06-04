@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : October 26, 2011
+c | Date  : April 4, 2012
 c | Task  : Level density matching solution
 c +---------------------------------------------------------------------
 c
@@ -125,9 +125,10 @@ c matching   : subroutine to determine matching between temperature
 c              and Fermi-gas region
 c pol1       : subroutine for interpolation of first order
 c rhomatch   : level density at matching point
+c Tadjust....: adjustable factors for level density parameters
 c
    60   Tm=T(Zix,Nix,ibar)
-        Exm=Exmatch(Zix,Nix,ibar)
+        Exm=Exmatchadjust(Zix,Nix,ibar)*Exmatch(Zix,Nix,ibar)
         E0m=E0(Zix,Nix,ibar)
         E0save=E0m
 c
@@ -216,9 +217,23 @@ c
           E0m=Exm-Tm*real(log(dble(Tm)*rhomatch))
         endif
         if (Tm.eq.0.) Tm=Tmemp
-        T(Zix,Nix,ibar)=Tm
+c
+c Possible iteration after input defined adjustment
+c
+        if (T(Zix,Nix,ibar).eq.0..and.Tadjust(Zix,Nix,ibar).ne.1.) then
+          T(Zix,Nix,ibar)=Tadjust(Zix,Nix,ibar)*Tm
+          goto 60
+        else
+          T(Zix,Nix,ibar)=Tm
+        endif
+        if (E0(Zix,Nix,ibar).eq.1.e-20.and.E0adjust(Zix,Nix,ibar).ne.1.)
+     +    then
+          E0(Zix,Nix,ibar)=E0adjust(Zix,Nix,ibar)*E0m
+          goto 60
+        else
+          E0(Zix,Nix,ibar)=E0m
+        endif
         Exmatch(Zix,Nix,ibar)=Exm
-        E0(Zix,Nix,ibar)=E0m
    10 continue
 c
 c Set theoretical value of D0
@@ -232,4 +247,4 @@ c
       D0theo(Zix,Nix)=Dl(0)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

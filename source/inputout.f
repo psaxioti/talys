@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 10, 2011
+c | Date  : December 1, 2013
 c | Task  : Write input parameters
 c +---------------------------------------------------------------------
 c
@@ -63,6 +63,8 @@ c               nucleus
 c maxN        : maximal number of neutrons away from the initial
 c               compound nucleus
 c nbins0      : number of continuum excitation energy bins
+c flagequi    : flag to use equidistant excitation bins instead of
+c               logarithmic bins
 c segment     : number of segments to divide emission energy grid
 c nlevmax     : maximum number of included discrete levels for target
 c nlevmaxres  : maximum number of included discrete levels for residual
@@ -99,6 +101,10 @@ c flagastrogs : flag for calculation of astrophysics reaction rate with
 c               target in ground state only
 c massmodel   : model for theoretical nuclear mass
 c flagexpmass : flag for using experimental nuclear mass if available
+c disctable   : table with discrete levels
+c flagprod    : flag for isotope production
+c flagoutfy   : flag for output detailed fission yield calculation
+c gefran      : number of random events for GEF calculation
 c
       write(*,'(" #"/" # Basic physical and numerical parameters")')
       write(*,'(" #")')
@@ -112,6 +118,9 @@ c
      +  " compound nucleus")') maxN
       write(*,'(" bins              ",i3,"     nbins        ",
      +  "number of continuum excitation energy bins")') nbins0
+      write(*,'(" equidistant         ",a1,"     flagequi    ",
+     +  " flag to use equidistant excitation bins instead of ",
+     +  "logarithmic bins")') yesno(flagequi)
       write(*,'(" segment           ",i3,"     segment    ",
      +  "  number of segments to divide emission energy grid")') segment
       write(*,'(" maxlevelstar      ",i3,"     nlevmax",
@@ -141,7 +150,7 @@ c
      +  " for limit for fission cross section per nucleus")') Rfiseps
       write(*,'(" elow            ",1p,e9.2," elow         minimal",
      +  " incident energy for nuclear model calculations")') eninclow
-      write(*,'(" angles            ",i3,"     nangle"
+      write(*,'(" angles            ",i3,"     nangle",
      +  "       number of angles")') nangle
       write(*,'(" anglescont        ",i3,"     nanglecont",
      +  "   number of angles for continuum")') nanglecont
@@ -182,6 +191,59 @@ c
       write(*,'(" expmass             ",a1,"     flagexpmass ",
      +  " flag for using experimental nuclear mass if available")')
      +  yesno(flagexpmass)
+      write(*,'(" disctable          ",i2,"     disctable",
+     +  "    table with discrete levels")') disctable
+      write(*,'(" production          ",a1,"     flagprod    ",
+     +  " flag for isotope production")') yesno(flagprod)
+      write(*,'(" outfy               ",a1,"     flagoutfy   ",
+     +  " flag for output detailed fission yield calculation")')
+     +  yesno(flagoutfy)
+      write(*,'(" gefran        ",i7,"     gefran       number ",
+     +  "of random events for GEF calculation")') gefran
+c
+c Isotope production
+c
+c Ebeam     : incident energy in MeV for isotope production
+c Eback     : lower end of energy range in MeV for isotope production
+c radiounit : unit for radioactivity: Bq, kBq, MBq, Gbq,
+c             mCi, Ci or kCi
+c yieldunit : unit for isotope yield: num (number),
+c             mug (micro-gram), mg, g, or kg
+c Ibeam     : beam current in mA
+c Tirrad    : irradiation time per unit
+c unitTirrad: irradiation time unit (y,d,h,m,s)
+c Area      : target area in cm^2
+c Tcool     : cooling time per unit
+c unitTcool : cooling time unit (y,d,h,m,s)
+c rhotarget : target density
+c
+      if (flagprod) then
+        write(*,'(" #"/" # Isotope production "/" #")')
+        write(*,'(" Ebeam             ",f7.3," beam    ",
+     +    "     incident energy in MeV for isotope production")') Ebeam
+        write(*,'(" Eback             ",f7.3," Eback  ",
+     +    "      lower end of energy range in MeV for isotope",
+     +    "  production")') Eback
+        write(*,'(" radiounit             ",a3," radiounit ",
+     +    "   unit for radioactivity")') radiounit
+        write(*,'(" yieldunit             ",a3," yieldunit ",
+     +    "   unit for isotope yield")') yieldunit
+        write(*,'(" Ibeam             ",f7.3," Ibeam ",
+     +    "       beam current in mA")') Ibeam
+        do 30 i=1,5
+          if (Tirrad(i).gt.0) write(*,'(" Tirrad      ",i9,
+     +      "     Tirrad       ",a1," of irradiation time")')
+     +      Tirrad(i),unitTirrad(i)
+   30   continue
+        write(*,'(" Area              ",f7.3," Area  ",
+     +    "       target area in cm^2")') Area
+        do 40 i=1,5
+          if (Tcool(i).gt.0) write(*,'(" Tcool       ",i9,"     Tcool ",
+     +      "       ",a1," of cooling time")') Tcool(i),unitTcool(i)
+   40   continue
+        write(*,'(" rho               ",f7.3," rhotarget",
+     +    "    target density [g/cm^3] ")') rhotarget
+      endif
 c
 c 3. Optical model
 c
@@ -190,6 +252,7 @@ c flagdisp    : flag for dispersive optical model
 c flagjlm     : flag for using semi-microscopic JLM OMP
 c flagompall  : flag for new optical model calculation for all residual
 c               nuclei
+c flagincadj  : flag for OMP adjustment on incident channel also
 c flagomponly : flag to execute ONLY an optical model calculation
 c flagautorot : flag for automatic rotational coupled channels
 c               calculations for A > 150
@@ -226,6 +289,8 @@ c
       write(*,'(" optmodall           ",a1,"     flagompall   flag for",
      +  " new optical model calculation for all residual nuclei")')
      +  yesno(flagompall)
+      write(*,'(" incadjust           ",a1,"     flagincadj   flag for",
+     +  " OMP adjustment on incident channel also")') yesno(flagincadj)
       write(*,'(" omponly             ",a1,"     flagomponly ",
      +  " flag to execute ONLY an optical model calculation")')
      +  yesno(flagomponly)
@@ -269,7 +334,7 @@ c
       write(*,'(" ecissave            ",a1,"     flagecissave flag",
      +  " for saving ECIS input and output files")') yesno(flagecissave)
       write(*,'(" eciscalc            ",a1,"     flageciscalc",
-     +  " flag for new ECIS calculation for outgoing particles and"
+     +  " flag for new ECIS calculation for outgoing particles and",
      +  " energy grid")') yesno(flageciscalc)
       write(*,'(" inccalc             ",a1,"     flaginccalc ",
      +  " flag for new ECIS calculation for incident channel")')
@@ -302,6 +367,8 @@ c flagcomp    : flag for compound nucleus calculation
 c flagfullhf  : flag for full spin dependence of transmission
 c               coefficients
 c flageciscomp: flag for compound nucleus calculation by ECIS
+c flagcpang   : flag for compound angular distribution calculation for
+c               incident charged particles
 c eurr        : off-set incident energy for URR calculation
 c flagurr     : flag for output of unresolved resonance parameters
 c lurr        : maximal orbital angular momentum for URR
@@ -324,6 +391,9 @@ c
      +  yesno(flagfullhf)
       write(*,'(" eciscompound        ",a1,"     flageciscomp flag for",
      +  " compound nucleus calculation by ECIS")') yesno(flageciscomp)
+      write(*,'(" cpang               ",a1,"     flagcpang    flag for",
+     +  " compound angular distribution calculation for incident",
+     +  " charged particles")') yesno(flagcpang)
       if (numinc.gt.1.and.enincmin.lt.eurr.and.enincmax.ge.eurr) then
         write(*,'(" urr               ",f7.3," eurr         off-set",
      +    " incident energy for URR calculation")') eurr
@@ -332,7 +402,7 @@ c
      +    "  flag for URR calculation")') yesno(flagurr)
       endif
       write(*,'(" urrnjoy             ",a1,"     flagurrnjoy  flag for",
-     +  " normalization of URR parameters with NJOY method")') 
+     +  " normalization of URR parameters with NJOY method")')
      +  yesno(flagurrnjoy)
       write(*,'(" lurr              ",i3,"     lurr       ",
      +  "  maximal orbital angular momentum for URR")') lurr
@@ -343,6 +413,8 @@ c gammax      : number of l-values for gamma multipolarity
 c strength    : model for E1 gamma-ray strength function
 c strengthM1  : model for M1 gamma-ray strength function
 c flagelectron: flag for application of electron conversion coefficient
+c flagracap   : flag for radiative capture model
+c ldmodelracap: level density model for direct radiative capture
 c
       write(*,'(" #"/" # Gamma emission"/" #")')
       write(*,'(" gammax             ",i2,"     gammax",
@@ -354,6 +426,11 @@ c
       write(*,'(" electronconv        ",a1,"     flagelectron",
      +  " flag for application of electron conversion coefficient")')
      +  yesno(flagelectron)
+      write(*,'(" racap               ",a1,"     flagracap   ",
+     +  " flag for radiative capture model")') yesno(flagracap)
+      write(*,'(" ldmodelracap       ",i2,"     ldmodelracap",
+     +  " level density model for direct radiative capture")')
+     +  ldmodelracap
 c
 c 6. Pre-equilibrium
 c
@@ -365,7 +442,7 @@ c mpreeqmode  : designator for multiple pre-equilibrium model
 c emulpre     : on-set incident energy for multiple preequilibrium
 c phmodel     : particle-hole state density model
 c pairmodel   : model for preequilibrium pairing energy
-c flagpespin  : flag for pre-equilibrium spin distribution or compound
+c pespinmodel : model for pre-equilibrium spin distribution or compound
 c               spin distribution for pre-equilibrium cross section
 c flaggiant0  : flag for collective contribution from giant resonances
 c flagsurface : flag for surface effects in exciton model
@@ -401,9 +478,8 @@ c
      +  "  particle-hole state density model")') phmodel
       write(*,'(" pairmodel          ",i2,"     pairmodel",
      +  "    designator for pre-equilibrium pairing model")') pairmodel
-      write(*,'(" preeqspin           ",a1,"     flagpespin",
-     +  "   flag for pre-equilibrium spin distribution")')
-     +  yesno(flagpespin)
+      write(*,'(" preeqspin           ",i1,"     pespinmodel",
+     +  "  model for pre-equilibrium spin distribution")') pespinmodel
       write(*,'(" giantresonance      ",a1,"     flaggiant    ",
      +  "flag for collective contribution from giant resonances")')
      +  yesno(flaggiant0)
@@ -470,6 +546,8 @@ c flagclass2 : flag for class2 states in fission
 c flagmassdis: flag for calculation of fission fragment mass yields
 c flagffevap : flag for calculation of particle evaporation from
 c              fission fragment mass yields
+c flagfisfeed: flag for output of fission per excitation bin
+c fymodel    : fission yield model, 1: Brosa 2: GEF
 c
       write(*,'(" #"/" # Fission"/" #")')
       write(*,'(" fission             ",a1,"     flagfission",
@@ -488,6 +566,11 @@ c
       write(*,'(" ffevaporation       ",a1,"     flagffevap  ",
      +  " flag for calculation of particle evaporation",
      +  " from fission fragment mass yields")') yesno(flagffevap)
+      write(*,'(" fisfeed             ",a1,"     flagfisfeed",
+     +  "  flag for output of fission per excitation bin")')
+     +  yesno(flagfisfeed)
+      write(*,'(" fymodel             ",i1,"     fymodel    ",
+     +  "  fission yield model, 1: Brosa 2: GEF")') fymodel
 c
 c 9. Output
 c
@@ -614,4 +697,4 @@ c
      +  yesno(flagpartable)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

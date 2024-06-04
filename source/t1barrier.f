@@ -3,17 +3,18 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Marieke Duijvestijn
-c | Date  : February 18, 2009
+c | Date  : December 15, 2013
 c | Task  : Fission transmission coefficient for one barrier
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      character*80     key
       integer          Zcomp,Ncomp,J2,parity,ibar,iloop,J,itr,j2trans,
      +                 pitrans,ihill,i
-      real             Eex,bfis,wfis,etrans,Eeff,twkbint,thill,elow,
-     +                 emid,eup,dE1,dE2
+      real             Eex,fbar,factor1,factor2,bfis,wfis,etrans,Eeff,
+     +                 twkbint,thill,elow,emid,eup,dE1,dE2
       double precision trfis,rhof,trfisone,rho1,rho2,rho3,r1log,r2log,
      +                 r3log,rho,rhotr
 c
@@ -34,22 +35,45 @@ c
 c
 c Correct LDM barrier height with ground state shell correction
 c
-c fismodelx: fission model
-c nfisbar  : number of fission barrier parameters
-c bfis,wfis: help variables
-c fbarrier : height of fission barrier
-c deltaW   : shell correction in nuclear mass
-c fwidth   : width of fission barrier
+c fisadjust : logical for energy-dependent fission adjustment
+c adjust    : subroutine for energy-dependent parameter adjustment
+c factor1,. : multiplication factor
+c fbaradjust: adjustable factors for fission parameters
+c             (default 1.)
+c fbarrier  : height of fission barrier
+c fismodelx : fission model
+c nfisbar   : number of fission barrier parameters
+c bfis,wfis : help variables
+c deltaW    : shell correction in nuclear mass
+c fwidth    : width of fission barrier
 c
+      if (fisadjust(Zcomp,Ncomp)) then
+        key='fisbar'
+        call adjust(Eex,key,Zcomp,Ncomp,0,ibar,factor1)
+        key='fisbaradjust'
+        call adjust(Eex,key,Zcomp,Ncomp,0,ibar,factor2)
+        fbar=factor1*factor2*fbarrier(Zcomp,Ncomp,ibar)*
+     +    fbaradjust(Zcomp,Ncomp,ibar)
+      else
+        fbar=fbarrier(Zcomp,Ncomp,ibar)
+      endif
       if ((fismodelx(Zcomp,Ncomp).ge.3).or.
      +  ((fismodelx(Zcomp,Ncomp).lt.3).and.(nfisbar(Zcomp,Ncomp).eq.1)))
      +  then
-        bfis=fbarrier(Zcomp,Ncomp,ibar)-
-     +    (deltaW(Zcomp,Ncomp,0)-deltaW(Zcomp,Ncomp,1))
+        bfis=fbar-(deltaW(Zcomp,Ncomp,0)-deltaW(Zcomp,Ncomp,1))
       else
-        bfis=fbarrier(Zcomp,Ncomp,ibar)
+        bfis=fbar
       endif
-      wfis=fwidth(Zcomp,Ncomp,ibar)
+      if (fisadjust(Zcomp,Ncomp)) then
+        key='fishw'
+        call adjust(Eex,key,Zcomp,Ncomp,0,ibar,factor1)
+        key='fishwadjust'
+        call adjust(Eex,key,Zcomp,Ncomp,0,ibar,factor2)
+        wfis=factor1*factor2*fwidth(Zcomp,Ncomp,ibar)*
+     +    fwidthadjust(Zcomp,Ncomp,ibar)
+      else
+        wfis=fwidth(Zcomp,Ncomp,ibar)
+      endif
 c
 c 1. Discrete states
 c
@@ -111,9 +135,9 @@ c
           eup=min(eintfis(i+2,ibar),Eex)
           dE1=emid-elow
           dE2=eup-emid
-          rho1=rhofis(i,J,parity,ibar)*(1.+1.d-10)
-          rho2=rhofis(i+1,J,parity,ibar)
-          rho3=rhofis(i+2,J,parity,ibar)*(1.+1.d-10)
+          rho1=rhofis(i,J,parity,ibar)*(1.+1.d-10)+1.d-10
+          rho2=rhofis(i+1,J,parity,ibar)+1.d-10
+          rho3=rhofis(i+2,J,parity,ibar)*(1.+1.d-10)+1.d-10
           r1log=log(rho1)
           r2log=log(rho2)
           r3log=log(rho3)
@@ -144,4 +168,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 16, 2007
+c | Date  : December 13, 2013
 c | Task  : Matching function
 c +---------------------------------------------------------------------
 c
@@ -24,6 +24,7 @@ c E0save      : E0 value saved for matching routine
 c NLo,EL,NP,EP: matching level numbers and energies
 c factor1,2   : help variables
 c
+      match=0.
       dEx=0.1
       i=max(int(Eex/dEx),1)
       call pol1(i*dEx,(i+1)*dEx,temprho(i),temprho(i+1),Eex,temp)
@@ -42,4 +43,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

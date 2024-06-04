@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 11, 2011
+c | Date  : August 19, 2013
 c | Task  : ECIS calculation for outgoing particles and energy grid
 c +---------------------------------------------------------------------
 c
@@ -18,6 +18,7 @@ c ********************** Set ECIS input parameters *********************
 c
 c Zcomp       : charge number index for compound nucleus
 c Ncomp       : neutron number index for compound nucleus
+c flaginvecis : logical for calculating inverse channel OMP
 c legendre    : logical for output of Legendre coefficients
 c hint        : integration step size h
 c rmatch      : matching radius
@@ -31,6 +32,7 @@ c rhojlmp     : density for protons
 c rhojlmn     : density for neutrons
 c flageciscalc: flag for new ECIS calculation for outgoing particles
 c               and energy grid
+c flagecisinp : flag for existence of ecis input file
 c parskip     : logical to skip outgoing particle
 c Zindex      : charge number index for residual nucleus
 c Nindex      : neutron number index for residual nucleus
@@ -45,6 +47,7 @@ c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
 c ecis2(13)=T : output of transmission coefficients
 c ecis2(14)=F : no output of elastic angular distribution
 c
+      flaginvecis=.true.
       legendre=.false.
       hint=0.
       rmatch=0.
@@ -64,6 +67,7 @@ c
    10     continue
         endif
       endif
+      flagecisinp=.false.
       if (flageciscalc)
      +  open (unit=9,status='unknown',file='ecisinv.inp')
       do 110 type=1,6
@@ -327,10 +331,13 @@ c
             if (flagrel) ecis1(8:8)='T'
             if (disp(Zix,Nix,type)) ecis1(10:10)='T'
           endif
+          flagecisinp=.true.
           call ecisinput(Zix,Nix,type,e,rotational,vibrational,jlmloc)
   210   continue
   110 continue
+      flaginvecis=.false.
       if (.not.flageciscalc) return
+      if (.not.flagecisinp) return
       write(9,'("fin")')
       close (unit=9)
 c
@@ -340,7 +347,7 @@ c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
 c csfile     : file with inverse reaction cross sections
-c ecis06t    : subroutine ecis06, adapted for TALYS
+c ecist      : subroutine ecis, adapted for TALYS
 c transfile  : file with transmission coefficients
 c ecisstatus : status of ECIS file
 c
@@ -349,10 +356,10 @@ c
       else
         outfile=nulldev
       endif
-      call ecis06t('ecisinv.inp  ',outfile,csfile,
-     +    'ecis06.invin ',transfile,'null         ','null         ')
+      call ecist('ecisinv.inp  ',outfile,csfile,
+     +    'ecis.invin   ',transfile,'null         ','null         ')
       open (unit=9,status='unknown',file='ecisinv.inp')
       close (unit=9,status=ecisstatus)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

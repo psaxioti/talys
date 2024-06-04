@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : January 2, 2011
+c | Date  : June 2, 2012
 c | Task  : Tabulated level densities
 c +---------------------------------------------------------------------
 c
@@ -60,9 +60,14 @@ c
           if (ldmod.eq.4) then
             denfile=
      +       path(1:lenpath)//'density/ground/goriely/'//denchar//'.tab'
-          else
+          endif
+          if (ldmod.eq.5) then
             denfile=
      +       path(1:lenpath)//'density/ground/hilaire/'//denchar//'.tab'
+          endif
+          if (ldmod.eq.6) then
+            denfile=path(1:lenpath)//'density/ground/hilaireD1M/'//
+     +        denchar//'.tab'
           endif
         endif
 c
@@ -92,9 +97,14 @@ c
 c
 c Third barrier
 c
-        if (ibar.eq.3.and.ldmod.eq.5)
-     +    denfile=path(1:lenpath)//'density/fission/hilaire/Max3/'
-     +      //denchar
+        if (ibar.eq.3) then
+          if (ldmod.eq.5) then
+            denfile=path(1:lenpath)//'density/fission/hilaire/Max3/'
+     +        //denchar
+          else
+            goto 10
+          endif
+        endif
 c
 c Check existence of file and read data from the tables.
 c
@@ -102,7 +112,7 @@ c
         if (lexist) then
           open (unit=2,status='old',file=denfile)
           do 20 parity=1,ploop,-2
-   30       read(2,'(/31x,i3//)',end=10) ia
+   30       read(2,'(/31x,i3//)',end=80) ia
             if (A.ne.ia) then
               do 40 nex=1,nendens(Zix,Nix)+1
                 read(2,'()')
@@ -158,6 +168,7 @@ c
               read(2,'()')
             endif
    20     continue
+   80     close (unit=2)
         endif
 c
 c Special case: make parity-independent level densities from
@@ -183,4 +194,4 @@ c
      +  " Z=",i3," A=",i3)') Z,A
       stop
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

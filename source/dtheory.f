@@ -2,15 +2,15 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 26, 2011
+c | Date  : October 1, 2012
 c | Task  : Theoretical calculation of average neutron spacings
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer          Zix,Nix,l,J,Nres,tspin2,tpar,parspin2i,J2b,J2e,
-     +                 parity,J2,jj2beg,jj2end,jj2,l2beg,l2end,l2
+      integer          Zix,Nix,l,J,Nres,L0,tspin2,tpar,parspin2i,J2b,
+     +                 J2e,parity,J2,jj2beg,jj2end,jj2,l2beg,l2end,l2
       real             E,tspin
       double precision rho(0:numl,0:numJ),rhosum,density
 c
@@ -59,12 +59,17 @@ c
    10 continue
       Nres=min(numN,Nix+1)
       call levels(Zix,Nres)
-      tspin=jdis(Zix,Nres,0)
-      tspin2=int(2.*jdis(Zix,Nres,0))
-      tpar=parlev(Zix,Nres,0)
-      parspin2i=int(2.*parspin(k0))
-      J2b=mod(int(2.*(tspin+parspin(k0))),2)
-      J2e=int(2*(lmaxinc+parspin(k0)+tspin))
+      if (Zix.eq.0.and.Nix.eq.0) then
+        L0=Ltarget
+      else
+        L0=0
+      endif
+      tspin=jdis(Zix,Nres,L0)
+      tspin2=int(2.*jdis(Zix,Nres,L0))
+      tpar=parlev(Zix,Nres,L0)
+      parspin2i=1
+      J2b=mod(int(2.*(tspin+0.5)),2)
+      J2e=int(2*(lmaxinc+0.5+tspin))
       J2e=min(J2e,2*numJ)
       do 110 parity=-1,1,2
         pardif=abs(tpar-parity)/2
@@ -95,4 +100,4 @@ c
   150 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

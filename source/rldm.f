@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : March 21, 2012
+c | Date  : December 13, 2013
 c | Task  : Saddle point energies, rotating gs energy
 c +---------------------------------------------------------------------
 c
@@ -95,6 +95,8 @@ c
    90 iy=int(by)
       cy=iy
       dy=by-cy
+      ix=min(ix,9)
+      iy=min(iy,19)
       h1=(x3h(ix+1,iy)-x3h(ix,iy))*dx+x3h(ix,iy)
       h2=(x3h(ix+1,iy+1)-x3h(ix,iy+1))*dx+x3h(ix,iy+1)
       hf=(h2-h1)*dy+h1

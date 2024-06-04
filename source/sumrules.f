@@ -84,4 +84,4 @@ c
       betagr(3,2)=sqrt(Sheor/Egrcoll(3,2))
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

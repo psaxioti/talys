@@ -3,18 +3,20 @@ c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn, Arjan Koning, Stephane Hilaire,
 c |         Stephane Goriely and Pascal Romain
-c | Date  : September 28, 2011
+c | Date  : April 4, 2012
 c | Task  : Collective enhancement
 c +---------------------------------------------------------------------
 c
 c ******************* Declarations and common blocks *******************
 c
       include "talys.cmb"
-      integer Zix,Nix,ibar,A,l
-      real    Eex,ald,Krot,Kvib,Kcoll,Krot0,Kvib0,U,aldgs,ignatyuk,Temp,
-     +        rotfactor,aldint,damprot,avib,Pvib,Tvib,deltaS,deltaU,
-     +        Cvib,term,omegavib(3),gammavib,nvib,damper,expo0,expo,
-     +        spincutgs,spincutbf,spincut,aldf
+      character*80 key
+      integer      Zix,Nix,ibar,A,l
+      real         Eex,ald,Krot,Kvib,Kcoll,Krot0,Kvib0,U,aldgs,ignatyuk,
+     +             Temp,Kr,factor,rotfactor,aldint,damprot,avib,Pvib,
+     +             Tvib,deltaS,deltaU,Cvib,term,omegavib(3),gammavib,
+     +             nvib,damper,expo0,expo,spincutgs,spincutbf,spincut,
+     +             aldf
 c
 c ************************ Collective enhancement **********************
 c
@@ -36,6 +38,9 @@ c delta    : energy shift
 c pair     : total pairing correction
 c ignatyuk : function for energy dependent level density parameter a
 c Temp     : nuclear temperature
+c adjust   : subroutine for energy-dependent parameter adjustment
+c factor   : multiplication factor
+c ldadjust : logical for energy-dependent level density adjustment
 c
       Krot=1.
       Krot0=1.
@@ -52,6 +57,13 @@ c
         aldgs=ignatyuk(Zix,Nix,Eex,0)
       endif
       Temp=sqrt(U/aldgs)
+      if (ldadjust(Zix,Nix)) then
+        key='krotconstant'
+        call adjust(Eex,key,Zix,Nix,0,ibar,factor)
+        Kr=factor*Krotconstant(Zix,Nix,ibar)
+      else
+        Kr=Krotconstant(Zix,Nix,ibar)
+      endif
 c
 c 1. Specific collective enhancement for Bruyeres-le-Chatel
 c    (Pascal Romain) fission model
@@ -79,12 +91,12 @@ c Tri-axial barrier
 c
         if (axtype(Zix,Nix,ibar).eq.2) then
           aldint=ald*8./13.5
-          rotfactor=Krotconstant(Zix,Nix,ibar)*(U/aldint)**(0.25)
+          rotfactor=Kr*(U/aldint)**(0.25)
         else
 c
 c Axial and other barriers
 c
-          rotfactor=max(Krotconstant(Zix,Nix,ibar),1.)
+          rotfactor=max(Kr,1.)
         endif
 c
 c Damping of enhancement
@@ -174,7 +186,7 @@ c
           damper=0.
           expo=(U-Ufermi)/cfermi
           if (expo.le.80.) damper=1./(1.+exp(expo))
-          spincutgs=Krotconstant(Zix,Nix,0)*Irigid(Zix,Nix,0)*Temp
+          spincutgs=Kr*Irigid(Zix,Nix,0)*Temp
           Krot0=max(spincutgs,1.)
 c
 c Fission barrier
@@ -216,4 +228,4 @@ c
       Kcoll=max(Krot*Kvib,1.)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

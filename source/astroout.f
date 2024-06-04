@@ -1,9 +1,9 @@
       subroutine astroout
 c
 c +---------------------------------------------------------------------
-c | Author  : Stephane Goriely, Stephane Hilaire, Arjan Koning
-c | Date    : December 22, 2011
-c | Task    : Output of astrophysical reaction rates
+c | Author: Stephane Goriely, Stephane Hilaire, Arjan Koning
+c | Date  : June 10, 2012
+c | Task  : Output of astrophysical reaction rates
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -62,6 +62,17 @@ c
             write(*,'(1x,f8.4,1p,3e12.5)') T9(i),partf(i),
      +        rateastro(Zcomp,Ncomp,i),macsastro(Zcomp,Ncomp,i)
    50     continue
+          if (flagracap.and.Zcomp.eq.0.and.Acomp.eq.0) then
+            write(*,'(/"    T      Rate(Eq)    Rate(DC)  ",
+     +        "  MACS(Eq)    MACS(DC)  "/)')
+            do 60 i=1,nTmax
+              write(*,'(1x,f8.4,1p,4e12.5)') T9(i),
+     +          rateastro(Zcomp,Ncomp,i)-rateastroracap(i),
+     +          rateastroracap(i),
+     +          macsastro(Zcomp,Ncomp,i)-macsastroracap(i),
+     +          macsastroracap(i)
+   60       continue
+          endif
    20   continue
    10 continue
 c
@@ -71,6 +82,7 @@ c rateastroeps: cutoff value
 c zresprod    : help variable
 c Atarget     : mass number of target nucleus
 c Ztarget     : charge number of target nucleus
+c Starget     : symbol of target nucleus
 c parsym      : symbol of particle
 c k0          : index of incident particle
 c flagfission : flag for fission
@@ -80,10 +92,10 @@ c
       if (nTmax.eq.1) then
         write(1,'("# Reaction rate for ",i3,a2,"(",a1,",g) at <E>=",
      +    f8.5," MeV (Excited States Contribution : ",a1,")")')
-     +    Atarget,nuc(Ztarget),parsym(k0),astroE,yesno(.not.flagastrogs)
+     +    Atarget,Starget,parsym(k0),astroE,yesno(.not.flagastrogs)
       else
         write(1,'("# Reaction rate for ",i3,a2,"(",a1,",g)")')
-     +    Atarget,nuc(Ztarget),parsym(k0)
+     +    Atarget,Starget,parsym(k0)
       endif
       write(1,'("#    T       Rate       MACS")')
       do 110 i=1,nTmax
@@ -96,10 +108,10 @@ c
       if (nTmax.eq.1) then
         write(1,'("# Reaction rate for ",i3,a2,"(",a1,",p) at <E>=",
      +    f8.5," MeV (Excited States Contribution : ",a1,")")')
-     +    Atarget,nuc(Ztarget),parsym(k0),astroE,yesno(.not.flagastrogs)
+     +    Atarget,Starget,parsym(k0),astroE,yesno(.not.flagastrogs)
       else
         write(1,'("# Reaction rate for ",i3,a2,"(",a1,",p)")')
-     +    Atarget,nuc(Ztarget),parsym(k0)
+     +    Atarget,Starget,parsym(k0)
       endif
       write(1,'("#    T       Rate       MACS")')
       do 120 i=1,nTmax
@@ -112,10 +124,10 @@ c
       if (nTmax.eq.1) then
         write(1,'("# Reaction rate for ",i3,a2,"(",a1,",a) at <E>=",
      +    f8.5," MeV (Excited States Contribution : ",a1,")")')
-     +    Atarget,nuc(Ztarget),parsym(k0),astroE,yesno(.not.flagastrogs)
+     +    Atarget,Starget,parsym(k0),astroE,yesno(.not.flagastrogs)
       else
         write(1,'("# Reaction rate for ",i3,a2,"(",a1,",a)")')
-     +  Atarget,nuc(Ztarget),parsym(k0)
+     +  Atarget,Starget,parsym(k0)
       endif
       write(1,'("#    T       Rate       MACS")')
       do 130 i=1,nTmax
@@ -129,11 +141,11 @@ c
         if (nTmax.eq.1) then
           write(1,'("# Reaction rate for ",i3,a2,"(",a1,",f) at <E>=",
      +      f8.5," MeV (Excited States Contribution : ",a1,")")')
-     +      Atarget,nuc(Ztarget),parsym(k0),astroE,
+     +      Atarget,Starget,parsym(k0),astroE,
      +      yesno(.not.flagastrogs)
         else
           write(1,'("# Reaction rate for ",i3,a2,"(",a1,",a)")')
-     +    Atarget,nuc(Ztarget),parsym(k0)
+     +    Atarget,Starget,parsym(k0)
         endif
         write(1,'("#    T       Rate       MACS")')
         do 140 i=1,nTmax
@@ -173,12 +185,12 @@ c
         write(1,'("# Reaction rate for ",2i4,a2,"+",a1,3x,i4,
      +    " reactions  Jp(GS)=",f5.1,a1," at <E>=",f8.5,
      +    " MeV (Excited States Contribution : ",a1,")")')
-     +    Ztarget,Atarget,nuc(Ztarget),parsym(k0),iresprod+5,targetspin,
+     +    Ztarget,Atarget,Starget,parsym(k0),iresprod+5,targetspin,
      +    targetparity,astroE,yesno(.not.flagastrogs)
       else
         write(1,'("# Reaction rate for ",2i4,a2,"+",a1,3x,i4,
      +    " reactions  Jp(GS)=",f5.1,a1)')
-     +    Ztarget,Atarget,nuc(Ztarget),parsym(k0),iresprod+5,targetspin,
+     +    Ztarget,Atarget,Starget,parsym(k0),iresprod+5,targetspin,
      +    targetparity
       endif
       write(1,'("     T9      G(T)    (",a1,",g)",i3,a2,"  (",a1,
@@ -198,4 +210,4 @@ c
       close (unit=1)
       return
       end
-Copyright (C) 2005  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

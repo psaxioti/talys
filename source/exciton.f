@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 7, 2004
+c | Date  : January 21, 2012
 c | Task  : Exciton model
 c +---------------------------------------------------------------------
 c
@@ -77,17 +77,17 @@ c Create J-dependent pre-equilibrium cross sections using the spin
 c distribution. The result is normalized with the sum of RnJ over J.
 c As an alternative, the Hauser-Feshbach spin distribution is adopted.
 c
-c flagpespin: flag for pre-equilibrium spin distribution or compound
-c             spin distribution for pre-equilibrium cross section
-c parity    : parity
-c J         : total angular momentum
-c maxJph    : maximal spin for particle-hole states
-c xspreeqJP : preequilibrium cross section per particle type,
-c             outgoing energy, spin and parity
-c RnJ       : spin distribution for particle-hole states
-c RnJsum    : (2J+1)*sum over spin distributions
+c pespinmodel: model for pre-equilibrium spin distribution or compound
+c              spin distribution for pre-equilibrium cross section
+c parity     : parity
+c J          : total angular momentum
+c maxJph     : maximal spin for particle-hole states
+c xspreeqJP  : preequilibrium cross section per particle type,
+c              outgoing energy, spin and parity
+c RnJ        : spin distribution for particle-hole states
+c RnJsum     : (2J+1)*sum over spin distributions
 c
-            if (flagpespin) then
+            if (pespinmodel.eq.3) then
               do 140 parity=-1,1,2
                 do 140 J=0,maxJph
                   xspreeqJP(type,nen,J,parity)=
@@ -100,4 +100,4 @@ c
   110 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

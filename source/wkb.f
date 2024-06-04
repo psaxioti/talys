@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Roberto Capote, Arjan Koning, and Stephane Goriely
-c | Date  : August 27, 2010
+c | Date  : December 13, 2013
 c | Task  : Initialization of WKB approximation for fission
 c +---------------------------------------------------------------------
 c
@@ -32,6 +32,10 @@ c     Fitting parabola
         open (unit=22,status='unknown',file=filewkb)
         write(22,'("Z=",i3," A=",i3)') Z,A
       endif
+      do j=1,2*numbar
+        Vheight(j)=0.
+        Vwidth(j)=0.
+      enddo
       do j=1,nextr
         CALL ParabFit(iiextr(j),3,rmiu,betafis,vfis,
      &  centr,  heigth,  width, ucentr, uheigth, uwidth)
@@ -100,8 +104,9 @@ C
         Uwkb(Zix,Nix,i)=uexc
         do j=1,nbar
           Twkb(Zix,Nix,i,j)=tff(2*j-1)
-          write(22,'("i=",i2," E=",f8.3," j=",i2," T=",1p,e12.3)')
-     &      i,uexc,j,Twkb(Zix,Nix,i,j)
+          if (flagfisout)
+     +      write(22,'("i=",i2," E=",f8.3," j=",i2," T=",1p,e12.3)')
+     +      i,uexc,j,Twkb(Zix,Nix,i,j)
         enddo
       enddo
       if (flagfisout) close (22)
@@ -188,7 +193,7 @@ C
             phase(k)   = min(dmom,50.)
             tff(k) = 1.d0/(1.d0 + DEXP(2.d0*dmom))
             if (flagfisout)
-     &      write(22,'(1x,A6,I2,A10,d10.4,A3,d10.4,A15)')
+     &      write(22,'(1x,A6,I2,A10,d10.3,A3,d10.3,A15)')
      &      ' BARR ',k,'  Mom.Int=',dmom,' T=',tff(k),' (Hill-Wheeler)'
 
             else
@@ -211,7 +216,7 @@ C
             tff(k) = 1.d0/(1.d0 + DEXP(2.d0*phase(k)))
 C
             if (flagfisout) then
-         write(22,'(1x,A6,I2, A10,f7.4,A4,f7.4,1x,A9,d10.4,A3,d10.4)')
+         write(22,'(1x,A6,I2, A10,f7.4,A4,f7.4,1x,A9,d10.3,A3,d10.3)')
      &      ' BARR ',k,' at beta2 ',epsa,' to ',epsb,
      &      ' Mom.Int=',phase(k),' T=',tff(k)
          deps=(epsb-epsa)/50.
@@ -260,7 +265,7 @@ C
      &        abserr/dmom*100.d0,' %)'
             phase(k) = min(dmom,50.)
             if (flagfisout)
-     &    write(22,'(1x,A6,I2, A10,f7.4,A4,f7.4,1x,A9,d10.4,A3,d10.4)')
+     &    write(22,'(1x,A6,I2, A10,f7.4,A4,f7.4,1x,A9,d10.3,A3,d10.3)')
      &      ' WELL ',k,' at beta2 ',epsa,' to ',epsb,
      &      ' Mom.Int=',phase(k)
 
@@ -275,7 +280,7 @@ C     Fission transmission for double/triple humped barrier
 C
 C     Iteration over barriers
 C
-      tdirv(nextr) = tff(nextr)
+      if (nextr.gt.0) tdirv(nextr) = tff(nextr)
       do k=nextr-2,1,-2
          dmom = (1.d0 - tff(k))*(1.d0 - tdirv(k+2))
          if(k.gt.1) then
@@ -291,7 +296,7 @@ C
         if(nextr.gt.3)
      &  dummy = 1.d0/(1.d0/tff(1) + 1.d0/tff(3) + 1.d0/tff(5))
 
-      if (flagfisout) write(22,'(1x,f5.2,2x,21(d10.4,1x))')
+      if (flagfisout) write(22,'(1x,f5.2,2x,21(d10.3,1x))')
      &   uexc,tdir,dummy,(tff(j),j=1,nextr),(phase(j),j=1,nextr)
 
       RETURN

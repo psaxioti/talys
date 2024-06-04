@@ -2,18 +2,20 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Vivian Demetriou
-c | Date  : March 28, 2010
+c | Date  : April 4, 2012
 c | Task  : Contribution of knockout and complex inelastic reactions
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical flagknock,flaginel
-      integer type,ndelta,type2,nen
-      real    proj2sp1,ejecmass,ejec2sp1,termki,AKO,Ccl,phi,denom,Pn(6),
-     +        gscomp(6),emax,dE,total,Eout,sigav,denomki(6),term1,
-     +        termk0,termin0,factor1,Eres,P,preeqpair,U
+      character*80 key
+      logical      flagknock,flaginel
+      integer      type,ndelta,type2,nen
+      real         proj2sp1,ejecmass,ejec2sp1,termki,AKO,Ccl,phi,denom,
+     +             Pn(6),gscomp(6),emax,dE,total,Eout,sigav,denomki(6),
+     +             term1,factor,Ckn,termk0,termin0,factor1,Eres,P,
+     +             preeqpair,U
 c
 c ************************** Kalbach model *****************************
 c
@@ -117,10 +119,14 @@ c
 c
 c Knockout and inelastic terms
 c
+c adjust        : subroutine for energy-dependent parameter adjustment
 c termk0,termin0: help variable
 c Cknock        : adjustable parameter for knockout reactions
 c xsreacinc     : reaction cross section for incident channel
 c
+        key='cknock'
+        call adjust(Einc,key,0,0,type,0,factor)
+        Ckn=factor*Cknock(type)
         if (flagknock) then
           termk0=projmass*denomki(k0)*
      +      gscomp(k0)*gscomp(6)**2/(6.*gscomp(k0))+
@@ -128,7 +134,7 @@ c
      +      gscomp(k0)*gscomp(6)**2/(6.*gscomp(6))
           if (termk0.ne.0.) then
             term1=Ccl*xsreacinc*ejec2sp1*ejecmass
-            termki=Cknock(type)*term1*Pn(6)*gscomp(k0)*gscomp(6)/termk0
+            termki=Ckn*term1*Pn(6)*gscomp(k0)*gscomp(6)/termk0
           endif
         else
           do 50 type2=1,6
@@ -139,7 +145,7 @@ c
      +        gscomp(k0)*gscomp(type2)**2/(6.*gscomp(type2))
             if (termin0.ne.0.) then
               term1=Ccl*xsreacinc*proj2sp1*projmass
-              termki=termki+Cknock(type)*term1*Pn(type2)*gscomp(type2)*
+              termki=termki+Ckn*term1*Pn(type2)*gscomp(type2)*
      +          gscomp(type2)/termin0
             endif
    50     continue
@@ -180,4 +186,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

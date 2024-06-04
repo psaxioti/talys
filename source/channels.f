@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : February 25, 2010
+c | Date  : December 7, 2013
 c | Task  : Exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -10,10 +10,10 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       character*1 apos
-      integer     type,nen,Zix,Nix,Aix,inend,ipend,idend,itend,ihend,
-     +            iaend,in,ip,id,it,ih,ia,Ztot,Ntot,npart,ident,i,i2,
-     +            nexout,identorg(0:numpar),idd,idorg,Zcomp,Ncomp,nex,
-     +            type2,NL,idc
+      integer     type,nen,Zend,Nend,Zix,Nix,Aix,inend,ipend,idend,
+     +            itend,ihend,iaend,in,ip,id,it,ih,ia,Ztot,Ntot,npart,
+     +            ident,i,i2,nexout,identorg(0:numpar),idd,idorg,Zcomp,
+     +            Ncomp,nex,type2,NL,idc
       real        specexcl(0:numchantot,0:numpar,0:numex+1,0:numen),
      +            term1,term2,term3,term,fissum,emissum,Eaveragesum,frac
 c
@@ -45,22 +45,30 @@ c 1. Loop over all residual nuclei, starting with the first residual
 c    nucleus, and then according to decreasing Z and N.
 c
 c idnum   : counter for exclusive channel
-c Zix     : charge number index for residual nucleus
+c Zend    : maximal charge number
+c Nend    : maximal neutron number
 c numZchan: maximal number of outgoing proton units in individual
 c           channel description
 c numNchan: maximal number of outgoing neutron units in individual
 c           channel description
 c numZ    : maximal number of protons away from the initial compound
 c           nucleus
-c Nix     : neutron number index for residual nucleus
+c Zinit   : charge number of initial compound nucleus
+c Ninit   : neutron number of initial compound nucleus
 c numN    : maximal number of neutron away from the initial compound
 c           nucleus
+c Zix     : charge number index for residual nucleus
+c Nix     : neutron number index for residual nucleus
 c
 c Each idnum represents a different exclusive channel.
 c
       idnum=-1
-      do 110 Zix=0,min(numZchan,numZ)
-        do 110 Nix=0,min(numNchan,numN)
+      Zend=min(numZchan,numZ)
+      Zend=min(Zend,Zinit)
+      Nend=min(numNchan,numN)
+      Nend=min(Nend,Ninit)
+      do 110 Zix=0,Zend
+        do 110 Nix=0,Nend
 c
 c 2. To minimize the loops, the maximal possible number of each particle
 c    type is determined, given Zix and Nix. E.g. for Zix=1, Nix=2 there
@@ -651,4 +659,4 @@ c
   710 continue
   720 return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

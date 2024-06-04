@@ -1,10 +1,10 @@
       subroutine egridastro
 c
 c +---------------------------------------------------------------------
-c | Author  : Stephane Goriely
-c | Date    : December 22, 2011
-c | Task    : Calculate default incident energy grid for astrophysical
-c |           rate
+c | Author: Stephane Goriely
+c | Date  : May 15, 2012
+c | Task  : Calculate default incident energy grid for astrophysical
+c |         rate
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -66,7 +66,7 @@ c
       emin=1.d-12
       if (k0.ne.1) emin=1.d-3
       emax=50.
-      if (nTmax.eq.1.and.k0.eq.1) emax=min(emax,50.*kt*astroT9)
+      if (nTmax.eq.1.and.k0.eq.1) emax=min(emax,dble(50.*kt*astroT9))
       neg=100
       neg1=10
       neg2=10
@@ -88,7 +88,7 @@ c
         b2=Qp
         b3=Qa
       elseif (k0.eq.1) then
-        eg1=max(kt*T9min/4.,0.001d0)
+        eg1=max(dble(kt*T9min/4.),0.001d0)
         eg2=kt*T9max*4.
         b1=-999.
         b2=Qp-Q0

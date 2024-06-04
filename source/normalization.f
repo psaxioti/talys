@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 17, 2011
+c | Date  : December 23, 2012
 c | Task  : Normalize cross sections to experimental or evaluated data
 c +---------------------------------------------------------------------
 c
@@ -60,23 +60,73 @@ c
       MTchan(115)=011000
       MTchan(116)=010100
       MTchan(117)=001001
+      MTchan(152)=500000
+      MTchan(153)=600000
+      MTchan(154)=200100
+      MTchan(155)=000101
+      MTchan(156)=410000
+      MTchan(157)=301000
+      MTchan(158)=101001
+      MTchan(159)=210001
+      MTchan(160)=700000
+      MTchan(161)=800000
+      MTchan(162)=510000
+      MTchan(163)=610000
+      MTchan(164)=710000
+      MTchan(165)=400001
+      MTchan(166)=500001
+      MTchan(167)=600001
+      MTchan(168)=700001
+      MTchan(169)=401000
+      MTchan(170)=501000
+      MTchan(171)=601000
+      MTchan(172)=300100
+      MTchan(173)=400100
+      MTchan(174)=500100
+      MTchan(175)=600100
+      MTchan(176)=200010
+      MTchan(177)=300010
+      MTchan(178)=400010
+      MTchan(179)=320000
+      MTchan(180)=300002
+      MTchan(181)=310001
+      MTchan(182)=001100
+      MTchan(183)=111000
+      MTchan(184)=110100
+      MTchan(185)=101100
+      MTchan(186)=110010
+      MTchan(187)=101010
+      MTchan(188)=100110
+      MTchan(189)=100101
+      MTchan(190)=220000
+      MTchan(191)=010010
+      MTchan(192)=001010
+      MTchan(193)=000011
+      MTchan(194)=420000
+      MTchan(195)=400002
+      MTchan(196)=410001
+      MTchan(197)=030000
+      MTchan(198)=130000
+      MTchan(199)=320001
+      MTchan(200)=520000
 c
 c ************************ Adjustment factors **************************
 c
 c Set incident energy dependent adjustment factors (purely for
 c fitting purposes).
 c
-c Crescue: adjustment factor for this incident energy
-c Nrescue: number of energies for adjustment factors
-c Einc   : incident energy in MeV
-c Erescue: energy grid for adjustment factors
-c frescue: adjustment factor
+c Crescue  : adjustment factor for this incident energy
+c Nrescue  : number of energies for adjustment factors
+c numinclow: number of incident energies below Elow
+c Einc     : incident energy in MeV
+c Erescue  : energy grid for adjustment factors
+c frescue  : adjustment factor
 c
       do 110 mt=1,nummt
         do 120 is=-1,1
           Crescue(mt,is)=1.
           if (Nrescue(mt,is).eq.0) goto 120
-          if (Einc.le.Erescue(mt,is,1)) then
+          if (nin.eq.numinclow+1.or.Einc.le.Erescue(mt,is,1)) then
             Crescue(mt,is)=frescue(mt,is,1)
             goto 140
           endif
@@ -91,9 +141,9 @@ c
      +          (Erescue(mt,is,nen+1)-Erescue(mt,is,nen))
               Crescue(mt,is)=frescue(mt,is,nen)+
      +          Efac*(frescue(mt,is,nen+1)-frescue(mt,is,nen))
-              if (frescue(mt,is,nen+1).gt.1.e10) 
+              if (frescue(mt,is,nen+1).gt.1.e10)
      +          Crescue(mt,is)=frescue(mt,is,nen)
-              if (frescue(mt,is,nen).gt.1.e10) 
+              if (frescue(mt,is,nen).gt.1.e10)
      +          Crescue(mt,is)=frescue(mt,is,nen+1)
               goto 140
             endif
@@ -122,8 +172,9 @@ c
      +    Crescue(mt,1).eq.1.) goto 210
         iiso=0
         xsdifiso=0.
+        ratioiso=1.
         do 220 is=1,-1,-1
-          if (is.ge.0.and.Crescue(mt,0).eq.1..and.Crescue(mt,1).eq.1.) 
+          if (is.ge.0.and.Crescue(mt,0).eq.1..and.Crescue(mt,1).eq.1.)
      +      goto 220
           xsdif=0.
           ratio=1./Crescue(mt,is)
@@ -190,8 +241,8 @@ c
               ratiogs=1./Crescue(mt,is)
               xsdifgs=xschaniso(idc,0)*(ratiogs-1.)
               xschaniso(idc,0)=xschaniso(idc,0)*ratiogs
-              xspopex(Zix,Nix,0)=xspopex(Zix,Nix,0)*
-     +          (1.+(ratioiso-1.)*xsfrac)
+              R=1.+(ratioiso-1.)*xsfrac
+              xspopex(Zix,Nix,0)=xspopex(Zix,Nix,0)*R
             endif
 c
 c Normalize isomer
@@ -230,7 +281,7 @@ c
                   xschaniso(idc,iiso)=
      +              max(xschannel(idc)-xschaniso(idc,0),0.)
                   xspopex(Zix,Nix,iiso)=
-     +              max(xspopnuc(Zix,Nix)-xspopex(Zix,Nix,0),0.)
+     +              max(xspopnuc(Zix,Nix)-xspopex(Zix,Nix,0),0.d0)
                 else
                   if (Crescue(mt,-1).ne.1.) then
                     xsdif=xschannel(idc)*(ratio-1.)
@@ -324,7 +375,7 @@ c xsconttot    : total cross section for continuum
 c xsdirect     : total direct cross section
 c xsbinary     : cross section from initial compound to residual nucleus
 c
-c Due to possible memory limitation, we allow only individual discrete 
+c Due to possible memory limitation, we allow only individual discrete
 c level adjustment for inelastic scattering.
 c
             if (mt.eq.4.or.(mt.ge.103.and.mt.le.107)) then
@@ -346,7 +397,7 @@ c
                 xsdirdisc(type,nex)=xsdirdisc(type,nex)*R
   410         continue
               R=ratio
-              if (type.eq.1.and.Crescue(mtc,is).ne.1.) 
+              if (type.eq.1.and.Crescue(mtc,is).ne.1.)
      +          R=1./Crescue(mtc,is)
               xsexclcont(type)=xsexclcont(type)*R
               xsngn(type)=xsngn(type)*ratio
@@ -389,4 +440,4 @@ c
       channelsum=channelsum+xsadd
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

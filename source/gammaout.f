@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 20, 2011
+c | Date  : September 25, 2012
 c | Task  : Output of gamma-ray strength functions, transmission
 c |         coefficients and cross sections
 c +---------------------------------------------------------------------
@@ -28,8 +28,6 @@ c gamgamth  : theoretical total radiative width
 c D0        : experimental s-wave resonance spacing in eV
 c dD0       : uncertainty in D0
 c D0theo    : theoretical s-wave resonance spacing
-c S0        : s-wave strength function
-c dS0       : uncertainty in S0
 c swaveth   : theoretical strength function for s-wave
 c gnorm     : gamma normalization factor
 c strength  : model for E1 gamma-ray strength function
@@ -68,9 +66,8 @@ c
       write(*,'(" Exp. D0                   =",f10.2," eV +/-",f8.2,
      +  " Theor. D0                   =",f15.2," eV")')
      +  D0(Zcomp,Ncomp),dD0(Zcomp,Ncomp),D0theo(Zcomp,Ncomp)
-      write(*,'(" Exp. S-wave strength func.=",f10.5,"E-4 +/-",f8.5,
-     +  " Theor. S-wave strength func.=",f15.5,"E-4")')
-     +  S0(Zcomp,Ncomp),dS0(Zcomp,Ncomp),1.e4*swaveth(Zcomp,Ncomp)
+      write(*,'(" Theor. S-wave strength f. =",f10.5,"E-4")')
+     +  1.e4*swaveth(Zcomp,Ncomp)
       write(*,'(" Normalization factor      =",f10.5)') gnorm
       if (strength.eq.1) model="Kopecky-Uhl              "
       if (strength.eq.2) model="Brink-Axel               "
@@ -102,14 +99,14 @@ c
      +      ") =",f8.3)')
      +      l,sgr(Zcomp,Ncomp,0,l,1),l,
      +      sgr(Zcomp,Ncomp,1,l,1),sgr(Zcomp,Ncomp,1,l,2),
-     +      l,tpr(Zcomp,Ncomp,0,l),l,tpr(Zcomp,Ncomp,1,l)
+     +      l,tpr(Zcomp,Ncomp,0,l,1),l,tpr(Zcomp,Ncomp,1,l,1)
         else
           write(*,'(" sigma0(M",i1,") =",f8.3,"       sigma0(E",i1,
      +      ") =",f8.3,
      +      "    PR: sigma0(M",i1,") =",f8.3,"       sigma0(E",i1,
      +      ") =",f8.3)')
      +      l,sgr(Zcomp,Ncomp,0,l,1),l,sgr(Zcomp,Ncomp,1,l,1),
-     +      l,tpr(Zcomp,Ncomp,0,l),l,tpr(Zcomp,Ncomp,1,l)
+     +      l,tpr(Zcomp,Ncomp,0,l,1),l,tpr(Zcomp,Ncomp,1,l,1)
         endif
         if (ngr(Zcomp,Ncomp,1,l).eq.2) then
           write(*,'("      E(M",i1,") =",f8.3,"            E(E",i1,
@@ -118,14 +115,14 @@ c
      +      ") =",f8.3)')
      +      l,egr(Zcomp,Ncomp,0,l,1),l,
      +      egr(Zcomp,Ncomp,1,l,1),egr(Zcomp,Ncomp,1,l,2),
-     +      l,epr(Zcomp,Ncomp,0,l),l,epr(Zcomp,Ncomp,1,l)
+     +      l,epr(Zcomp,Ncomp,0,l,1),l,epr(Zcomp,Ncomp,1,l,1)
         else
           write(*,'("      E(M",i1,") =",f8.3,"            E(E",i1,
      +      ") =",f8.3,
      +    "    PR:      E(M",i1,") =",f8.3,"            E(E",i1,
      +      ") =",f8.3)')
      +      l,egr(Zcomp,Ncomp,0,l,1),l,egr(Zcomp,Ncomp,1,l,1),
-     +      l,epr(Zcomp,Ncomp,0,l),l,epr(Zcomp,Ncomp,1,l)
+     +      l,epr(Zcomp,Ncomp,0,l,1),l,epr(Zcomp,Ncomp,1,l,1)
         endif
         if (ngr(Zcomp,Ncomp,1,l).eq.2) then
           write(*,'("  gamma(M",i1,") =",f8.3,"        gamma(E",i1,
@@ -134,14 +131,14 @@ c
      +      f8.3)')
      +      l,ggr(Zcomp,Ncomp,0,l,1),l,
      +      ggr(Zcomp,Ncomp,1,l,1),ggr(Zcomp,Ncomp,1,l,2),
-     +      l,gpr(Zcomp,Ncomp,0,l),l,gpr(Zcomp,Ncomp,1,l)
+     +      l,gpr(Zcomp,Ncomp,0,l,1),l,gpr(Zcomp,Ncomp,1,l,1)
         else
           write(*,'("  gamma(M",i1,") =",f8.3,"        gamma(E",i1,
      +      ") =",f8.3,
      +      "    PR:  gamma(M",i1,") =",f8.3,"        gamma(E",i1,") =",
      +      f8.3)')
      +      l,ggr(Zcomp,Ncomp,0,l,1),l,ggr(Zcomp,Ncomp,1,l,1),
-     +      l,gpr(Zcomp,Ncomp,0,l),l,gpr(Zcomp,Ncomp,1,l)
+     +      l,gpr(Zcomp,Ncomp,0,l,1),l,gpr(Zcomp,Ncomp,1,l,1)
         endif
         write(*,'("      k(M",i1,") =",1p,e14.5,"      k(E",i1,") =",
      +    1p,e14.5/)') l,kgr(Zcomp,Ncomp,0,l),l,kgr(Zcomp,Ncomp,1,l)
@@ -167,4 +164,4 @@ c
   110 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

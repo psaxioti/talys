@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 16, 2007
+c | Date  : April 27, 2013
 c | Task  : ECIS calculations of DWBA for MSD
 c +---------------------------------------------------------------------
 c
@@ -103,14 +103,14 @@ c 2. First exchange one-step reaction for multi-step
 c
       do 10 ii=1,2
         if (ii.eq.2) then
-          inquire (file='ecis06.msdin',exist=lexist)
+          inquire (file='ecis.msdin',exist=lexist)
           if (.not.lexist) then
             write(*,'(" TALYS-error: The first calculation of a run",
      +        " should always be done with ecissave y and ecisdwba y")')
             stop
           endif
-          open (unit=8,status='unknown',file='ecis06.msdang')
-          open (unit=10,status='unknown',file='ecis06.msdin')
+          open (unit=8,status='unknown',file='ecis.msdang')
+          open (unit=10,status='unknown',file='ecis.msdin')
         endif
         itype=k0
         do 20 type=1,2
@@ -207,7 +207,7 @@ c
 c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
-c ecis06t    : subroutine ecis06, adapted for TALYS
+c ecist      : subroutine ecis, adapted for TALYS
 c ecisstatus : status of ECIS file
 c
           if (flagoutecis) then
@@ -215,9 +215,9 @@ c
           else
             outfile=nulldev
           endif
-          call ecis06t('ecisdwba.inp ',outfile,
-     +      'ecis06.msdcs ','ecis06.msdin ','null         ',
-     +      'ecis06.msdang','null         ')
+          call ecist('ecisdwba.inp ',outfile,
+     +      'ecis.msdcs   ','ecis.msdin   ','null         ',
+     +      'ecis.msdang  ','null         ')
           open (unit=9,status='unknown',file='ecisdwba.inp')
           close (unit=9,status=ecisstatus)
         endif
@@ -228,4 +228,4 @@ c
   10  continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

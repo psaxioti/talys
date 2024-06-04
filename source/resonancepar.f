@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 12, 2009
+c | Date  : September 25, 2012
 c | Task  : S-wave resonance parameters
 c +---------------------------------------------------------------------
 c
@@ -13,7 +13,7 @@ c
       character*4  reschar
       character*90 resfile
       integer      Zix,Nix,Z,A,ia
-      real         D0f,dD0f,S0f,dS0f,gamgamf,dgamgamf
+      real         D0f,dD0f,gamgamf,dgamgamf
 c
 c ********** Resonance spacings and total radiative widths *************
 c
@@ -46,19 +46,15 @@ c
 c ia     : mass number from resonance table
 c D0     : experimental s-wave resonance spacing in eV
 c dD0    : uncertainty in D0
-c S0     : s-wave strength function
-c dS0    : uncertainty in S0
 c gamgam : experimental total radiative width in eV
 c dgamgam: uncertainty in gamgam
 c D0f,...: help variables
 c
-   10 read(2,'(4x,i4,2e9.2,2f5.2,2f9.5)',end=20) ia,D0f,dD0f,S0f,
-     +  dS0f,gamgamf,dgamgamf
+   10 read(2,'(4x,i4,2e9.2,10x,2f9.5)',end=20) ia,D0f,dD0f,gamgamf,
+     +  dgamgamf
       if (A.ne.ia) goto 10
       if (dD0f.ne.0..and.D0(Zix,Nix).eq.0.) dD0(Zix,Nix)=dD0f*1000.
       if (D0f.ne.0..and.D0(Zix,Nix).eq.0.) D0(Zix,Nix)=D0f*1000.
-      if (dS0f.ne.0..and.S0(Zix,Nix).eq.0.) dS0(Zix,Nix)=dS0f
-      if (S0f.ne.0..and.S0(Zix,Nix).eq.0.) S0(Zix,Nix)=S0f
       if (dgamgamf.ne.0..and.gamgam(Zix,Nix).eq.0.) dgamgam(Zix,Nix)=
      +  dgamgamf
       if (gamgamf.ne.0..and.gamgam(Zix,Nix).eq.0.)
@@ -82,4 +78,4 @@ c
       gamgam(Zix,Nix)=gamgamadjust(Zix,Nix)*gamgam(Zix,Nix)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

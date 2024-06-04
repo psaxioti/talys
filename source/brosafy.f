@@ -18,8 +18,8 @@ c
      +                 numtempsl,numtempst,numtempst2
       double precision transm,sl,st,st2,stot,trcof
       real             mn,mp,noff(8),bindgs(1:9,1:2),binddum,bar,width,
-     +                 rmass,temps(9),Tmax,Tmp,crel,elsc,hm,ET,BFT,HMT,
-     +                 ELT,fraction,Edefo,somtot,bindsc,ignatyuk,ald
+     +                 rmass,temps(9),Tmpmax,Tmp,crel,elsc,hm,ET,BFT,
+     +                 HMT,ELT,fraction,Edefo,somtot,bindsc,ignatyuk,ald
       real             bfinter(1:9,1:2),hwinter(1:9,1:2),bf_sl(9),
      +                 bf_st(9),bf_st2(9),bfsplin_sl(9),bfsplin_st(9),
      +                 bfsplin_st2(9),hw_sl(9),hw_st(9)
@@ -61,6 +61,10 @@ c     constants
 c
       Z=ZZ(Zix,Nix,0)
       A=AA(Zix,Nix,0)
+c
+c Brosa parameters available between Z=72 and Z=96, outside this range
+c we adopt the values of the boundary nuclides
+c
       Zbrosa=max(72,min(Z,96))
       mn=parmass(1)*amu
       mp=parmass(2)*amu
@@ -156,7 +160,7 @@ c filen   : file name
 c barfile : path of barrier parameter file in structure data base
 c lexist  : logical to determine existence of barfile
 c numtemp : running variable denoting the numtempth temperature
-c Tmax    : maximal temperatures for which structure data is available
+c tmpmax  : maximal temperatures for which structure data is available
 c
 c     read in ground state binding energy as function of T
 c
@@ -289,7 +293,7 @@ c
             hw(numtemp+1)=hw_st(numtemp+1)
             numtemp=numtemp+1
          endif
-         Tmax=temps(numtemp)
+         tmpmax=temps(numtemp)
          if(bf(1).eq.0)numtemp=9
          call spline(temps,bf,numtemp,2.e+30,2.e+30,bfsplin)
          call spline(temps,hw,numtemp,2.e+30,2.e+30,hwsplin)
@@ -311,7 +315,7 @@ c
 c
 c      check existence fission mode by looking at bf(1)
 c
-         if(Tmp.lt.Tmax.and.bf(1).NE.0.)then
+         if(Tmp.lt.tmpmax.and.bf(1).NE.0.)then
             call trans(Zix,Nix,transm)
             trcof=transm
          else
@@ -664,4 +668,4 @@ c
          endif
  4000 continue
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

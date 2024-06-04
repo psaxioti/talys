@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 21, 2011
+c | Date  : December 1, 2013
 c | Task  : Check for errors in keywords
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer      numkey,i,j
-      parameter    (numkey=288)
+      parameter    (numkey=327)
       character*80 keyword(numkey),word(40),key
 c
 c Although it is difficult to prevent the user from all possible input
@@ -27,37 +27,41 @@ c
       data (keyword(i),i=1,numkey) /
      +  ' ', 'a', 'aadjust', 'abundance', 'adddiscrete', 'addelastic',
      +  'adepthcor', 'alimit', 'alphald', 'alphaomp', 'angles',
-     +  'anglescont', 'anglesrec', 'aradialcor', 'astro', 'astroe', 
-     u  'astrogs', 'astrot', 'asys', 'autorot', 'avadjust', 'avadjustf',
-     +  'avdadjust', 'avdadjustf', 'avsoadjust', 'avsoadjustf',
-     +  'awadjust', 'awadjustf', 'awdadjust', 'awdadjustf', 
-     +  'awsoadjust', 'awsoadjustf',  'axtype', 'best', 'bestpath',
-     +  'beta2', 'betafiscor', 'betald', 'bins', 'cbreak', 'cfermi',
-     +  'cfermibf', 'cglobal', 'channelenergy',
+     +  'anglescont', 'anglesrec', 'aradialcor', 'area', 'astro',
+     +  'astroe', 'astrogs', 'astrot', 'asys', 'autorot', 'avadjust',
+     +  'avadjustf', 'avdadjust', 'avdadjustf', 'avsoadjust',
+     +  'avsoadjustf', 'awadjust', 'awadjustf', 'awdadjust',
+     +  'awdadjustf', 'awsoadjust', 'awsoadjustf', 'axtype', 'best',
+     +  'bestpath', 'beta2', 'betafiscor', 'betald', 'bins', 'branch',
+     +  'cbreak', 'cfermi', 'cfermibf', 'cglobal', 'channelenergy',
      +  'channels', 'cknock', 'class2', 'class2file', 'class2width',
      +  'colenhance', 'colldamp', 'components', 'compound', 'core',
-     +  'coulomb', 'cstrip', 'ctable', 'ctmglobal', 'd0', 'd1adjust',
-     +  'd2adjust', 'd3adjust', 'ddxmode', 'deformfile', 'deltaw',
-     +  'deuteronomp', 'dispersion', 'e0', 'eciscalc',
-     +  'eciscompound', 'ecisdwba', 'ecissave',
-     +  'egr', 'ejectiles', 'electronconv', 'element',
-     +  'elow', 'elwidth', 'emsdmin', 'endf', 'endfdetail', 'endfecis',
-     +  'energy', 'epr', 'esurf', 'etable', 'exmatch', 'expmass',
-     +  'ffevaporation', 'fileangle', 'filechannels', 'fileddxa',
-     +  'fileddxe', 'filedensity', 'filediscrete',
+     +  'coulomb', 'cpang', 'cstrip', 'ctable', 'ctmglobal', 'd0',
+     +  'd1adjust', 'd2adjust', 'd3adjust', 'ddxmode', 'deformfile',
+     +  'deltaw', 'deuteronomp', 'disctable', 'dispersion', 'e0',
+     +  'e0adjust', 'eciscalc', 'eciscompound', 'ecisdwba', 'ecissave',
+     +  'eback', 'ebeam', 'egr', 'egradjust', 'ejectiles', 'ejoin',
+     +  'electronconv', 'element', 'elow', 'elwidth', 'emsdmin', 'endf',
+     +  'endfdetail', 'endfecis', 'energy', 'epr', 'epradjust',
+     +  'equidistant', 'esurf', 'etable', 'exmatch', 'exmatchadjust',
+     +  'expmass', 'ffevaporation', 'fileangle', 'filechannels',
+     +  'fileddxa', 'fileddxe', 'filedensity', 'filediscrete',
      +  'fileelastic', 'filefission', 'filegamdis', 'filerecoil',
-     +  'fileresidual', 'filespectrum', 'filetotal', 'fisbar', 'fishw',
-     +  'fismodel', 'fismodelalt', 'fiso', 'fission', 'ftable',
-     +  'fullhf', 'g', 'gamgam', 'gamgamadjust',
-     +  'gammald', 'gammashell1', 'gammashell2', 'gammax',
-     +  'ggr', 'giantresonance', 'gn', 'gnadjust', 'gnorm',
-     +  'gp', 'gpadjust', 'gpr', 'gshell', 'hbstate', 'hbtransfile',
+     +  'fileresidual', 'filespectrum', 'filetotal', 'fisbar',
+     +  'fisbaradjust', 'fisfeed', 'fishw', 'fishwadjust', 'fismodel',
+     +  'fismodelalt', 'fiso', 'fission', 'ftable', 'fullhf', 'fymodel',
+     +  'g', 'gamgam', 'gamgamadjust', 'gammald', 'gammashell1',
+     +  'gammashell2', 'gammax', 'gefran', 'ggr', 'ggradjust',
+     +  'giantresonance',
+     +  'gn', 'gnadjust', 'gnorm', 'gp', 'gpadjust', 'gpr', 'gpradjust',
+     +  'gshell', 'hbstate', 'hbtransfile', 'ibeam','incadjust',
      +  'inccalc', 'integral', 'isomer', 'jlmmode', 'jlmomp', 'kph',
-     +  'krotconstant', 'kvibmodel', 'labddx', 'ldmodel', 'levelfile',
-     +  'localomp', 'ltarget', 'lurr', 'lv1adjust', 'lvadjust', 
-     +  'lvsoadjust', 'lw1adjust', 'lwadjust', 'lwsoadjust', 
-     +  'm2constant', 'm2limit', 'm2shift', 'mass', 'massdis', 
-     +  'massexcess', 'massmodel', 'massnucleus', 'maxband', 
+     +  'krotconstant', 'kvibmodel', 'labddx', 'ldmodel',
+     +  'ldmodelracap', 'levelfile', 'liso', 'localomp', 'ltarget',
+     +  'lurr', 'lv1adjust', 'lvadjust',
+     +  'lvsoadjust', 'lw1adjust', 'lwadjust', 'lwsoadjust',
+     +  'm2constant', 'm2limit', 'm2shift', 'mass', 'massdis',
+     +  'massexcess', 'massmodel', 'massnucleus', 'maxband',
      +  'maxchannel', 'maxenrec', 'maxlevelsbin', 'maxlevelsres',
      +  'maxlevelstar', 'maxn', 'maxrot', 'maxz', 'micro',
      +  'mpreeqmode', 'msdbins', 'multipreeq', 'nlevels',
@@ -65,31 +69,32 @@ c
      +  'onestep', 'optmod', 'optmodall', 'optmodfilen', 'optmodfilep',
      +  'outangle', 'outbasic', 'outcheck', 'outdensity', 'outdirect',
      +  'outdiscrete', 'outdwba', 'outecis', 'outexcitation',
-     +  'outfission', 'outgamdis', 'outgamma', 'outinverse',
+     +  'outfission', 'outfy', 'outgamdis', 'outgamma', 'outinverse',
      +  'outlegendre', 'outlevels', 'outmain', 'outomp',
      +  'outpopulation', 'outpreequilibrium',
      +  'outspectra', 'outtransenergy',
      +  'pair', 'pairconstant', 'pairmodel', 'parity', 'partable',
      +  'pglobal', 'phmodel', 'popeps', 'preeqcomplex', 'preeqmode',
-     +  'preeqspin', 'preeqsurface', 'preequilibrium',
-     +  'projectile', 'pshift', 'pshiftconstant', 'ptable',
-     +  'radialfile', 'radialmodel', 'rcadjust', 'rclass2mom',
+     +  'preeqspin', 'preeqsurface', 'preequilibrium', 'production',
+     +  'projectile', 'pshift', 'pshiftconstant', 'ptable', 'racap',
+     +  'radialfile', 'radialmodel', 'radiounit', 'rcadjust',
+     +  'rclass2mom',
      +  'reaction', 'recoil', 'recoilaverage', 'relativistic',
-     +  'rescuefile', 'rfiseps', 'rgamma', 'rnunu', 'rnupi',
+     +  'rescuefile', 'rfiseps', 'rgamma', 'rho', 'rnunu', 'rnupi',
      +  'rotational', 'rpinu', 'rpipi', 'rprime', 'rspincut',
      +  'rtransmom', 'rvadjust', 'rvadjustf', 'rvdadjust', 'rvdadjustf',
-     +  'rvsoadjust', 'rvsoadjustf', 'rwadjust', 'rwadjustf', 
+     +  'rvsoadjust', 'rvsoadjustf', 'rwadjust', 'rwadjustf',
      +  'rwdadjust', 'rwdadjustf', 'rwsoadjust', 'rwsoadjustf',
-     +  's0', 's2adjust',
-     +  'segment', 'sgr', 'shellmodel', 'soswitch', 'spherical',
-     +  'spincutmodel', 'spr', 'statepot', 'strength', 'strengthm1',
-     +  'strucpath', 'sysreaction', 't', 'transeps', 'transpower',
-     +  'twocomponent', 'ufermi', 'ufermibf', 'urr', 'urrnjoy',
-     +  'v1adjust', 'v2adjust', 'v3adjust', 'v4adjust',
-     +  'vfiscor', 'vso1adjust', 'vso2adjust',
-     +  'w1adjust', 'w2adjust', 'wso1adjust', 'wso2adjust',
-     +  'widthfluc', 'widthmode', 'xsalphatherm', 'xscaptherm',
-     +  'xseps', 'xsptherm'/
+     +  's2adjust', 'segment', 'sfexp', 'sfth', 'sgr', 'sgradjust',
+     +  'shellmodel', 'soswitch', 'spherical', 'spincutmodel', 'spr',
+     +  'spradjust', 'statepot', 'strength', 'strengthm1', 'strucpath',
+     +  'sysreaction', 't', 'tadjust', 'tcool', 'tirrad', 'tljadjust',
+     +  'transeps', 'transpower', 'twocomponent', 'ufermi', 'ufermibf',
+     +  'urr', 'urrnjoy', 'v1adjust', 'v2adjust', 'v3adjust',
+     +  'v4adjust', 'vfiscor', 'vso1adjust', 'vso2adjust', 'vinfadjust',
+     +  'w1adjust', 'w2adjust', 'w3adjust', 'w4adjust', 'wso1adjust',
+     +  'wso2adjust', 'widthfluc', 'widthmode', 'xsalphatherm',
+     +  'xscaptherm', 'xseps', 'xsptherm', 'yieldunit'/
 c
 c A keyword can be de-activated by putting a # in front of it.
 c All first words of the input lines are checked against the list
@@ -116,4 +121,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

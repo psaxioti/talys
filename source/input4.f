@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 19, 2011
+c | Date  : December 1, 2013
 c | Task  : Read input for fourth set of variables
 c +---------------------------------------------------------------------
 c
@@ -44,6 +44,7 @@ c flageciscomp: flag for compound nucleus calculation by ECIS
 c flagoutecis : flag for output of ECIS results
 c flagompall  : flag for new optical model calculation for all
 c               residual nuclei
+c flagincadj  : flag for OMP adjustment on incident channel also
 c flagecissave: flag for saving ECIS input and output files
 c numinc      : number of incident energies
 c flagexc     : flag for output of excitation functions
@@ -54,6 +55,8 @@ c eaddel      : on-set incident energy for addition of elastic peak
 c               to spectra
 c Emaxtalys   : maximum acceptable energy for TALYS
 c flagelectron: flag for application of electron conversion coefficient
+c flagrot     : flag for use of rotational optical model per
+c               outgoing particle, if available
 c flagspher   : flag to force spherical optical model
 c flagcoulomb : flag for Coulomb excitation calculation with ECIS
 c flagcolldamp: flag for damping of collective effects in effective
@@ -88,6 +91,9 @@ c k0          : index of incident particle
 c flagcomp    : flag for compound nucleus calculation
 c flagchannels: flag for exclusive channels calculation
 c flagendfdet : flag for detailed ENDF-6 information per channel
+c flagprod    : flag for isotope production
+c flagoutfy   : flag for output detailed fission yield calculation
+c gefran      : number of random events for GEF calculation
 c
       flagmain=.true.
       flagpop=flagbasic
@@ -117,6 +123,7 @@ c
       else
         flagecissave=.false.
       endif
+      flagincadj=.true.
 c
 c By default, we assume that with more than one incident energy output
 c of excitation functions (e.g. residual production cross sections as a
@@ -131,7 +138,11 @@ c
       eadd=0.
       eaddel=0.
       flagelectron=.true.
-      flagspher=.false.
+      if (flagrot(k0)) then
+        flagspher=.false.
+      else
+        flagspher=.true.
+      endif
       flagcoulomb=.true.
       flagpartable=.false.
       maxchannel=4
@@ -156,7 +167,7 @@ c
       endif
       flagurr=.false.
       lurr=2
-      flagurrnjoy=.true.
+      flagurrnjoy=.false.
 c
 c If the results of TALYS are used to create ENDF-6 data files,
 c several output flags are automatically set.
@@ -184,6 +195,9 @@ c
           flagchannels=.true.
         endif
       endif
+      flagprod=.false.
+      flagoutfy=.false.
+      gefran=50000
 c
 c **************** Read fourth set of input variables ******************
 c
@@ -208,8 +222,6 @@ c
 c
 c Test for keywords
 c
-c flagrot: flag for use of rotational optical model per
-c          outgoing particle, if available
 c
         if (key.eq.'outmain') then
           if (ch.eq.'n') flagmain=.false.
@@ -308,6 +320,12 @@ c
             flagddx=.true.
             flagspec=.true.
           endif
+          goto 10
+        endif
+        if (key.eq.'incadjust') then
+          if (ch.eq.'n') flagincadj=.false.
+          if (ch.eq.'y') flagincadj=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
         endif
         if (key.eq.'outdwba') then
@@ -432,6 +450,18 @@ c
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
         endif
+        if (key.eq.'production') then
+          if (ch.eq.'n') flagprod=.false.
+          if (ch.eq.'y') flagprod=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
+        if (key.eq.'outfy') then
+          if (ch.eq.'n') flagoutfy=.false.
+          if (ch.eq.'y') flagoutfy=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
         if (key.eq.'maxchannel') then
           read(value,*,end=200,err=200) maxchannel
           goto 10
@@ -468,9 +498,13 @@ c
           read(value,*,end=200,err=200) soswitch
           goto 10
         endif
+        if (key.eq.'gefran') then
+          read(value,*,end=200,err=200) gefran
+          goto 10
+        endif
    10 continue
       return
   200 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
       stop
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

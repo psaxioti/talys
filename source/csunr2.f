@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Gilles Noguere
-c | Date  : September 28, 2011
+c | Date  : December 9, 2013
 c | Task  : Unresolved resonance cross section from NJOY
 c +---------------------------------------------------------------------
 c
@@ -16,6 +16,7 @@ c
 c
 c      link with NJOY parameters
 c
+      spot(l)=0.
       gnox=urrwidth(3,l,j)
       gxx=urrwidth(1,l,j)
       ggx=urrwidth(0,l,j)

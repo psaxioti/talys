@@ -2,15 +2,16 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Arjan Koning
-c | Date  : August 5, 2009
+c | Date  : April 4, 2012
 c | Task  : Normalization of gamma ray strength functions
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer Zcomp,Ncomp,nen,l,irad
-      real    Egamma,Tgamma,fstrength,gammaxs
+      character*80 key
+      integer      Zcomp,Ncomp,nen,l,irad
+      real         Egamma,factor,gn0,Tgamma,fstrength,gammaxs
 c
 c We normalize the gamma-ray strength functions by imposing the
 c condition that the transmission coefficients integrated from zero up
@@ -30,6 +31,10 @@ c eend     : last energy point of energy grid
 c Einc     : incident energy in MeV
 c Egamma   : gamma energy
 c egrid    : outgoing energy grid
+c Ecomp    : total energy of composite system
+c gamadjust: logical for energy-dependent gamma adjustment
+c adjust   : subroutine for energy-dependent parameter adjustment
+c factor   : multiplication factor
 c lmax     : maximal l-value for transmission coefficients
 c gammax   : number of l-values for gamma multipolarity
 c Tgamma   : gamma transmission coefficient
@@ -47,12 +52,19 @@ c
       endif
       do 10 nen=ebegin(0),eend(0)
         Egamma=egrid(nen)
+        if (gamadjust(Zcomp,Ncomp)) then
+          key='gnorm'
+          call adjust(Ecomp,key,0,0,0,0,factor)
+          gn0=factor*gnorm
+        else
+          gn0=gnorm
+        endif
         lmax(0,nen)=gammax
         do 20 l=1,gammax
           do 20 irad=0,1
             Tgamma=twopi*(Egamma**(2*l+1))*
      +        fstrength(Zcomp,Ncomp,Einc,Egamma,irad,l)
-            Tjl(0,nen,irad,l)=Tgamma*gnorm
+            Tjl(0,nen,irad,l)=Tgamma*gn0
    20   continue
 c
 c Photo-absorption cross section
@@ -64,4 +76,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

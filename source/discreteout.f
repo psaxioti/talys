@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : February 3, 2011
+c | Date  : June 10, 2012
 c | Task  : Output of cross sections for discrete states
 c +---------------------------------------------------------------------
 c
@@ -63,7 +63,7 @@ c xsexclusive  : exclusive single channel cross section
 c
       Zcomp=0
       Ncomp=0
-      write(*,'(/" 5. Binary reactions to discrete levels"
+      write(*,'(/" 5. Binary reactions to discrete levels",
      +  " and continuum")')
       do 110 type=0,6
         if (parskip(type)) goto 110
@@ -111,7 +111,7 @@ c
 c filediscrete: flag for discrete level cross sections on separate file
 c numinclow   : number of incident energies below Elow
 c Atarget     : mass number of target nucleus
-c nuc         : symbol of nucleus
+c Starget     : symbol of target nucleus
 c Ztarget     : charge number of target nucleus
 c Qres        : Q-value for residual nucleus
 c Ethresh     : threshold incident energy for residual nucleus
@@ -132,7 +132,7 @@ c
               open (unit=1,status='unknown',file=discfile)
               write(1,'("# ",a1," + ",i3,a2,": Discrete ",a9,
      +          " cross section - Level",i3)') parsym(k0),Atarget,
-     +          nuc(Ztarget),reactionstring(type),nex
+     +          Starget,reactionstring(type),nex
               write(1,'("# Q-value    =",1p,e12.5,0p," Spin=",f5.1,
      +          " Parity= ",a1)') Qres(Zix,Nix,nex),jdis(Zix,Nix,nex),
      +          cparity(parlev(Zix,Nix,nex))
@@ -178,7 +178,7 @@ c
           if (nin.eq.numinclow+1) then
             open (unit=1,status='unknown',file=contfile)
             write(1,'("# ",a1," + ",i3,a2,": Continuum ",a9,
-     +        " cross section")') parsym(k0),Atarget,nuc(Ztarget),
+     +        " cross section")') parsym(k0),Atarget,Starget,
      +        reactionstring(type)
             write(1,'("# Q-value    =",1p,e12.5)') Qres(Zix,Nix,NL)
             write(1,'("# E-threshold=",1p,e12.5)') Ethresh(Zix,Nix,NL)
@@ -212,7 +212,7 @@ c
           if (nin.eq.numinclow+1) then
             open (unit=1,status='unknown',file=totfile)
             write(1,'("# ",a1," + ",i3,a2,": Total exclusive ",a9,
-     +        " cross section")') parsym(k0),Atarget,nuc(Ztarget),
+     +        " cross section")') parsym(k0),Atarget,Starget,
      +        reactionstring(type)
             write(1,'("#         ")')
             write(1,'("#         ")')
@@ -237,4 +237,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

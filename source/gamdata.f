@@ -2,13 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : March 7, 2007
+c | Date  : December 23, 2012
 c | Task  : Kopecky's spline fit of radiative widths
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      integer indx
 c
 c ***************** Gamma_gamma tabulated values ***********************
 c
@@ -39,4 +40,4 @@ c
      +  0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,
      +  0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03/
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

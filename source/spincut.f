@@ -2,16 +2,17 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : January 2, 2011
+c | Date  : April 4, 2012
 c | Task  : Spin cutoff factor
 c +---------------------------------------------------------------------
 c
 c ******************* Declarations and common blocks *******************
 c
       include "talys.cmb"
-      integer Zix,Nix,ibar,ldmod
-      real    spincut,ald,Eex,scutconst,Em,aldm,ignatyuk,Umatch,s2m,s2d,
-     +        Ed,U
+      character*80 key
+      integer      Zix,Nix,ibar,ldmod
+      real         spincut,ald,Eex,factor,Rs,s2,scutconst,Em,aldm,
+     +             ignatyuk,Umatch,s2m,s2d,Ed,U
 c
 c *********************** Spin cutoff parameter ************************
 c
@@ -34,6 +35,9 @@ c the value at the matching energy.
 c
 c 1. Below the matching energy
 c
+c adjust      : subroutine for energy-dependent parameter adjustment
+c factor      : multiplication factor
+c ldadjust    : logical for energy-dependent level density adjustment
 c ldmodel     : level density model
 c spincutmodel: model for spin cutoff factor for ground state
 c scutconst   : constant for spin cutoff factor
@@ -62,13 +66,22 @@ c               Only used for Bruyeres-le-Chatel (Pascal Romain) fission
 c               model
 c beta2       : deformation parameter
 c
+      key='rspincut'
+      call adjust(Eex,key,0,0,0,0,factor)
+      Rs=factor*Rspincut
+      if (ldadjust(Zix,Nix)) then
+        key='s2adjust'
+        call adjust(Eex,key,Zix,Nix,0,ibar,factor)
+        s2=factor*s2adjust(Zix,Nix,ibar)
+      else
+        s2=s2adjust(Zix,Nix,ibar)
+      endif
       ldmod=ldmodel(Zix,Nix)
       spincut=1.
       if (spincutmodel.eq.1) then
-        scutconst=Rspincut*s2adjust(Zix,Nix,ibar)*Irigid0(Zix,Nix)/
-     +    alimit(Zix,Nix)
+        scutconst=Rs*s2*Irigid0(Zix,Nix)/alimit(Zix,Nix)
       else
-        scutconst=Rspincut*s2adjust(Zix,Nix,ibar)*Irigid0(Zix,Nix)
+        scutconst=Rs*s2*Irigid0(Zix,Nix)
       endif
       Em=Exmatch(Zix,Nix,ibar)
       if (ldmod.eq.2.or.ldmod.ge.4) Em=S(Zix,Nix,1)
@@ -124,4 +137,4 @@ c
       spincut=max(scutoffdisc(Zix,Nix,ibar),spincut)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : May 11, 2011
+c | Date  : December 30, 2011
 c | Task  : Excitation energy population
 c +---------------------------------------------------------------------
 c
@@ -58,7 +58,7 @@ c
           dEx=0.5*(edis(Zcomp,Ncomp,min(nex+1,NL))-
      +      edis(Zcomp,Ncomp,nex-1))
         else
-          dEx=deltaEx(Zcomp,Ncomp)
+          dEx=deltaEx(Zcomp,Ncomp,nex)
         endif
         call locate(Exdist,0,npopbins,Eex,nen)
         nen=max(0,nen)

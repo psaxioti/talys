@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : March 11, 2010
+c | Date  : April 21, 2012
 c | Task  : Exclusive emission cross sections for continuum
 c +---------------------------------------------------------------------
 c
@@ -59,7 +59,7 @@ c
    10 continue
       if (popexcl(Zcomp,Ncomp,nex).le.speceps) return
       Exinc=Ex(Zcomp,Ncomp,nex)
-      dExinc=deltaEx(Zcomp,Ncomp)
+      dExinc=deltaEx(Zcomp,Ncomp,nex)
       Ex0plus=Exinc+0.5*dExinc
       Ex0min=Exinc-0.5*dExinc
       SS=S(Zcomp,Ncomp,type)
@@ -67,9 +67,9 @@ c
       if (type.gt.1) Exm=Exm-egrid(ebegin(type))
       Zix=Zindex(Zcomp,Ncomp,type)
       Nix=Nindex(Zcomp,Ncomp,type)
-      dEx=deltaEx(Zix,Nix)
       do 20 nexout2=maxex(Zix,Nix),0,-1
-        Exmin=Ex(Zix,Nix,nexout)-0.5*dEx
+        dEx=deltaEx(Zix,Nix,nexout2)
+        Exmin=Ex(Zix,Nix,nexout2)-0.5*dEx
         if (Exmin.lt.Exm) then
           nexmax(type)=nexout2
           goto 100
@@ -87,6 +87,7 @@ c emin    : minimal emission energy within bin decay
 c Eout    : emission energy
 c
   100 Exout=Ex(Zix,Nix,nexout)
+      dEx=deltaEx(Zix,Nix,nexout)
       NL=Nlast(Zix,Nix,0)
 c
 c Decay from continuum to continuum. For most residual continuum
@@ -292,4 +293,4 @@ c
   150 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Stephane Goriely
-c | Date  : December 25, 2010
+c | Date  : December 13, 2013
 c | Task  : Initialization of astrophysics quantities
 c +---------------------------------------------------------------------
 c
@@ -21,9 +21,11 @@ c numT        : number of temperatures
 c numinc      : number of incident energies
 c xsastro     : cross section for astrophysical calculation
 c rateastro   : thermonuclear reaction rate factor
-c macsastro   : thermonuclear reaction cross section
+c macsastro   : Maxwellian-averaged thermonuclear reaction cross section
 c partf       : integrated partition function
 c rateastrofis: thermonuclear reaction rate factor for fission
+c macsastro   : thermonuclear reaction cross section
+c macsastrofis: thermonuclear reaction cross section for fission
 c xsastrofis  : astrophysical fission cross section
 c
       do 10 in=0,numN
@@ -40,10 +42,13 @@ c
       do 50 i=1,numT
         partf(i)=0.
         rateastrofis(i)=0.
+        rateastroracap(i)=0.
+        macsastrofis(i)=0.
+        macsastroracap(i)=0.
    50 continue
-      do 60 nen=1,numinc
+      do 60 nen=1,numenin
         xsastrofis(nen)=0.
    60 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

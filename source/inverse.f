@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 27, 2011
+c | Date  : August 19, 2013
 c | Task  : Calculation of total, reaction and elastic cross sections
 c |         and transmission coefficients for outgoing particles and
 c |         energy grid
@@ -60,6 +60,7 @@ c
 c Calculate transmission coefficients and inverse reaction cross
 c sections.
 c
+c flagecisinp: flag for existence of ecis input file
 c invexist   : logical to determine necessity of new inverse cross
 c              section and transmission coefficients calculation
 c inverseecis: subroutine for ECIS calculation for outgoing particles
@@ -77,6 +78,7 @@ c This may save a lot of time in cases with 'optmodall y' when many
 c cross sections and transmission coefficients are calculated, and
 c which could then be transferred from directory to directory.
 c
+      flagecisinp=.true.
       if (.not.flageciscalc) then
         inquire(file=csfile,exist=lexist)
         if (lexist) inquire(file=transfile,exist=lexist)
@@ -99,9 +101,9 @@ c flaginverse: flag for output of transmission coefficients and inverse
 c              reaction cross sections
 c inverseout : subroutine for reaction output for outgoing channels
 c
-      call inverseread(Zcomp,Ncomp)
+      if (flagecisinp) call inverseread(Zcomp,Ncomp)
       call inversenorm(Zcomp,Ncomp)
       if (flaginverse) call inverseout(Zcomp,Ncomp)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 9, 2011
+c | Date  : December 1, 2013
 c | Task  : Read ECIS results for incident particle on ENDF-6 energy
 c |         grid
 c +---------------------------------------------------------------------
@@ -31,7 +31,7 @@ c xselassh6   : shape elastic cross section (neutrons only) for ENDF-6
 c               file
 c
       if (flagendfecis) then
-        open (unit=3,status='unknown',file='ecis06.endfcs')
+        open (unit=3,status='unknown',file='ecis.endfcs')
         infileendf=3
         open (unit=23,status='unknown',file='endf.cs')
    10   read(3,'(a72)',end=20) line
@@ -59,7 +59,7 @@ c
    30 continue
       close (unit=3,status=ecisstatus)
       close (unit=23,status=ecisstatus)
-      open (unit=10,status='unknown',file='ecis06.endfin')
+      open (unit=10,status='unknown',file='ecis.endfin')
       close (unit=10,status=ecisstatus)
 c
 c ********** Compound elastic contribution and normalization ***********
@@ -172,7 +172,7 @@ c
           e=real(e6(nen))
           enuc=e/parA(k0)
           xs=tripathi(parZ(k0),parA(k0),Z,A,enuc)
-          if (xs.eq.0.) xs=xsopt(k0,nen)*threshnorm(k0)
+          if (xs.eq.0.) xs=xsopt6(nen)*threshnorm(k0)
           xsnon6(nen)=xs
           if (k0.eq.1) xselas6(nen)=xselas6(nen)+xsopt6(nen)-xs
   210   continue
@@ -182,8 +182,8 @@ c **************** Write total cross sections to file ******************
 c
 c parsym    : symbol of particle
 c Atarget   : mass number of target nucleus
-c nuc       : symbol of nucleus
 c Ztarget   : charge number of target nucleus
+c Starget   : symbol of target nucleus
 c numinclow : number of incident energies below Elow
 c fxsnonel  : non-elastic cross section for incident channel
 c fxselastot: total elastic cross section (neutrons only) for
@@ -192,7 +192,7 @@ c fxstotinc : total cross section (neutrons only) for incident channel
 c
       open (unit=1,status='unknown',file='endf.tot')
       write(1,'("# ",a1," + ",i3,a2," Total cross sections")')
-     +  parsym(k0),Atarget,nuc(Ztarget)
+     +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
       write(1,'("# ")')
       write(1,'("# # energies =",i4)') nen6+numinclow
@@ -211,7 +211,7 @@ c Total cross sections only
 c
       open (unit=1,status='unknown',file='endftot.tot')
       write(1,'("# ",a1," + ",i3,a2," Total cross sections")')
-     +  parsym(k0),Atarget,nuc(Ztarget)
+     +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
       write(1,'("# ")')
       write(1,'("# # energies =",i4)') nen6+numinclow
@@ -228,7 +228,7 @@ c Elastic cross sections only
 c
       open (unit=1,status='unknown',file='endfel.tot')
       write(1,'("# ",a1," + ",i3,a2," Elastic cross sections")')
-     +  parsym(k0),Atarget,nuc(Ztarget)
+     +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
       write(1,'("# ")')
       write(1,'("# # energies =",i4)') nen6+numinclow
@@ -245,7 +245,7 @@ c Nonelastic cross sections only
 c
       open (unit=1,status='unknown',file='endfnon.tot')
       write(1,'("# ",a1," + ",i3,a2," Nonelastic cross sections")')
-     +  parsym(k0),Atarget,nuc(Ztarget)
+     +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
       write(1,'("# ")')
       write(1,'("# # energies =",i4)') nen6+numinclow
@@ -259,4 +259,4 @@ c
       close (unit=1)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

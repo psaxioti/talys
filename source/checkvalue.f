@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 22, 2011
+c | Date  : December 3, 2013
 c | Task  : Check for errors in values
 c +---------------------------------------------------------------------
 c
@@ -10,9 +10,10 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical lexist
-      integer type,i,Zix,Nix,mt,is,omptype,nr,nr2,A,irad,lval,igr,ibar,
-     +        fax0
-      real    egr0,ggr0,sgr0,epr0,gpr0,tpr0,value,fbar0,fhw0,fR0
+      integer type,i,Zix,Nix,mt,is,l,omptype,nr,nr2,A,irad,lval,igr,
+     +        ibar,fax0,n,m,k
+      real    tl0,egr0,ggr0,sgr0,epr0,gpr0,tpr0,value,fbar0,fhw0,fR0,
+     +        Ea,Eb,Em,D,Ea2,Eb2
 c
 c All parameters need to fall within certain ranges. These ranges are
 c specified in this subroutine and in the manual.
@@ -21,17 +22,18 @@ c ******************* Check for wrong input variables ******************
 c
 c 1. Check of values for four main keywords.
 c
-c ptype0  : type of incident particle
-c parsym  : symbol of particle
-c numelem : number of elements
-c Starget : symbol of target nucleus
-c nuc     : symbol of nucleus
-c Atarget : mass number of target nucleus
-c nummass : number of masses
-c Zinit   : charge number of initial compound nucleus
-c Ninit   : neutron number of initial compound nucleus
-c enincmin: minimum incident energy
-c enincmax: maximum incident energy
+c ptype0   : type of incident particle
+c parsym   : symbol of particle
+c numelem  : number of elements
+c Starget  : symbol of target nucleus
+c nuc      : symbol of nucleus
+c Atarget  : mass number of target nucleus
+c nummass  : number of masses
+c Zinit    : charge number of initial compound nucleus
+c Ninit    : neutron number of initial compound nucleus
+c enincmin : minimum incident energy
+c enincmax : maximum incident energy
+c Emaxtalys: maximum acceptable energy for TALYS
 c
       do 10 type=0,6
         if (ptype0.eq.parsym(type)) goto 20
@@ -96,6 +98,7 @@ c Ainit        : mass number of initial compound nucleus
 c massnucleus  : mass of nucleus in amu as read from user input file
 c massexcess   : mass excess in MeV as read from user input file
 c Ltarget      : excited level of target
+c Lisoinp      : user assignment of target isomer number
 c isomer       : definition of isomer in seconds
 c core         : even-even core for weakcoupling (-1 or 1)
 c transpower   : power for transmission coefficient limit
@@ -115,10 +118,27 @@ c numenrec     : maximum number of recoil energies
 c maxchannel   : maximal number of outgoing particles in individual
 c                channel description (e.g. this is 3 for (n,2np))
 c massmodel    : model for theoretical nuclear mass
+c disctable    : table with discrete levels
 c astroT9      : temperature, in 10^9 K, for Maxwellian average
 c astroE       : energy, in MeV, for Maxwellian average
 c kT           : energy kT expressed in MeV corresponding to a
 c                temperature T9=1
+c flagprod     : flag for isotope production
+c Ebeam        : incident energy in MeV for isotope production
+c Eback        : lower end of energy range in MeV for isotope
+c                production
+c eninc        : incident energy in MeV
+c radiounit    : unit for radioactivity: Bq, kBq, MBq, Gbq,
+c                mCi, Ci or kCi
+c yieldunit    : unit for isotope yield: num (number),
+c                mug (micro-gram), mg, g, or kg
+c Ibeam        : beam current in mA for isotope production
+c Area         : target area in cm^2 for isotope production
+c Tirrad       : irradiation time per unit
+c unitTirrad   : irradiation time unit (y,d,h,m,s)
+c Tcool        : cooling time per unit
+c unitTcool    : cooling time unit (y,d,h,m,s)
+c rhotarget    : target material density
 c
       if (maxZ.lt.0.or.maxZ.gt.numZ-2) then
         write(*,'(" TALYS-error: 0 <= maxZ <=",i3)') numZ-2
@@ -185,15 +205,19 @@ c
             stop
           endif
           if (massexcess(Zix,Nix).ne.0.and.
-     +      (massexcess(Zix,Nix).lt.-500..or.
-     +      massexcess(Zix,Nix).gt.500.)) then
-            write(*,'(" TALYS-error: -500. <= massexcess <= 500.")')
+     +      (massexcess(Zix,Nix).lt.-600..or.
+     +      massexcess(Zix,Nix).gt.600.)) then
+            write(*,'(" TALYS-error: -600. <= massexcess <= 600.")')
             stop
           endif
    70   continue
    60 continue
       if (Ltarget.lt.0.or.Ltarget.gt.numlev) then
         write(*,'(" TALYS-error: 0 <= Ltarget <=",i3)') numlev
+        stop
+      endif
+      if (Lisoinp.ne.-1.and.(Lisoinp.lt.0.or.Lisoinp.gt.9)) then
+        write(*,'(" TALYS-error: 0 <= Liso <= 9")')
         stop
       endif
       if (isomer.lt.0..or.isomer.gt.1.e38) then
@@ -253,6 +277,10 @@ c
         write(*,'(" TALYS-error: 0 <= massmodel <= 3")')
         stop
       endif
+      if (disctable.lt.1.or.disctable.gt.3) then
+        write(*,'(" TALYS-error: 1 <= disctable <= 3")')
+        stop
+      endif
       if (astroT9.ne.0..and.(astroT9.lt.0.0001.or.astroT9.gt.10.)) then
         write(*,'(" TALYS-error: 0.0001 <= astroT <= 10")')
         stop
@@ -267,6 +295,97 @@ c
       endif
       if (astroE.ne.0.) astroT9=astroE/kT
       if (astroT9.ne.0.) astroE=astroT9*kT
+      if (flagprod) then
+        if (Ebeam.eq.-1.) then
+          write(*,'(" TALYS-error: accelerator energy Ebeam must be ",
+     +      "given for isotope production (production y)")')
+          stop
+        endif
+        if (Ebeam.le.0..or.Ebeam.gt.Emaxtalys) then
+          write(*,'(" TALYS-error: 0 < Ebeam < ",f8.3," MeV")')
+     +      Emaxtalys
+          stop
+        endif
+        if (Eback.eq.-1.) then
+          Eback=max(Ebeam-5.,0.1)
+        else
+          if (Eback.le.0..or.Eback.gt.Emaxtalys) then
+            write(*,'(" TALYS-error: 0 < Eback < ",f8.3," MeV")')
+     +        Emaxtalys
+            stop
+          endif
+        endif
+        if (Eback.ge.Ebeam) then
+          write(*,'(" TALYS-error: Ebeam must be larger than Eback")')
+          stop
+        endif
+        if (Ebeam.gt.enincmax+1.e-4) then
+          write(*,'(" TALYS-error: Ebeam is not in the energy range ",
+     +      "with TALYS results, Ebeam=",f10.5," Ein(max)=",f10.5,
+     +      ". Rerun with wider energy grid")') Ebeam,enincmax
+          stop
+        endif
+        if (Eback.lt.eninc(1)-1.e-4) then
+          write(*,'(" TALYS-error: Eback is not in the energy range ",
+     +      "with TALYS results, Eback=",f10.5," Ein(1)=",f10.5,
+     +      ". Rerun with wider energy grid")') Eback,eninc(1)
+          stop
+        endif
+        if (radiounit.ne.'bq'.and.radiounit.ne.'kbq'.and.
+     +    radiounit.ne.'mbq'.and.radiounit.ne.'gbq'.and.
+     +    radiounit.ne.'mci'.and.radiounit.ne.'ci'.and.
+     +    radiounit.ne.'kci') then
+          write(*,'(" TALYS-error: radiounit should be equal to ",
+     +      "Bq, kBq, MBq, Gbq, mCi, Ci or kCi")')
+          stop
+        endif
+        if (yieldunit.ne.'num'.and.yieldunit.ne.'mug'.and.
+     +    yieldunit.ne.'mg'.and.yieldunit.ne.'g'.and.yieldunit.ne.'kg')
+     +    then
+          write(*,'(" TALYS-error: yieldunit should be equal to ",
+     +      "num (number), mug (micro-gram), mg, g, or kg")')
+          stop
+        endif
+        if (Ibeam.le.0..or.Ibeam.gt.10000.) then
+          write(*,'(" TALYS-error: 0 <= Ibeam < 1000 mA")')
+          stop
+        endif
+        if (Area.le.0..or.Area.gt.10000.) then
+          write(*,'(" TALYS-error: 0 <= Area < 10000 cm^2")')
+          stop
+        endif
+        do 80 k=1,5
+          if (Tirrad(k).lt.0.or.Tirrad(k).ge.1000000) then
+            write(*,'(" TALYS-error: 0 <= Tirrad < 1.e6")')
+            stop
+          endif
+          if (Tcool(k).lt.0.or.Tcool(k).ge.1000000) then
+            write(*,'(" TALYS-error: 0 <= Tcool < 1.e6")')
+            stop
+          endif
+   80   continue
+        do 90 k=1,5
+          if (unitTirrad(k).ne.' '.and.unitTirrad(k).ne.'y'.and.
+     +      unitTirrad(k).ne.'d'.and.unitTirrad(k).ne.'h'.and.
+     +      unitTirrad(k).ne.'m'.and.unitTirrad(k).ne.'s') then
+            write(*,'(" TALYS-error: wrong unit for Tirrad= ",i9)')
+     +        Tirrad(k)
+            stop
+          endif
+          if (unitTcool(k).ne.' '.and.unitTcool(k).ne.'y'.and.
+     +      unitTcool(k).ne.'d'.and.unitTcool(k).ne.'h'.and.
+     +      unitTcool(k).ne.'m'.and.unitTcool(k).ne.'s') then
+            write(*,'(" TALYS-error: wrong unit for Tcool= ",i9)')
+     +        Tcool(k)
+            stop
+          endif
+   90   continue
+        if (rhotarget.ne.-1..and.(rhotarget.le.0..or.rhotarget.gt.100.))
+     +    then
+          write(*,'(" TALYS-error: 0 < rhotarget <= 100.")')
+          stop
+        endif
+      endif
 c
 c 3. Check of values of optical model
 c
@@ -417,8 +536,12 @@ c ompadjustE1: start energy of local OMP adjustment
 c ompadjustE2: end energy of local OMP adjustment
 c ompadjustD : depth of local OMP adjustment
 c ompadjusts : variance of local OMP adjustment
+c tladjust   : adjustable factor for Tlj (default 1.)
 c aradialcor : adjustable parameter for shape of DF alpha potential
 c adepthcor  : adjustable parameter for depth of DF alpha potential
+c Ejoin      : joining energy for high energy OMP
+c Vinfadjust : adjustable factor for high energy limit of
+c              real central potential
 c
       do 160 type=1,6
         if (v1adjust(type).lt.0.1.or.v1adjust(type).gt.10.) then
@@ -459,6 +582,14 @@ c
         endif
         if (w2adjust(type).lt.0.1.or.w2adjust(type).gt.10.) then
           write(*,'(" TALYS-error: 0.1 <= w2adjust <= 10.")')
+          stop
+        endif
+        if (w3adjust(type).lt.0.1.or.w3adjust(type).gt.10.) then
+          write(*,'(" TALYS-error: 0.1 <= w3adjust <= 10.")')
+          stop
+        endif
+        if (w4adjust(type).lt.0.1.or.w4adjust(type).gt.10.) then
+          write(*,'(" TALYS-error: 0.1 <= w4adjust <= 10.")')
           stop
         endif
         if (rvdadjust(type).lt.0.1.or.rvdadjust(type).gt.10.) then
@@ -525,7 +656,7 @@ c
           write(*,'(" TALYS-error: 0.1 <= rcadjust <= 10.")')
           stop
         endif
-        do 170 omptype=1,12
+        do 170 omptype=1,numompadj
           do 180 nr=1,ompadjustN(type,omptype)
             if (ompadjustE1(type,omptype,nr).lt.0.or.
      +        ompadjustE1(type,omptype,nr).gt.Emaxtalys) then
@@ -568,6 +699,15 @@ c
   180     continue
   170   continue
   160 continue
+      do 192 type=-1,6
+        do 194 l=0,numl
+          tl0=tladjust(type,l)
+          if (tl0.lt.0.001.or.tl0.gt.1000.) then
+            write(*,'(" TALYS-error: 0.001 <= tladjust <= 1000.")')
+            stop
+          endif
+  194   continue
+  192 continue
       if (jlmmode.lt.0.or.jlmmode.gt.3) then
         write(*,'(" TALYS-error: 0 <= jlmmode <= 3")')
         stop
@@ -608,6 +748,17 @@ c
         write(*,'(" TALYS-error: 0.1 <= soswitch <= 10.")')
         stop
       endif
+      do 196 type=1,2
+        if (Ejoin(type).le.0..or.Ejoin(type).gt.Emaxtalys) then
+          write(*,'(" TALYS-error: 0. < Ejoin <= ",f10.5)')
+     +      Emaxtalys
+          stop
+        endif
+        if (Vinfadjust(type).lt.0.01.or.Vinfadjust(type).gt.10.) then
+          write(*,'(" TALYS-error: 0.01 <= Vinfadjust <= 10.")')
+          stop
+        endif
+  196 continue
 c
 c Check direct reaction parameters
 c
@@ -635,6 +786,7 @@ c
 c ewfc        : off-set incident energy for width fluctuation
 c               calculation
 c eurr        : off-set incident energy for URR calculation
+c flagurr     : flag for output of unresolved resonance parameters
 c wmode       : designator for width fluctuation model
 c lurr        : maximal orbital angular momentum for URR
 c numl        : maximal number of l-values
@@ -657,7 +809,7 @@ c
      +    " photonuclear reactions")')
         stop
       endif
-      if (k0.ne.1.and.eurr.gt.0.) then
+      if (k0.ne.1.and.(eurr.gt.0..or.flagurr)) then
         write(*,'(" TALYS-error: URR calculation only possible",
      +    " for incident neutrons")')
         stop
@@ -684,23 +836,31 @@ c
 c
 c 5. Check of values for gamma emission
 c
-c gammax    : number of l-values for gamma multipolarity
-c strength  : model for E1 gamma-ray strength function
-c strengthM1: model for M1 gamma-ray strength function
-c egr,egr0  : energy of GR
-c irad      : variable to indicate M(=0) or E(=1) radiation
-c lval      : multipolarity
-c igr       : giant resonance
-c ggr,ggr0  : width of GR
-c sgr,sgr0  : strength of GR
-c gamgam    : total radiative width in eV
-c D0        : s-wave resonance spacing in eV
-c S0        : s-wave strength function
-c fiso      : correction factor for isospin forbidden transitions
-c gnorm     : gamma normalization factor
-c etable    : constant to adjust tabulated strength functions
-c ftable    : constant to adjust tabulated strength functions
-c RprimeU   : potential scattering radius
+c gammax      : number of l-values for gamma multipolarity
+c strength    : model for E1 gamma-ray strength function
+c strengthM1  : model for M1 gamma-ray strength function
+c egr,egr0    : energy of GR
+c irad        : variable to indicate M(=0) or E(=1) radiation
+c lval        : multipolarity
+c igr         : giant resonance
+c ggr,ggr0    : width of GR
+c sgr,sgr0    : strength of GR
+c epr         : energy of PR
+c gpr         : width of PR
+c tpr         : strength of PR
+c egradjust.  : adjustable factors for giant resonance parameters
+c               (default 1.)
+c gamgam      : total radiative width in eV
+c D0          : s-wave resonance spacing in eV
+c fiso        : correction factor for isospin forbidden transitions
+c gnorm       : gamma normalization factor
+c etable      : constant to adjust tabulated strength functions
+c ftable      : constant to adjust tabulated strength functions
+c RprimeU     : potential scattering radius
+c flagracap   : flag for radiative capture model
+c ldmodelracap: level density model for direct radiative capture
+c spectfacexp : experimental spectroscopic factor
+c spectfacth  : theoretical spectroscopic factor
 c
       if (gammax.lt.1.or.gammax.gt.6) then
         write(*,'(" TALYS-error: 1 <= gammax <= 6")')
@@ -744,23 +904,53 @@ c
      +              " <=10000.")')
                   stop
                 endif
+                epr0=epr(Zix,Nix,irad,lval,igr)
+                if (epr0.ne.0..and.(epr0.lt.1..or.epr0.gt.100.)) then
+                  write(*,'(" TALYS-error: 1.<= energy of PR <=100.")')
+                  stop
+                endif
+                gpr0=gpr(Zix,Nix,irad,lval,igr)
+                if (gpr0.ne.0..and.(gpr0.lt.0.1.or.gpr0.gt.100.)) then
+                  write(*,'(" TALYS-error: 0.1<= width of PR <=100.")')
+                  stop
+                endif
+                tpr0=tpr(Zix,Nix,irad,lval,igr)
+                if (tpr0.lt.0..or.tpr0.gt.10000.) then
+                  write(*,'(" TALYS-error: 0.<= strength of PR",
+     +              " <=10000.")')
+                  stop
+                endif
+                egr0=egradjust(Zix,Nix,irad,lval,igr)
+                if (egr0.lt.0.1.or.egr0.gt.10.) then
+                  write(*,'(" TALYS-error: 0.1 <= egradjust <= 10.")')
+                  stop
+                endif
+                ggr0=ggradjust(Zix,Nix,irad,lval,igr)
+                if (ggr0.lt.0.1.or.ggr0.gt.10.) then
+                  write(*,'(" TALYS-error: 0.1 <= ggradjust <= 10.")')
+                  stop
+                endif
+                sgr0=sgradjust(Zix,Nix,irad,lval,igr)
+                if (sgr0.lt.0.1.or.sgr0.gt.10.) then
+                  write(*,'(" TALYS-error: 0.1 <= sgradjust <= 10.")')
+                  stop
+                endif
+                epr0=epradjust(Zix,Nix,irad,lval,igr)
+                if (epr0.lt.0.1.or.epr0.gt.10.) then
+                  write(*,'(" TALYS-error: 0.1 <= epradjust <= 10.")')
+                  stop
+                endif
+                gpr0=gpradjust(Zix,Nix,irad,lval,igr)
+                if (gpr0.lt.0.1.or.gpr0.gt.10.) then
+                  write(*,'(" TALYS-error: 0.1 <= gpradjust <= 10.")')
+                  stop
+                endif
+                tpr0=tpradjust(Zix,Nix,irad,lval,igr)
+                if (tpr0.lt.0.1.or.tpr0.gt.10.) then
+                  write(*,'(" TALYS-error: 0.1 <= spradjust <= 10.")')
+                  stop
+                endif
   250         continue
-              epr0=epr(Zix,Nix,irad,lval)
-              if (epr0.ne.0..and.(epr0.lt.1..or.epr0.gt.100.)) then
-                write(*,'(" TALYS-error: 1.<= energy of PR <=100.")')
-                stop
-              endif
-              gpr0=gpr(Zix,Nix,irad,lval)
-              if (gpr0.ne.0..and.(gpr0.lt.0.1.or.gpr0.gt.100.)) then
-                write(*,'(" TALYS-error: 0.1<= width of PR <=100.")')
-                stop
-              endif
-              tpr0=tpr(Zix,Nix,irad,lval)
-              if (tpr0.lt.0..or.tpr0.gt.10000.) then
-                write(*,'(" TALYS-error: 0.<= strength of PR",
-     +            " <=10000.")')
-                stop
-              endif
   240       continue
   230     continue
           if (gamgam(Zix,Nix).ne.0.) then
@@ -774,10 +964,6 @@ c
               write(*,'(" TALYS-error: 1.e-6 <= D0 <= 10000. keV")')
               stop
             endif
-          endif
-          if (S0(Zix,Nix).lt.0..or.S0(Zix,Nix).gt.10.) then
-            write(*,'(" TALYS-error: 0. <= S0 <= 10.")')
-            stop
           endif
           if (etable(Zix,Nix).lt.-10..or.etable(Zix,Nix).gt.10.) then
             write(*,'(" TALYS-error: -10. <= etable <= 10.")')
@@ -809,30 +995,55 @@ c
         write(*,'(" TALYS-error: 0. <= Rprime <= 10.")')
         stop
       endif
+      if (flagracap.and.k0.eq.0) then
+        write(*,'(" TALYS-error: Radiative capture model not possible",
+     +    " for incident photons")')
+        stop
+      endif
+      if (ldmodelracap.lt.1.or.ldmodelracap.gt.3) then
+        write(*,'(" TALYS-error: 1 <= ldmodelracap <= 3")')
+        stop
+      endif
+      do 270 Zix=0,numZ
+        do 270 Nix=0,numN
+          if (spectfacth(Zix,Nix).lt.0..or.
+     +      spectfacth(Zix,Nix).gt.10.) then
+            write(*,'(" TALYS-error: 0. <= sfth <= 10.")')
+            stop
+          endif
+          do 270 i=0,numlev
+            if (spectfacexp(Zix,Nix,i).lt.0..or.
+     +        spectfacexp(Zix,Nix,i).gt.10.) then
+              write(*,'(" TALYS-error: 0. <= sfexp <= 10.")')
+              stop
+            endif
+  270 continue
 c
 c 6. Check of values for pre-equilibrium
 c
-c epreeq    : on-set incident energy for preequilibrium calculation
-c preeqmode : designator for pre-equilibrium model
-c mpreeqmode: designator for multiple pre-equilibrium model
-c emulpre   : on-set incident energy for multiple preequilibrium
-c phmodel   : particle-hole state density model
-c pairmodel : model for preequilibrium pairing energy
-c M2constant: constant for matrix element in exciton model
-c M2limit   : constant for asymptotic value for matrix element
-c M2shift   : constant for energy shift for matrix element
-c Rpinu,....: ratio for two-component matrix element
-c Esurf0    : well depth for surface interaction
-c Rgamma    : adjustable parameter for pre-equilibrium gamma decay
-c msdbins   : number of energy points for DWBA calculation for MSD
-c numenmsd  : maximum number of energy points for DWBA calculation for
-c             MSD
-c Emsdmin   : minimal outgoing energy for MSD calculation
-c elwidth   : width of elastic peak in MeV
-c flagpecomp: flag for Kalbach complex particle emission model
-c Cstrip    : adjustable parameter for stripping/pick-up reactions
-c Cknock    : adjustable parameter for knockout reactions
-c Cbreak    : adjustable parameter for breakup reactions
+c epreeq     : on-set incident energy for preequilibrium calculation
+c preeqmode  : designator for pre-equilibrium model
+c mpreeqmode : designator for multiple pre-equilibrium model
+c emulpre    : on-set incident energy for multiple preequilibrium
+c phmodel    : particle-hole state density model
+c pairmodel  : model for preequilibrium pairing energy
+c pespinmodel: model for pre-equilibrium spin distribution or compound
+c              spin distribution for pre-equilibrium cross section
+c M2constant : constant for matrix element in exciton model
+c M2limit    : constant for asymptotic value for matrix element
+c M2shift    : constant for energy shift for matrix element
+c Rpinu,.... : ratio for two-component matrix element
+c Esurf0     : well depth for surface interaction
+c Rgamma     : adjustable parameter for pre-equilibrium gamma decay
+c msdbins    : number of energy points for DWBA calculation for MSD
+c numenmsd   : maximum number of energy points for DWBA calculation for
+c              MSD
+c Emsdmin    : minimal outgoing energy for MSD calculation
+c elwidth    : width of elastic peak in MeV
+c flagpecomp : flag for Kalbach complex particle emission model
+c Cstrip     : adjustable parameter for stripping/pick-up reactions
+c Cknock     : adjustable parameter for knockout reactions
+c Cbreak     : adjustable parameter for breakup reactions
 c
       if ((epreeq.lt.0..or.epreeq.gt.Emaxtalys).and.epreeq.ne.-1.) then
         write(*,'(" TALYS-error: 0. <= epreeq < ",f10.3)') Emaxtalys
@@ -842,7 +1053,7 @@ c
         write(*,'(" TALYS-error: 1 <= preeqmode <= 4")')
         stop
       endif
-      if (preeqmode.gt.3.and.ptype0.eq.'g') then
+      if (preeqmode.gt.3.and.k0.eq.0) then
         write(*,'(" TALYS-error: preeqmode <= 3 for incident photons")')
         stop
       endif
@@ -860,6 +1071,10 @@ c
       endif
       if (pairmodel.lt.1.or.pairmodel.gt.2) then
         write(*,'(" TALYS-error: 1 <= pairmodel <= 2")')
+        stop
+      endif
+      if (pespinmodel.lt.1.or.pespinmodel.gt.3) then
+        write(*,'(" TALYS-error: 1 <= pespinmodel <= 3")')
         stop
       endif
       if (M2constant.lt.0..or.M2constant.gt.100.) then
@@ -931,7 +1146,7 @@ c
      +    "mechanism for photonuclear reactions")')
         stop
       endif
-      do 270 type=0,6
+      do 280 type=0,6
         if (Cstrip(type).lt.0..or.Cstrip(type).gt.100.) then
           write(*,'(" TALYS-error: 0. <= Cstrip <= 100.")')
           stop
@@ -944,7 +1159,7 @@ c
           write(*,'(" TALYS-error: 0. <= Cbreak <= 100.")')
           stop
         endif
-  270 continue
+  280 continue
 c
 c 7. Check of values for level densities
 c
@@ -997,8 +1212,8 @@ c
       endif
       do 310 Zix=0,numZ
         do 320 Nix=0,numN
-          if (ldmodel(Zix,Nix).lt.1.or.ldmodel(Zix,Nix).gt.5) then
-            write(*,'(" TALYS-error: 1 <= ldmodel <= 5")')
+          if (ldmodel(Zix,Nix).lt.1.or.ldmodel(Zix,Nix).gt.6) then
+            write(*,'(" TALYS-error: 1 <= ldmodel <= 6")')
             stop
           endif
           if (ldmodel(Zix,Nix).ge.4) then
@@ -1091,6 +1306,21 @@ c
                 write(*,'(" TALYS-error: 0.1 <= Exmatch <= 20.")')
                 stop
               endif
+            endif
+            if (Tadjust(Zix,Nix,ibar).lt.0.1.or.
+     +        Tadjust(Zix,Nix,ibar).gt.10.) then
+              write(*,'(" TALYS-error: 0.1 <= Tadjust <= 10.")')
+              stop
+            endif
+            if (E0adjust(Zix,Nix,ibar).lt.0.1.or.
+     +        E0adjust(Zix,Nix,ibar).gt.10.) then
+              write(*,'(" TALYS-error: 0.1 <= E0adjust <= 10.")')
+              stop
+            endif
+            if (Exmatchadjust(Zix,Nix,ibar).lt.0.2.or.
+     +        Exmatchadjust(Zix,Nix,ibar).gt.2.) then
+              write(*,'(" TALYS-error: 0.2 <= Exmatchadjust <= 2.")')
+              stop
             endif
             if (Pshift(Zix,Nix,ibar).lt.-10..or.
      +        Pshift(Zix,Nix,ibar).gt.10.) then
@@ -1259,6 +1489,7 @@ c flagfission: flag for fission
 c flagfisout : flag for output of fission information
 c fismodel   : fission model
 c fismodelalt: alternative fission model for default barriers
+c gefran     : number of random events for GEF calculation
 c axtype     : type of axiality of barrier
 c                 1: axial symmetry
 c                 2: left-right asymmetry
@@ -1267,6 +1498,8 @@ c                 4: triaxial no left-right symmetry
 c                 5: no symmetry
 c fbarrier   : height of fission barrier
 c fwidth     : width of fission barrier
+c fbaradjust.: adjustable factors for fission parameters
+c              (default 1.)
 c Rtransmom  : normalization constant for moment of inertia for
 c              transition states
 c Rclass2mom : normalization constant for moment of inertia for
@@ -1275,8 +1508,8 @@ c widthc2    : width of class2 states
 c betafiscor : adjustable factor for fission path width
 c vfiscor    : adjustable factor for fission path height
 c
-      if ((flagfission.or.flagfisout).and.Atarget.le.56) then
-        write(*,'(" TALYS-error: Fission not allowed for A <= 56")')
+      if ((flagfission.or.flagfisout).and.Atarget.le.120) then
+        write(*,'(" TALYS-error: Fission not allowed for A <= 120")')
         stop
       endif
       if (fismodel.lt.1.or.fismodel.gt.5) then
@@ -1285,6 +1518,10 @@ c
       endif
       if (fismodelalt.lt.3.or.fismodelalt.gt.4) then
         write(*,'(" TALYS-error: 3 <= fismodelalt <= 4")')
+        stop
+      endif
+      if (gefran.lt.1000.or.gefran.gt.1000000) then
+        write(*,'(" TALYS-error: 1000 <= gefran <= 1000000")')
         stop
       endif
       do 410 Zix=0,numZ
@@ -1300,9 +1537,19 @@ c
               write(*,'(" TALYS-error: 0.<= fission barrrier <=100.")')
               stop
             endif
+            fbar0=fbaradjust(Zix,Nix,ibar)
+            if (fbar0.ne.0..and.(fbar0.lt.0.1.or.fbar0.gt.10.)) then
+              write(*,'(" TALYS-error: 0.1 <= fbaradjust <= 10.")')
+              stop
+            endif
             fhw0=fwidth(Zix,Nix,ibar)
             if (fhw0.ne.0..and.(fhw0.lt.0.01.or.fhw0.gt.10.)) then
               write(*,'(" TALYS-error: 0.01 <= fission width <= 10.")')
+              stop
+            endif
+            fhw0=fwidthadjust(Zix,Nix,ibar)
+            if (fhw0.ne.0..and.(fhw0.lt.0.1.or.fhw0.gt.10.)) then
+              write(*,'(" TALYS-error: 0.1 <= fwidthadjust <= 10.")')
               stop
             endif
             fR0=Rtransmom(Zix,Nix,ibar)
@@ -1373,6 +1620,47 @@ c
           endif
   530   continue
   510 continue
+c
+c 10. Check of values energy-dependent parameter adjustment
+c
+c Nadjust  : number of adjustable parameters
+c adjustpar: local adjustment parameters
+c Ea       : start energy of local adjustment
+c Eb       : end energy of local adjustment
+c Em       : intermediate energy of local adjustment
+c D        : depth of local adjustment
+c adjustkey: keyword for local adjustment
+c
+      do 610 n=1,Nadjust
+        if (adjustfile(i)(1:1).ne.' ') goto 610
+        Ea=adjustpar(n,1)
+        Eb=adjustpar(n,2)
+        Em=adjustpar(n,3)
+        D=adjustpar(n,4)
+        if ((Ea.ge.Eb).or.(Ea.ge.Em).or.(Em.ge.Eb)) then
+          write(*,'(" TALYS-error: energy range for adjustment should",
+     +      " be given as follows: Ea Eb Em D, with Ea < Em < Eb",
+     +      " for keyword ",a80)') adjustkey(n)
+          stop
+        endif
+        if (D.le.0..or.D.ge.10.) then
+          write(*,'(" TALYS-error: 0. < D <= 10. for keyword ",a80)')
+     +      adjustkey(n)
+          stop
+        endif
+        do 620 m=1,Nadjust
+          if (m.eq.n) goto 620
+          if (adjustkey(m).ne.adjustkey(n)) goto 620
+          Ea2=adjustpar(m,1)
+          Eb2=adjustpar(m,2)
+          if ((Ea2.gt.Ea.and.Ea2.lt.Eb).or.(Eb2.gt.Ea.and.Eb2.lt.Eb))
+     +      then
+            write(*,'(" TALYS-error: overlapping energy ranges for ",
+     +        "keyword ",a80)') adjustkey(n)
+            stop
+          endif
+  620   continue
+  610 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

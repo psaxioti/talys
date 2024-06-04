@@ -27,4 +27,4 @@ c
       spindis=(2.*Rspin+1.)/sigma22*exp(-(Rspin+0.5)**2/sigma22)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

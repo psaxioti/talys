@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 2, 2011
+c | Date  : April 4, 2012
 c | Task  : Prepare energy grid, level density and transmission
 c |         coefficient information for compound nucleus
 c +---------------------------------------------------------------------
@@ -10,13 +10,15 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      character*80     key
       integer          Zcomp,Ncomp,idfis,type,Zix,Nix,A,NL,odd,ldmod,
-     +                 nexout,Pprime,Ir,l,irad,updown,nen,na,nb,nc,ibar,
-     +                 ibk,ibin,J,parity
+     +                 nexout,Pprime,Ir,l,irad,updown,nen,na,
+     +                 nb,nc,ibar,ibk,ibin,J,parity
       real             Ex0plus,Ex0min,Efs,SS,Rodd,dEx,dExhalf,Exout,
      +                 Rboundary,Ex1min,Ex1plus,Eout,emax,emin,Exm,
-     +                 Rspin,Egamma,fstrength,Ea,Eb,Ec,ta,tb,tc,tint,
-     +                 exfis,dExmin,elowest,elow,emid
+     +                 Rspin,factl(0:numl),Egamma,factor,gn0,fstrength,
+     +                 Ea,Eb,Ec,ta,tb,tc,tint,exfis,dExmin,elowest,elow,
+     +                 emid
       double precision density
 c
 c ************ Determine energetically allowed transitions *************
@@ -88,9 +90,9 @@ c cases where not the entire mother bin can have decayed to the residual
 c bin or level, because of the particle separation energy. The end
 c points need to be taken care of by a proper normalization.
 c
-        dEx=deltaEx(Zix,Nix)
-        dExhalf=0.5*dEx
         do 20 nexout=0,nexmax(type)
+          dEx=deltaEx(Zix,Nix,nexout)
+          dExhalf=0.5*dEx
           Exout=Ex(Zix,Nix,nexout)
           Rboundary=1.
 c
@@ -203,6 +205,25 @@ c
   110       continue
           endif
 c
+c Optional adjustment factors
+c
+c tljadjust: logical for energy-dependent Tlj adjustment
+c tladjust : adjustable factor for Tlj (default 1.)
+c adjust   : subroutine for energy-dependent parameter adjustment
+c factl    : multiplication factor
+c
+          if (tljadjust(type)) then
+            do 130 l=0,numl
+              key='tljadjust'
+              call adjust(Exout,key,0,0,type,l,factor)
+              factl(l)=factor*tladjust(type,l)
+  130       continue
+          else
+            do 140 l=0,numl
+              factl(l)=1.
+  140       continue
+          endif
+c
 c ************* Interpolation of transmission coefficients *************
 c
 c 1. Gamma transmission coefficients
@@ -213,6 +234,9 @@ c Egamma   : gamma energy
 c irad     : variable to indicate M(=0) or E(=1) radiation
 c Tgam     : gamma transmission coefficients
 c twopi    : 2.*pi
+c gamadjust: logical for energy-dependent gamma adjustment
+c adjust   : subroutine for energy-dependent parameter adjustment
+c factor   : multiplication factor
 c gnorm    : gamma normalization factor
 c fstrength: gamma ray strength function
 c
@@ -224,10 +248,17 @@ c
                 Tgam(nexout,l,irad)=0.
   210       continue
             if (Egamma.le.0) goto 20
+            if (gamadjust(Zcomp,Ncomp)) then
+              key='gnorm'
+              call adjust(Ecomp,key,0,0,0,0,factor)
+              gn0=factor*gnorm
+            else
+              gn0=gnorm
+            endif
             do 220 l=1,gammax
               do 220 irad=0,1
-                Tgam(nexout,l,irad)=twopi*(Egamma**(2*l+1))*gnorm*
-     +            fstrength(Zcomp,Ncomp,Efs,Egamma,irad,l)
+                Tgam(nexout,l,irad)=twopi*(Egamma**(2*l+1))*gn0*
+     +            fstrength(Zcomp,Ncomp,Efs,Egamma,irad,l)*factl(l)
   220       continue
           else
 c
@@ -275,24 +306,24 @@ c
             Ea=egrid(na)
             Eb=egrid(nb)
             Ec=egrid(nc)
-            do 250 updown=-1,1
-              do 250 l=0,lmax(type,nen)
+            do 260 updown=-1,1
+              do 260 l=0,lmax(type,nen)
                 ta=Tjl(type,na,updown,l)
                 tb=Tjl(type,nb,updown,l)
                 tc=Tjl(type,nc,updown,l)
                 call pol2(Ea,Eb,Ec,ta,tb,tc,Eout,tint)
                 if (tint.lt.transeps) tint=0.
-                Tjlnex(type,nexout,updown,l)=tint
-  250       continue
+                Tjlnex(type,nexout,updown,l)=factl(l)*tint
+  260       continue
             if (.not.flagfullhf) then
-              do 260 l=0,lmax(type,nen)
+              do 270 l=0,lmax(type,nen)
                 ta=Tl(type,na,l)
                 tb=Tl(type,nb,l)
                 tc=Tl(type,nc,l)
                 call pol2(Ea,Eb,Ec,ta,tb,tc,Eout,tint)
                 if (tint.lt.transeps) tint=0.
-                Tlnex(type,nexout,l)=tint
-  260         continue
+                Tlnex(type,nexout,l)=factl(l)*tint
+  270         continue
             endif
 c
 c The maximal l-values needed in the compound nucleus calculations are
@@ -376,4 +407,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

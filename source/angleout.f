@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 29, 2007
+c | Date  : June 10, 2012
 c | Task  : Output of discrete angular distributions
 c +---------------------------------------------------------------------
 c
@@ -27,8 +27,8 @@ c tlegnor     : total Legendre coefficient normalized to 1
 c fileelastic : flag for elastic angular distribution on separate file
 c parsym      : symbol of particle
 c Atarget     : mass number of target nucleus
-c nuc         : symbol of nucleus
 c Ztarget     : charge number of target nucleus
+c Starget     : symbol of target nucleus
 c Einc        : incident energy in MeV
 c cleg0       : Legendre coefficient normalized to the first one
 c
@@ -55,7 +55,7 @@ c
           open (unit=1,status='unknown',file=discfile)
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering Legendre coefficients")') parsym(k0),
-     +      Atarget,nuc(Ztarget)
+     +      Atarget,Starget
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
           write(1,'("# # coeff.   =",i3)') J2end+1
@@ -101,7 +101,7 @@ c
           open (unit=1,status='unknown',file=discfile)
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering angular distribution")') parsym(k0),
-     +      Atarget,nuc(Ztarget)
+     +      Atarget,Starget
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i3)') nangle+1
@@ -119,8 +119,8 @@ c
      +    "       Compound       c.s/Rutherford"/)')
         do 50 iang=0,nangle
           write(*,'(1x,f5.1,1p,4e16.5)') angle(iang),
-     +      discad(k0,Ltarget,iang),directad(k0,Ltarget,iang),
-     +      compad(k0,Ltarget,iang),ruth(iang)
+     +      max(discad(k0,Ltarget,iang),directad(k0,Ltarget,iang)),
+     +      directad(k0,Ltarget,iang),compad(k0,Ltarget,iang),ruth(iang)
    50   continue
 c
 c Write results to separate file
@@ -134,7 +134,7 @@ c
           open (unit=1,status='unknown',file=discfile)
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering angular distribution")') parsym(k0),
-     +      Atarget,nuc(Ztarget)
+     +      Atarget,Starget
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i3)') nangle+1
@@ -142,8 +142,9 @@ c
      +      "         Compound    c.s./Rutherford")')
           do 60 iang=0,nangle
             write(1,'(f5.1,1p,4e16.5)') angle(iang),
-     +        discad(k0,Ltarget,iang),directad(k0,Ltarget,iang),
-     +        compad(k0,Ltarget,iang),ruth(iang)
+     +        max(discad(k0,Ltarget,iang),directad(k0,Ltarget,iang)),
+     +        directad(k0,Ltarget,iang),compad(k0,Ltarget,iang),
+     +        ruth(iang)
    60     continue
           close (unit=1)
         endif
@@ -187,7 +188,7 @@ c
             open (unit=1,status='unknown',file=discfile)
             write(1,'("# ",a1," + ",i3,a2,
      +        " Inelastic scattering Legendre coefficients"," - Level",
-     +        i3)')  parsym(k0),Atarget,nuc(Ztarget),i
+     +        i3)')  parsym(k0),Atarget,Starget,i
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
             write(1,'("# # coeff.   =",i3)') J2end+1
@@ -226,7 +227,7 @@ c
           open (unit=1,status='unknown',file=discfile)
           write(1,'("# ",a1," + ",i3,a2,
      +      " Inelastic scattering angular distribution",
-     +      " - Level",i3)') parsym(k0),Atarget,nuc(Ztarget),i
+     +      " - Level",i3)') parsym(k0),Atarget,Starget,i
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i3)') nangle+1
@@ -278,7 +279,7 @@ c
               open (unit=1,status='unknown',file=discfile)
               write(1,'("# ",a1," + ",i3,a2," (",a1,",",a1,
      +          ") Legendre coefficients"," - Level",i3)') parsym(k0),
-     +          Atarget,nuc(Ztarget),parsym(k0),parsym(type),i
+     +          Atarget,Starget,parsym(k0),parsym(type),i
               write(1,'("# E-incident = ",f7.3)') Einc
               write(1,'("# ")')
               write(1,'("# # coeff.   =",i3)') J2end+1
@@ -320,7 +321,7 @@ c
             open (unit=1,status='unknown',file=discfile)
             write(1,'("# ",a1," + ",i3,a2," (",a1,",",a1,
      +        ") angular distributions - Level",i3)') parsym(k0),
-     +        Atarget,nuc(Ztarget),parsym(k0),parsym(type),i
+     +        Atarget,Starget,parsym(k0),parsym(type),i
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
             write(1,'("# # angles   =",i3)') nangle+1
@@ -337,4 +338,4 @@ c
   210 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

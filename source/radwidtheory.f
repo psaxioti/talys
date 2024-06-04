@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 3, 2011
+c | Date  : August 18, 2012
 c | Task  : Theoretical calculation of total radiative width
 c +---------------------------------------------------------------------
 c
@@ -12,7 +12,7 @@ c
       integer          Zcomp,Ncomp,NL,nex,l,nexgam,J2b,J2e,ldmod,J2,
      +                 nexout,Pprimebeg,Pprimeend,Irspin2beg,Irspin2end,
      +                 Pprime,Irspin2,l2beg,l2end,l2,modl,irad
-      real             E,Sn,Exgam(0:10*numex),dEx,tspin,tP,Sgamsum,
+      real             E,Sn,Exgam(0:10*numex),dEx,tspin,tpar,Sgamsum,
      +                 Exmid,Egamma,Exmin,Explus,dE1,dE2,Rspin,Sgamma,
      +                 fstrength
       double precision density,rho1,rho2,rho3,r1log,r2log,r3log,rho
@@ -58,7 +58,7 @@ c strucexist: flag to determine whether structure info for this nucleus
 c             already exists
 c levels    : subroutine for discrete levels
 c tspin     : spin of target (compound nucleus - neutron)
-c tP        : parity of target (compound nucleus - neutron)
+c tpar      : parity of target (compound nucleus - neutron)
 c jdis      : spin of level
 c J2b       : 2 * start of J summation
 c parspin   : spin of incident particle
@@ -71,7 +71,7 @@ c Specify the summation boundaries for the neutron channel.
 c
    30 if (.not.strucexist(Zcomp,Ncomp+1)) call levels(Zcomp,Ncomp+1)
       tspin=jdis(Zcomp,Ncomp+1,0)
-      tP=parlev(Zcomp,Ncomp+1,0)
+      tpar=parlev(Zcomp,Ncomp+1,0)
       J2b=int(abs(2.*(tspin-parspin(1))))
       J2e=int(2.*(tspin+parspin(1)))
       Sgamsum=0.
@@ -144,7 +144,7 @@ c
 c pardif: difference between residual and compound nucleus parity
 c
           do 130 Pprime=Pprimebeg,Pprimeend,2
-            pardif=abs(tP-Pprime)/2
+            pardif=abs(tpar-Pprime)/2
 c
 c 140: Sum over residual spin
 c
@@ -226,4 +226,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

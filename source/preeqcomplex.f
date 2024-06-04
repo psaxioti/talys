@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : March 28, 2010
+c | Date  : January 21, 2012
 c | Task  : Pre-equilibrium complex particle emission
 c +---------------------------------------------------------------------
 c
@@ -66,20 +66,20 @@ c If the pre-equilibrium spin distribution is chosen, we assume that the
 c spin distribution for pickup, stripping and knockout is the same as in
 c the exciton model.
 c
-c flagpespin: flag for pre-equilibrium spin distribution or compound
-c             spin distribution for pre-equilibrium cross section
-c xspreeq   : preequilibrium cross section per particle type and
-c             outgoing energy
-c parity    : parity
-c maxJph    : maximal spin for particle-hole states
-c xspreeqJP : preequilibrium cross section per particle type,
-c             outgoing energy, spin and parity
+c pespinmodel: model for pre-equilibrium spin distribution or compound
+c              spin distribution for pre-equilibrium cross section
+c xspreeq    : preequilibrium cross section per particle type and
+c              outgoing energy
+c parity     : parity
+c maxJph     : maximal spin for particle-hole states
+c xspreeqJP  : preequilibrium cross section per particle type,
+c              outgoing energy, spin and parity
 c
       do 110 type=1,6
         do 120 nen=ebegin(type),eend(type)
           xspecomp=xspreeqps(type,nen)+xspreeqki(type,nen)+
      +      xspreeqbu(type,nen)
-          if (flagpespin.and.xspreeq(type,nen).ne.0.) then
+          if (pespinmodel.eq.3.and.xspreeq(type,nen).ne.0.) then
             do 130 parity=-1,1,2
               do 130 J=0,maxJph
                 factor=xspreeqJP(type,nen,J,parity)/xspreeq(type,nen)
@@ -92,4 +92,4 @@ c
   110 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

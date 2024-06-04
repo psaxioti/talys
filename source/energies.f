@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 19, 2011
+c | Date  : February 20, 2012
 c | Task  : Energies
 c +---------------------------------------------------------------------
 c
@@ -133,6 +133,8 @@ c eurr       : off-set incident energy for URR calculation
 c flagurr    : flag for output of unresolved resonance parameters
 c flagang    : flag for output of angular distributions
 c flagcompang: flag for compound angular distribution calculation
+c flagcpang  : flag for compound angular distribution calculation for
+c              incident charged particles
 c epreeq     : on-set incident energy for preequilibrium calculation
 c flagpreeq  : flag for pre-equilibrium calculation
 c flaggiant  : flag for collective contribution from giant resonances
@@ -162,7 +164,7 @@ c
       else
         flagurr=.false.
       endif
-      if (k0.eq.1.and.flagang.and.Einc.le.50.)  then
+      if ((k0.eq.1.or.flagcpang).and.flagang.and.Einc.le.50.)  then
         flagcompang=.true.
       else
         flagcompang=.false.
@@ -216,4 +218,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

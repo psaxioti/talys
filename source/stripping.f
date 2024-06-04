@@ -2,19 +2,21 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Vivian Demetriou
-c | Date  : March 28, 2010
+c | Date  : April 4, 2012
 c | Task  : Contribution of stripping and pickup reactions
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical surfwell
-      integer type,ndelta,ndeltapi,ndeltanu,ppi,hpi,pnu,hnu,A,Z,N,i,j,
-     +        nen,k,l
-      real    proj2sp1,ejecmass,ejec2sp1,term1,Kap,Va,term2,term3,term4,
-     +        base,term5,termps,V1well,surface,XNT,gsn,gsp,Ewell,Eout,
-     +        factor1,Eres,P,preeqpair,omegaNT,omegaph,phdens2
+      character*80 key
+      logical      surfwell
+      integer      type,ndelta,ndeltapi,ndeltanu,ppi,hpi,pnu,hnu,A,Z,N,
+     +             i,j,nen,k,l
+      real         proj2sp1,ejecmass,ejec2sp1,term1,Kap,Va,term2,term3,
+     +             term4,base,term5,factor,termps,V1well,surface,XNT,
+     +             gsn,gsp,Ewell,Eout,factor1,Eres,P,preeqpair,omegaNT,
+     +             omegaph,phdens2
 c
 c ************************** Kalbach model *****************************
 c
@@ -54,6 +56,9 @@ c ndeltanu: number of transferred neutrons
 c parN    : neutron number of particle
 c Va      : potential drop
 c
+c Kap=5 for outgoing helions was introduced to better fit (n,h) data,
+c i.e. it does not come from the original Kalback model.
+c
         ejecmass=parmass(type)
         ejec2sp1=2.*parspin(type)+1.
         term1=ejec2sp1*ejecmass/(proj2sp1*projmass)
@@ -61,6 +66,7 @@ c
         if ((k0.eq.1.or.k0.eq.2)) then
           if (type.eq.6) Kap=12.
           if (type.eq.3.and.Einc.gt.80.) Kap=80./Einc
+          if (type.eq.5) Kap=5.
         endif
         if (k0.eq.6.and.(type.eq.1.or.type.eq.2))
      +    Kap=12.-11.*max(eninccm-20.,0.)/eninccm
@@ -91,6 +97,7 @@ c base   : help variable
 c Ztarget: charge number of target nucleus
 c Atarget: mass number of target nucleus
 c termps : term for pickup and stripping
+c adjust : subroutine for energy-dependent parameter adjustment
 c Cstrip : adjustable parameter for stripping/pick-up reactions
 c
         A=AA(0,0,type)
@@ -106,7 +113,9 @@ c
         if (parA(k0).eq.parA(type)) term4=1./(1160.*sqrt(eninccm))
         base=real(2.*Ztarget)/real(Atarget)
         term5=base**(2*(parZ(k0)+2)*hpi+2*pnu)
-        termps=Cstrip(type)*term1*term2*term3*term4*term5
+        key='cstrip'
+        call adjust(Einc,key,0,0,type,0,factor)
+        termps=factor*Cstrip(type)*term1*term2*term3*term4*term5
 c
 c XNT function
 c
@@ -186,4 +195,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

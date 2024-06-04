@@ -2,17 +2,19 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 2, 2011
+c | Date  : November 28, 2013
 c | Task  : Total level density
 c +---------------------------------------------------------------------
 c
 c ******************* Declarations and common blocks *******************
 c
       include "talys.cmb"
+      character*80     key
       integer          Zix,Nix,ibar,ldmod,nex2
-      real             Eex,P,ald,ignatyuk,Krot,Kvib,Kcoll,Eshift
+      real             Eex,P,ald,ignatyuk,Krot,Kvib,Kcoll,Eshift,factor,
+     +                 pt,ct,expo
       double precision densitytot,dens,gilcam,bsfgmodel,superfluid,
-     +                 eb,ee,ldb,lde,lldb,llde,ldtab,cctable
+     +                 eb,ee,ldb,lde,lldb,llde,cctable
 c
 c *********************** Total level density **************************
 c
@@ -22,10 +24,31 @@ c Nix        : neutron number index for residual nucleus
 c Eex        : excitation energy
 c ibar       : fission barrier number, zero for states on ground state
 c ldmod      : level density model
+c Eshift     : shifted excitation energy
+c adjust     : subroutine for energy-dependent parameter adjustment
+c ldadjust   : logical for energy-dependent level density adjustment
+c factor     : multiplication factor
+c ctable,....: constant to adjust tabulated level densities
 c ldexist    : flag for existence of level density table
 c
       densitytot=0.
       if (Eex.lt.0.) goto 100
+c
+c Possible adjustment of final level densities
+c
+      if (ldadjust(Zix,Nix)) then
+        key='ptable'
+        call adjust(Eex,key,Zix,Nix,0,ibar,factor)
+        pt=ptable(Zix,Nix,ibar)+factor-1.
+        key='ctable'
+        call adjust(Eex,key,Zix,Nix,0,ibar,factor)
+        ct=ctable(Zix,Nix,ibar)+factor-1.
+      else
+        pt=ptable(Zix,Nix,ibar)
+        ct=ctable(Zix,Nix,ibar)
+      endif
+      Eshift=Eex-pt
+      if (Eshift.le.0.) goto 100
       if (ldmod.le.3.or..not.ldexist(Zix,Nix,ibar)) then
 c
 c ald       : level density parameter
@@ -48,7 +71,7 @@ c
 c
 c 1. Gilbert and Cameron
 c
-        if (ldmod.eq.1.or.(ldmodel(Zix,Nix).ge.4.and..not.
+        if (ldmod.eq.1.or.(ldmod.ge.4.and..not.
      +    ldexist(Zix,Nix,ibar))) dens=gilcam(Zix,Nix,ald,Eex,P,ibar)
 c
 c 2. Back-shifted Fermi gas
@@ -58,22 +81,18 @@ c
 c 3. Superfluid model
 c
         if (ldmod.eq.3) dens=superfluid(Zix,Nix,ald,Eex,P,ibar)
-        densitytot=Kcoll*dens
+        dens=Kcoll*dens
       else
 c
 c 4. Tabulated level densities
 c
-c Eshift             : shifted excitation energy
-c ctable,ptable      : constant to adjust tabulated level densities
-c Edensmax           : maximum energy on level density table
-c locate             : subroutine to find value in ordered table
-c edens              : energy grid for tabulated level densities
-c nendens            : number of energies for level density grid
-c eb,ee,ldb,lde,ldtab: help variables
-c ldtottable         : total level density from table
+c Edensmax     : maximum energy on level density table
+c locate       : subroutine to find value in ordered table
+c edens        : energy grid for tabulated level densities
+c nendens      : number of energies for level density grid
+c eb,ee,ldb,lde: help variables
+c ldtottable   : total level density from table
 c
-        Eshift=Eex-ptable(Zix,Nix,ibar)
-        if (Eshift.le.0.) goto 100
         if (Eshift.le.Edensmax(Zix,Nix)) then
           call locate(edens,0,nendens(Zix,Nix),Eshift,nex2)
           eb=edens(nex2)
@@ -89,14 +108,15 @@ c
         if (ldb.gt.1..and.lde.gt.1.) then
           lldb=log(ldb)
           llde=log(lde)
-          ldtab=exp(lldb+(Eshift-eb)/(ee-eb)*(llde-lldb))
+          dens=exp(lldb+(Eshift-eb)/(ee-eb)*(llde-lldb))
         else
-          ldtab=ldb+(Eshift-eb)/(ee-eb)*(lde-ldb)
+          dens=ldb+(Eshift-eb)/(ee-eb)*(lde-ldb)
         endif
-        cctable=exp(ctable(Zix,Nix,ibar)*sqrt(Eshift))
-        densitytot=cctable*ldtab
       endif
+      expo=min(ct*sqrt(Eshift),80.)
+      cctable=exp(dble(expo))
+      densitytot=cctable*dens
   100 densitytot=max(densitytot,1.d-30)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

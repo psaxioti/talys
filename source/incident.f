@@ -82,7 +82,7 @@ c
       else
         if (.not.flaginitpop) call incidentgamma
       endif
-      if (parinclude(0).or.flagcomp) then
+      if ((parinclude(0).or.flagcomp).and.Einc.le.100.) then
         call radwidtheory(0,0,Einc)
         if (strength.eq.1) call gammanorm(0,0)
       endif
@@ -90,4 +90,4 @@ c
       if (flaginverse) call incidentout
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

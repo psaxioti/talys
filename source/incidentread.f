@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning, Eric Bauge and Pascal Romain
-c | Date  : September 17, 2011
+c | Date  : April 27, 2013
 c | Task  : Read ECIS results for incident energy
 c +---------------------------------------------------------------------
 c
@@ -36,11 +36,11 @@ c If the ECIS calculation has already been done in a previous run, we
 c can read from existing files.
 c
       if (flaginccalc) then
-        open (unit=3,status='unknown',file='ecis06.inccs')
-        open (unit=7,status='unknown',file='ecis06.inctr')
-        open (unit=8,status='unknown',file='ecis06.incang')
-        open (unit=9,status='unknown',file='ecis06.incleg')
-        open (unit=10,status='unknown',file='ecis06.incin')
+        open (unit=3,status='unknown',file='ecis.inccs')
+        open (unit=7,status='unknown',file='ecis.inctr')
+        open (unit=8,status='unknown',file='ecis.incang')
+        open (unit=9,status='unknown',file='ecis.incleg')
+        open (unit=10,status='unknown',file='ecis.incin')
         infilecs=3
         infiletr=7
         infileang=8
@@ -345,4 +345,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -1,9 +1,9 @@
       subroutine stellarrate
 c
 c +---------------------------------------------------------------------
-c | Author  : Stephane Goriely and Stephane Hilaire
-c | Date    : December 22, 2011
-c | Task    : Calculate reaction rate for a Maxwell-Boltzmann
+c | Author: Stephane Goriely and Stephane Hilaire
+c | Date  : March 7, 2012
+c | Task  : Calculate reaction rate for a Maxwell-Boltzmann
 c |           distribution
 c +---------------------------------------------------------------------
 c
@@ -38,7 +38,7 @@ c
 c
 c Calculation of thermonuclear reaction rate factor
 c
-c convfac     : conversion factor for the average velocity at 
+c convfac     : conversion factor for the average velocity at
 c               temperature T9
 c redumass    : reduced mass
 c parZ        : charge number of particle
@@ -69,7 +69,7 @@ c rateastro   : thermonuclear reaction rate factor
 c macsastro   : thermonuclear reaction cross section
 c rateastrofis: thermonuclear reaction rate factor for fission
 c macsastrofis: thermonuclear reaction cross section for fission
-c smacs       : total conversion factor for the average velocity at 
+c smacs       : total conversion factor for the average velocity at
 c               temperature T9
 c
       convfac=2.45484e+5/sqrt(redumass(parZ(k0),parN(k0),k0))
@@ -77,6 +77,7 @@ c
         do 20 Zcomp=0,maxZ
           nloop=1
           if (flagfission.and.Ncomp.eq.0.and.Zcomp.eq.0) nloop=2
+          if (flagracap.and.Ncomp.eq.0.and.Zcomp.eq.0) nloop=3
           do 30 iloop=1,nloop
             do 40 i=1,nTmax
               fact=3.7335e+10/(sqrt(am*(T9(i)**3)))
@@ -93,11 +94,9 @@ c
                 else
                   ee0=e
                 endif
-                if (iloop.eq.1) then
-                  xs=xsastro(Zcomp,Ncomp,nen)/1000.
-                else
-                  xs=xsastrofis(nen)/1000.
-                endif
+                if (iloop.eq.1) xs=xsastro(Zcomp,Ncomp,nen)/1000.
+                if (iloop.eq.2) xs=xsastrofis(nen)/1000.
+                if (iloop.eq.3) xs=xsracap(nen)/1000.
                 fex=11.605*e/T9(i)
                 if (fex.gt.80.) goto 50
                 if (k0.ne.0) then
@@ -108,7 +107,7 @@ c
                 dE=(ee1-ee0)/2.
                 sum=sum+term*dE
   50          continue
-              if (flagastrogs) then
+              if (flagastrogs.or.iloop.eq.3) then
                 rate=sum
               else
                 rate=sum/partf(i)
@@ -117,9 +116,15 @@ c
               if (iloop.eq.1) then
                 rateastro(Zcomp,Ncomp,i)=rate
                 macsastro(Zcomp,Ncomp,i)=rate/smacs
-              else
+              elseif (iloop.eq.2) then
                 rateastrofis(i)=rate
                 macsastrofis(i)=rate/smacs
+              else
+                rateastroracap(i)=rate
+                macsastroracap(i)=rate/smacs
+                rateastro(Zcomp,Ncomp,i)=rateastro(Zcomp,Ncomp,i)+rate
+                macsastro(Zcomp,Ncomp,i)=macsastro(Zcomp,Ncomp,i)+
+     +            rate/smacs
               endif
   40        continue
   30      continue
@@ -127,4 +132,4 @@ c
   10  continue
       return
       end
-Copyright (C) 2005  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

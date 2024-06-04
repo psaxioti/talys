@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : November 17, 2011
+c | Date  : July 25, 2013
 c | Task  : Binary reaction results
 c +---------------------------------------------------------------------
 c
@@ -10,11 +10,13 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer type,Zix,Nix,NL,nex,J,parity,nen,Z,N,A,odd
-      real    factor,Eex,ald,ignatyuk,spindis,xscompall,Eaveragesum,
-     +        frac,Eaverage(0:numpar)
+      real    popepsA,factor,Eex,ald,ignatyuk,spindis,xscompall,
+     +        Eaveragesum,frac,Eaverage(0:numpar)
 c
 c * Add direct and pre-equilibrium cross sections to population arrays *
 c
+c xselastot   : total elastic cross section (shape + compound)
+c xselasinc   : total elastic cross section (neutrons only)
 c flaginitpop : flag for initial population distribution
 c flagomponly : flag to execute ONLY an optical model calculation
 c flagcomp    : flag for compound nucleus calculation
@@ -36,6 +38,7 @@ c xsbinary    : cross section from initial compound to residual nucleus
 c
 c No binary reaction for initial excitation energy population.
 c
+      xselastot=xselasinc
       if (flaginitpop) return
       if (flagomponly.and..not.flagcomp) return
 c
@@ -65,57 +68,61 @@ c
 c
 c ******* Assign spin distribution to pre-equilibrium population *******
 c
-c flagpreeq : flag for pre-equilibrium calculation
-c flagpespin: flag for pre-equilibrium spin distribution or compound
-c             spin distribution for pre-equilibrium cross section
-c maxex     : maximum excitation energy bin for compound nucleus
-c maxJph    : maximal spin for particle-hole states
-c factor    : help variable
-c preeqpop  : pre-equilibrium population cross section
-c preeqpopex: pre-equilibrium population cross section summed over
-c             spin and parity
-c Eex,Ex    : excitation energy
-c ald       : level density parameter
-c ignatyuk  : function for energy dependent level density parameter a
-c spindis   : Wigner spin distribution
-c pardis    : parity distribution
-c xspreeqtot: preequilibrium cross section per particle type
-c xsgrtot   : total smoothed giant resonance cross section
-c             incident channel
+c flagpreeq  : flag for pre-equilibrium calculation
+c pespinmodel: model for pre-equilibrium spin distribution or compound
+c              spin distribution for pre-equilibrium cross section
+c popeps     : limit for population cross sections
+c popepsA    : limit for population cross sections per energy
+c maxex      : maximum excitation energy bin for compound nucleus
+c maxJph     : maximal spin for particle-hole states
+c sfactor    : spin factor
+c factor     : help variable
+c preeqpop   : pre-equilibrium population cross section
+c preeqpopex : pre-equilibrium population cross section summed over
+c              spin and parity
+c Eex,Ex     : excitation energy
+c ald        : level density parameter
+c ignatyuk   : function for energy dependent level density parameter a
+c spindis    : Wigner spin distribution
+c pardis     : parity distribution
+c xspreeqtot : preequilibrium cross section per particle type
+c xsgrtot    : total smoothed giant resonance cross section
+c              incident channel
 c
         if (flagpreeq) then
-          if (.not.flagpespin) then
+          if (pespinmodel.le.2) then
+            popepsA=popeps/max(5*maxex(Zix,Nix),1)
             do 30 nex=NL+1,maxex(Zix,Nix)
-              if (xspopex(Zix,Nix,nex).ne.0.) then
-                do 40 parity=-1,1,2
-                  do 40 J=0,maxJph
-                    factor=xspop(Zix,Nix,nex,J,parity)/
-     +                xspopex(Zix,Nix,nex)
-                    preeqpop(Zix,Nix,nex,J,parity)=factor*
+              do 40 parity=-1,1,2
+                do 40 J=0,maxJph
+                  if (xspopex(Zix,Nix,nex).gt.popepsA)
+     +              sfactor(Zix,Nix,nex,J,parity)=
+     +                xspop(Zix,Nix,nex,J,parity)/xspopex(Zix,Nix,nex)
+                  if (pespinmodel.eq.1.and.
+     +              sfactor(Zix,Nix,nex,J,parity).gt.0.) then
+                    preeqpop(Zix,Nix,nex,J,parity)=
+     +                sfactor(Zix,Nix,nex,J,parity)*
      +                preeqpopex(Zix,Nix,nex)
-   40           continue
-              else
-                Eex=Ex(Zix,Nix,nex)
-                ald=ignatyuk(Zix,Nix,Eex,0)
-                do 50 parity=-1,1,2
-                  do 50 J=0,maxJph
+                  else
+                    Eex=Ex(Zix,Nix,nex)
+                    ald=ignatyuk(Zix,Nix,Eex,0)
                     factor=spindis(Zix,Nix,Eex,ald,real(J),0)*pardis
                     preeqpop(Zix,Nix,nex,J,parity)=factor*
      +                preeqpopex(Zix,Nix,nex)
-   50           continue
-              endif
+                  endif
+   40         continue
    30       continue
           endif
-          do 60 nex=NL+1,maxex(Zix,Nix)
+          do 50 nex=NL+1,maxex(Zix,Nix)
             xspopex(Zix,Nix,nex)=xspopex(Zix,Nix,nex)+
      +        preeqpopex(Zix,Nix,nex)
-            do 70 parity=-1,1,2
-              do 70 J=0,maxJph
+            do 50 parity=-1,1,2
+              do 50 J=0,maxJph
                 xspop(Zix,Nix,nex,J,parity)=
      +            xspop(Zix,Nix,nex,J,parity)+
      +            preeqpop(Zix,Nix,nex,J,parity)
-   70       continue
-   60     continue
+   60       continue
+   50     continue
           xspopnuc(Zix,Nix)=xspopnuc(Zix,Nix)+xspreeqtot(type)+
      +      xsgrtot(type)
           xsbinary(type)=xsbinary(type)+xspreeqtot(type)+xsgrtot(type)
@@ -130,6 +137,11 @@ c xsdisc       : total cross section for discrete state
 c xscompdisc   : compound cross section for discrete state
 c xsdisctot    : total cross section summed over discrete states
 c xsdircont    : direct cross section for continuum
+c flagracap    : flag for radiative capture model
+c xsracape     : direct radiative capture cross section
+c xsracapedisc : direct radiative capture discrete cross section
+c xsracapecont : direct radiative capture continuum cross section
+c xsracappopex : population cross section for radiative capture
 c xsdirect     : total direct cross section
 c xscompcont   : compound cross section for continuum
 c xseps        : limit for cross sections
@@ -137,8 +149,6 @@ c xsconttot    : total cross section for continuum
 c xscompound   : total compound cross section
 c xscompel     : compound elastic cross section
 c xscompel6    : compound elastic cross section
-c xselastot    : total elastic cross section (shape + compound)
-c xselasinc    : total elastic cross section (neutrons only)
 c xsnonel      : non-elastic cross section
 c xsnonel6     : non-elastic cross section
 c xsreacinc    : reaction cross section for incident channel
@@ -150,14 +160,40 @@ c xsgrsum      : sum over giant resonance cross sections
 c xscompnonel  : total compound non-elastic cross section
 c
         xscompdisctot(type)=0.
-        do 80 nex=0,NL
-          if (type.eq.k0.and.nex.eq.Ltarget) goto 80
+        do 70 nex=0,NL
+          if (type.eq.k0.and.nex.eq.Ltarget) goto 70
           xsdisc(type,nex)=xspopex0(type,nex)
           xscompdisc(type,nex)=xsdisc(type,nex)-xsdirdisc(type,nex)
           xscompdisctot(type)=xscompdisctot(type)+xscompdisc(type,nex)
-   80   continue
+   70   continue
         xsdisctot(type)=xsdirdisctot(type)+xscompdisctot(type)
         xsdircont(type)=xspreeqtot(type)+xsgrtot(type)
+        if (type.eq.0.and.flagracap) then
+          xsdisctot(type)=xsdisctot(type)+xsracapedisc
+          xsdircont(type)=xsdircont(type)+xsracapecont
+          xspopnuc(Zix,Nix)=xspopnuc(Zix,Nix)+xsracape
+          xsbinary(type)=xsbinary(type)+xsracape
+          do 80 nex=0,NL
+            if (xsracappopex(nex).ne.0.) then
+              J=int(jdis(Zix,Nix,nex))
+              parity=parlev(Zix,Nix,nex)
+              xspop(Zix,Nix,nex,J,parity)=xspop(Zix,Nix,nex,J,parity)+
+     +          xsracappopex(nex)
+              xspopex(Zix,Nix,nex)=xspopex(Zix,Nix,nex)+
+     +          xsracappopex(nex)
+              xspopex0(type,nex)=xspopex(Zix,Nix,nex)+
+     +          xsracappopex(nex)
+            endif
+   80     continue
+          do 90 nex=NL+1,maxex(Zix,Nix)
+            xspopex(Zix,Nix,nex)=xspopex(Zix,Nix,nex)+
+     +        xsracappopex(nex)
+            do 90 parity=-1,1,2
+              do 90 J=0,numJ
+                xspop(Zix,Nix,nex,J,parity)=xspop(Zix,Nix,nex,J,parity)+
+     +            xsracappop(nex,J,parity)
+   90     continue
+        endif
         xsdirect(type)=xsdirdisctot(type)+xsdircont(type)
         if (xscompcont(type).lt.xseps) xscompcont(type)=0.
         xsconttot(type)=xscompcont(type)+xsdircont(type)
@@ -166,9 +202,10 @@ c
       xscompel=xspopex0(k0,Ltarget)
       xscompel6(nin)=xscompel
       xselastot=xselasinc+xscompel
-      xsnonel=xsreacinc-xscompel
+      xsnonel=max(xsreacinc-xscompel,0.)
       xsnonel6(nin)=xsnonel
-      xscompall=max(xsreacinc-xsdirdiscsum-xspreeqsum-xsgrsum,0.)
+      xscompall=max(xsreacinc-xsdirdiscsum-xspreeqsum-xsgrsum-xsracape,
+     +  0.)
       xscompnonel=xscompall-xscompel
       xscompnonel=max(xscompnonel,0.)
 c
@@ -313,7 +350,7 @@ c
             write(*,'(" Maximum excitation energy:",f8.3,
      +        " Discrete levels:",i3," Continuum bins:",i3,
      +        " Continuum bin size:",f8.3/)') Exmax(Zix,Nix),NL,
-     +        maxex(Zix,Nix)-NL,deltaEx(Zix,Nix)
+     +        maxex(Zix,Nix)-NL,deltaEx(Zix,Nix,maxex(Zix,Nix))
           else
             write(*,'(" Maximum excitation energy:",f8.3,
      +        " Discrete levels:",i3/)') Exmax(Zix,Nix),NL
@@ -346,4 +383,4 @@ c
       if (flagrecoil) call binaryrecoil
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

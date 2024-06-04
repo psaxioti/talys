@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 28, 2011
+c | Date  : December 23, 2013
 c | Task  : Main output
 c +---------------------------------------------------------------------
 c
@@ -13,8 +13,8 @@ c
 c
 c *************************** Code and version *************************
 c
-      write(*,'(/"    TALYS-1.4 Version: December 28, 2011)"/)')
-      write(*,'(" Copyright (C) 2011  A.J. Koning, S. Hilaire ",
+      write(*,'(/"    TALYS-1.6 (Version: December 23, 2013)"/)')
+      write(*,'(" Copyright (C) 2013  A.J. Koning, S. Hilaire ",
      +  "and S. Goriely      ")')
       write(*,'(24x," NRG          CEA          ULB    "/)')
       write(*,'(" Dimensions - Cross sections: mb, Energies: MeV, ",
@@ -150,4 +150,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

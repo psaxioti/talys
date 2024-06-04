@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 5, 2006
+c | Date  : June 10, 2012
 c | Task  : Output of fission cross sections
 c +---------------------------------------------------------------------
 c
@@ -53,6 +53,7 @@ c parsym     : symbol of particle
 c k0         : index of incident particle
 c Atarget    : mass number of target nucleus
 c Ztarget    : charge number of target nucleus
+c Starget    : symbol of target nucleus
 c numinc     : number of incident energies
 c eninc,Einc : incident energy in MeV
 c
@@ -71,7 +72,7 @@ c
               fisexist(Zcomp,Ncomp)=.true.
               open (unit=1,status='unknown',file=rpfile)
               write(1,'("# ",a1," + ",i3,a2,": Fission of ",i3,a2)')
-     +          parsym(k0),Atarget,nuc(Ztarget),A,nuc(Z)
+     +          parsym(k0),Atarget,Starget,A,nuc(Z)
               write(1,'("#                 ")')
               write(1,'("#                 ")')
               write(1,'("# # energies =",i3)') numinc
@@ -95,4 +96,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

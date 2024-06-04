@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 8, 2010
+c | Date  : December 9, 2013
 c | Task  : Discrete levels
 c +---------------------------------------------------------------------
 c
@@ -10,11 +10,12 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical      lexist
-      character*1  bas
+      character*1  bas(numlev)
       character*4  levelchar
       character*90 levfile
-      integer      Zix,Nix,Z,A,nlev2,ia,nlevlines,nnn,i,j,k,ii,nb
-      real         br,con
+      integer      Zix,Nix,Z,A,nlev2,ia,nlevlines,nnn,i,j,klev(numlev),
+     +             ii,nb,Lis
+      real         br(numlev),con(numlev)
 c
 c ******************** Default nuclear levels **************************
 c
@@ -71,6 +72,7 @@ c 1. Inquire whether file is present
 c
 c levelfile: discrete level file
 c levelchar: help variable
+c disctable: table with discrete levels
 c levfile  : level file
 c path     : directory containing structure files to be read
 c lenpath  : length of pathname
@@ -80,7 +82,12 @@ c
       else
         levelchar='z   '
         write(levelchar(2:4),'(i3.3)') Z
-        levfile=path(1:lenpath)//'levels/'//levelchar
+        if (disctable.eq.1)
+     +    levfile=path(1:lenpath)//'levels/final/'//levelchar
+        if (disctable.eq.2)
+     +    levfile=path(1:lenpath)//'levels/exp/'//levelchar
+        if (disctable.eq.3)
+     +    levfile=path(1:lenpath)//'levels/hfb/'//levelchar
         inquire (file=levfile,exist=lexist)
         if (.not.lexist) return
       endif
@@ -94,6 +101,11 @@ c nlevlines  : number of lines on discrete level file for nucleus
 c nnn        : number of levels in discrete level file
 c flagautorot: flag for automatic rotational coupled channels
 c
+      do j=1,numlev
+        con(j)=0.
+        br(j)=0.
+        bas(j)='B'
+      enddo
       nlev2=0
       nnn=0
    10 read(2,'(4x,i4,2i5)',end=100) ia,nlevlines,nnn
@@ -103,7 +115,7 @@ c
    20   continue
         goto 10
       endif
-      nlev2=min(nnn,nlev(Zix,Nix))
+      nlev2=min(nnn,numlev)
       if (nnn.lt.2) flagautorot=.false.
 c
 c 3. Read discrete level information
@@ -112,22 +124,38 @@ c branchlevel: level to which branching takes place
 c ENSDF      : string from original ENSDF discrete level file
 c
       do 30 i=0,nlev2
-        read(2,'(4x,f11.6,f6.1,3x,i2,i3,19x,e9.3,1x,2a1,a18)')
+        read(2,'(4x,f11.6,f6.1,3x,i2,i3,18x,e10.3,1x,2a1,a18)')
      +    edis(Zix,Nix,i),jdis(Zix,Nix,i),parlev(Zix,Nix,i),
      +    nb,tau(Zix,Nix,i),jassign(Zix,Nix,i),
      +    passign(Zix,Nix,i),ENSDF(Zix,Nix,i)
-        ii=0
         do 40 j=1,nb
-          read(2,'(29x,i3,f10.6,e10.3,5x,a1)') k,br,con,bas
-          if (br.ne.0.) then
-            ii=ii+1
-            branchlevel(Zix,Nix,i,ii)=k
-            branchratio(Zix,Nix,i,ii)=br
-            conv(Zix,Nix,i,ii)=con
-            bassign(Zix,Nix,i,ii)=bas
-          endif
+          read(2,'(29x,i3,f10.6,e10.3,5x,a1)') klev(j),br(j),con(j),
+     +      bas(j)
    40   continue
-        nbranch(Zix,Nix,i)=ii
+c
+c Branching ratio from input
+c
+        if (nbranch(Zix,Nix,i).gt.0) then
+          do 50 j=1,nbranch(Zix,Nix,i)
+            conv(Zix,Nix,i,j)=con(j)
+            bassign(Zix,Nix,i,j)=bas(j)
+   50     continue
+        else
+c
+c Branching ratio from discrete level file
+c
+          ii=0
+          do 60 j=1,nb
+            if (br(j).ne.0.) then
+              ii=ii+1
+              branchlevel(Zix,Nix,i,ii)=klev(j)
+              branchratio(Zix,Nix,i,ii)=br(j)
+              conv(Zix,Nix,i,ii)=con(j)
+              bassign(Zix,Nix,i,ii)=bas(j)
+            endif
+   60     continue
+          nbranch(Zix,Nix,i)=ii
+        endif
 c
 c Spins beyond numJ are set to numJ
 c
@@ -143,13 +171,19 @@ c
         if (Ltarget.ne.0.and.Zix.eq.parZ(k0).and.Nix.eq.parN(k0).
      +    and.i.eq.Ltarget.and.tau(Zix,Nix,i).lt.isomer)
      +    isomer=tau(Zix,Nix,i)
+c
+c Set highest discrete level equal to isomer if that exists
+c
+        if (i.gt.nlev(Zix,Nix).and.tau(Zix,Nix,i).ge.isomer )
+     +    nlev(Zix,Nix)=i
    30 continue
 c
 c Lifetimes below the isomeric definition are set to zero.
+c The isomeric number is determined.
 c
-      do 50 i=0,nlev2
+      do 70 i=0,nlev2
         if (tau(Zix,Nix,i).lt.isomer) tau(Zix,Nix,i)=0.
-   50 continue
+   70 continue
       if (massmodel.le.1) then
         if (jassign(Zix,Nix,0).eq.'J'.and.passign(Zix,Nix,0).eq.'P')
      +    then
@@ -169,17 +203,17 @@ c
 c nlevmax2,numlev2: maximum number of levels
 c
       nlevmax2(Zix,Nix)=min(nnn,numlev2)
-      do 60 i=nlev2+1,nlevmax2(Zix,Nix)
+      do 80 i=nlev2+1,nlevmax2(Zix,Nix)
         read(2,'(4x,f11.6,f6.1,3x,i2,i3,29x,2a1)') edis(Zix,Nix,i),
      +    jdis(Zix,Nix,i),parlev(Zix,Nix,i),nb,jassign(Zix,Nix,i),
      +    passign(Zix,Nix,i)
-        do 70 j=1,nb
+        do 90 j=1,nb
           read(2,*)
-   70   continue
-   60 continue
+   90   continue
+   80 continue
   100 close (unit=2)
-      nlev2=max(nlev2,1)
-      nlev(Zix,Nix)=nlev2
+      nlev(Zix,Nix)=min(nlev(Zix,Nix),nlev2)
+      nlev(Zix,Nix)=max(nlev(Zix,Nix),1)
 c
 c The maximal value of Ntop is always given by the last discrete
 c level of the discrete level file.
@@ -205,19 +239,37 @@ c
         endif
       endif
 c
+c Determine isomeric level number
+c
+c Lisomer: level number of isomer
+c Nisomer: number of isomers for this nuclide
+c
+      Lis=0
+      do 110 i=1,nlev(Zix,Nix)
+        if (Lis.lt.numisom.and.tau(Zix,Nix,i).ne.0.) then
+          Lis=Lis+1
+          Lisomer(Zix,Nix,Lis)=i
+        endif
+  110 continue
+      Nisomer(Zix,Nix)=Lis
+
 c Determine isomeric number of target
 c
-c Liso: isomeric number of target
+c Lisoinp: user assignment of target isomer number
+c Liso   : isomeric number of target
 c
-      if (Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) then
-        Liso=0
-        if (Ltarget.ne.0) then
-          do 110 i=1,nlev(Zix,Nix)
-            if (tau(Zix,Nix,i).ne.0.) Liso=Liso+1
-            if (i.eq.Ltarget) goto 120
-  110     continue
+      if (Lisoinp.eq.-1) then
+        if (Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) then
+          Liso=0
+          if (Ltarget.ne.0) then
+            do 120 i=1,Lis
+              if (Ltarget.eq.Lisomer(Zix,Nix,i)) Liso=i
+  120       continue
+          endif
         endif
+      else
+        Liso=Lisoinp
       endif
-  120 return
+      return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

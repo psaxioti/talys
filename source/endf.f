@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 15, 2009
+c | Date  : August 19, 2013
 c | Task  : Cross sections and information for ENDF-6 file
 c +---------------------------------------------------------------------
 c
@@ -18,6 +18,7 @@ c endfenergies: subroutine for energy grid for ENDF-6 file
 c k0          : index for incident particle
 c endfecis    : subroutine for ECIS calculation for incident particle on
 c               ENDF-6 energy grid
+c flagecisinp : flag for existence of ecis input file
 c endfread    : subroutine to read ECIS results for incident particle on
 c               ENDF-6 energy grid
 c
@@ -26,8 +27,8 @@ c
       call endfenergies
       if (k0.ne.0) then
         call endfecis
-        call endfread
+        if (flagecisinp) call endfread
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

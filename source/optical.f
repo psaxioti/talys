@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 7, 2004
+c | Date  : December 13, 2013
 c | Task  : Determination of optical potential
 c +---------------------------------------------------------------------
 c
@@ -14,18 +14,19 @@ c
 c
 c ********************** Call optical model module *********************
 c
-c Zix          : charge number index for residual nucleus
-c Nix          : neutron number index for residual nucleus
-c kopt         : index for fast particle
-c eopt         : incident energy
-c opticaln,....: optical model for neutrons, protons, deuterons, etc.
+c Zix        : charge number index for residual nucleus
+c Nix        : neutron number index for residual nucleus
+c kopt       : index for fast particle
+c eopt       : incident energy
+c opticalnp  : optical model for neutrons and protons
+c opticalcomp: optical model for composite particles
 c
-      if (kopt.eq.1) call opticaln(Zix,Nix,eopt)
-      if (kopt.eq.2) call opticalp(Zix,Nix,eopt)
-      if (kopt.eq.3) call opticald(Zix,Nix,eopt)
-      if (kopt.eq.4) call opticalt(Zix,Nix,eopt)
-      if (kopt.eq.5) call opticalh(Zix,Nix,eopt)
-      if (kopt.eq.6) call opticala(Zix,Nix,eopt)
+      eopt=max(eopt,0.)
+      if (kopt.le.2) then
+        call opticalnp(Zix,Nix,kopt,eopt)
+      else
+        call opticalcomp(Zix,Nix,kopt,eopt)
+      endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

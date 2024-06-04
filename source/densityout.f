@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 28, 2011
+c | Date  : December 19, 2013
 c | Task  : Output of level density
 c +---------------------------------------------------------------------
 c
@@ -12,10 +12,10 @@ c
       character*12     ldfile
       character*25     model
       integer          Zix,Nix,Z,N,A,ldmod,ibar,odd,J,ploop,parity,nex,
-     +                   NL,NT,i
+     +                 NL,NT,i
       real             aldmatch,SS,P,Eex,ignatyuk,spincut,ald,Krot,Kvib,
-     +                 Kcoll,chi2D0,Dratio,Ncum,chi2,dEx,sigma,avdev
-      double precision densitytot,density,dens
+     +                 Kcoll,chi2D0,Dratio,dEx,sigma
+      double precision densitytot,density,dens,Ncum,chi2,avdev
 c
 c ********************** Level density parameters **********************
 c
@@ -48,6 +48,7 @@ c
       if (ldmod.eq.3) model="Generalized superfluid   "
       if (ldmod.eq.4) model="Goriely tables           "
       if (ldmod.eq.5) model="Hilaire-Goriely tables   "
+      if (ldmod.eq.6) model="Hilaire-Goriely Gogny    "
       write(*,'(" Model: ",a25)') model
       if (ldmod.ge.4.and..not.ldexist(Zix,Nix,0))
      +  write(*,'(" Tables not available ")')
@@ -161,11 +162,7 @@ c
           write(*,'(/" Level density per parity for fission barrier",
      +      i3)') ibar
         endif
-        if (ldmod.eq.5) then
-          write(*,'(" (Total level density also per parity)"/)')
-        else
-          write(*,'(" (Total level density summed over parity)"/)')
-        endif
+        write(*,'(" (Total level density also per parity)"/)')
         if (flagcol(Zix,Nix).and..not.ldexist(Zix,Nix,ibar)) then
           write(*,'("    Ex     a    sigma   total ",
      +      9("  JP= ",f4.1),"      Krot       Kvib       Kcoll")')
@@ -179,6 +176,7 @@ c Tabulated level densities
 c
 c ploop      : help variable
 c parity     : parity
+c flagparity : flag for non-equal parity distribution
 c edens      : energy grid for tabulated level densities
 c ldtottableP: total level density per parity from table
 c ldtable    : level density from table
@@ -193,6 +191,8 @@ c
             ploop=-1
           endif
           do 120 parity=1,ploop,-2
+            if (flagparity.and.parity.eq.1)
+     +        write(*,'(/" Positive parity"/)')
             if (parity.eq.-1) write(*,'(/" Negative parity"/)')
             do 130 nex=1,nendens(Zix,Nix)
               Eex=edens(nex)
@@ -368,7 +368,8 @@ c
         write(1,'("# Chi-square per point for levels between ",
      +    "Nlow and Ntop: ",1p,e12.5," Average deviation: ",e12.5)')
      +    chi2,avdev
+        close (1)
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

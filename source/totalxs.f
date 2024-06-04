@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 4, 2007
+c | Date  : September 11, 2012
 c | Task  : Total cross sections
 c +---------------------------------------------------------------------
 c
@@ -55,7 +55,7 @@ c maxN        : maximal number of neutrons away from the initial
 c               compound nucleus
 c xsfeed      : cross section from compound to residual nucleus
 c multiplicity: particle multiplicity
-c xsreacinc   : reaction cross section for incident channel
+c xsnonel     : non-elastic cross section
 c
       do 110 type=0,6
         if (parskip(type)) goto 110
@@ -64,8 +64,8 @@ c
           do 120 Ncomp=0,maxN
             xsparticle(type)=xsparticle(type)+xsfeed(Zcomp,Ncomp,type)
   120   continue
-        if (xsreacinc.ne.0.)
-     +    multiplicity(type)=xsparticle(type)/xsreacinc
+        if (xsnonel.ne.0.)
+     +    multiplicity(type)=xsparticle(type)/xsnonel
   110 continue
 c
 c ******************* Total fission cross sections ********************
@@ -86,4 +86,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

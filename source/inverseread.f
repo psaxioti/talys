@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning, Stephane Hilaire, Eric Bauge and Pascal Romain
-c | Date  : December 27, 2010
+c | Date  : April 27, 2013
 c | Task  : Read ECIS results for outgoing particles and energy grid
 c +---------------------------------------------------------------------
 c
@@ -208,8 +208,8 @@ c
         endif
   210 continue
       close (unit=7,status=ecisstatus)
-      open (unit=10,status='unknown',file='ecis06.invin')
+      open (unit=10,status='unknown',file='ecis.invin')
       close (unit=10,status=ecisstatus)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

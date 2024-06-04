@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 25, 2009
+c | Date  : December 13, 2013
 c | Task  : Particle-hole state density
 c +---------------------------------------------------------------------
 c
@@ -41,8 +41,7 @@ c
       phdens=0.
       if (p.lt.0.or.h.lt.0) return
       if (p+h.eq.0) return
-      if (phmodel.eq.1.or.Zix.gt.numZph.or.Nix.gt.numNph.or.
-     +  .not.phexist1(Zix,Nix,p,h)) then
+      if (phmodel.eq.1.or..not.phexist1(Zix,Nix,p,h)) then
         Ap=Apauli(p,h)
         factor=(p*p+h*h+p+h)/(4.*gs)
         if (Ap+factor.ge.Eex) return
@@ -87,4 +86,4 @@ c
       if (phdens.lt.1.e-10) phdens=0.
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

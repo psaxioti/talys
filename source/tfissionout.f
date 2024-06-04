@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 5, 2006
+c | Date  : June 30, 2013
 c | Task  : Output of fission transmission coefficients
 c +---------------------------------------------------------------------
 c
@@ -38,6 +38,7 @@ c
         J2=2*J+odd
         write(*,'(1x,f4.1,2x,1p,2e12.5)') 0.5*J2,tfis(J,-1),tfis(J,1)
    10 continue
+      write(*,*)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

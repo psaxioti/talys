@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
-c | Date  : November 1, 2007
+c | Date  : December 30, 2011
 c | Task  : Compound reaction for many target states
 c +---------------------------------------------------------------------
 c
@@ -130,7 +130,7 @@ c               corrections
               do 120 J2=J2beg,J2cnend,2
                 J=J2/2
                 if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0)
-     +            call tfission(Zcomp,Ncomp,J2,parity)
+     +            call tfission(Zcomp,Ncomp,nexastro,J2,parity)
                 call astroprepare(Zcomp,Ncomp,J2,parity,spin2target,
      +            Ptarget,nexastro)
                 if (denomhf.eq.0.) goto 120
@@ -353,4 +353,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

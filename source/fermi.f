@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 5, 2004
+c | Date  : December 3, 2013
 c | Task  : Fermi gas level density formula
 c +---------------------------------------------------------------------
 c
@@ -28,7 +28,7 @@ c AA          : mass number of nucleus
 c
       U=Eex-P
       if (U.gt.0.) then
-        factor=2.*sqrt(ald*U)
+        factor=min(2.*sqrt(ald*U),700.)
         sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
         denom=12.*sqrt(2.)*sigma*(ald**0.25)*(U**1.25)
         fermi=exp(factor)/denom
@@ -37,4 +37,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

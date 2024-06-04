@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 29, 2007
+c | Date  : December 19, 2012
 c | Task  : Output
 c +---------------------------------------------------------------------
 c
@@ -38,6 +38,8 @@ c ddxout       : subroutine for output of double-differential cross
 c                sections
 c flaggamdis   : flag for output of discrete gamma-ray intensities
 c gamdisout    : subroutine for output of discrete gamma-ray intensities
+c flagracap    : flag for radiative capture model
+c racapout     : subroutine for output of radiative capture model
 c
       if (flagmain) then
         if (.not.flaginitpop) then
@@ -55,6 +57,7 @@ c
       if (flagang) call angleout
       if (flagddx) call ddxout
       if (flaggamdis) call gamdisout
+      if (flagracap) call racapout
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 27, 2011
+c | Date  : June 15, 2012
 c | Task  : Create ECIS input file for compound cross section
 c +---------------------------------------------------------------------
 c
@@ -114,8 +114,8 @@ c
      +  tgo,S(0,0,1),0.,egr(0,0,1,1,1),ggr(0,0,1,1,1)
       do 30 nex=0,ncont
         if (parskip(0).and.nex.eq.0) goto 30
-        write(1,'(1p,7e10.3)') real(Zinit),aldcomp(nex),Umcomp(nex),
-     +    tempcomp(nex),0.,E0comp(nex),Excomp(nex)
+        write(1,'(1p,7e10.3)') real(Zinit),aldcomp(nex),
+     +    Umcomp(nex),tempcomp(nex),0.,E0comp(nex),Excomp(nex)
    30 continue
       write(1,'(3i5)') 1,1,0
       Zix=Zindex(0,0,k0)
@@ -129,4 +129,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

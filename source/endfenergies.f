@@ -2,14 +2,15 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 1, 2009
+c | Date  : December 9, 2013
 c | Task  : Energy grid for ENDF-6 file
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer          nen,nensub,nenint,type,Zix,Nix,nex,idc,nen2
+      integer          nen,i,k,n,nensub,nenint,type,Zix,Nix,nex,idc,
+     +                 nen2
       double precision Ein,degrid,Eeps,ratio,emax,ee,e6tmp
 c
 c ************************ Basic ENDF-6 energy grid ********************
@@ -21,6 +22,7 @@ c Ein,e6,Eeps  : energies of ENDF-6 energy grid in MeV
 c eninclow     : minimal incident energy for nuclear model calculations
 c degrid       : energy increment
 c enincmax     : maximum incident energy
+c Emaxtalys    : maximum acceptable energy for TALYS
 c
 c The basic ENDF-6 energy grid we use is:
 c
@@ -32,6 +34,8 @@ c         4     -   7 MeV     : dE= 0.2 MeV
 c         7     -  20 MeV     : dE= 0.5 MeV
 c        20     - 100 MeV     : dE= 1.0 MeV
 c       100     - 200 MeV     : dE= 2.0 MeV
+c       200     - 300 MeV     : dE= 5.0 MeV
+c           above 300 MeV     : dE=10.0 MeV
 c
 c This grid ensures that the total, elastic and reaction cross section
 c are calculated on a sufficiently precise energy grid.
@@ -46,14 +50,34 @@ c
         nen=nen+1
         if (nen.gt.numen6) goto 520
         e6(nen)=Ein
-        if (nen.gt.1.and.e6(nen).le.e6(nen-1)) goto 530
         goto 10
   20    close (unit=2)
+c
+c Sort incident energies in ascending order and remove double points
+c
+        do 30 i=1,nen
+          do 40 k=1,i
+            if (e6(i).ge.e6(k)) goto 40
+            e6tmp=e6(i)
+            e6(i)=e6(k)
+            e6(k)=e6tmp
+   40     continue
+   30   continue
+        n=nen
+        do 50 i=1,nen-1
+          if (e6(i).eq.e6(i+1)) then
+            do 60 k=i+1,nen
+              e6(k)=e6(k+1)
+   60       continue
+            n=n-1
+          endif
+   50   continue
+        nen=n
         goto 100
       else
         Ein=0.
         degrid=0.001
-   30   Ein=Ein+degrid
+   70   Ein=Ein+degrid
         if (Ein.gt.e6(1)) then
           nen=nen+1
           e6(nen)=Ein
@@ -67,8 +91,10 @@ c
         if (Eeps.gt.8.) degrid=0.5
         if (Eeps.gt.20.) degrid=1.
         if (Eeps.gt.100.) degrid=2.
-        if (Eeps.gt.200.) goto 100
-        goto 30
+        if (Eeps.gt.200.) degrid=5.
+        if (Eeps.gt.300.) degrid=10.
+        if (Eeps.gt.Emaxtalys) goto 100
+        goto 70
       endif
 c
 c Add possible denser energy point from original energy grid
@@ -161,8 +187,5 @@ c
      +  " incident energies in file ",a73)') numen6,ompenergyfile
       write(*,'(" numen6 in talys.cmb should be increased")')
       stop
-  530 write(*,'(" TALYS-error: incident energies must",
-     +  " be given in ascending order")')
-      stop
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

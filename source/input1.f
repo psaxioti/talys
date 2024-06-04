@@ -2,20 +2,21 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 15, 2011
+c | Date  : December 13, 2013
 c | Task  : Read input for first set of variables
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      projexist,massexist,elemexist,enerexist,lexist
+      logical      projexist,massexist,elemexist,enerexist,lexist,fexist
       character*1  ch
-      character*14 bestchar
+      character*15 bestchar
       character*40 bestpath
       character*80 word(40),key,value,bestfile
-      integer      i,i2,inull,type,iz,J,pbeg,parity,inum,k,lenbest
-      real         Ein
+      integer      i,i2,inull,type,iz,nbest,J,k,pbeg,parity,inum,negrid,
+     +             lenbest
+      real         Ein,etmp,enincF,deninc,E
 c
 c ************ Read first set of variables from input lines ************
 c
@@ -30,9 +31,15 @@ c flagastro  : flag for calculation of astrophysics reaction rate
 c flagbest   : flag to use best set of adjusted parameters
 c bestpath   : alternative directory for best values
 c eninc      : incident energy in MeV
+c numJ       : maximal J-value
+c Exdist     : excitation energy of population distribution
+c Pdistex    : population distribution, spin-independent
+c Pdist      : population distribution per spin and parity
 c Ztarget    : charge number of target nucleus
 c Ltarget    : excited level of target
 c Starget    : symbol of target nucleus
+c enincF     : final incident energy
+c deninc     : incident energy increment
 c
 c 1. Initializations
 c
@@ -49,9 +56,20 @@ c
       do 5 i=0,numen6+2
         eninc(i)=0.
     5 continue
+      do 7 i=0,numex
+        Exdist(i)=0.
+        Pdistex(i)=0.
+        do 8 parity=-1,1,2
+          do 9 J=0,numJ
+            Pdist(i,J,parity)=0.
+    9     continue
+    8   continue
+    7 continue
       Ztarget=0
       Ltarget=0
       Starget='  '
+      enincF=0.
+      deninc=0.
 c
 c nlines     : number of input lines
 c getkeywords: subroutine to retrieve keywords and values from input
@@ -122,6 +140,8 @@ c
           enerexist=.true.
           if ((ch.ge.'0'.and.ch.le.'9').or.ch.eq.'.') then
             read(value,*,end=500,err=500) eninc(1)
+            read(word(3),*,end=10,err=10) enincF
+            read(word(4),*,end=10,err=10) deninc
             goto 10
           else
             eninc(1)=0.
@@ -246,6 +266,7 @@ c Throughout TALYS, the initial particle can always be identified
 c by the index k0.
 c
       flaginitpop=.false.
+      k0=0
       do 110 type=0,6
         if (ptype0.eq.parsym(type)) then
           k0=type
@@ -257,10 +278,7 @@ c It is also possible to define a population distribution as the
 c initial state, through the keyword projectile 0. In that case,
 c we assign a photon projectile.
 c
-      if (ptype0.eq.'0') then
-        flaginitpop=.true.
-        k0=0
-      endif
+      if (ptype0.eq.'0') flaginitpop=.true.
 c
 c 2. Identification of target and initial compound nucleus
 c
@@ -281,6 +299,7 @@ c A calculation for a natural element is specified by target mass 0
 c
 c abundance: subroutine for natural abundances
 c iso      : counter for isotope
+c nbest    : number of lines in best file
 c isotope  : isotope number of residual nucleus
 c Ntarget  : neutron number of target nucleus
 c Zinit    : charge number of initial compound nucleus
@@ -291,7 +310,17 @@ c Ainit    : mass number of initial compound nucleus
 c
   220 if (Atarget.eq.0) then
         flagnatural=.true.
-        if (iso.eq.1) call abundance
+        if (iso.eq.1) then
+          call abundance
+        else
+          if (flagbest) then
+            nbest=nlines-nlines0
+            do 230 i=nbest+1,nlines
+              inline(i-nbest)=inline(i)
+  230       continue
+            nlines=nlines0
+          endif
+        endif
         Atarget=isotope(iso)
       endif
       Ntarget=Atarget-Ztarget
@@ -307,24 +336,34 @@ c
 c 1. Normal case of a projectile with a target nucleus
 c
       Ein=0.
+      fexist=.false.
       if (.not.flaginitpop) then
 c
 c A. If no incident energy is given in the input file, incident energies
 c    should be read from a file.
 c
+c incidentgrid: subroutine with predefined incident energy grids
+c
         eninc(0)=0.
         if (eninc(1).eq.0.) then
           inquire (file=energyfile,exist=lexist)
           if (.not.lexist) then
-            write(*,'(" TALYS-error: give a single incident energy ",
-     +        "in the input file using the energy keyword ")')
-            write(*,'(14x,"or specify a range of incident energies ",
-     +        "in a file ",a73)') energyfile
-            stop
+            call incidentgrid(energyfile(1:14),fexist)
+            if (fexist) then
+              goto 300
+            else
+              write(*,'(" TALYS-error: give a single incident energy ",
+     +          "in the input file using the energy keyword ")')
+              write(*,'(14x,"or specify a range of incident energies ",
+     +          "in a file ")')
+              write(*,'(14x,"or give a correct name for a pre-defined",
+     +          " energy grid ",a73)') energyfile
+              stop
+            endif
           endif
           nin=0
           open (unit=2,status='old',file=energyfile)
- 310      read(2,*,end=320,err=510) Ein
+  310     read(2,*,end=320,err=510) Ein
           if (Ein.ne.0.) then
             nin=nin+1
 c
@@ -339,28 +378,36 @@ c
               stop
             endif
             eninc(nin)=Ein
-c
-c Incident energies must be given in ascending order
-c
-            if (eninc(nin).le.eninc(nin-1)) then
-              write(*,'(" TALYS-error: incident energies must",
-     +          " be given in ascending order")')
-              stop
-            endif
           endif
           goto 310
- 320      close (unit=2)
-c
-c The number of incident energies is numinc
-c
-c numinc: number of incident energies
-c
-          numinc=nin
-          if (numinc.eq.0) then
+  320     close (unit=2)
+          if (nin.eq.0) then
             write(*,'(" TALYS-error: there are no",
      +        " incident energies in file ",a73)') energyfile
             stop
           endif
+c
+c Sort incident energies in ascending order and remove double points
+c
+c numinc: number of incident energies
+c
+          do 322 i=1,nin
+            do 324 k=1,i
+              if (eninc(i).ge.eninc(k)) goto 324
+              etmp=eninc(i)
+              eninc(i)=eninc(k)
+              eninc(k)=etmp
+  324       continue
+  322     continue
+          numinc=nin
+          do 326 i=1,nin-1
+            if (eninc(i).eq.eninc(i+1)) then
+              do 328 k=i+1,nin
+                eninc(k)=eninc(k+1)
+  328         continue
+              numinc=numinc-1
+            endif
+  326     continue
 c
 c The minimum and maximum value of all the incident energies is
 c determined.
@@ -373,14 +420,51 @@ c
           do 330 nin=2,numinc
             enincmin=min(enincmin,eninc(nin))
             enincmax=max(enincmax,eninc(nin))
- 330      continue
+  330     continue
         else
+          if (enincF.eq.0.) then
 c
-c B. Single value given in the user input file
+c B1. Single value given in the user input file
 c
-          numinc=1
-          enincmin=eninc(1)
-          enincmax=eninc(1)
+            numinc=1
+            enincmin=eninc(1)
+            enincmax=eninc(1)
+          else
+c
+c B2. Energy grid based on input values E1, E2, dE
+c
+            if (enincF.le.eninc(1)) then
+              write(*,'(" TALYS-error: final incident energy should",
+     +          " be larger than the first ",a80)') inline(i)
+              stop
+            endif
+            if (deninc.lt.0.) then
+              write(*,'(" TALYS-error: energy increment should",
+     +          " be larger than zero ",a80)') inline(i)
+              stop
+            endif
+            if (deninc.eq.0.) then
+              negrid=10
+              deninc=(enincF-eninc(1))/(negrid-1)
+            endif
+            nin=1
+  335       nin=nin+1
+            if (nin.gt.numenin) then
+              write(*,'(" TALYS-error: number of incident energies ",
+     +          " greater than ",i4)') numenin
+              stop
+            endif
+            E=eninc(nin-1)+deninc
+            if (E.lt.enincF-1.e-4) then
+              eninc(nin)=E
+              goto 335
+            else
+              eninc(nin)=enincF
+              numinc=nin
+              enincmin=eninc(1)
+              enincmax=eninc(nin)
+            endif
+          endif
         endif
       else
 c
@@ -389,12 +473,8 @@ c
 c npopbins: number of excitation energy bins for population distribution
 c npopJ   : number of spins for population distribution
 c npopP   : number of parities for population distribution
-c numbins : maximal number of continuum excitation energy bins
-c numJ    : maximal J-value
-c Exdist  : excitation energy of population distribution
-c Pdistex : population distribution, spin-independent
-c Pdist   : population distribution per spin and parity
 c pbeg    : help variable
+c numbins : maximal number of continuum excitation energy bins
 c
         inquire (file=energyfile,exist=lexist)
         if (.not.lexist) then
@@ -419,19 +499,13 @@ c
      +      " in population distribution file")')
           stop
         endif
-        Exdist(0)=0.
-        Pdistex(0)=0.
-        do 340 parity=-1,1,2
-          do 340 J=0,numJ
-            Pdist(0,J,parity)=0.
- 340    continue
 c
 c Only excitation energy distribution (no spins)
 c
         if (npopJ.eq.0) then
           do 350 nin=1,npopbins
             read(2,*,end=510,err=510) Exdist(nin),Pdistex(nin)
- 350      continue
+  350     continue
         else
 c
 c Spin-dependent excitation energy distribution (no total)
@@ -445,8 +519,8 @@ c
             do 370 nin=1,npopbins
                 read(2,*,end=510,err=510) Exdist(nin),
      +            (Pdist(nin,J,parity),J=0,npopJ-1)
- 370        continue
- 360      continue
+  370       continue
+  360     continue
           do 375 nin=2,npopbins
             if (Exdist(nin).le.Exdist(nin-1)) then
               write(*,'(" TALYS-error: excitation energies must",
@@ -454,12 +528,12 @@ c
      +          " of population bins is not correct")')
               stop
             endif
- 375      continue
+  375     continue
           if (npopP.eq.1) then
             do 380 nin=1,npopbins
               do 380 J=0,npopJ-1
                 Pdist(nin,J,-1)=Pdist(nin,J,1)
- 380        continue
+  380       continue
           endif
         endif
         close (unit=2)
@@ -468,13 +542,24 @@ c
         enincmax=eninc(1)
       endif
 c
+c In case of built-in energy range, write an explicit 'energies' file
+c
+  300 if (enincF.gt.0..or.fexist) then
+        open (unit=2,status='unknown',file='energies')
+        do 385 nin=1,numinc
+          write(2,'(1p,g12.4)') eninc(nin)
+  385   continue
+        close (unit=2)
+      endif
+c
 c If requested by input: retrieve best set of adjusted input parameters
 c
 c bestchar: help variable
 c bestfile: adjusted "best" parameter file
+c convert : subroutine to convert input line from upper case to lowercase
 c
       if (flagbest) then
-        bestchar='z000a000x.best'
+        bestchar='z000a000x.talys'
         write(bestchar(2:4),'(i3.3)') Ztarget
         write(bestchar(6:8),'(i3.3)') Atarget
         write(bestchar(9:9),'(a1)') ptype0
@@ -495,21 +580,21 @@ c
           if (Ltarget.eq.0) then
             write(bestpath(lenbest+1:lenbest+5),'(a1,i3.3,"/")')
      +        Starget(1:1),Atarget
-            write(bestpath(lenbest+6:lenbest+19),'(a14)') bestchar
+            write(bestpath(lenbest+6:lenbest+20),'(a15)') bestchar
           else
             write(bestpath(lenbest+1:lenbest+6),'(a1,i3.3,"m/")')
      +        Starget(1:1),Atarget
-            write(bestpath(lenbest+7:lenbest+20),'(a14)') bestchar
+            write(bestpath(lenbest+7:lenbest+21),'(a15)') bestchar
           endif
         else
           if (Ltarget.eq.0) then
             write(bestpath(lenbest+1:lenbest+6),'(a2,i3.3,"/")')
      +        Starget(1:2),Atarget
-            write(bestpath(lenbest+7:lenbest+20),'(a14)') bestchar
+            write(bestpath(lenbest+7:lenbest+21),'(a15)') bestchar
           else
             write(bestpath(lenbest+1:lenbest+7),'(a2,i3.3,"m/")')
      +        Starget(1:2),Atarget
-            write(bestpath(lenbest+8:lenbest+21),'(a14)') bestchar
+            write(bestpath(lenbest+8:lenbest+22),'(a15)') bestchar
           endif
         endif
         bestfile=path(1:lenpath)//bestpath
@@ -517,23 +602,20 @@ c
         if (.not.lexist) return
         open (unit=3,status='old',file=bestfile)
         inum=0
-  410   read(3,'(a80)',end=430) key
+  410   read(3,'(a80)',end=420) key
         inum=inum+1
         i=numlines-inum
         inline(i)=key
-        do 420 k=1,80
-          if (inline(i)(k:k).ge.'A'.and.inline(i)(k:k).le.'Z')
-     +      inline(i)(k:k)=char(ichar(inline(i)(k:k))+32)
-  420   continue
+        call convert(i)
         goto 410
-  430   close (unit=3)
+  420   close (unit=3)
         if (inum.gt.0) then
-          do 440 i=nlines,1,-1
+          do 430 i=nlines,1,-1
             inline(i+inum)=inline(i)
-  440     continue
-          do 450 i=1,inum
+  430     continue
+          do 440 i=1,inum
             inline(i)=inline(numlines-i)
-  450     continue
+  440     continue
           nlines=nlines+inum
         endif
       endif
@@ -544,4 +626,4 @@ c
       write(*,'(" after E= ",e12.5)') Ein
       stop
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

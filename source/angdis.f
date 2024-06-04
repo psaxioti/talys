@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 25, 2010
+c | Date  : June 24, 2013
 c | Task  : Calculation of angular distributions for discrete states
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer iang,LL,type,nex
-      real    ang,x,leg(0:2*numJ,0:numang),plegendre
+      real    ang,x,leg(0:2*numJ,0:numang),plegendre,xs
 c
 c ************* Create arrays with Legendre polynomials ****************
 c
@@ -33,16 +33,19 @@ c
 c
 c ******** Calculation of compound and total angular distribution ******
 c
-c parskip   : logical to skip outgoing particle
-c Nlast     : last discrete level
-c parZ      : charge number of particle
-c parN      : neutron number of particle
-c cleg      : compound nucleus Legendre coefficient
-c compad    : compound angular distribution
-c xscompdisc: compound cross section for discrete state
-c fourpi    : 4.*pi
-c discad    : discrete state angular distribution
-c directad  : direct angular distribution
+c parskip    : logical to skip outgoing particle
+c Nlast      : last discrete level
+c parZ       : charge number of particle
+c parN       : neutron number of particle
+c cleg       : compound nucleus Legendre coefficient
+c flagcompang: flag for compound angular distribution calculation
+c compad     : compound angular distribution
+c xscompel   : compound elastic cross section
+c xscompdisc : compound cross section for discrete state
+c Ltarget    : excited level of target
+c fourpi     : 4.*pi
+c discad     : discrete state angular distribution
+c directad   : direct angular distribution
 c
       do 110 type=0,6
         if (parskip(type)) goto 110
@@ -59,7 +62,8 @@ c rare cases.
 c
           if (type.ne.k0.or.nex.gt.0)
      +      cleg(type,nex,2)=min(cleg(type,nex,2),cleg(type,nex,0))
-          if (type.eq.k0.or.cleg(type,nex,0).ne.0.) then
+          if (flagcompang.and.(type.eq.k0.or.cleg(type,nex,0).ne.0.))
+     +      then
             do 130 LL=0,J2end,2
               do 140 iang=0,nangle
                 compad(type,nex,iang)=compad(type,nex,iang)+
@@ -67,8 +71,13 @@ c
   140         continue
   130       continue
           else
+            if (k0.eq.type.and.nex.eq.Ltarget) then
+              xs=xscompel
+            else
+              xs=xscompdisc(type,nex)
+            endif
             do 150 iang=0,nangle
-              compad(type,nex,iang)=xscompdisc(type,nex)/fourpi
+              compad(type,nex,iang)=xs/fourpi
   150       continue
           endif
           do 160 iang=0,nangle
@@ -126,4 +135,4 @@ c
       if (flagrecoil) call angdisrecoil
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

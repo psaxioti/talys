@@ -2,18 +2,19 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 20, 2011
+c | Date  : April 4, 2012
 c | Task  : Gamma ray strength functions
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer Zcomp,Ncomp,irad,l,i,nen,nT,it,jt,itemp
-      real    fstrength,Efs,Egamma,sgr1,egr1,ggr1,kgr1,egr2,ggr2,Egam2,
-     +        e,Tnuc,ggredep0,ggredep,enum,denom,factor1,factor2,eb,ee,
-     +        Eq(0:numgamqrpa),gamb,game,f1,f2,fb,fe,tpr1,epr1,gpr1,
-     +        epr2,gpr2,Tb,Te
+      character*80 key
+      integer      Zcomp,Ncomp,irad,l,i,nen,nT,it,jt,itemp
+      real         fstrength,Efs,Egamma,sgr1,egr1,ggr1,kgr1,egr2,ggr2,
+     +             Egam2,e,Tnuc,ggredep0,ggredep,enum,denom,factor1,
+     +             factor2,eb,ee,Eq(0:numgamqrpa),gamb,game,f1,f2,fb,fe,
+     +             tpr1,epr1,gpr1,epr2,gpr2,Tb,Te
 c
 c ************************* Strength functions *************************
 c
@@ -24,6 +25,9 @@ c irad     : variable to indicate M(=0) or E(=1) radiation
 c ngr      : number of GR
 c Zcomp    : charge number index for compound nucleus
 c Ncomp    : neutron number index for compound nucleus
+c gamadjust: logical for energy-dependent gamma adjustment
+c adjust   : subroutine for energy-dependent parameter adjustment
+c factor1,.: multiplication factor
 c sgr,sgr1 : strength of GR
 c egr,egr1 : energy of GR
 c ggr,ggr1 : width of GR
@@ -42,9 +46,30 @@ c 5. Goriely Hybrid model
 c
       fstrength=0.
       do 10 i=1,ngr(Zcomp,Ncomp,irad,l)
-        sgr1=sgr(Zcomp,Ncomp,irad,l,i)
-        egr1=egr(Zcomp,Ncomp,irad,l,i)
-        ggr1=ggr(Zcomp,Ncomp,irad,l,i)
+       if (gamadjust(Zcomp,Ncomp)) then
+          key='sgr'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor1)
+          key='sgradjust'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor2)
+          sgr1=factor1*factor2*sgr(Zcomp,Ncomp,irad,l,i)*
+     +      sgradjust(Zcomp,Ncomp,irad,l,i)
+          key='ggr'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor1)
+          key='ggradjust'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor2)
+          ggr1=factor1*factor2*ggr(Zcomp,Ncomp,irad,l,i)*
+     +      ggradjust(Zcomp,Ncomp,irad,l,i)
+          key='egr'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor1)
+          key='egradjust'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor2)
+          egr1=factor1*factor2*egr(Zcomp,Ncomp,irad,l,i)*
+     +      egradjust(Zcomp,Ncomp,irad,l,i)
+        else
+          sgr1=sgr(Zcomp,Ncomp,irad,l,i)
+          egr1=egr(Zcomp,Ncomp,irad,l,i)
+          ggr1=ggr(Zcomp,Ncomp,irad,l,i)
+        endif
         kgr1=kgr(Zcomp,Ncomp,irad,l)
         egr2=egr1**2
         ggr2=ggr1**2
@@ -198,10 +223,31 @@ c
 c Inclusion of additional extra strength (Pygmy Resonance),
 c only if explicitly specified in the input
 c
-      tpr1=tpr(Zcomp,Ncomp,irad,l)
+      tpr1=tpr(Zcomp,Ncomp,irad,l,1)
       if (Egamma.gt.0.001.and.tpr1.gt.0.) then
-        epr1=epr(Zcomp,Ncomp,irad,l)
-        gpr1=gpr(Zcomp,Ncomp,irad,l)
+        if (gamadjust(Zcomp,Ncomp)) then
+          key='tpr'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor1)
+          key='tpradjust'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor2)
+          tpr1=factor1*factor2*tpr(Zcomp,Ncomp,irad,l,1)*
+     +      tpradjust(Zcomp,Ncomp,irad,l,1)
+          key='gpr'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor1)
+          key='gpradjust'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor2)
+          gpr1=factor1*factor2*gpr(Zcomp,Ncomp,irad,l,1)*
+     +      gpradjust(Zcomp,Ncomp,irad,l,1)
+          key='epr'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor1)
+          key='epradjust'
+          call adjust(Egamma,key,Zcomp,Ncomp,0,l,factor2)
+          epr1=factor1*factor2*epr(Zcomp,Ncomp,irad,l,1)*
+     +      epradjust(Zcomp,Ncomp,irad,l,1)
+        else
+          epr1=epr(Zcomp,Ncomp,irad,l,1)
+          gpr1=gpr(Zcomp,Ncomp,irad,l,1)
+        endif
         kgr1=kgr(Zcomp,Ncomp,irad,l)
         epr2=epr1**2
         gpr2=gpr1**2
@@ -219,4 +265,4 @@ c
       fstrength=fstrength/fiso(Zcomp,Ncomp,k0)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

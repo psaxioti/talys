@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : December 1, 2008
+c | Date  : October 31, 2013
 c | Task  : Determination of effective absorption optical potential
 c +---------------------------------------------------------------------
 c
@@ -59,6 +59,7 @@ c
       Nix=Nindex(0,0,k0)
       emax=enincmax+S(0,0,k0)
       nenend=10*min(numen,int(emax+1.))
+      Rjlm=1.
       do 10 k=1,2
 c
 c A. Phenomenological potential (always done, also for the case of
@@ -143,4 +144,4 @@ c
  10   continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

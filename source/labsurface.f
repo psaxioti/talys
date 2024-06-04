@@ -260,7 +260,7 @@ c if the three summits are inside the same bin
 c
         if ((ixmin.eq.ixmax).and.(iymin.eq.iysup)) then
           iymin=mod(iymin,iymax+1)
-          sparte(ixmin,iymin)=totsurf
+          sparte(max(ixmin,1),iymin)=totsurf
           return
         endif
 c
@@ -273,7 +273,7 @@ c
           do ix=ixmin,ixmax
             do iy=iymin,iysup
               iystore=mod(iy,iymax+1)
-              sparte(ix,iystore)=surfloc
+              sparte(max(ix,1),iystore)=surfloc
             enddo
           enddo
           return
@@ -302,7 +302,7 @@ c
             surfbin=areaejlab(type,ix,iystore)
             call binsurface(x1,yc1,x2,yc2,x3,yc3,xl,xu,yl,yu,pi,twopi,
      +                      epsx,epsy,surfloc,surfbin)
-            sparte(ix,iystore)=surfloc
+            sparte(max(ix,1),iystore)=surfloc
             sumsurf=sumsurf+surfloc
   110     continue
   100   continue
@@ -316,8 +316,9 @@ c
             do ix=ixmin,ixmax
               do iy=iymin,iysup
                 iystore=mod(iy,iymax+1)
-                sparte(ix,iystore)=sparte(ix,iystore)*renorm
-                sumsurf=sumsurf+sparte(ix,iystore)
+                sparte(max(ix,1),iystore)=sparte(max(ix,1),iystore)*
+     +            renorm
+                sumsurf=sumsurf+sparte(max(ix,1),iystore)
               enddo
             enddo
           else
@@ -328,7 +329,7 @@ c
             do ix=ixmin,ixmax
               do iy=iymin,iysup
                 iystore=mod(iy,iymax+1)
-                sparte(ix,iystore)=surfloc
+                sparte(max(ix,1),iystore)=surfloc
                 sumsurf=sumsurf+surfloc
               enddo
             enddo
@@ -527,4 +528,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

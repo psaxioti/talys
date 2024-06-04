@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 9, 2010
+c | Date  : August 15, 2012
 c | Task  : Optical model parameters
 c +---------------------------------------------------------------------
 c
@@ -15,6 +15,7 @@ c
       character*72 optmodfile
       character*90 ompfile
       integer      Zix,Nix,Z,N,A,k,ia,i,nomp,ii,nen
+      real         e
 c
 c ************** Read optical model parameters from database ***********
 c
@@ -225,8 +226,34 @@ c
           endif
   210   continue
       endif
+c
+c Set OMP parameters for extension up to 1 GeV
+c
+c Zindex  : charge number index for residual nucleus
+c Nindex  : neutron number index for residual nucleus
+c Ejoin   : joining energy for high energy OMP
+c enincmax: maximum incident energy
+c optical : subroutine for determination of optical potential
+c V0      : V at zero MeV
+c Vjoin   : V at joining energy
+c Wjoin   : W at joining energy
+c
+      do 310 k=1,2
+        w3(Zix,Nix,k)=25.-0.0417*A
+        w4(Zix,Nix,k)=250.
+        if (Zix.eq.Zindex(0,0,k).and.Nix.eq.Nindex(0,0,k).and.
+     +    enincmax.gt.Ejoin(k)) then
+          e=0.
+          call optical(Zix,Nix,k,e)
+          V0(k)=v
+          e=Ejoin(k)
+          call optical(Zix,Nix,k,e)
+          Vjoin(k)=v
+          Wjoin(k)=w
+        endif
+  310 continue
       return
   300 write(*,'(" TALYS-error: Format error in ",a72)') optmodfile
       stop
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

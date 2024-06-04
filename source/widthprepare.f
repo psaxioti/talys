@@ -48,4 +48,4 @@ c
      +  sgoe4,sgoe5,numtrans,tnuminc)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

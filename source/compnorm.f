@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : March 28, 2010
+c | Date  : December 21, 2012
 c | Task  : Normalization of compound nucleus cross section
 c +---------------------------------------------------------------------
 c
@@ -164,7 +164,7 @@ c
         xsflux=xsreacinc-xsdirdiscsum-xspreeqsum-xsgrsum
         if (xsreacinc.gt.0.) cfratio=xsflux/xsreacinc
       endif
-      CNfactor=CNfactor*cfratio/norm
+      if (norm.gt.0.) CNfactor=CNfactor*cfratio/norm
       if (flagcheck) then
         write(*,'(/" ++++++++++ Compound nucleus formation cross",
      +    " section ++++++++++"/)')
@@ -186,4 +186,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

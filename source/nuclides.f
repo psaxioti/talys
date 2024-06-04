@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 19, 2011
+c | Date  : June 17, 2013
 c | Task  : Properties of nuclides
 c +---------------------------------------------------------------------
 c
@@ -203,10 +203,9 @@ c
 c Assignment of default values: Width fluctuation corrections and URR
 c are included for incident energies up to the separation energy.
 c
-      if (k0.eq.1) then
-        if (ewfc.eq.-1.) ewfc=S(parZ(k0),parN(k0),k0)
-        if (eurr.eq.-1..and.flagurr) eurr=S(parZ(k0),parN(k0),k0)
-      endif
+      if (k0.ge.1.and.ewfc.eq.-1.) ewfc=S(parZ(k0),parN(k0),k0)
+      if (k0.eq.1.and.eurr.eq.-1..and.flagurr)
+     +  eurr=S(parZ(k0),parN(k0),k0)
 c
 c Pre-equilibrium reactions are included for incident energies
 c above the last discrete level.
@@ -224,8 +223,11 @@ c
 c flagastro : flag for calculation of astrophysics reaction rate
 c egridastro: subroutine to calculate default incident energy grid
 c             for astrophysical rate
-
+c flagprod  : flag for isotope production
+c decaydata : subroutine for decay data
+c
       if (flagastro) call egridastro
+      if (flagprod) call decaydata
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

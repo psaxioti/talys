@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 10, 2011
+c | Date  : July 20, 2012
 c | Task  : Output of residual production cross sections
 c +---------------------------------------------------------------------
 c
@@ -98,9 +98,9 @@ c Write results to separate file
 c
 c fileresidual  : flag for residual production cross sections  on
 c                 separate file
-c rpexist       : flag for existence of residual production cross 
+c rpexist       : flag for existence of residual production cross
 c                 section
-c rpisoexist    : flag for existence of isomeric residual production 
+c rpisoexist    : flag for existence of isomeric residual production
 c                 cross section
 c natstring     : string extension for file names
 c iso           : counter for isotope
@@ -114,6 +114,7 @@ c edis          : energy of level
 c numinc        : number of incident energies
 c numinclow     : number of incident energies below Elow
 c nin           : counter for incident energy
+c Starget       : symbol of target nucleus
 c eninc,Einc    : incident energy in MeV
 c flagcompo     : flag for output of cross section components
 c xspopdir      : direct population cross section per nucleus
@@ -130,6 +131,11 @@ c
 c
 c A. Total
 c
+            if (Zcomp.eq.parZ(k0).and.Ncomp.eq.parN(k0)) then
+              nex=1
+            else
+              nex=0
+            endif
             Z=ZZ(Zcomp,Ncomp,0)
             A=AA(Zcomp,Ncomp,0)
             rpfile='rp000000.tot'//natstring(iso)
@@ -138,11 +144,11 @@ c
               rpexist(Zcomp,Ncomp)=.true.
               open (unit=1,status='unknown',file=rpfile)
               write(1,'("# ",a1," + ",i3,a2,": Production of ",i3,a2,
-     +          " - Total")') parsym(k0),Atarget,nuc(Ztarget),A,nuc(Z)
+     +          " - Total")') parsym(k0),Atarget,Starget,A,nuc(Z)
               write(1,'("# Q-value    =",1p,e12.5,0p," mass=",f11.6)')
-     +          Qres(Zcomp,Ncomp,0),nucmass(Zcomp,Ncomp)
+     +          Qres(Zcomp,Ncomp,nex),nucmass(Zcomp,Ncomp)
               write(1,'("# E-threshold=",1p,e12.5)')
-     +          Ethresh(Zcomp,Ncomp,0)
+     +          Ethresh(Zcomp,Ncomp,nex)
               write(1,'("# # energies =",i3)') numinc
               if (flagcompo) then
                 write(1,'("#    E         xs                    ",
@@ -198,12 +204,11 @@ c
                   if (nex.eq.0) then
                     write(1,'("# ",a1," + ",i3,a2,": Production of ",
      +                i3,a2," - Ground state")') parsym(k0),Atarget,
-     +                nuc(Ztarget),A,nuc(Z)
+     +                Starget,A,nuc(Z)
                   else
                     write(1,'("# ",a1," + ",i3,a2,": Production of ",
      +                i3,a2," - Level",i3,f12.5," MeV")') parsym(k0),
-     +                Atarget,nuc(Ztarget),A,nuc(Z),nex,
-     +                edis(Zcomp,Ncomp,nex)
+     +                Atarget,Starget,A,nuc(Z),nex,edis(Zcomp,Ncomp,nex)
                   endif
                   write(1,'("# Q-value    =",1p,e12.5,0p," mass=",
      +              f11.6)') Qres(Zcomp,Ncomp,nex),nucmass(Zcomp,Ncomp)
@@ -236,4 +241,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

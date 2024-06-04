@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : September 28, 2011
+c | Date  : December 13, 2013
 c | Task  : Level density parameters
 c +---------------------------------------------------------------------
 c
@@ -16,7 +16,7 @@ c
       integer          Zix,Nix,Z,N,A,ldmod,ia,Nlow0,Ntop0,ibar,imax,
      +                 imin,i,oddZ,oddN
       real             ald0,pshift0,scutoffsys,sigsum,denom,rj,sd,ald,
-     +                 Spair,fU,difprev,factor,argum
+     +                 Spair,expo,fU,difprev,factor,argum
       double precision mldm,mliquid1,mliquid2
 c
 c *************************** Initialization ***************************
@@ -26,6 +26,7 @@ c ldmodel 2: Back-shifted Fermi gas
 c ldmodel 3: Superfluid model
 c ldmodel 4: Statistical HFB model (Goriely)
 c ldmodel 5: Combinatorial HFB model (Hilaire and Goriely)
+c ldmodel 6: Combinatorial HFB model - Gogny force (Hilaire and Goriely)
 c
 c Zix : charge number index for residual nucleus
 c Nix : neutron number index for residual nucleus
@@ -76,6 +77,8 @@ c
      +  denfile=path(1:lenpath)//'density/ground/goriely/'//denchar
       if (ldmod.eq.5)
      +  denfile=path(1:lenpath)//'density/ground/hilaire/'//denchar
+      if (ldmod.eq.6)
+     +  denfile=path(1:lenpath)//'density/ground/hilaireD1M/'//denchar
       inquire (file=denfile,exist=lexist)
       if (.not.lexist) goto 30
       if (flagcol(Zix,Nix).and.ldmod.le.3) then
@@ -287,7 +290,8 @@ c
           if (ald.gt.1.) goto 80
         endif
         if (aldcrit(Zix,Nix).lt.alimit(Zix,Nix)/3.) then
-          fU=1.-exp(-gammald(Zix,Nix)*S(Zix,Nix,1))
+          expo=min(-gammald(Zix,Nix)*S(Zix,Nix,1),80.)
+          fU=1.-exp(expo)
           factor=1.+fU*deltaW(Zix,Nix,0)/S(Zix,Nix,1)
           aldcrit(Zix,Nix)=max(alimit(Zix,Nix)*factor,1.)
         endif
@@ -427,4 +431,4 @@ c
       gp(Zix,Nix)=gpadjust(Zix,Nix)*gp(Zix,Nix)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

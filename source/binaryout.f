@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 22, 2011
+c | Date  : December 19, 2012
 c | Task  : Output of binary cross sections
 c +---------------------------------------------------------------------
 c
@@ -11,13 +11,14 @@ c
       include "talys.cmb"
       character*10 binfile
       integer      type,nen
-      real         xsc
+      real         xsrac,xsc
 c
 c ******************* Binary non-elastic channels **********************
 c
 c flagcompo   : flag for output of cross section components
 c parskip     : logical to skip outgoing particle
 c parname     : name of particle
+c xsracape    : direct radiative capture cross section
 c xsbinary    : cross section from initial compound to residual nucleus
 c xsdirdisctot: direct cross section summed over discrete states
 c xspreeqtot  : preequilibrium cross section per particle type
@@ -28,18 +29,23 @@ c
       write(*,'(/" 2. Binary non-elastic cross sections ",
      +  "(non-exclusive)")')
       if (flagcompo) then
-        write(*,'(36x," Direct  Preequilibrium Compound")')
+        write(*,'(36x," Direct  Preequilibrium Compound  Dir. Capt.")')
       else
         write(*,'()')
       endif
       do 10 type=-1,6
         if (parskip(type)) goto 10
+        if (type.eq.0) then
+          xsrac=xsracape
+        else
+          xsrac=0.
+        endif
         if (flagcompo.and.type.ge.0) then
           xsc=max(xsbinary(type)-xsdirdisctot(type)-xspreeqtot(type)-
-     +      xsgrtot(type),0.)
-          write(*,'(1x,a8,"=",1p,e12.5,12x,3e12.5)') parname(type),
+     +      xsgrtot(type)-xsrac,0.)
+          write(*,'(1x,a8,"=",1p,e12.5,12x,4e12.5)') parname(type),
      +      xsbinary(type),xsdirdisctot(type),
-     +      xspreeqtot(type)+xsgrtot(type),xsc
+     +      xspreeqtot(type)+xsgrtot(type),xsc,xsrac
         else
           write(*,'(1x,a8,"=",1p,e12.5)') parname(type),xsbinary(type)
         endif
@@ -53,7 +59,7 @@ c eninc,Einc: incident energy in MeV
 c parsym    : symbol of particle
 c k0        : index of incident particle
 c Atarget   : mass number of target nucleus
-c nuc       : symbol of nucleus
+c Starget   : symbol of target nucleus
 c Ztarget   : charge number of target nucleus
 c numinc    : number of incident energies
 c
@@ -62,7 +68,7 @@ c
         if (nin.eq.numinclow+1) then
           open (unit=1,status='unknown',file=binfile)
           write(1,'("# ",a1," + ",i3,a2," Binary cross sections")')
-     +      parsym(k0),Atarget,nuc(Ztarget)
+     +      parsym(k0),Atarget,Starget
           write(1,'("# ")')
           write(1,'("# ")')
           write(1,'("# # energies =",i3)') numinc
@@ -83,4 +89,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

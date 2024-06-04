@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 18, 2011
+c | Date  : December 18, 2013
 c | Task  : Output of final results
 c +---------------------------------------------------------------------
 c
@@ -17,7 +17,7 @@ c
       character*19  gamfile
       character*80  string
       character*126 stringtot
-      integer       istat,nen,type,Acomp,Zcomp,Ncomp,Z,A,nex,Zix,Nix,
+      integer       istat,nen,type,l,Acomp,Zcomp,Ncomp,Z,A,nex,Zix,Nix,
      +              npart,ia,ih,it,id,ip,in,ident,idc,i1,i2
       real          Egam
 c
@@ -70,6 +70,7 @@ c                 3-5= folding potential)
 c aradialcor    : adjustable parameter for shape of DF alpha potential
 c adepthcor     : adjustable parameter for depth of DF alpha potential
 c v1adjust..    : adjustable factors for OMP (default 1.)
+c tladjust      : adjustable factor for Tlj (default 1.)
 c k0            : index of incident particle
 c parinclude    : logical to include outgoing particle
 c flagcomp      : flag for compound nucleus calculation
@@ -84,110 +85,119 @@ c
         write(11,'("## Level density")')
         write(11,'("##")')
         if (ldmodel(0,0).le.3) then
-          write(11,'("alphald     ",f10.5)') alphald(0,0)
-          write(11,'("betald      ",f10.5)') betald(0,0)
-          write(11,'("gammashell1 ",f10.5)') gammashell1(0,0)
-          write(11,'("gammashell2 ",f10.5)') gammashell2
-          write(11,'("pairconstant",f10.5)') pairconstant
-          write(11,'("pshiftconstant",f10.5)') Pshiftconstant(0,0)
-          write(11,'("Rspincut    ",f10.5)') Rspincut
-        else
-          write(11,'("cglobal     ",f10.5)') cglobal
-          write(11,'("pglobal     ",f10.5)') pglobal
+          write(11,'("alphald        ",f10.5)') alphald(0,0)
+          write(11,'("betald         ",f10.5)') betald(0,0)
+          write(11,'("gammashell1    ",f10.5)') gammashell1(0,0)
+          write(11,'("gammashell2    ",f10.5)') gammashell2
+          write(11,'("pairconstant   ",f10.5)') pairconstant
+          write(11,'("pshiftconstant ",f10.5)') Pshiftconstant(0,0)
+          write(11,'("Rspincut       ",f10.5)') Rspincut
         endif
+        write(11,'("cglobal        ",1p,e12.5)') cglobal
+        write(11,'("pglobal        ",1p,e12.5)') pglobal
         if (flagcolall) then
-          write(11,'("Ufermi      ",f10.5)') Ufermi
-          write(11,'("cfermi      ",f10.5)') cfermi
-          write(11,'("Ufermibf    ",f10.5)') Ufermibf
-          write(11,'("cfermibf    ",f10.5)') cfermibf
+          write(11,'("Ufermi         ",f10.5)') Ufermi
+          write(11,'("cfermi         ",f10.5)') cfermi
+          write(11,'("Ufermibf       ",f10.5)') Ufermibf
+          write(11,'("cfermibf       ",f10.5)') cfermibf
         endif
-        if (phmodel.eq.1) write(11,'("Kph         ",f10.5)') Kph
+        if (phmodel.eq.1) write(11,'("Kph            ",f10.5)') Kph
         write(11,'("##")')
         write(11,'("## Gamma-ray")')
         write(11,'("##")')
-        write(11,'("gnorm       ",f10.5)') gnorm
-        write(11,'("xscaptherm  ",1p,e12.5)') xscaptherm
+        write(11,'("gnorm          ",f10.5)') gnorm
+        write(11,'("xscaptherm     ",1p,e12.5)') xscaptherm
         write(11,'("##")')
         write(11,'("## Pre-equilibrium")')
         write(11,'("##")')
-        write(11,'("M2constant  ",f10.5)') M2constant
-        write(11,'("M2limit     ",f10.5)') M2limit
-        write(11,'("M2shift     ",f10.5)') M2shift
-        write(11,'("Rpipi       ",f10.5)') Rpipi
-        write(11,'("Rnunu       ",f10.5)') Rnunu
-        write(11,'("Rpinu       ",f10.5)') Rpinu
-        write(11,'("Rnupi       ",f10.5)') Rnupi
-        write(11,'("Rgamma      ",f10.5)') Rgamma
-        write(11,'("Esurf       ",f10.5)') Esurf
+        write(11,'("M2constant     ",f10.5)') M2constant
+        write(11,'("M2limit        ",f10.5)') M2limit
+        write(11,'("M2shift        ",f10.5)') M2shift
+        write(11,'("Rpipi          ",f10.5)') Rpipi
+        write(11,'("Rnunu          ",f10.5)') Rnunu
+        write(11,'("Rpinu          ",f10.5)') Rpinu
+        write(11,'("Rnupi          ",f10.5)') Rnupi
+        write(11,'("Rgamma         ",f10.5)') Rgamma
+        write(11,'("Esurf          ",f10.5)') Esurf
         do type=1,6
           if (xspreeqtotps(type).gt.0.)
-     +      write(11,'("Cstrip     ",a1,f10.5)') parsym(type),
+     +      write(11,'("Cstrip        ",a1,f10.5)') parsym(type),
      +      Cstrip(type)
           if (xspreeqtotki(type).gt.0.)
-     +      write(11,'("Cknock     ",a1,f10.5)') parsym(type),
-     +        Cknock(type)
+     +      write(11,'("Cknock        ",a1,f10.5)') parsym(type),
+     +      Cknock(type)
           if (xspreeqtotbu(type).gt.0.)
-     +      write(11,'("Cbreak     ",a1,f10.5)') parsym(type),
+     +      write(11,'("Cbreak        ",a1,f10.5)') parsym(type),
      +      Cbreak(type)
         enddo
         write(11,'("##")')
         write(11,'("## Optical model")')
         write(11,'("##")')
         if (flagjlm) then
-          write(11,'("lvadjust   ",f10.5)') lvadjust
-          write(11,'("lwadjust   ",f10.5)') lwadjust
-          write(11,'("lv1adjust  ",f10.5)') lv1adjust
-          write(11,'("lw1adjust  ",f10.5)') lw1adjust
-          write(11,'("lvsoadjust ",f10.5)') lvsoadjust
-          write(11,'("lwsoadjust ",f10.5)') lwsoadjust
+          write(11,'("lvadjust       ",f10.5)') lvadjust
+          write(11,'("lwadjust       ",f10.5)') lwadjust
+          write(11,'("lv1adjust      ",f10.5)') lv1adjust
+          write(11,'("lw1adjust      ",f10.5)') lw1adjust
+          write(11,'("lvsoadjust     ",f10.5)') lvsoadjust
+          write(11,'("lwsoadjust     ",f10.5)') lwsoadjust
         endif
         if (alphaomp.ge.3) then
-          write(11,'("aradialcor ",f10.5)') aradialcor
-          write(11,'("adepthcor  ",f10.5)') adepthcor
+          write(11,'("aradialcor     ",f10.5)') aradialcor
+          write(11,'("adepthcor      ",f10.5)') adepthcor
         endif
         do type=1,6
           if (.not.flagjlm.or.type.gt.2) then
-            write(11,'("v1adjust   ",a1,f10.5)') parsym(type),
+            write(11,'("v1adjust      ",a1,f10.5)') parsym(type),
      +        v1adjust(type)
-            write(11,'("v2adjust   ",a1,f10.5)') parsym(type),
+            write(11,'("v2adjust      ",a1,f10.5)') parsym(type),
      +        v2adjust(type)
-            write(11,'("v3adjust   ",a1,f10.5)') parsym(type),
+            write(11,'("v3adjust      ",a1,f10.5)') parsym(type),
      +        v3adjust(type)
-            write(11,'("v4adjust   ",a1,f10.5)') parsym(type),
+            write(11,'("v4adjust      ",a1,f10.5)') parsym(type),
      +        v4adjust(type)
-            write(11,'("rvadjust   ",a1,f10.5)') parsym(type),
+            write(11,'("rvadjust      ",a1,f10.5)') parsym(type),
      +        rvadjust(type)
-            write(11,'("avadjust   ",a1,f10.5)') parsym(type),
+            write(11,'("avadjust      ",a1,f10.5)') parsym(type),
      +        avadjust(type)
-            write(11,'("w1adjust   ",a1,f10.5)') parsym(type),
+            write(11,'("w1adjust      ",a1,f10.5)') parsym(type),
      +        w1adjust(type)
-            write(11,'("w2adjust   ",a1,f10.5)') parsym(type),
+            write(11,'("w2adjust      ",a1,f10.5)') parsym(type),
      +        w2adjust(type)
-            write(11,'("d1adjust   ",a1,f10.5)') parsym(type),
+            write(11,'("w3adjust      ",a1,f10.5)') parsym(type),
+     +        w3adjust(type)
+            write(11,'("w4adjust      ",a1,f10.5)') parsym(type),
+     +        w4adjust(type)
+            write(11,'("d1adjust      ",a1,f10.5)') parsym(type),
      +        d1adjust(type)
-            write(11,'("d2adjust   ",a1,f10.5)') parsym(type),
+            write(11,'("d2adjust      ",a1,f10.5)') parsym(type),
      +        d2adjust(type)
-            write(11,'("d3adjust   ",a1,f10.5)') parsym(type),
+            write(11,'("d3adjust      ",a1,f10.5)') parsym(type),
      +        d3adjust(type)
-            write(11,'("rvdadjust  ",a1,f10.5)') parsym(type),
+            write(11,'("rvdadjust     ",a1,f10.5)') parsym(type),
      +        rvdadjust(type)
-            write(11,'("avdadjust  ",a1,f10.5)') parsym(type),
+            write(11,'("avdadjust     ",a1,f10.5)') parsym(type),
      +        avdadjust(type)
-            write(11,'("rvsoadjust ",a1,f10.5)') parsym(type),
+            write(11,'("rvsoadjust    ",a1,f10.5)') parsym(type),
      +        rvsoadjust(type)
-            write(11,'("avsoadjust ",a1,f10.5)') parsym(type),
+            write(11,'("avsoadjust    ",a1,f10.5)') parsym(type),
      +        avsoadjust(type)
-            write(11,'("vso1adjust ",a1,f10.5)') parsym(type),
+            write(11,'("vso1adjust    ",a1,f10.5)') parsym(type),
      +        vso1adjust(type)
-            write(11,'("vso2adjust ",a1,f10.5)') parsym(type),
+            write(11,'("vso2adjust    ",a1,f10.5)') parsym(type),
      +        vso2adjust(type)
-            write(11,'("wso1adjust ",a1,f10.5)') parsym(type),
+            write(11,'("wso1adjust    ",a1,f10.5)') parsym(type),
      +        wso1adjust(type)
-            write(11,'("wso2adjust ",a1,f10.5)') parsym(type),
+            write(11,'("wso2adjust    ",a1,f10.5)') parsym(type),
      +        wso2adjust(type)
-            write(11,'("rcadjust   ",a1,f10.5)') parsym(type),
+            write(11,'("rcadjust      ",a1,f10.5)') parsym(type),
      +        rcadjust(type)
           endif
+        enddo
+        do type=1,6
+          do l=0,4
+            write(11,'("tljadjust     ",a1,f10.5,i2)') parsym(type),
+     +        tladjust(type,l),l
+          enddo
         enddo
         if (k0.eq.1.and.(parinclude(0).or.flagcomp).and.
      +    Rprime.ne.0.) then
@@ -195,7 +205,7 @@ c
           write(11,'("## Resonance parameters")')
           write(11,'("## Z   A     S0        R      xs(therm)    D0",
      +      "         a         P        Sn")')
-          write(11,'("#",2i4,1p,7e10.3)') Ztarget,Atarget,
+          write(11,'("##",2i4,1p,7e10.3)') Ztarget,Atarget,
      +      Sstrength(0)*1.e4,Rprime,xscaptherm,D0theo(0,0),
      +      alev(0,0),pair(0,0),S(0,0,1)
         endif
@@ -221,7 +231,7 @@ c
      +    "  Direct   Pre-equil."/)')
         read(1,'(////)')
         do 10 nen=1,numinc
-          read(1,'(a112)') stringtot
+          read(1,'(a112)',end=10) stringtot
           write(*,'(1x,a112)') stringtot
    10   continue
         close (unit=1)
@@ -235,7 +245,7 @@ c
      +    (parname(type),type=0,6)
         read(1,'(////)')
         do 20 nen=1,numinc
-          read(1,'(a112)') stringtot
+          read(1,'(a112)',end=20) stringtot
           write(*,'(1x,a112)') stringtot
    20   continue
         close (unit=1)
@@ -257,7 +267,7 @@ c
           write(*,'(" Energy   Cross section Multiplicity"/)')
           read(1,'(////)')
           do 120 nen=1,numinc
-            read(1,'(a80)') string
+            read(1,'(a80)',end=120) string
             write(*,'(1x,a80)') string
   120     continue
           close (unit=1)
@@ -271,7 +281,7 @@ c
           write(*,'(" Energy   Cross section "/)')
           read(1,'(////)')
           do 130 nen=1,numinc
-            read(1,'(a80)') string
+            read(1,'(a80)',end=130) string
             write(*,'(1x,a80)') string
   130     continue
           close (unit=1)
@@ -319,7 +329,7 @@ c
             write(*,'(" Energy   Cross section"/)')
             read(1,'(////)')
             do 220 nen=1,numinc
-              read(1,'(a80)') string
+              read(1,'(a80)',end=220) string
               write(*,'(1x,a80)') string
   220       continue
             close (unit=1)
@@ -340,7 +350,7 @@ c
               write(*,'(" Energy   Cross section Branching ratio"/)')
               read(1,'(////)')
               do 240 nen=1,numinc
-                read(1,'(a80)') string
+                read(1,'(a80)',end=240) string
                 write(*,'(1x,a80)') string
   240         continue
               close (unit=1)
@@ -371,7 +381,7 @@ c
               write(*,'("  Energy     Cross section"/)')
               read(1,'(////)')
               do 320 nen=1,numinc
-                read(1,'(a80)') string
+                read(1,'(a80)',end=320) string
                 write(*,'(1x,a80)') string
   320         continue
               close (unit=1)
@@ -423,7 +433,7 @@ c
      +          parsym(type)
               read(1,'(////)')
               do 430 nen=1,numinc
-                read(1,'(a80)') string
+                read(1,'(a80)',end=430) string
                 write(*,'(1x,a80)') string
   430         continue
               close (unit=1)
@@ -444,7 +454,7 @@ c
      +          "      Compound"/)')
               read(1,'(////)')
               do 450 nen=1,numinc
-                read(1,'(a80)') string
+                read(1,'(a80)',end=450) string
                 write(*,'(1x,a80)') string
   450         continue
               close (unit=1)
@@ -461,7 +471,7 @@ c
      +          ",g",a1,")"/)') parsym(k0),parsym(type)
               read(1,'(////)')
               do 460 nen=1,numinc
-                read(1,'(a80)') string
+                read(1,'(a80)',end=460) string
                 write(*,'(1x,a80)') string
   460         continue
               close (unit=1)
@@ -513,8 +523,8 @@ c
      +            "c.s./res.prod.cs"/)')
                 read(1,'(////)')
                 do 530 nen=1,numinc
-                  read(1,'(a80)') string
-                  write(*,'(1x,a80)') string
+                  read(1,'(a100)',end=530) stringtot
+                  write(*,'(1x,a100)') stringtot
   530           continue
                 close (unit=1)
               endif
@@ -533,7 +543,7 @@ c
                   write(*,'(" Energy   Cross section  Branching"/)')
                   read(1,'(////)')
                   do 550 nen=1,numinc
-                    read(1,'(a80)') string
+                    read(1,'(a80)',end=550) string
                     write(*,'(1x,a80)') string
   550             continue
                   close (unit=1)
@@ -573,7 +583,7 @@ c
                   write(*,'(" Energy   Cross section c.s./res.pr.cs"/)')
                   read(1,'(////)')
                   do 630 nen=1,numinc
-                    read(1,'(a80)') string
+                    read(1,'(a80)',end=630) string
                     write(*,'(1x,a80)') string
   630             continue
                   close (unit=1)
@@ -617,7 +627,7 @@ c
                   write(*,'(" Energy   Cross section"/)')
                   read(1,'(////)')
                   do 730 nen=1,numinc
-                    read(1,'(a80)') string
+                    read(1,'(a80)',end=730) string
                     write(*,'(1x,a80)') string
   730             continue
                   close (unit=1)
@@ -627,4 +637,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

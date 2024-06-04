@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 11, 2011
+c | Date  : January 21, 2012
 c | Task  : Processing of pre-equilibrium spectra into population bins
 c +---------------------------------------------------------------------
 c
@@ -67,13 +67,13 @@ c
         do 20 nexout=NL+1,maxex(Zix,Nix)
           Eout=Etotal-SS-Ex(Zix,Nix,nexout)
           if (Eout.lt.egrid(ebegin(type))) goto 20
-          Elow=Eout-0.5*deltaEx(Zix,Nix)
+          Elow=Eout-0.5*deltaEx(Zix,Nix,nexout)
           call locate(egrid,ebegin(type),eend(type),Elow,nen1)
           na1=nen1
           nb1=nen1+1
           Ea1=egrid(na1)
           Eb1=min(egrid(nb1),Etotal-SS)
-          Ehigh=Eout+0.5*deltaEx(Zix,Nix)
+          Ehigh=Eout+0.5*deltaEx(Zix,Nix,nexout)
           call locate(egrid,ebegin(type),eend(type),Ehigh,nen2)
           na2=nen2
           nb2=nen2+1
@@ -107,24 +107,24 @@ c preeqpopex: pre-equilibrium population cross section summed over
 c             spin and parity
 c
           call pol1(Ea2,Eb2,xsa,xsb,Ehigh,xshigh)
-          xs=0.5*(xslow+xshigh)*deltaEx(Zix,Nix)
+          xs=0.5*(xslow+xshigh)*deltaEx(Zix,Nix,nexout)
           if (xs.lt.1.e-30) xs=0.
           preeqpopex(Zix,Nix,nexout)=xs
 c
 c If the pre-equilibrium spin distribution is chosen, the spectrum
 c is interpolated on the spin/parity dependent population.
 c
-c flagpespin: flag for pre-equilibrium spin distribution or compound
-c             spin distribution for pre-equilibrium cross section
-c parity    : parity
-c J         : total angular momentum
-c maxJph    : maximal spin for particle-hole states
-c xspreeqJP : preequilibrium cross section per particle type,
-c             outgoing energy, spin and parity
-c xsgrstate : smoothed giant resonance cross section per state
-c preeqpop  : pre-equilibrium population cross section
+c pespinmodel: model for pre-equilibrium spin distribution or compound
+c              spin distribution for pre-equilibrium cross section
+c parity     : parity
+c J          : total angular momentum
+c maxJph     : maximal spin for particle-hole states
+c xspreeqJP  : preequilibrium cross section per particle type,
+c              outgoing energy, spin and parity
+c xsgrstate  : smoothed giant resonance cross section per state
+c preeqpop   : pre-equilibrium population cross section
 c
-          if (flagpespin) then
+          if (pespinmodel.eq.3) then
             do 30 parity=-1,1,2
               do 30 J=0,maxJph
                 xsa=xspreeqJP(type,na1,J,parity)
@@ -145,7 +145,7 @@ c
      +              xsgrstate(type,J,2,nb2)
                 endif
                 call pol1(Ea2,Eb2,xsa,xsb,Ehigh,xshigh)
-                xs=0.5*(xslow+xshigh)*deltaEx(Zix,Nix)
+                xs=0.5*(xslow+xshigh)*deltaEx(Zix,Nix,nexout)
                 if (xs.lt.1.e-30) xs=0.
                 preeqpop(Zix,Nix,nexout,J,parity)=xs
    30       continue
@@ -179,7 +179,7 @@ c
                 xsa=xsstep(type,pc,na2)
                 xsb=xsstep(type,pc,nb2)
                 call pol1(Ea2,Eb2,xsa,xsb,Ehigh,xshigh)
-                xs=0.5*(xslow+xshigh)*deltaEx(Zix,Nix)
+                xs=0.5*(xslow+xshigh)*deltaEx(Zix,Nix,nexout)
                 if (xs.lt.1.e-30) xs=0.
                 xspopph(Zix,Nix,nexout,p,h)=xs
    40         continue
@@ -215,7 +215,7 @@ c
                   xsa=xsstep2(type,pcpi,pcnu,na2)
                   xsb=xsstep2(type,pcpi,pcnu,nb2)
                   call pol1(Ea2,Eb2,xsa,xsb,Ehigh,xshigh)
-                  xs=0.5*(xslow+xshigh)*deltaEx(Zix,Nix)
+                  xs=0.5*(xslow+xshigh)*deltaEx(Zix,Nix,nexout)
                   if (xs.lt.1.e-30) xs=0.
                   xspopph2(Zix,Nix,nexout,ppi,hpi,pnu,hnu)=xs
    60           continue
@@ -252,7 +252,7 @@ c
      +    norm=(xspreeqtot(type)+xsgrtot(type))/xscheck(type)
         do 130 nex=NL+1,maxex(Zix,Nix)
           preeqpopex(Zix,Nix,nex)=preeqpopex(Zix,Nix,nex)*norm
-          if (flagpespin) then
+          if (pespinmodel.eq.3) then
             do 140 parity=-1,1,2
               do 140 J=0,maxJph
                 preeqpop(Zix,Nix,nex,J,parity)=
@@ -282,4 +282,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

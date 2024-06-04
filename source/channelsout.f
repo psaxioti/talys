@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 18, 2011
+c | Date  : August 27, 2012
 c | Task  : Output of exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -91,8 +91,8 @@ c iso          : counter for isotope
 c parsym       : symbol of particle
 c k0           : index of incident particle
 c Atarget      : mass number of target nucleus
-c nuc          : symbol of nucleus
 c Ztarget      : charge number of target nucleus
+c Starget      : symbol of target nucleus
 c Qexcl        : Q-value for exclusive channel
 c Ethrexc      : threshold incident energy for exclusive channel
 c flagcompo    : flag for output of cross section components
@@ -114,6 +114,13 @@ c
       if (filechannels) then
         if (Liso.eq.1) isostring='(m)'
         if (Liso.eq.2) isostring='(n)'
+        if (Liso.eq.3) isostring='(o)'
+        if (Liso.eq.4) isostring='(p)'
+        if (Liso.eq.5) isostring='(q)'
+        if (Liso.eq.6) isostring='(r)'
+        if (Liso.eq.7) isostring='(s)'
+        if (Liso.eq.8) isostring='(t)'
+        if (Liso.eq.9) isostring='(u)'
         do 110 npart=0,maxchannel
         do 110 ia=0,numia
         do 110 ih=0,numih
@@ -139,8 +146,7 @@ c
                 chanexist(in,ip,id,it,ih,ia)=.true.
                 open (unit=1,status='unknown',file=xsfile)
                 write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Total")')
-     +            parsym(k0),Atarget,nuc(Ztarget),isostring,
-     +            reacstring(idc)
+     +            parsym(k0),Atarget,Starget,isostring,reacstring(idc)
                 write(1,'("# Q-value    =",1p,e12.5)') Qexcl(idc,0)
                 write(1,'("# E-threshold=",1p,e12.5)') Ethrexcl(idc,0)
                 write(1,'("# # energies =",i3)') numinc
@@ -165,7 +171,7 @@ c
                       fxsratio(nen,idc)=0.
   130             continue
                   do 140 nen=numinclow+1,nin-1
-                    write(1,'(1p,e10.3,3e12.5,12x,3e12.5)') 
+                    write(1,'(1p,e10.3,3e12.5,12x,3e12.5)')
      +                eninc(nen),0.,0.,0.,0.,0.,0.
   140             continue
                 else
@@ -217,7 +223,7 @@ c
                     chanisoexist(in,ip,id,it,ih,ia,nex)=.true.
                     open (unit=1,status='unknown',file=isofile)
                     write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Level",
-     +               i3)') parsym(k0),Atarget,nuc(Ztarget),isostring,
+     +               i3)') parsym(k0),Atarget,Starget,isostring,
      +               reacstring(idc),nex
                     write(1,'("# Q-value    =",1p,e12.5,0p," Elevel=",
      +                f11.6)') Qexcl(idc,nex),edis(Zcomp,Ncomp,nex)
@@ -260,7 +266,7 @@ c
                   open (unit=1,status='unknown',file=gamfile)
                   write(1,'("# ",a1," + ",i3,a2,a3,": ",a17,
      +              " Discrete gamma-rays")') parsym(k0),Atarget,
-     +              nuc(Ztarget),isostring,reacstring(idc)
+     +              Starget,isostring,reacstring(idc)
                   write(1,'("# Q-value    =",1p,e12.5)') Qexcl(idc,0)
                   write(1,'("# E-threshold=",1p,e12.5)') Ethrexcl(idc,0)
                   write(1,'("# # energies =",i3)') numinc
@@ -388,8 +394,7 @@ c
                 chanfisexist(in,ip,id,it,ih,ia)=.true.
                 open (unit=1,status='unknown',file=xsfile)
                 write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Fission")')
-     +            parsym(k0),Atarget,nuc(Ztarget),isostring,
-     +            fisstring(idc)
+     +            parsym(k0),Atarget,Starget,isostring,fisstring(idc)
                 write(1,'("# Q-value    =",1p,e12.5)') Qexcl(idc,0)
                 write(1,'("# E-threshold=",1p,e12.5)') Ethrexcl(idc,0)
                 write(1,'("# # energies =",i3)') numinc
@@ -481,7 +486,7 @@ c
             write(spfile(10:12),'(i3.3)') int(Einc)
             open (unit=1,status='unknown',file=spfile)
             write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Spectra")')
-     +        parsym(k0),Atarget,nuc(Ztarget),isostring,reacstring(idc)
+     +        parsym(k0),Atarget,Starget,isostring,reacstring(idc)
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
             write(1,'("# # energies =",i3)') eendhigh-ebegin(0)+1
@@ -585,7 +590,7 @@ c
               write(spfile(10:12),'(i3.3)') int(Einc)
               open (unit=1,status='unknown',file=spfile)
               write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Spectra")')
-     +          parsym(k0),Atarget,nuc(Ztarget),isostring,fisstring(idc)
+     +          parsym(k0),Atarget,Starget,isostring,fisstring(idc)
               write(1,'("# E-incident = ",f7.3)') Einc
               write(1,'("# ")')
               write(1,'("# # energies =",i3)') eendhigh-ebegin(0)+1
@@ -645,7 +650,7 @@ c filerecoil: flag for recoil spectra on separate file
 c
       if (flagrecoil) then
         write(*,'(/" 6c. Exclusive recoil spectra ")')
-        do 910 npart=1,maxchannel
+        do 910 npart=0,maxchannel
         do 910 ia=0,numia
         do 910 ih=0,numih
         do 910 it=0,numit
@@ -680,7 +685,7 @@ c
             write(recfile(10:12),'(i3.3)') int(Einc)
             open (unit=1,status='unknown',file=recfile)
             write(1,'("# ",a1," + ",i3,a2,a3,": ",a17,
-     +        " Recoil Spectrum")') parsym(k0),Atarget,nuc(Ztarget),
+     +        " Recoil Spectrum")') parsym(k0),Atarget,Starget,
      +        isostring,reacstring(idc)
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
@@ -696,4 +701,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

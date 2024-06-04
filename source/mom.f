@@ -1,17 +1,19 @@
       subroutine mom(Zix,Nix,pZ,e)
 c
 c +---------------------------------------------------------------------
-c | Author: Eric Bauge
-c | Date  : January 19, 2011
+c | Author: Eric Bauge and Arjan Koning
+c | Date  : April 4, 2012
 c | Task  : Microscopic JLM OMP
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer Zix,Nix,Z,N,A,i,j
-      real*8  pZ,e,lv,lw,lv1,lw1,lvso,lwso
-      real rhomomn(numjlm,6),rhomomp(numjlm,6),vpot(numjlm,6),rcjlm,alam
+      character*80 key
+      integer      Zix,Nix,Z,N,A,i,j
+      real*8       pZ,e,lv,lw,lv1,lw1,lvso,lwso
+      real         factor,rhomomn(numjlm,6),rhomomp(numjlm,6),
+     +             vpot(numjlm,6),rcjlm,alam
 c
 c *********************** Parameterization *****************************
 c
@@ -25,6 +27,9 @@ c lv: real potential depth normalization factor
 c lw: imag potential depth normalization factor
 c lv1: real isovector potential depth normalization factor
 c lw1: imag isovector potential depth normalization factor
+c ompadjustp: logical for energy-dependent OMP adjustment
+c adjust    : subroutine for energy-dependent parameter adjustment
+c factor    : multiplication factor
 c lvadjust...: adjustable parameters
 c potjlm : JLM potential depth values
 c normjlm: JLM potential normalization factors
@@ -53,12 +58,26 @@ c
 c
       lvso=40.+exp(-e*0.013)*130.
       lwso=-0.2*(e-20)
-      lv=lvadjust*lv
-      lw=lwadjust*lw
-      lv1=lv1adjust*lv1
-      lw1=lw1adjust*lw1
-      lvso=lvsoadjust*lvso
-      lwso=lwsoadjust*lwso
+      if (ompadjustp(1)) then
+        key='lvadjust'
+        call adjust(real(e),key,0,0,0,0,factor)
+        lv=factor*lvadjust*lv
+        key='lwadjust'
+        call adjust(real(e),key,0,0,0,0,factor)
+        lw=factor*lwadjust*lw
+        key='lv1adjust'
+        call adjust(real(e),key,0,0,0,0,factor)
+        lv1=factor*lv1adjust*lv1
+        key='lw1adjust'
+        call adjust(real(e),key,0,0,0,0,factor)
+        lw1=factor*lw1adjust*lw1
+        key='lvsoadjust'
+        call adjust(real(e),key,0,0,0,0,factor)
+        lvso=factor*lvsoadjust*lvso
+        key='lwsoadjust'
+        call adjust(real(e),key,0,0,0,0,factor)
+        lwso=factor*lwsoadjust*lwso
+      endif
 c
 c Calculate and write the potentials in ecis format
 c

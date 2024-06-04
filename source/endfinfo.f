@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 9, 2011
+c | Date  : July 25, 2012
 c | Task  : Info for ENDF-6 file
 c +---------------------------------------------------------------------
 c
@@ -66,4 +66,4 @@ c
       close (unit=1)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

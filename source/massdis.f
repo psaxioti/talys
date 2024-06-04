@@ -1,43 +1,104 @@
       subroutine massdis
 c
 c +---------------------------------------------------------------------
-c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : June 19, 2007
+c | Author: Arjan Koning
+c | Date  : December 15, 2013
 c | Task  : Fission fragment yields
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*90 yieldfile,fpfile
-      real         fiseps,yielda(nummass),yieldacor(nummass),
-     +             yieldaz(nummass,numelem),yieldazcor(nummass,numelem),
-     +             fisepsA,partfisxs
-      integer      k,i,Zcomp,Ncomp,Z,A,Zix,Nix,nexend,iskip,istep,nex,
-     +             nen
+      include "gef.cmb"
+      character*90 gefpath
+      real         fiseps,Exfis(1000),xsfis(1000),fisepsA,partfisxs,
+     +             sumpre,sumpost,xsfpapre(nummass),xsfpapost(nummass),
+     +             Fmulti,beldm1(136,203),ushell1(136,203)
+      integer      iz,ia,in,i,j,gefwrite,Zcomp,Ncomp,Z,A,Zix,Nix,nexend,
+     +             iskip,istep,nex,nen,lengefpath
 c
 c ************************** Mass yields *******************************
 c
-c fiseps    : limit for fission cross section per nucleus
-c Rfiseps   : ratio for limit for fission cross section per nucleus
-c xsfistot  : total fission cross section
-c nummass   : number of masses
-c yielda    : mass yield
-c yieldacor : corrected mass yield
-c numelem   : number of elements
-c yieldaz   : isotopic yield
-c yieldazcor: corrected isotopic yield
+c fiseps     : limit for fission cross section per nucleus
+c Rfiseps    : ratio for limit for fission cross section per nucleus
+c xsfistot   : total fission cross section
+c nummass    : number of masses
+c xsfpapre   : pre-neutron emission cross section
+c xsfpapost  : post-neutron emission corrected cross section
+c yieldapre  : pre-neutron emission fission yield
+c yieldapost : post-neutron emission corrected fission yield
+c numelem    : number of elements
+c xsfpzapre  : pre-neutron emission isotopic cross section
+c xsfpzapost : post-neutron emission corrected isotopic cross section
+c yieldzapre : pre-neutron emission isotopic yield
+c yieldzapost: post-neutron emission corrected isotopic yield
+c fymodel    : fission yield model, 1: Brosa 2: GEF
+c path       : directory containing structure files to be read
+c gefpath    : path for GEF files
+c lengefpath : character length of path for GEF files
+c flagoutfy  : flag for output detailed fission yield calculation
+c gefwrite   : integer for output detailed fission yield calculation
 c
 c Initialization
 c
       fiseps=Rfiseps*xsfistot
-      do 10 k=1,nummass
-        yielda(k)=0.
-        yieldacor(k)=0.
-        do 10 i=1,numelem
-          yieldaz(k,i)=0.
-          yieldazcor(k,i)=0.
+      do 10 ia=1,nummass
+        xsfpapre(ia)=0.
+        xsfpapost(ia)=0.
+        yieldapre(ia)=0.
+        yieldapost(ia)=0.
+        nupre(ia)=0.
+        nupost(ia)=0.
+        do 10 iz=1,numelem
+          xsfpzapre(iz,ia)=0.
+          xsfpzapost(iz,ia)=0.
+          yieldzapre(iz,ia)=0.
+          yieldzapost(iz,ia)=0.
    10 continue
+      do 15 in=1,nummass-numelem
+        yieldnpre(in)=0.
+        yieldnpost(in)=0.
+   15 continue
+      do 17 i=1,numnu
+        Pdisnu(i)=0.
+   17 continue
+      nubar=0.
+      if (fymodel.eq.2) then
+        gefpath=path(1:lenpath)//'fission/gef/'
+        lengefpath=lenpath+12
+        if (flagoutfy) then
+          gefwrite=1
+        else
+          gefwrite=0
+        endif
+c
+c Read nuclear structure information for GEF
+c
+        open (unit=4,status='unknown',
+     +    file=gefpath(1:lengefpath)//'beldm.dat')
+        read(4,*) beldm1
+        close(4)
+        do i=1,203
+          do j=1,136
+           beldm(i,j)=beldm1(j,i)
+          end do
+        end do
+        open (unit=4,status='unknown',
+     +    file=gefpath(1:lengefpath)//'ushell.dat')
+        read(4,*) ushell1
+        close(4)
+        do i=1,203
+          do j=1,136
+           ushel(i,j)=ushell1(j,i)
+          end do
+        end do
+        open (unit=4,status='unknown',
+     +    file=gefpath(1:lengefpath)//'nucprop.dat')
+        do i=1,3885
+          read(4,*) (RNucTab(i,j),j=1,8)
+        end do
+        close(4)
+      endif
 c
 c Loop over nuclides
 c
@@ -68,13 +129,10 @@ c disaz      : normalised fission fragment isotope yield
 c              per excitation energy bin
 c disazcor   : normalised fission product isotope yield
 c              per excitation energy bin
+c gefran     : number of random events for GEF calculation
 c
       do 20 Zcomp=0,maxZ
         do 20 Ncomp=0,maxN
-c
-c Brosa parameters available between Z=72 and Z=96, outside this range
-c we adopt the values of the boundary nuclides
-c
           Z=ZZ(Zcomp,Ncomp,0)
           A=AA(Zcomp,Ncomp,0)
           Zix=Zindex(Zcomp,Ncomp,0)
@@ -88,27 +146,34 @@ c
           fisepsA=fiseps/max(3*maxex(Zcomp,Ncomp),1)
           iskip=0
           istep=4
-          do 30 nex=nexend,0,-1
+          if (fymodel.eq.2) then
+            do 30 nex=1,1000
+              Exfis(nex)=0.
+              xsfis(nex)=0.
+   30       continue
+            nen=0
+          endif
+          do 40 nex=nexend,0,-1
             if (nex.eq.maxex(Zcomp,Ncomp)+1) then
               excfis=Etotal
               partfisxs=xsbinary(-1)
             else
               if (mod(iskip,istep).ne.0) then
                 iskip=iskip+1
-                goto 30
+                goto 40
               endif
-              if (nex-istep+1.lt.0) goto 30
+              if (nex-istep+1.lt.0) goto 40
               if (Ex(Zcomp,Ncomp,nex-istep+1).ge.30.) then
                 partfisxs=0.
-                do 40 i=0,istep-1
+                do 50 i=0,istep-1
                   partfisxs=partfisxs+fisfeedex(Zcomp,Ncomp,nex-i)
-   40           continue
+   50           continue
                 if (partfisxs.ne.0) then
                   excfis=0.
-                  do 50 i=0,istep-1
+                  do 60 i=0,istep-1
                     excfis=excfis+fisfeedex(Zcomp,Ncomp,nex-i)*
      +                Ex(Zcomp,Ncomp,nex-i)
-   50             continue
+   60             continue
                   excfis=excfis/partfisxs
                 endif
                 iskip=1
@@ -118,93 +183,84 @@ c
               endif
             endif
             if (partfisxs.gt.fisepsA) then
-              call brosafy(Zix,Nix)
-              do 60 k=1,A
-                yielda(k)=yielda(k)+disa(k)*partfisxs
-                yieldacor(k)=yieldacor(k)+disacor(k)*partfisxs
-                do 60 i=1,Z
-                  yieldaz(k,i)=yieldaz(k,i)+disaz(k,i)*partfisxs
-                  yieldazcor(k,i)=yieldazcor(k,i)+disazcor(k,i)
-     +              *partfisxs
-   60           continue
+c
+c Brosa
+c
+              if (fymodel.eq.1) then
+                call brosafy(Zix,Nix)
+                do 70 ia=1,A
+                  xsfpapre(ia)=xsfpapre(ia)+disa(ia)*partfisxs
+                  xsfpapost(ia)=xsfpapost(ia)+disacor(ia)*partfisxs
+                  do 70 iz=1,Z
+                    xsfpzapre(iz,ia)=xsfpzapre(iz,ia)+
+     +                disaz(ia,iz)*partfisxs
+                    xsfpzapost(iz,ia)=xsfpzapost(iz,ia)+
+     +                disazcor(ia,iz)*partfisxs
+   70             continue
+              else
+c
+c GEF
+c
+                nen=nen+1
+                Exfis(nen)=excfis
+                xsfis(nen)=partfisxs
+              endif
             endif
-   30     continue
+   40     continue
+          if (fymodel.eq.2.and.A.le.350) then
+            call geftalys(real(Z),real(A),nen,Exfis,xsfis,gefwrite,
+     +        gefran)
+            do 90 ia=1,A
+              xsfpapre(ia)=xsfpapre(ia)+ysum(ia)
+              xsfpapost(ia)=xsfpapost(ia)+ysump(ia)
+              if (ia.le.200) then
+                do 100 iz=1,Z
+                  xsfpzapre(iz,ia)=xsfpzapre(iz,ia)+yAZ(ia,iz)
+                  xsfpzapost(iz,ia)=xsfpzapost(iz,ia)+yAZp(ia,iz)
+  100           continue
+              endif
+   90       continue
+            if (xsfistot.gt.0.) then
+              Fmulti=Ncomp*xsfeed(Zcomp,Ncomp,-1)
+              do 110 i=1,numnu
+                if (ann_sum(i).gt.0.)
+     +            Pdisnu(i)=Pdisnu(i)+(Fmulti+ann_sum(i))/xsfistot
+  110         continue
+              do 120 ia=1,A
+                if (anpre_sum(ia).gt.0.)
+     +            nupre(ia)=nupre(ia)+(Fmulti+anpre_sum(ia))/xsfistot
+                if (anpost_sum(ia).gt.0.)
+     +            nupost(ia)=nupost(ia)+(Fmulti+anpost_sum(ia))/xsfistot
+  120         continue
+              nubar=nubar+(Fmulti+anMean_sum)/xsfistot
+            endif
+          endif
    20 continue
 c
-c Write results to separate files
+c Normalization to fission yields (sum = 2)
 c
-c yieldfile: file with fission yields
-c natstring: string extension for file names
-c iso      : counter for isotope
-c Einc     : incident energy in MeV
-c parsym   : symbol of particle
-c k0       : index of incident particle
-c Atarget  : mass number of target nucleus
-c nuc      : symbol of nucleus
-c Ztarget  : charge number of target nucleus
-c
-      yieldfile='yield000.000.fis'//natstring(iso)
-      write(yieldfile(6:12),'(f7.3)') Einc
-      write(yieldfile(6:8),'(i3.3)') int(Einc)
-      open (unit=1,status='unknown',file=yieldfile)
-      write(1,'("# ",a1," + ",i3,a2,": mass yields")')
-     +  parsym(k0),Atarget,nuc(Ztarget)
-      write(1,'("# E-incident = ",f7.3)') Einc
-      write(1,'("# ")')
-      write(1,'("# ")')
-      write(1,'("# Mass    Yield   Corrected yield")')
-      do 70 k=1,Atarget
-        write(1,'(i3,3x,1p,e12.4,3x,e12.4)') k,yielda(k),yieldacor(k)
- 70   continue
-      close (unit=1)
-c
-c Write ff/fp residual production
-c
-c fpexist   : flag for existence of fission product
-c fpfile    : file with fission product
-c numinc    : number of incident energies
-c flagffevap: flag for calculation of particle evaporation from
-c             fission fragment mass yields
-c eninc     : incident energy in MeV
-c
-      do 80 k=1,Atarget
-        do 90 i=1,Ztarget
-          if (yieldaz(k,i).lt.1.e-3.and..not.fpexist(i,k)) goto 90
-          fpfile='fp000000.tot'//natstring(iso)
-          write(fpfile(3:8),'(2i3.3)') i,k
-          if (.not.fpexist(i,k)) then
-            fpexist(i,k)=.true.
-            open (unit=1,status='unknown',file=fpfile)
-            write(1,'("# ",a1," + ",i3,a2,": ff yield of ",i3,a2)')
-     +        parsym(k0),Atarget,nuc(Ztarget),k,nuc(i)
-            write(1,'("# ")')
-            write(1,'("# # energies =",i3)') numinc
-            write(1,'("# ")')
-            if (flagffevap) then
-              write(1,'("# E-incident   FF Yield   FP yield")')
-              do 100 nen=1,nin-1
-                write(1,'(1p,e10.3,e12.4,3x,e12.4)') eninc(nen),0.,0.
-  100         continue
-            else
-              write(1,'("# E-incident   FF Yield")')
-              do 110 nen=1,nin-1
-                write(1,'(1p,e10.3,e12.4)') eninc(nen),0.
-  110         continue
-            endif
-          else
-            open (unit=1,status='old',file=fpfile)
-            do 120 nen=1,nin+4
-              read(1,*,end=130,err=130)
-  120       continue
-          endif
-          if (flagffevap) then
-            write(1,'(1p,e10.3,e12.4,3x,e12.4)')
-     +        Einc,yieldaz(k,i),yieldazcor(k,i)
-          else
-            write(1,'(1p,e10.3,e12.4)') Einc,yieldaz(k,i)
-          endif
-  130     close (unit=1)
-   90   continue
-   80 continue
+      sumpre=0.
+      sumpost=0.
+      do 210 ia=1,Atarget
+        sumpre=sumpre+xsfpapre(ia)
+        sumpost=sumpost+xsfpapost(ia)
+  210 continue
+      sumpre=0.5*sumpre
+      sumpost=0.5*sumpost
+      do 220 iz=1,Ztarget
+        do 230 ia=iz+1,Atarget
+          if (xsfpzapre(iz,ia).eq.0.) goto 230
+          in=ia-iz
+          if (in.gt.nummass-numelem) goto 230
+          if (sumpre.gt.0.) yieldzapre(iz,ia)=xsfpzapre(iz,ia)/sumpre
+          if (sumpost.gt.0.) yieldzapost(iz,ia)=
+     +      xsfpzapost(iz,ia)/sumpost
+          yieldapre(ia)=yieldapre(ia)+yieldzapre(iz,ia)
+          yieldapost(ia)=yieldapost(ia)+yieldzapost(iz,ia)
+          yieldnpre(in)=yieldnpre(in)+yieldzapre(iz,ia)
+          yieldnpost(in)=yieldnpost(in)+yieldzapost(iz,ia)
+  230   continue
+  220 continue
+      return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : October 9, 2011
+c | Date  : April 21, 2012
 c | Task  : Energy and angle grid
 c +---------------------------------------------------------------------
 c
@@ -29,7 +29,8 @@ c         2  -   4 MeV : dE= 0.2 MeV
 c         4  -  20 MeV : dE= 0.5 MeV
 c        20  -  40 MeV : dE= 1.0 MeV
 c        40  - 200 MeV : dE= 2.0 MeV
-c        above 200 MeV : dE= 5.0 MeV
+c        200 - 300 MeV : dE= 5.0 MeV
+c        above 300 MeV : dE=10.0 MeV
 c
 c This grid ensures that the calculation for outgoing energies of a few
 c MeV (around the evaporation peak) is sufficiently precise, whereas at
@@ -58,6 +59,7 @@ c
       if (Eeps.gt.20.) degrid=1./segment
       if (Eeps.gt.40.) degrid=2./segment
       if (Eeps.gt.200.) degrid=5./segment
+      if (Eeps.gt.300.) degrid=10./segment
       goto 10
    20 maxen=nen
       if (maxen.gt.numen) then
@@ -359,4 +361,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

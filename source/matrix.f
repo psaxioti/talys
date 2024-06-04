@@ -2,32 +2,37 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : December 13, 2006
+c | Date  : April 4, 2012
 c | Task  : Matrix element for exciton model
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer A,n,aproj
+      character*80 key
+      integer      A,n,aproj
+      real         factor,M2c
 c
 c ****************** Energy dependent matrix element *******************
 c
-c A         : mass number of compound nucleus
-c n         : exciton number
-c parA,aproj: mass number of particle
-c k0        : index of incident particle
-c M2        : square of matrix element
-c M2constant: overall constant for matrix element in exciton model
-c M2limit   : constant for asymptotic value for matrix element
-c Ecomp     : total energy of composite system
-c M2shift   : constant for energy shift for matrix element
-c flag2comp : flag for two-component pre-equilibrium model
-c M2pipi    : square of proton-proton matrix element
-c M2nunu    : square of neutron-neutron matrix element
-c M2pinu    : square of proton-neutron matrix element
-c Rpinu,....: ratio for two-component matrix element
-c M2nupi    : square of neutron-proton matrix element
+c A          : mass number of compound nucleus
+c n          : exciton number
+c parA,aproj : mass number of particle
+c preeqadjust: logical for energy-dependent pre-eq adjustment
+c adjust     : subroutine for energy-dependent parameter adjustment
+c factor     : multiplication factor
+c M2constant : overall constant for matrix element in exciton model
+c k0         : index of incident particle
+c M2         : square of matrix element
+c M2limit    : constant for asymptotic value for matrix element
+c Ecomp      : total energy of composite system
+c M2shift    : constant for energy shift for matrix element
+c flag2comp  : flag for two-component pre-equilibrium model
+c M2pipi     : square of proton-proton matrix element
+c M2nunu     : square of neutron-neutron matrix element
+c M2pinu     : square of proton-neutron matrix element
+c Rpinu,.....: ratio for two-component matrix element
+c M2nupi     : square of neutron-proton matrix element
 c
 c We use a parameterization for the matrix element that is reliable
 c between 7 and 200 MeV, see A.J. Koning and M.C. Duijvestijn,
@@ -43,7 +48,14 @@ c Finally, the expression is generalized for complex particle emission
 c according to C. Kalbach, Phys. Rev. C00, 004600 (2005).
 c
       aproj=max(parA(k0),1)
-      M2=M2constant/(A**3)*aproj*
+      if (preeqadjust) then
+        key='m2constant'
+        call adjust(Ecomp,key,0,0,0,0,factor)
+        M2c=factor*M2constant
+      else
+        M2c=M2constant
+      endif
+      M2=M2c/(A**3)*aproj*
      +  (M2limit*7.48+4.62e5/((Ecomp/(n*aproj)+M2shift*10.7)**3))
       if (preeqmode.eq.1) M2=1.20*M2
       if (flag2comp) then
@@ -60,10 +72,10 @@ c
 c Wompfac: adjustable constant for OMP based transition rates
 c
       if (preeqmode.eq.3) then
-        Wompfac(1)=M2constant*0.55/(1.+2.*Rpinu)
-        Wompfac(2)=M2constant*0.55*2.*Rpinu/(1.+2.*Rpinu)
+        Wompfac(1)=M2c*0.55/(1.+2.*Rpinu)
+        Wompfac(2)=M2c*0.55*2.*Rpinu/(1.+2.*Rpinu)
         Wompfac(0)=0.5*(Wompfac(1)+Wompfac(2))
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

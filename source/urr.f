@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Gilles Noguere
-c | Date  : December 19, 2011
+c | Date  : August 15, 2013
 c | Task  : Unresolved resonance range parameters
 c +---------------------------------------------------------------------
 c
@@ -23,7 +23,7 @@ c lurr        : maximal orbital angular momentum for URR calculation
 c lminU,lmaxU : minimal and maximal orbital angular momentum
 c Einc        : incident energy in MeV
 c JminU,JmaxU : minimal and maximal total angular momentum
-c strengthfunc: function for (l,j) neutron strength function for URR 
+c strengthfunc: function for (l,j) neutron strength function for URR
 c strengthlj  : (l,j) neutron strength function
 c strengthl   : l neutron strength function
 c targetspin2 : 2 * spin of target
@@ -44,7 +44,7 @@ c
           gJ=(2*J+1.)/(2.*(targetspin2+1.))
           sumgJ=sumgJ+gJ
           sum=sum+gJ*strengthlj(l,J)
-          do 30 type=-1,1
+          do 30 type=-1,6
             urrwidth(type,l,J)=Dlj(l,J)*Turrlj(type,l,J)/twopi
    30     continue
           urrwidth(3,l,J)=Dlj(l,J)*strengthlj(l,J)*1.e-4
@@ -57,11 +57,9 @@ c
 c flagurrnjoy : normalization of URR parameters with NJOY method
 c Rprime(0,U) : potential scattering radius
 c
+      if (RprimeU.eq.0.) RprimeU=Rprime
       if (flagurrnjoy) then
-        if (nin.eq.1) then
-          if (RprimeU.eq.0.) RprimeU=Rprime
-          Rprime0=0.1*RprimeU
-        endif
+        Rprime0=0.1*RprimeU
         err=0.005
         Rsig=0.
         Rsig0=1.
@@ -154,4 +152,4 @@ c
       call urrout
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

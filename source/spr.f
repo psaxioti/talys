@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 18, 2011
+c | Date  : December 13, 2013
 c | Task  : S, P and R' resonance parameters
 c +---------------------------------------------------------------------
 c
@@ -34,7 +34,7 @@ c nin        : counter for incident energy
 c numinclow  : number of incident energies below Elow
 c Ztarget    : charge number of target nucleus
 c
-      Rprime=10.*sqrt(0.001*xselasinc/fourpi)
+      Rprime=10.*sqrt(0.001*max(xselasinc,0.)/fourpi)
       Efac=1./(sqrt(1.e6*Einc)*twopi)
       Rpot=1.35*Atarget**onethird
       r2k2=Rpot*Rpot*wavenum*wavenum
@@ -50,4 +50,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

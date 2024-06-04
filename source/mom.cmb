@@ -1,5 +1,11 @@
 c
-c mom.cmb: common block file for JLM mom routines
+c                      MOM.CMB for TALYS-1.6
+c
+c +---------------------------------------------------------------------
+c | Author: Eric Bauge and Arjan Koning
+c | Date  : December 23, 2013
+c | Task  : File with common blocks for JLM mom routines
+c +---------------------------------------------------------------------
 c
       integer numjlm
       parameter (numjlm=200)

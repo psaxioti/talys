@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Pascal Romain
-c | Date  : September 10, 2007
+c | Date  : March 27, 2012
 c | Task  : Build rotational bands on class2 states
 c +---------------------------------------------------------------------
 c
@@ -20,19 +20,21 @@ c Zix       : charge number index for residual nucleus
 c Nix       : neutron number index for residual nucleus
 c nfisbar   : number of fission barriers
 c Emaxclass2: maximum energy for class2 states
+c fbaradjust: adjustable factors for fission parameters
+c             (default 1.)
 c fbarrier  : height of fission barriers
 c fecont    : start of continuum energy
 c widthc2   : width of class2 states
 c
       if (nfisbar(Zix,Nix).eq.2) then
-        Emaxclass2(Zix,Nix,1)=fbarrier(Zix,Nix,1)+fecont(Zix,Nix,1)+
-     +    0.5*widthc2(Zix,Nix,1)
+        Emaxclass2(Zix,Nix,1)=fbaradjust(Zix,Nix,1)*fbarrier(Zix,Nix,1)+
+     +    fecont(Zix,Nix,1)+0.5*widthc2(Zix,Nix,1)
       endif
       if (nfisbar(Zix,Nix).eq.3) then
-        Emaxclass2(Zix,Nix,1)=fbarrier(Zix,Nix,1)+fecont(Zix,Nix,1)+
-     +    0.5*widthc2(Zix,Nix,1)
-        Emaxclass2(Zix,Nix,2)=fbarrier(Zix,Nix,2)+fecont(Zix,Nix,2)+
-     +    0.5*widthc2(Zix,Nix,2)
+        Emaxclass2(Zix,Nix,1)=fbaradjust(Zix,Nix,1)*fbarrier(Zix,Nix,1)+
+     +    fecont(Zix,Nix,1)+0.5*widthc2(Zix,Nix,1)
+        Emaxclass2(Zix,Nix,2)=fbaradjust(Zix,Nix,2)*fbarrier(Zix,Nix,2)+
+     +    fecont(Zix,Nix,2)+0.5*widthc2(Zix,Nix,2)
       endif
 c
 c Rotational bands construction
@@ -124,4 +126,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

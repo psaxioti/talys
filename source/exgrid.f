@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 23, 2011
+c | Date  : July 10, 2013
 c | Task  : Set excitation energy grid
 c +---------------------------------------------------------------------
 c
@@ -10,10 +10,10 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer          Zcomp,Ncomp,Zdeep,Ndeep,type,Zix,Nix,Zmother,
-     +                 Nmother,NL,A,odd,nex,Aix,nexbins,ldmod,Pbeg,
+     +                 Nmother,NL,i,A,odd,nex,Aix,nexbins,ldmod,Pbeg,
      +                 Pprime,Ir
-      real             Edif,excont,dEx,Rodd,Exout,Ex1min,Ex1plus,ald,
-     +                 spincut,Rspin
+      real             Edif,Eup(0:numex),eb,ee,dEx,Rodd,Exout,
+     +                 Ex1min,Ex1plus,ald,spincut,Rspin
       double precision rho1,rho2,rho3,density,r1log,r2log,r3log
 c
 c ********************* Set maximum excitation energy ******************
@@ -105,42 +105,46 @@ c
         Nix=Nindex(Zcomp,Ncomp,type)
         NL=Nlast(Zix,Nix,0)
         if (maxex(Zix,Nix).ne.0) goto 110
-        deltaEx(Zix,Nix)=0.
+        do 120 nex=0,numex
+          deltaEx(Zix,Nix,nex)=0.
+  120   continue
         if (Qres(Zix,Nix,0).eq.0.) then
           Edif=Exmax0(Zix,Nix)-Etotal
           Qres(Zix,Nix,0)=S(0,0,k0)+targetE+Edif
         endif
-        if (Ltarget.ne.0.and.Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) 
+        if (Ltarget.ne.0.and.Zix.eq.parZ(k0).and.Nix.eq.parN(k0))
      +    Qres(Zix,Nix,0)=targetE
-        do 120 nex=0,NL
+        do 130 nex=0,NL
           if (Ethresh(Zix,Nix,nex).eq.0.) then
             Qres(Zix,Nix,nex)=Qres(Zix,Nix,0)-edis(Zix,Nix,nex)
             Ethresh(Zix,Nix,nex)=-(Qres(Zix,Nix,nex)/
      +        specmass(parZ(k0),parN(k0),k0))
             Ethresh(Zix,Nix,nex)=max(Ethresh(Zix,Nix,nex),0.d0)
           endif
-  120   continue
+  130   continue
 c
 c The highest possible excitation energy could be a discrete state.
 c
 c Ex: excitation energy
 c
-        do 130 nex=0,NL
+        do 140 nex=0,NL
           if (nex.gt.0.and.edis(Zix,Nix,nex).ge.Exmax(Zix,Nix)) then
             maxex(Zix,Nix)=nex-1
-            goto 140
+            goto 180
           endif
           Ex(Zix,Nix,nex)=edis(Zix,Nix,nex)
-  130   continue
+          if (nex.gt.0) deltaEx(Zix,Nix,nex)=
+     +      0.5*(edis(Zix,Nix,min(NL,nex+1))-edis(Zix,Nix,nex-1))
+  140   continue
 c
 c Division of the continuum into bins.
 c
-c excont       : total continuum excitation energy region
 c Aix          : mass number index for residual nucleus
 c nexbins,nbins: number of continuum excitation energy bins
+c flagequi     : flag to use equidistant excitation bins instead of
+c                logarithmic bins
 c nexmax       : maximum excitation energy bin for residual nucleus
 c
-        excont=Exmax(Zix,Nix)-Ex(Zix,Nix,NL)
         Aix=Zix+Nix
         if (Aix.le.4) then
           nexbins=nbins
@@ -152,13 +156,27 @@ c
           endif
         endif
         nexbins=max(nexbins,2)
-        dEx=excont/nexbins
+        eb=Ex(Zix,Nix,NL)
+        ee=max(Exmax(Zix,Nix),eb+0.001)
+        if (flagequi.or.eb.eq.0.) then
+          do 150 i=0,nexbins
+            Eup(i)=eb+real(i)/nexbins*(ee-eb)
+  150     continue
+        else
+          eb=log(eb)
+          ee=log(ee)
+          do 160 i=0,nexbins
+            Eup(i)=exp(eb+real(i)/nexbins*(ee-eb))
+  160     continue
+        endif
+        do 170 i=1,nexbins
+          nex=NL+i
+          Ex(Zix,Nix,nex)=0.5*(Eup(i-1)+Eup(i))
+          deltaEx(Zix,Nix,nex)=Eup(i)-Eup(i-1)
+  170   continue
         maxex(Zix,Nix)=NL+nexbins
-        do 150 nex=NL+1,maxex(Zix,Nix)
-          Ex(Zix,Nix,nex)=Ex(Zix,Nix,NL)+(nex-NL-0.5)*dEx
-  150   continue
-        deltaEx(Zix,Nix)=dEx
-  140   nexmax(type)=maxex(Zix,Nix)
+        if (Zix.eq.0.and.Nix.eq.0) Ex(0,0,maxex(0,0)+1)=Etotal
+  180   nexmax(type)=maxex(Zix,Nix)
 c
 c ****** Determine level densities on basic excitation energy grid *****
 c
@@ -185,6 +203,7 @@ c
         ald=real(A)/8.
         ldmod=ldmodel(Zix,Nix)
         do 210 nex=NL+1,maxex(Zix,Nix)
+          dEx=deltaEx(Zix,Nix,nex)
           Exout=Ex(Zix,Nix,nex)
           Ex1min=Exout-0.5*dEx
           Ex1plus=Exout+0.5*dEx
@@ -247,4 +266,4 @@ c
   210   continue
   110 continue
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

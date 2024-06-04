@@ -108,4 +108,4 @@ c           3-5= folding potential)
    60 close (unit=2)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

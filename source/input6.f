@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 22, 2011
+c | Date  : January 6, 2012
 c | Task  : Read input for sixth set of variables
 c +---------------------------------------------------------------------
 c
@@ -59,6 +59,7 @@ c               integral spectrum
 c Nflux       : number of reactions with integral data
 c xsfluxfile  : TALYS cross section file for integral data
 c fluxname    : name of integral spectrum
+c integralexp : experimental effective cross section
 c
       if (flagastro) then
         transpower=15
@@ -157,6 +158,7 @@ c
       do 100 i=1,numflux
         xsfluxfile(i)='                                                '
         fluxname(i)='                                                  '
+        integralexp(i)=0.
   100 continue
 c
 c ***************** Read sixth set of input variables ******************
@@ -289,6 +291,7 @@ c
           if (Nflux.gt.numflux) goto 360
           xsfluxfile(Nflux)=value
           fluxname(Nflux)=word(3)
+          read(word(4),*,err=110,end=300) integralexp(Nflux)
           flagintegral=.true.
           goto 110
         endif
@@ -337,4 +340,4 @@ c
      +  ", index out of range: ",a80)') numflux,inline(i)
       stop
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

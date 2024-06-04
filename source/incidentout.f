@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 18, 2011
+c | Date  : September 25, 2012
 c | Task  : Reaction output for incident channel
 c +---------------------------------------------------------------------
 c
@@ -39,8 +39,8 @@ c
         write(*,'(/" S-wave and P-wave strength functions and ",
      +    "potential scattering radius"/)')
         write(*,'("      A      Value"/)')
-        write(*,'(" S0:",i4,f8.4," .10e-4")') Atarget,Sstrength(0)*1.e4
-        write(*,'(" S1:",i4,f8.4," .10e-4")') Atarget,Sstrength(1)*1.e4
+        write(*,'(" S0:",i4,f8.4," .e-4")') Atarget,Sstrength(0)*1.e4
+        write(*,'(" S1:",i4,f8.4," .e-4")') Atarget,Sstrength(1)*1.e4
         write(*,'(" R :",i4,f8.4," fm")') Atarget,Rprime
       endif
 c
@@ -117,4 +117,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

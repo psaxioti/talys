@@ -1,8 +1,8 @@
-      subroutine gnrl(galpha,gbeta,gamma,mu,nu,lamda,s,df,id)
+      subroutine gnrl(galpha,gbeta,gam,mu,nu,lamda,s,df,id)
 c
 c +---------------------------------------------------------------------
 c | Author: Gilles Noguere
-c | Date  : September 25, 2011
+c | Date  : December 23, 2012
 c | Task  : Fluctuation integrals for unresolved resonances from NJOY
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       implicit none
       integer mu,nu,lamda,id,j,k,l
-      real    galpha,gbeta,gamma,s,df,xj,qp(10,4),qw(10,4)
+      real    galpha,gbeta,gam,s,df,xj,qp(10,4),qw(10,4)
 c
 c **********************************************************************
 c
@@ -37,18 +37,18 @@ c ****************** calculation of s  *********************************
 c
       s=0.
       if (galpha.le.0.) return
-      if (gamma.le.0.) return
+      if (gam.le.0.) return
       if (gbeta.lt.0.) return
       if (gbeta.gt.0..and.df.lt.0.) return
 c
       if (gbeta.eq.0..and.df.eq.0.) then
         if (id.eq.1) then
           do j=1,10
-            s=s+qw(j,mu)*qp(j,mu)*qp(j,mu)/(galpha*qp(j,mu)+gamma)
+            s=s+qw(j,mu)*qp(j,mu)*qp(j,mu)/(galpha*qp(j,mu)+gam)
           enddo
         else if (id.eq.2) then
           do j=1,10
-            s=s+qw(j,mu)*qp(j,mu)/(galpha*qp(j,mu)+gamma)
+            s=s+qw(j,mu)*qp(j,mu)/(galpha*qp(j,mu)+gam)
           enddo
         endif
         return
@@ -59,7 +59,7 @@ c
           do j=1,10
             xj=qp(j,mu)
             do k=1,10
-              s=s+qw(j,mu)*qw(k,lamda)*xj*xj/(galpha*xj+gamma
+              s=s+qw(j,mu)*qw(k,lamda)*xj*xj/(galpha*xj+gam
      +           +df*qp(k,lamda))
             enddo
           enddo
@@ -67,7 +67,7 @@ c
             do j=1,10
                xj=qp(j,mu)
                do k=1,10
-                  s=s+qw(j,mu)*qw(k,lamda)*xj/(galpha*xj+gamma
+                  s=s+qw(j,mu)*qw(k,lamda)*xj/(galpha*xj+gam
      +              +df*qp(k,lamda))
                enddo
             enddo
@@ -81,7 +81,7 @@ c
                xj=qp(j,mu)
                do k=1,10
                   s=s+qw(j,mu)*qw(k,nu)*xj*xj/(galpha*xj
-     +              +gbeta*qp(k,nu)+gamma)
+     +              +gbeta*qp(k,nu)+gam)
                enddo
             enddo
          else if (id.eq.2) then
@@ -89,14 +89,14 @@ c
                xj=qp(j,mu)
                do k=1,10
                   s=s+qw(j,mu)*qw(k,nu)*xj/(galpha*xj
-     &              +gbeta*qp(k,nu)+gamma)
+     &              +gbeta*qp(k,nu)+gam)
                enddo
             enddo
          else if (id.eq.3) then
             do j=1,10
                do k=1,10
                   s=s+qw(j,mu)*qw(k,nu)*qp(j,mu)*qp(k,nu)
-     +              /(galpha*qp(j,mu)+gbeta*qp(k,nu)+gamma)
+     +              /(galpha*qp(j,mu)+gbeta*qp(k,nu)+gam)
                enddo
             enddo
          endif
@@ -110,7 +110,7 @@ c
                do k=1,10
                   do l=1,10
                      s=s+qw(j,mu)*qw(k,nu)*qw(l,lamda)*xj*xj
-     +                 /(galpha*xj+gbeta*qp(k,nu)+gamma+df*qp(l,lamda))
+     +                 /(galpha*xj+gbeta*qp(k,nu)+gam+df*qp(l,lamda))
                   enddo
                enddo
             enddo
@@ -119,7 +119,7 @@ c
                do k=1,10
                   do l=1,10
                      s=s+qw(j,mu)*qw(k,nu)*qw(l,lamda)*qp(j,mu)/
-     +                 (galpha*qp(j,mu)+gbeta*qp(k,nu)+gamma
+     +                 (galpha*qp(j,mu)+gbeta*qp(k,nu)+gam
      +                 +df*qp(l,lamda))
                   enddo
                enddo
@@ -130,7 +130,7 @@ c
                   do l=1,10
                      s=s+qw(j,mu)*qw(k,nu)*qw(l,lamda)*qp(j,mu)
      +                 *qp(k,nu)/(galpha*qp(j,mu)+gbeta*qp(k,nu)
-     +                 +gamma+df*qp(l,lamda))
+     +                 +gam+df*qp(l,lamda))
                   enddo
                enddo
             enddo

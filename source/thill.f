@@ -25,4 +25,4 @@ c
       if (expo.gt.-80.) thill=1./(1.+exp(-expo))
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

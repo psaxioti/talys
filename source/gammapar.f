@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 20, 2011
+c | Date  : December 8, 2013
 c | Task  : Gamma ray parameters
 c +---------------------------------------------------------------------
 c
@@ -11,10 +11,11 @@ c
       include "talys.cmb"
       logical      lexist
       character*4  gamchar
+      character*80 key
       character*90 gamfile
       integer      Zix,Nix,Z,A,N,ia,irad,l,nen,it
-      real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom,ee,
-     +             fe1(numTqrpa),fstrength,factor,temp,dtemp
+      real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom,ee,et,ft,
+     +             factor,fe1(numTqrpa),fstrength,temp,dtemp
 c
 c ***************** Default giant resonance parameters *****************
 c
@@ -126,14 +127,18 @@ c
 c For Goriely's HFbcs or HFB QRPA strength function we overwrite the
 c E1 strength function with tabulated results, if available.
 c
+c nTqrpa       : number of temperatures for QRPA
 c numgamqrpa   : number of energies for QRPA strength function
 c eqrpa        : energy grid for QRPA strength function
 c fe1qrpa,fe1  : tabulated QRPA strength function
+c adjust       : subroutine for energy-dependent parameter adjustment
+c factor       : multiplication factor
+c gamadjust    : logical for energy-dependent gamma adjustment
 c etable,ftable: constant to adjust tabulated strength functions
-c nTqrpa       : number of temperatures for QRPA
 c Tqrpa        : temperature for QRPA
 c qrpaexist    : flag for existence of tabulated QRPA strength functions
 c
+      nTqrpa=1
       if (strength.eq.3)
      +  gamfile=path(1:lenpath)//'gamma/hfbcs/'//gamchar
       if (strength.eq.4)
@@ -149,13 +154,22 @@ c
   230   continue
         goto 220
       endif
-      nTqrpa=1
       do 240 nen=1,numgamqrpa
         read(2,'(f9.3,1p,20e12.3)') ee,(fe1(it),it=1,nTqrpa)
-        eqrpa(Zix,Nix,nen)=ee+etable(Zix,Nix)
+        if (gamadjust(Zix,Nix)) then
+          key='etable'
+          call adjust(ee,key,Zix,Nix,0,0,factor)
+          et=etable(Zix,Nix)+factor-1.
+          key='ftable'
+          call adjust(ee,key,Zix,Nix,0,0,factor)
+          ft=ftable(Zix,Nix)+factor-1.
+        else
+          et=etable(Zix,Nix)
+          ft=ftable(Zix,Nix)
+        endif
+        eqrpa(Zix,Nix,nen)=ee+et
         do 250 it=1,nTqrpa
-          fe1qrpa(Zix,Nix,nen,it)=onethird*pi2h2c2*fe1(it)*
-     +      ftable(Zix,Nix)
+          fe1qrpa(Zix,Nix,nen,it)=onethird*pi2h2c2*fe1(it)*ft
   250   continue
   240 continue
       if (nTqrpa.gt.1) then
@@ -207,4 +221,4 @@ c
   310 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

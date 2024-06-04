@@ -48,4 +48,4 @@ c
      +  agoe8,sgoe1,sgoe2,sgoe3,sgoe4,sgoe5,Wab,numtrans,ielas)
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

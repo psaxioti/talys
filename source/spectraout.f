@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 4, 2006
+c | Date  : June 10, 2012
 c | Task  : Output of particle spectra
 c +---------------------------------------------------------------------
 c
@@ -73,7 +73,7 @@ c
           write(specfile(6:8),'(i3.3)') int(Einc)
           open (unit=1,status='unknown',file=specfile)
           write(1,'("# ",a1," + ",i3,a2,": ",a8," spectrum")')
-     +      parsym(k0),Atarget,nuc(Ztarget),parname(type)
+     +      parsym(k0),Atarget,Starget,parname(type)
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
           write(1,'("# # energies =",i3)') eendout(type)-ebegin(type)+1
@@ -91,7 +91,7 @@ c
             open (unit=1,status='unknown',file=specfile)
             write(1,'("# ",a1," + ",i3,a2,": ",a8,
      +        " spectrum in LAB frame")') parsym(k0),Atarget,
-     +        nuc(Ztarget),parname(type)
+     +        Starget,parname(type)
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
             write(1,'("# # energies =",i3)') iejlab(type)
@@ -106,4 +106,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 12, 2009
+c | Date  : July 14, 2013
 c | Task  : Deformation parameters
 c +---------------------------------------------------------------------
 c
@@ -26,6 +26,7 @@ c ZZ        : charge number of residual nucleus
 c NN        : neutron number of residual nucleus
 c AA        : mass number of residual nucleus
 c colltype  : type of collectivity (S, V, R or A)
+c disctable : table with discrete levels
 c defchar   : help variable
 c deffile   : deformation parameter file
 c deformfile: deformation parameter file
@@ -36,6 +37,7 @@ c
       N=NN(Zix,Nix,0)
       A=AA(Zix,Nix,0)
       colltype(Zix,Nix)='S'
+      if (disctable.eq.3) goto 150
       defchar='z   '
       write(defchar(2:4),'(i3.3)') Z
 c
@@ -333,4 +335,4 @@ c
   410 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

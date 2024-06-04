@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 24, 2009
+c | Date  : June 10, 2012
 c | Task  : Output of discrete gamma-ray intensities
 c +---------------------------------------------------------------------
 c
@@ -66,6 +66,7 @@ c k0        : index of incident particle
 c Atarget   : mass number of target nucleus
 c nuc       : symbol of nucleus
 c Ztarget   : charge number of target nucleus
+c Starget   : symbol of target nucleus
 c Ethresh   : threshold incident energy for residual nucleus
 c numinc    : number of incident energies
 c eninc,Einc: incident energy in MeV
@@ -92,7 +93,7 @@ c
                   write(1,'("# ",a1," + ",i3,a2,
      +              ": Gamma-ray intensity - ",i3,a2,": Level",i3,
      +              " --> Level",i3," - gamma energy ",f11.6)')
-     +              parsym(k0),Atarget,nuc(Ztarget),A,nuc(Z),i1,i2,Egam
+     +              parsym(k0),Atarget,Starget,A,nuc(Z),i1,i2,Egam
                   write(1,'("# E-initial  =",f11.6," E-final=",f11.6)')
      +              edis(Zcomp,Ncomp,i1),edis(Zcomp,Ncomp,i2)
                   write(1,'("# E-threshold=",1p,e12.5)')
@@ -119,4 +120,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

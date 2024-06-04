@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : February 3, 2011
+c | Date  : May 22, 2012
 c | Task  : Estimate of thermal cross sections
 c +---------------------------------------------------------------------
 c
@@ -167,7 +167,7 @@ c
             endif
             if (eninc(nen).gt.E1v) then
               xsres=xsa*Rres
-              if (xsres.le.0.) goto 120
+              if (xsres.le.0..or.xsa.le.0.) goto 120
               xsalog=log(xsa)
               xsreslog=log(xsres)
               call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -185,7 +185,7 @@ c
               if (xsa.lt.xseps) goto 140
               if (eninc(nen).gt.E1v) then
                 xsres=xsa*Rres
-                if (xsres.le.0.) goto 140
+                if (xsres.le.0..or.xsa.le.0.) goto 140
                 xsalog=log(xsa)
                 xsreslog=log(xsres)
                 call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -200,7 +200,7 @@ c
             if (xsa.lt.xseps) goto 120
             if (eninc(nen).gt.E1v) then
               xsres=xsa*Rres
-              if (xsres.le.0.) goto 120
+              if (xsres.le.0..or.xsa.le.0.) goto 120
               xsalog=log(xsa)
               xsreslog=log(xsres)
               call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -215,7 +215,7 @@ c
                 if (xsa.lt.xseps) goto 150
                 if (eninc(nen).gt.E1v) then
                   xsres=xsa*Rres
-                  if (xsres.le.0.) goto 150
+                  if (xsres.le.0..or.xsa.le.0.) goto 150
                   xsalog=log(xsa)
                   xsreslog=log(xsres)
                   call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -254,7 +254,7 @@ c
           endif
           if (eninc(nen).gt.E1v) then
             xsres=xsa*Rres
-            if (xsres.le.0.) goto 210
+            if (xsres.le.0..or.xsa.le.0.) goto 210
             xsalog=log(xsa)
             xsreslog=log(xsres)
             call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -295,7 +295,7 @@ c
             endif
             if (eninc(nen).gt.E1v) then
               xsres=xsa*Rres
-              if (xsres.le.0.) goto 310
+              if (xsres.le.0..or.xsa.le.0.) goto 310
               xsalog=log(xsa)
               xsreslog=log(xsres)
               call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -313,7 +313,7 @@ c
               if (xsa.lt.xseps) goto 320
               if (eninc(nen).gt.E1v) then
                 xsres=xsa*Rres
-                if (xsres.le.0.) goto 320
+                if (xsres.le.0..or.xsa.le.0.) goto 320
                 xsalog=log(xsa)
                 xsreslog=log(xsres)
                 call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -359,7 +359,7 @@ c
           if (xsa.ge.xseps) then
             if (eninc(nen).gt.E1v) then
               xsres=xsa*Rres
-              if (xsres.gt.0.) then
+              if (xsres.gt.0..or.xsa.gt.0.) then
                 xsalog=log(xsa)
                 xsreslog=log(xsres)
                 call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -374,7 +374,7 @@ c
           if (xsa.ge.xseps) then
             if (eninc(nen).gt.E1v) then
               xsres=xsa*Rres
-              if (xsres.gt.0.) then
+              if (xsres.gt.0..or.xsa.gt.0.) then
                 xsalog=log(xsa)
                 xsreslog=log(xsres)
                 call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -389,7 +389,7 @@ c
           if (xsa.ge.xseps) then
             if (eninc(nen).gt.E1v) then
               xsres=xsa*Rres
-              if (xsres.gt.0.) then
+              if (xsres.gt.0..or.xsa.gt.0.) then
                 xsalog=log(xsa)
                 xsreslog=log(xsres)
                 call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -404,7 +404,7 @@ c
           if (xsa.ge.xseps) then
             if (eninc(nen).gt.E1v) then
               xsres=xsa*Rres
-              if (xsres.gt.0.) then
+              if (xsres.gt.0..or.xsa.gt.0.) then
                 xsalog=log(xsa)
                 xsreslog=log(xsres)
                 call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -423,7 +423,7 @@ c
             if (xsa.ge.xseps) then
               if (eninc(nen).gt.E1v) then
                 xsres=xsa*Rres
-                if (xsres.gt.0.) then
+                if (xsres.gt.0..or.xsa.gt.0.) then
                   xsalog=log(xsa)
                   xsreslog=log(xsres)
                   call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -438,7 +438,7 @@ c
             if (xsa.ge.xseps) then
               if (eninc(nen).gt.E1v) then
                 xsres=xsa*Rres
-                if (xsres.gt.0.) then
+                if (xsres.gt.0..or.xsa.gt.0.) then
                   xsalog=log(xsa)
                   xsreslog=log(xsres)
                   call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -453,7 +453,7 @@ c
             if (xsa.ge.xseps) then
               if (eninc(nen).gt.E1v) then
                 xsres=xsa*Rres
-                if (xsres.gt.0.) then
+                if (xsres.gt.0..or.xsa.gt.0.) then
                   xsalog=log(xsa)
                   xsreslog=log(xsres)
                   call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -480,4 +480,4 @@ c
   110 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -5,9 +5,10 @@ c   dispersive relations also included if alphaomp=5
 c Ref: Demetriou, Grama and Goriely (2002) NPA707, 253
 c
       include "talys.cmb"
+      character*80 key
       real rhomom(numjlm),radmom(numjlm)
       real va(1000),rva(1000)
-      real z,a,ee,rb,e2exp
+      real z,a,ee,rb,e2exp,factor1,factor2
       real vopr(numjlm),wopr(numjlm)
       real alphav(10)
       real e,a2,a3,a13,as,es,aaw,raw,te,expj0,ww,dwv,dws,
@@ -41,16 +42,16 @@ c
       a2=a**2
       a3=a**3
       a13=a**(1./3.)
-c 
+c
 c
 c--------------------------------------------------------------------------------------
-c alphav =  1: reduced radius r0=r/a13 of real pot 
+c alphav =  1: reduced radius r0=r/a13 of real pot
 c           2: diffuseness a of woods-saxon
-c           3: reduced radius r0s=r/a13 of imag. pot.    
+c           3: reduced radius r0s=r/a13 of imag. pot.
 c           4: diffuseness as of imag. pot.
 c           5: fraction of surface-peaked im. pot. relative to volume part
 c           6: depth vso of spin-orbit pot.
-c           7: depth v of real pot.        
+c           7: depth v of real pot.
 c           8: depth w of imag. pot.
 c rww        : radius of imaginary volume potential
 c aww        : diffuseness of imaginary volume potential
@@ -121,7 +122,7 @@ c Case alphaomp=5
 c Imaginary potential OMP III of Demetriou et al. (2002)
 c Woods-Saxon E-dependent volume+surface imaginary potential plus Dispersion contribution
 c  using prescription and functions of Capote et al. J. Phys. G 27 (2001) B15
-c 
+c
 c efermia    : Fermi energy
 c am1        : mass excess of the target-projectile system
 c am2        : mass excess of the target+projectile system
@@ -129,7 +130,7 @@ c am3        : mass excess of the projectile
 c dwv        : dispersive contribution to the real potential arising from the volume imaginary pot
 c dws        : dispersive contribution to the real potential arising from the surface imaginary pot
 c--------------------------------------------------------------------------------------------------
-      if (expmexc(Zix-2,Nix-2).ne.0..and.expmexc(Zix+2,Nix+2).ne.0.) 
+      if (expmexc(Zix-2,Nix-2).ne.0..and.expmexc(Zix+2,Nix+2).ne.0.)
      &  then
         am1=expmexc(Zix+2,Nix+2)
         am2=expmexc(Zix-2,Nix-2)
@@ -147,10 +148,10 @@ c
       v5d=alphav(5)
       c=0.005
       if(ee.lt.13.) c=-0.165*ee+2.15
-      alphav(5)=alphav(5)*exp(-c*abs(ee-efermia)) 
+      alphav(5)=alphav(5)*exp(-c*abs(ee-efermia))
 c
       as=7.65867-7.5669*e2exp+2.50486*e2exp**2
-      es=0.0854*a+1.1307*as 
+      es=0.0854*a+1.1307*as
       te=1./(1.+exp(-(ee-es)/as))
       expj0=75.
       if(a.le.96.) expj0=135.-0.644*a
@@ -170,23 +171,23 @@ c
    50 continue
 
 c final radius, diffuseness and depth of the imaginary WS-type potential
-c They are multplied by the OMP adjustment keywords of TALYS
+c They are multiplied by the OMP adjustment keywords of TALYS
 c (default 1.)
 c   volume term
-      rww=w1adjust(6)*alphav(3)*a13
-      aww=rvadjust(6)*alphav(4)
-      www=avadjust(6)*alphav(8)*(1.-v5d)
+      rww=rvadjust(6)*alphav(3)*a13
+      aww=avadjust(6)*alphav(4)
+      www=w1adjust(6)*alphav(8)*(1.-v5d)
 c   surface term
-      rws=d1adjust(6)*1.09*rww
-      aws=rvdadjust(6)*1.6*aww
-      wws=avdadjust(6)*alphav(8)*alphav(5)
+      rws=rwdadjust(6)*1.09*rww
+      aws=awdadjust(6)*1.6*aww
+      wws=d1adjust(6)*alphav(8)*alphav(5)
 
 c--------------------------------------------------------------------------------------------------
 c determination of the real folding potential through the product of the fourier transforms
 c rb         : maximum radius value
 c nu         : number of radial grid point
-c rva        : radial coordinate for the double folding potential 
-c va         : double folding potential 
+c rva        : radial coordinate for the double folding potential
+c va         : double folding potential
 c nradrho    : number of grid point used in radmom and rhomom
 c vdiv       : dispersive contribution to the real potential arising from the volume imaginary pot
 c vdis       : dispersive contribution to the real potential arising from the surface imaginary pot
@@ -199,11 +200,25 @@ c-------------------------------------------------------------------------------
 
       call afold(z,a,ee,rb,nu,rva,va,radmom,rhomom,nradrho)
 c
-c Depth and shape are multplied by the OMP adjustment keywords of TALYS
+c Depth and shape are multiplied by the OMP adjustment keywords of TALYS
 c (default 1.)
+c
+c ompadjustp: flag for local optical model parameter adjustment
+c adjust    : subroutine for energy-dependent parameter adjustment
+c factor1,2 : multiplication factor
+c
+      if (ompadjustp(6)) then
+        key='aradialcor'
+        call adjust(E,key,Zix,Nix,0,0,factor1)
+        key='adepthcor'
+        call adjust(E,key,Zix,Nix,0,0,factor2)
+      else
+        factor1=1.
+        factor2=1.
+      endif
       do i=1,nu
-        rva(i)=aradialcor*rva(i)
-        va(i)=adepthcor*va(i)
+        rva(i)=factor1*aradialcor*rva(i)
+        va(i)=factor2*adepthcor*va(i)
       enddo
 c
 c interpolation of the alpha optical potential va(rva) on the given radial grid radjlm
@@ -232,7 +247,7 @@ c
   110   hh=rva(khi)-rva(klo)
         aa1=(rva(khi)-rr)/hh
         bb1=(rr-rva(klo))/hh
-        vopr(k)=aa1*va(klo)+bb1*va(khi) 
+        vopr(k)=aa1*va(klo)+bb1*va(khi)
 c dispersive contributions to real potential for alphaomp=5  (OMP III)
         if (alphaomp.lt.5) then
           vdiv=0.
@@ -252,7 +267,7 @@ c dispersive contributions to real potential for alphaomp=5  (OMP III)
         vopr(k)=vopr(k)+vdiv+vdis
 c final imaginary potential
         wopr(k)=0.
-        if (abs((rr-rww)/aww).lt.88.) 
+        if (abs((rr-rww)/aww).lt.88.)
      &    wopr(k)=-www/(1.+exp((rr-rww)/aww))
         if (abs((rr-rws)/aws).lt.88.) then
           ws=-4.*wws*exp((rr-rws)/aws)/(1.+exp((rr-rws)/aws))**2
@@ -288,8 +303,8 @@ c A          : mass   number of target nucleus
 c E          : incident energy
 c rb         : maximum radius value
 c mp         : number of radial grid point
-c rv         : radial coordinate for the double folding potential 
-c u          : double folding potential 
+c rv         : radial coordinate for the double folding potential
+c u          : double folding potential
 c nrad       : number of grid point used in radmom and rhomom
 c radmom     : radial grid for the potential, identical as the one used for JLM
 c rhomom     : total density (neutron + proton) at a given radius radmom
@@ -303,7 +318,7 @@ c am(2),amt  : mass number of target
 c am(3)      : charge number of projectile
 c am(4)      : charge number of target
 c r1,r2,ru   : maximum radius value
-c n1,n2,nu   : number of coordinate grid points 
+c n1,n2,nu   : number of coordinate grid points
 c d1,d2,du   : equidistant radial increment
 c rq         : maximum frequency value in the Fourier space
 c nq         : number of frequency points in the Fourier space
@@ -316,31 +331,31 @@ c
       real*8 bcof,z0,d1,d2,dq,q,r,bint,b
       common /sp/ dq,d1,d2,nr(2),nq,nu,du,fro(ngrid,2),ro(ngrid,2),
      &  am(4),roe(ngrid,2),beta
-      common/constf/ pi,sqrpi,pi4,pi32                                  
+      common/constf/ pi,sqrpi,pi4,pi32
       dimension bcof(ngrid),bint(9),b(1),ue(ngrid)
       dimension u(mp),rv(mp)
-      dimension a1(6),a2(6),b1(6),b2(6)                      
+      dimension a1(6),a2(6),b1(6),b2(6)
       logical pass
       save
-      equivalence (am(1),amp),(am(2),amt),(nr(1),n1),(nr(2),n2)                                           
+      equivalence (am(1),amp),(am(2),amt),(nr(1),n1),(nr(2),n2)
       data a1/1577.1071d0,34751.04d0,19839.156d0,25129.599d0,25129.599d0
-     *,-15348.25d0/,b1/0.16,16.0,16.,16.,16.,16./,a2/-1239.9272d0,      
-     * -12754.865d0,-9857.0604d0,-10726.653d0,-10726.653d0,5908.71d0/,  
-     * b2/0.0625,6.2500,6.25,6.25,6.25,6.25/                            
+     *,-15348.25d0/,b1/0.16,16.0,16.,16.,16.,16./,a2/-1239.9272d0,
+     * -12754.865d0,-9857.0604d0,-10726.653d0,-10726.653d0,5908.71d0/,
+     * b2/0.0625,6.2500,6.25,6.25,6.25,6.25/
       data pass/.false./
-      pi=3.1415926536d0                                                 
-      sqrpi=sqrt(pi)                                                   
-      pi4=4.*3.1415926536d0                                             
+      pi=3.1415926536d0
+      sqrpi=sqrt(pi)
+      pi4=4.*3.1415926536d0
       pi32=sqrpi*pi
       nu=mp
-      key=5                                                       
+      key=5
       ce=0.44073
       alpha=4.3529
       beta=10.639
       am(1)=4
       am(2)=a
       am(3)=2
-      am(4)=z 
+      am(4)=z
       r1=rb
       d1=r1/nu
       r2=rb
@@ -349,33 +364,33 @@ c id=1 if d1=d2
       id=1
       rq=10.
       dq=rq/nu
-      ru=rb                                        
+      ru=rb
       nr(1)=nu
       nr(2)=nu
       nq=nu
       du=ru/nu
-      do 34 i=1,nu                                                      
-        u(i)=0.d0                                                         
-        ue(i)=0.d0                                                        
+      do 34 i=1,nu
+        u(i)=0.d0
+        ue(i)=0.d0
    34 continue
-      akoff=0.5/(pi*pi)                                                 
-      is1=1                                                             
+      akoff=0.5/(pi*pi)
+      is1=1
       is2=1
       do 33 iso=is1,is2
-        if(iso.eq.2) key=6                                                
-        de=0.                                                             
-        goto (20,20,20,20,15,16),key                                      
-   15   de=-276.*(1.-0.005*e/amp)                                         
-        goto 20                                                           
-   16   de=227*(1.-0.004*e/amp)   
-   20   continue  
-        if (pass) go to 25                                                        
-        no=1                                                              
+        if(iso.eq.2) key=6
+        de=0.
+        goto (20,20,20,20,15,16),key
+   15   de=-276.*(1.-0.005*e/amp)
+        goto 20
+   16   de=227*(1.-0.004*e/amp)
+   20   continue
+        if (pass) go to 25
+        no=1
         if(amp.gt.1.) call dense(no)
         pass=.true.
    25   continue
-        no=2                                                              
-        r=0.                      
+        no=2
+        r=0.
         do 42 i=1,nu
 c analytic density distribution as a fermi function
 c         ro(i,2)=(cn/(1.+exp((r-rn)/bn))+cz/(1.+exp((r-rz)/bz)))*r*r*pi4
@@ -408,30 +423,30 @@ c  --> determination of the density at radius r
   465     rho=aa1*rhomom(klo)+bb1*rhomom(khi)
 c
           ro(i,2)=rho*r*r*pi4
-          roe(i,2)=ro(i,no)*exp(-ro(i,no)*beta)   
+          roe(i,2)=ro(i,no)*exp(-ro(i,no)*beta)
           r=r+d2
    42   continue
-        nmint=max0(nr(1),nr(2))                                            
-        if(amp.eq.1.) nmint=nr(2)                                          
-        iflg=0                                                            
-        q=0.                                                              
-        do 200 k=1,nq                                                     
-          qq=q*q                                            
-          sum1=0.                               
-          sum2=0.   
+        nmint=max0(nr(1),nr(2))
+        if(amp.eq.1.) nmint=nr(2)
+        iflg=0
+        q=0.
+        do 200 k=1,nq
+          qq=q*q
+          sum1=0.
+          sum2=0.
           s1=0.
-          s2=0. 
+          s2=0.
           i1=1
           z0=0.
           ndd=nu
-          if(id.eq.1.and.iflg.eq.0)            
-     &      call ftrans(bcof,i1,nmint,z0,d1,q,bint,b,ndd)               
-           if(id.ne.1.and.iflg.eq.0)            
-     &      call ftrans(bcof,i1,n1,z0,d1,q,bint,b,ndd)                 
+          if(id.eq.1.and.iflg.eq.0)
+     &      call ftrans(bcof,i1,nmint,z0,d1,q,bint,b,ndd)
+           if(id.ne.1.and.iflg.eq.0)
+     &      call ftrans(bcof,i1,n1,z0,d1,q,bint,b,ndd)
           if(key.ne.5) goto 101
-          do 100 j=1,n1                         
-  100     s1=s1+bcof(j)*roe(j,1)   
-  101     do 102 j=1,n1                         
+          do 100 j=1,n1
+  100     s1=s1+bcof(j)*roe(j,1)
+  101     do 102 j=1,n1
   102     sum1=sum1+bcof(j)*ro(j,1)
   126     if(id.ne.1.and.iflg.eq.0)
      &      call ftrans(bcof,i1,n2,z0,d2,q,bint,b,ndd)
@@ -456,7 +471,7 @@ c
       r=0
       do 520 i=1,nu
         ud=u(i)
-        u(i)=ud+ue(i)  
+        u(i)=ud+ue(i)
   520 r=r+du
       call intu(u,nu,du,volj,rms,vmi33)
       volj=volj/(amp*amt)
@@ -482,14 +497,14 @@ c determination of the Volume Integral and root-mean-square radius of the potent
 c----------------------------------------------------------------------------------
       dimension u(nr)
 c----------------------------------------------------------------
-c u          : potential 
+c u          : potential
 c nr         : number of radial grid point
 c du         : equidistant radial increment
 c volj       : volume integral of the potential
 c rms        : root-mean-square radius of the potential
 c rin        : mean radius of the potential
 c----------------------------------------------------------------
-c  
+c
       fact=0.375*du*12.5663706144d0
       volj=0.
       rms=0.
@@ -526,35 +541,35 @@ c
       nr1=nr1+1
       c5=du*4.d0/3.d0
       do 4 kr=nr1,nr2
-        sum0=sum0+c5*(u(kr)*(kr-1)+u(kr+1)*kr)  
-        sum1=sum1+c5*du*(u(kr)*(kr-1)**2+u(kr+1)*kr**2)     
-        sum2=sum2+c5*du**3*(u(kr)*(kr-1)**4+u(kr+1)*kr**4)   
+        sum0=sum0+c5*(u(kr)*(kr-1)+u(kr+1)*kr)
+        sum1=sum1+c5*du*(u(kr)*(kr-1)**2+u(kr+1)*kr**2)
+        sum2=sum2+c5*du**3*(u(kr)*(kr-1)**4+u(kr+1)*kr**4)
     4 continue
     3 rin=fact*sum0
       volj=fact*sum1
       if (sum1.ne.0.) rms=sum2/sum1
       return
-      end  
+      end
 c
       subroutine dense(n0)
 c
 c determination of radial density distribution of the alpha system
-c  as a sum of Gaussians 
-      parameter(ngrid=1000)                                         
-      real*8 dqq,d1,d2
-      common /sp/ dqq,d1,d2,nr(2),nqq,nu,du,fro(ngrid,2),ro(ngrid,2),
+c  as a sum of Gaussians
+      parameter(ngrid=1000)
+      real*8 dq,d1,d2
+      common /sp/ dq,d1,d2,nr(2),nq,nu,du,fro(ngrid,2),ro(ngrid,2),
      &  am(4),roe(ngrid,2),beta
-      common /constf/ pi,sqrpi,pi4,pi32                        
+      common /constf/ pi,sqrpi,pi4,pi32
       dimension a(12),ri(12),sq(12)
       dimension fr(2*ngrid),f(2*ngrid)
       equivalence (fro(1,1),f(1)),(ro(1,1),fr(1))
-      no=n0                    
+      no=n0
       do 1 i=1,ngrid
-        ro(i,no)=0.                       
-        roe(i,no)=0.                  
-   1    fro(i,no)=0.                                                      
-      n=nr(no)                
-  700 if(no.eq.2)go to 50       
+        ro(i,no)=0.
+        roe(i,no)=0.
+   1    fro(i,no)=0.
+      n=nr(no)
+  700 if(no.eq.2)go to 50
       uu=2./3.
       g=sqrt(uu)
       ri(1)=0.2
@@ -588,21 +603,21 @@ c  as a sum of Gaussians
       s=0.
       do 22 i=1,12
    22 s=s+a(i)*(exp(-((r-ri(i))/g)**2)+exp(-((r+ri(i))/g)**2))
-      ro(j,1)=s 
-      r=r+d1 
-    3 continue        
-      r=0.                                                              
-      roe(1,1)=0.                                                      
-      ro(1,1)=0.                                                       
-      do 80 i=2,n                                                       
-        rr=r*r                                                            
-        roe(i,1)=pi4*rr*ro(i,no)*exp(-ro(i,no)*beta)   
-        ro(i,1)=ro(i,no)*rr*pi4                                          
-   80 r=r+d1 
-      return                        
+      ro(j,1)=s
+      r=r+d1
+    3 continue
+      r=0.
+      roe(1,1)=0.
+      ro(1,1)=0.
+      do 80 i=2,n
+        rr=r*r
+        roe(i,1)=pi4*rr*ro(i,no)*exp(-ro(i,no)*beta)
+        ro(i,1)=ro(i,no)*rr*pi4
+   80 r=r+d1
+      return
    50 continue
-      return                                                            
-      end                                                               
+      return
+      end
 c
       subroutine ftrans(bcof,lm,npoint,r,h,p,bint,b,ndim)
 c performs Fourier transform
@@ -849,7 +864,7 @@ c damping term
        C=0.005
        if(ee(i).lt.13.) C=-0.165*ee(i)+2.15
 c add damping term to surface potential
-       v5f=v5*exp(-C*abs(ee(i)-efermi)) 
+       v5f=v5*exp(-C*abs(ee(i)-efermi))
        te=1./(1.+exp(-(ee(i)-es)/as))
        aji(i)=-expj0*te
        wamp=-expj0*te/((1.-v5f)*rw**3/3.+7.603*v5f*aw*rw**2/a13)/pi
@@ -886,4 +901,4 @@ c and volume integral
 c
       return
       end
-      
+

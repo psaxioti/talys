@@ -1,9 +1,9 @@
       subroutine astro
 c
 c +---------------------------------------------------------------------
-c | Author  : Stephane Goriely and Stephane Hilaire
-c | Date    : February 8, 2006
-c | Task    : Astrophysical reaction rates
+c | Author: Stephane Goriely and Stephane Hilaire
+c | Date  : February 8, 2006
+c | Task  : Astrophysical reaction rates
 c +---------------------------------------------------------------------
 c
 c ************** Astrophysical reaction rate calculation ***************
@@ -16,4 +16,4 @@ c
       call astroout
       return
       end
-Copyright (C) 2005  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

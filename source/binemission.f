@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 10, 2004
+c | Date  : December 30, 2011
 c | Task  : Compound emission cross sections for binary reaction
 c +---------------------------------------------------------------------
 c
@@ -48,8 +48,8 @@ c
         NL=Nlast(Zix,Nix,0)
         SS=S(0,0,type)
         if (maxex(Zix,Nix).le.NL) goto 10
-        dEx=deltaEx(Zix,Nix)
         do 20 nexout=NL+1,maxex(Zix,Nix)
+          dEx=deltaEx(Zix,Nix,nexout)
           Exout=Ex(Zix,Nix,nexout)
           Eo(nexout)=Exinc-SS-Exout
           xsMeV(nexout)=contrib(type,nexout)/dEx
@@ -152,6 +152,7 @@ c are located. The preequilibrium contribution is also added.
 c
         if (flagchannels) then
           do 130 nexout=NL+1,maxex(Zix,Nix)
+            dEx=deltaEx(Zix,Nix,nexout)
             emin=Eo(nexout)-0.5*dEx
             emax=Eo(nexout)+0.5*dEx
             call locate(Ebottom,ebegin(type),eend(type),emin,nenbeg)
@@ -186,4 +187,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

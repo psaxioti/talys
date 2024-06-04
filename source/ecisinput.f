@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 29, 2010
+c | Date  : December 13, 2013
 c | Task  : Create ECIS input file
 c +---------------------------------------------------------------------
 c
@@ -112,7 +112,11 @@ c
         do 30 i=1,npp
           eopt=e-real(Elevel(i)*(resmass+projmass)/resmass)
           call optical(Zix,Nix,kopt,eopt)
-          write(9,'(3f10.5)') v,rv,av
+          if (abs(v).ge.1000.) then
+            write(9,'(1p,e10.3,0p,2f10.5)') v,rv,av
+          else
+            write(9,'(3f10.5)') v,rv,av
+          endif
           write(9,'(3f10.5)') w,rw,aw
           write(9,'(3f10.5)') vd,rvd,avd
           write(9,'(3f10.5)') wd,rwd,awd
@@ -197,4 +201,4 @@ c
       endif
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 27, 2011
+c | Date  : September 27, 2012
 c | Task  : Constants and initialization
 c +---------------------------------------------------------------------
 c
@@ -80,11 +80,17 @@ c
         natstring(i)='    '
   110 continue
 c
+c *********************** Set default mass for fission *****************
+c
+c fislim: mass above which nuclide fissions
+c
+      fislim=215
+c
 c ***************** Set maximum acceptable energy for TALYS ************
 c
 c Emaxtalys: maximum acceptable energy for TALYS
 c
-      Emaxtalys=600.
+      Emaxtalys=1000.
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

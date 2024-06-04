@@ -2,15 +2,17 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : November 18, 2011
+c | Date  : December 9, 2013
 c | Task  : Multiple emission
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      character*13 fisfile
+      character*60 form1,form2
       integer      Zcomp,Ncomp,type,nen,nex,nexout,Zix,Nix,Z,N,A,odd,NL,
-     +             J,idensfis,parity,J2,iang,p,h
+     +             J,idensfis,parity,J2,Jfis,iang,p,h
       real         popepsA,xspopsave(0:numex),Exm,dEx,Exmin,popepsB,
      +             xsmax,Smax,emissum(0:numpar),Eaveragesum,Eout,sumxs,
      +             xsdif,ang,kalbach,Eaverage(0:numpar)
@@ -136,7 +138,7 @@ c Ex           : excitation energy
 c xspopex      : population cross section summed over spin and parity
 c xspop        : population cross section
 c
-          dExinc=deltaEx(Zcomp,Ncomp)
+          dExinc=deltaEx(Zcomp,Ncomp,maxex(Zcomp,Ncomp))
           Z=ZZ(Zcomp,Ncomp,0)
           N=NN(Zcomp,Ncomp,0)
           A=AA(Zcomp,Ncomp,0)
@@ -197,6 +199,7 @@ c
      +        (J+0.5*odd,J=0,9)
           endif
           do 110 nex=maxex(Zcomp,Ncomp),1,-1
+            dExinc=deltaEx(Zcomp,Ncomp,nex)
             if (flagpop) then
               xspopsave(nex)=xspopex(Zcomp,Ncomp,nex)
               if (nex.le.NL) then
@@ -257,8 +260,8 @@ c
               if (type.gt.1) Exm=Exm-egrid(ebegin(type))
               Zix=Zindex(Zcomp,Ncomp,type)
               Nix=Nindex(Zcomp,Ncomp,type)
-              dEx=deltaEx(Zix,Nix)
               do 130 nexout=maxex(Zix,Nix),0,-1
+                dEx=deltaEx(Zix,Nix,nexout)
                 Exmin=Ex(Zix,Nix,nexout)-0.5*dEx
                 if (Exmin.lt.Exm) then
                   nexmax(type)=nexout
@@ -322,7 +325,7 @@ c
      +              goto 140
                   J2=2*J+odd
                   if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0)
-     +              call tfission(Zcomp,Ncomp,J2,parity)
+     +              call tfission(Zcomp,Ncomp,nex,J2,parity)
                   call compound(Zcomp,Ncomp,nex,J2,parity)
   140         continue
               if (flagfisout) call tfissionout(Zcomp,Ncomp,nex)
@@ -360,10 +363,10 @@ c
               xspoppreeq(Zcomp,Ncomp)=xspoppreeq(Zcomp,Ncomp)+
      +            preeqpopex(Zcomp,Ncomp,nex)
   230       continue
-  240       xspoppreeq(Zcomp,Ncomp)=min(xspoppreeq(Zcomp,Ncomp),
-     +        xspopnuc(Zcomp,Ncomp)-xspopdir(Zcomp,Ncomp))
+  240       xspoppreeq(Zcomp,Ncomp)=min(dble(xspoppreeq(Zcomp,Ncomp)),
+     +        xspopnuc(Zcomp,Ncomp)-dble(xspopdir(Zcomp,Ncomp)))
             xspopcomp(Zcomp,Ncomp)=max(xspopnuc(Zcomp,Ncomp)-
-     +        xspoppreeq(Zcomp,Ncomp)-xspopdir(Zcomp,Ncomp),0.)
+     +        dble(xspoppreeq(Zcomp,Ncomp)-xspopdir(Zcomp,Ncomp)),0.d0)
             if (xspopnuc(Zcomp,Ncomp).gt.0.) then
               Fdir(Zcomp,Ncomp)=xspopdir(Zcomp,Ncomp)/
      +          xspopnuc(Zcomp,Ncomp)
@@ -399,6 +402,8 @@ c
   260         continue
   250       continue
           endif
+          if (Zcomp.eq.0.and.Ncomp.eq.0.and.flagfission)
+     +      fisfeedex(0,0,maxex(0,0)+1)=xsbinary(-1)
 c
 c Increase emission spectra after decay of mother excitation energy bin.
 c
@@ -494,8 +499,6 @@ c
   410       continue
 c
 c Fission
-c
-c fisfeedex: fission contribution from excitation energy bin
 c
             if (flagfission) then
               write(*,'(/" Fission contribution from Z=",i3,
@@ -626,6 +629,50 @@ c
   480       continue
           endif
 c
+c Fission
+c
+c fisfeedex  : fission contribution from excitation energy bin
+c flagfisfeed: flag for output of fission per excitation bin
+c fisfeedJP  : fission contribution from excitation energy bin per J,P
+c
+          if (flagfission.and.flagfisfeed) then
+            fisfile='fis000000.nex'
+            write(fisfile(4:6),'(i3.3)') Z
+            write(fisfile(7:9),'(i3.3)') A
+            open (unit=1,status='unknown',file=fisfile)
+            write(1,'("# Reaction: ",g12.4," MeV ",a8," on Z=",i3,
+     +        " N=",i3," (",i3,a2,")")') einc,parname(k0),Ztarget,
+     +        Ntarget,Atarget,nuc(Ztarget)
+            write(1,'("# Fission contribution from Z=",i3,
+     +        " N=",i3," (",i3,a2,")")') Z,N,A,nuc(Z)
+            if (Zcomp.eq.0.and.Ncomp.eq.0) then
+              nen=maxex(Zcomp,Ncomp)+1
+            else
+              nen=maxex(Zcomp,Ncomp)
+            endif
+            Jfis=0
+            do 422 nex=0,nen
+              do 422 parity=-1,1,2
+                do 422 J=0,numJ
+                  if (fisfeedJP(Zcomp,Ncomp,nex,J,parity).gt.0.)
+     +              Jfis=max(Jfis,J)
+  422       continue
+            write(1,'("# # energies =",i3)') nen+1
+            write(1,'("# # spins    =",i3)') Jfis+1
+            form1='("#    Ex   Population",xx(5x,i2,"+",9x,i2,"-",4x))'
+            write(form1(25:26),'(i2.2)') Jfis+1
+            form2='(1x,f8.3,1p,e12.5,xx(2e12.5))'
+            write(form2(19:20),'(i2.2)') Jfis+1
+            write(1,fmt=form1) (J,J,J=0,Jfis)
+            do 425 nex=0,nen
+              write(1,fmt=form2) Ex(Zcomp,Ncomp,nex),
+     +          fisfeedex(Zcomp,Ncomp,nex),
+     +          ((fisfeedJP(Zcomp,Ncomp,nex,J,parity),parity=-1,1,2),
+     +          J=0,Jfis)
+  425       continue
+            close (unit=1)
+          endif
+c
 c ******* Add binary cross sections to initial compound nucleus ********
 c
 c xsngnsum  : sum over total (projectile,gamma-ejectile) cross sections
@@ -663,4 +710,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

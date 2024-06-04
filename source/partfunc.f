@@ -1,9 +1,9 @@
       subroutine partfunc
 c
 c +---------------------------------------------------------------------
-c | Author  : Stephane Hilaire, Stephane Goriely, Arjan Koning
-c | Date    : December 21, 2011
-c | Task    : Calculate partition function
+c | Author: Stephane Hilaire, Stephane Goriely, Arjan Koning
+c | Date  : December 30, 2011
+c | Task  : Calculate partition function
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
@@ -37,7 +37,6 @@ c
       Zix=parZ(k0)
       Nix=parN(k0)
       NL=Nlast(Zix,Nix,0)
-      dex=deltaEx(Zix,Nix)/real(numdiv)
       ldmod=ldmodel(Zix,Nix)
       do 10 i=1,nTmax
         do 20 nex=0,numdiv*numex
@@ -56,6 +55,7 @@ c spindeg  : (2J+1) degeneracy of target level
 c jdis     : spin of level
 c fex,sum  : help variables
 c
+          dex=deltaEx(Zix,Nix,nexout)/real(numdiv)
           Elev=edis(Zix,Nix,nexout)
           if (nexout.le.NL) then
             spindeg=2.*jdis(Zix,Nix,nexout)+1
@@ -101,4 +101,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2005  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 24, 2011
+c | Date  : December 13, 2013
 c | Task  : Initialization of arrays for various structure parameters
 c +---------------------------------------------------------------------
 c
@@ -42,6 +42,7 @@ c redumass    : reduced mass
 c S           : separation energy per particle
 c numen       : maximum number of outgoing energies
 c egrid       : energies of basic energy grid in MeV
+c Q           : Q value
 c coullimit   : energy limit for charged particle OMP calculation
 c numelem     : number of elements
 c nummass     : number of masses
@@ -80,6 +81,7 @@ c
         egrid(nen)=0.
    30 continue
       do 40 type=0,numpar
+        Q(type)=0.
         coullimit(type)=0.
    40 continue
       lmaxinc=0
@@ -91,6 +93,7 @@ c
 c
 c Level and deformation parameters
 c
+c flaginvecis: logical for calculating inverse channel OMP
 c numlev2    : maximum number of levels
 c jassign    : flag for assignment of spin
 c passign    : flag for assignment of parity
@@ -107,21 +110,22 @@ c iph,iphonon: phonon (1 or 2)
 c deform     : deformation parameter
 c defpar     : deformation parameter
 c numlev     : maximum number of included discrete levels
-c nbranch    : number of branching levels
 c tau        : lifetime of state in seconds
 c bassign    : flag for assignment of branching ratio
-c branchlevel: level to which branching takes place
-c branchratio: gamma-ray branching ratio to level
 c conv       : conversion coefficient
 c colltype   : type of collectivity (D, V or R)
 c deftype    : deformation length (D) or parameter (B)
 c nlevmax2   : maximum number of levels
 c ndef       : number of collective levels
 c nrot       : number of deformation parameters
+c Lisomer    : level number of isomer
+c Nisomer    : number of isomers for this nuclide
 c deltaEx    : excitation energy bin for population arrays
+c sfactor    : spin factor
 c numrotcc   : number of rotational deformation parameters
 c rotpar     : deformation parameters for rotational nucleus
 c
+      flaginvecis=.true.
       do 110 i=0,numlev2
         do 110 Nix=0,numN
           do 110 Zix=0,numZ
@@ -143,7 +147,6 @@ c
       do 120 i=0,numlev
         do 120 Nix=0,numN
           do 120 Zix=0,numZ
-            nbranch(Zix,Nix,i)=0
             tau(Zix,Nix,i)=0.
   120 continue
       do 130 k=0,numlev
@@ -151,8 +154,6 @@ c
           do 130 Nix=0,numN
             do 130 Zix=0,numZ
               bassign(Zix,Nix,i,k)=' '
-              branchlevel(Zix,Nix,i,k)=0
-              branchratio(Zix,Nix,i,k)=0.
               conv(Zix,Nix,i,k)=0.
   130 continue
       do 140 Nix=0,numN
@@ -162,20 +163,51 @@ c
           nlevmax2(Zix,Nix)=0
           ndef(Zix,Nix)=0
           nrot(Zix,Nix)=0.
-          deltaEx(Zix,Nix)=0.
+          do 140 i=0,numex
+            deltaEx(Zix,Nix,i)=0.
+            do 140 ipar=-1,1,2
+              do 140 j=0,numJ
+                sfactor(Zix,Nix,i,j,ipar)=0.
   140 continue
+      do 145 Nix=-1,numN
+        do 145 Zix=-1,numZ
+          Nisomer(Zix,Nix)=0
+          do 147 i=0,numisom
+            Lisomer(Zix,Nix,i)=0
+  147     continue
+  145 continue
       do 150 i=0,numrotcc
         do 150 Nix=0,numN
           do 150 Zix=0,numZ
             rotpar(Zix,Nix,i)=0.
   150 continue
 c
+c Decay data parameters
+c
+c lambda: decay rate per isotope
+c prate : production rate per isotope
+c rtyp  : type of beta decay, beta-: 1 , beta+: 2 (from ENDF format)
+c Thalf : half life of nuclide in sec.
+c Td    : half life per time unit
+c
+      do 160 Nix=0,numN
+        do 160 Zix=-1,numZ
+          do 170 is=-1,numisom
+            lambda(Zix,Nix,is)=0.
+            prate(Zix,Nix,is)=0.
+            rtyp(Zix,Nix,is)=0
+            Thalf(Zix,Nix,is)=1.e30
+            do 180 it=1,5
+              Td(Zix,Nix,is,it)=0.
+  180       continue
+  170     continue
+  160 continue
+c
 c Resonance parameters
 c
 c gamgamth: theoretical total radiative width
 c swaveth : theoretical strength function for s-wave
 c dD0     : uncertainty in D0
-c dS0     : uncertainty in S0
 c dgamgam : uncertainty in gamgam
 c
       do 210 Nix=0,numN
@@ -183,21 +215,23 @@ c
           gamgamth(Zix,Nix)=0.
           swaveth(Zix,Nix)=0.
           dD0(Zix,Nix)=0.
-          dS0(Zix,Nix)=0.
           dgamgam(Zix,Nix)=0.
   210 continue
 c
 c Gamma parameters
 c
-c gammax    : number of l-values for gamma multipolarity
+c numgam    : maximum number of l-values for gamma multipolarity
 c ngr       : number of GR
 c kgr       : constant for gamma-ray strength function
 c qrpaexist : flag for existence of tabulated QRPA strength functions
 c numgamqrpa: number of energies for QRPA strength function
 c eqrpa     : energy grid for QRPA strength function
 c fe1qrpa   : tabulated QRPA strength function
+c xsracap   : direct-semidirect radiative capture cross section
+c xsracapEM : direct-semidirect radiative capture cross section as
+c             function of type
 c
-      do 310 l=1,gammax
+      do 310 l=1,numgam
         do 310 irad=0,1
           do 310 Nix=0,numN
             do 310 Zix=0,numZ
@@ -216,6 +250,13 @@ c
               fe1qrpa(Zix,Nix,nen,it)=0.
   340   continue
   330 continue
+      do 350 nen=1,numenin
+        xsracap(nen)=0.
+        do 360 l=1,numgam
+          do 360 irad=0,1
+            xsracapEM(nen,irad,l)=0.
+  360   continue
+  350 continue
 c
 c Optical model parameters
 c
@@ -234,6 +275,7 @@ c              compound nucleus for multiple pre-equilibrium emission
 c wvol       : absorption part of the optical potential averaged over
 c              the volume
 c flagjlm    : flag for using semi-microscopic JLM OMP
+c flagracap  : flag for radiative capture model
 c alphaomp   : alpha optical model (1=normal, 2= McFadden-Satchler,
 c              3-5= folding potential)
 c rhojlmn    : density for neutrons
@@ -258,6 +300,8 @@ c
             v3(Zix,Nix,k)=0.
             w1(Zix,Nix,k)=0.
             w2(Zix,Nix,k)=0.
+            w3(Zix,Nix,k)=0.
+            w4(Zix,Nix,k)=0.
             rvd0(Zix,Nix,k)=0.
             avd0(Zix,Nix,k)=0.
             d1(Zix,Nix,k)=0.
@@ -282,10 +326,13 @@ c
                 vomp(Zix,Nix,k,nen,i)=0.
   420 continue
       do 430 type=1,2
+        V0(type)=0.
+        Vjoin(type)=0.
+        Wjoin(type)=0.
         do 430 nen=-200,10*numen
           wvol(type,nen)=0.
   430 continue
-      if (flagjlm.or.alphaomp.ge.3) then
+      if (flagjlm.or.flagracap.or.alphaomp.ge.3) then
         do 440 k=1,6
           do 440 nen=1,numjlm
             do 440 Nix=0,numN
@@ -336,6 +383,7 @@ c jfistrrot  : spin of rotational transition states
 c pfisc2rot  : parity of rotational class2 states
 c efisc2rot  : energy of rotational class2 states
 c jfisc2rot  : spin of rotational class2 states
+c nubarexist : flag for existence of nubar file
 c
       do 510 Nix=0,numN
         do 510 Zix=0,numZ
@@ -377,7 +425,26 @@ c
                 efisc2rot(Zix,Nix,i,k)=0.
                 jfisc2rot(Zix,Nix,i,k)=0.
   540   continue
+        do 550 k=1,numbar
+          do 560 i=1,numbinfis
+            eintfis(i,k)=0.
+            do 570 j=0,numJ
+              do 570 l=-1,1
+                rhofis(i,j,l,k)=0.
+  570       continue
+  560     continue
+  550   continue
       endif
+      do 580 k=1,numbeta
+        betafis(k)=0.
+        vfis(k)=0.
+  580 continue
+      do 590 k=1,2*numbar
+        Vpos(k)=0.
+        Vheight(k)=0.
+        Vwidth(k)=0.
+  590 continue
+      nubarexist=.false.
 c
 c Level density parameters
 c
@@ -399,7 +466,6 @@ c Ucrit      : critical U
 c Scrit      : critical entropy
 c Dcrit      : critical determinant
 c aldcrit    : critical level density parameter
-c ldmodel    : level density model
 c ldtable    : level density from table
 c ldtottableP: total level density per parity from table
 c ldtottable : total level density from table
@@ -447,7 +513,7 @@ c
             nendens(Zix,Nix)=55
             Edensmax(Zix,Nix)=150.
           endif
-          if (ldmodel(Zix,Nix).eq.5) then
+          if (ldmodel(Zix,Nix).ge.5) then
             nendens(Zix,Nix)=60
             Edensmax(Zix,Nix)=200.
           endif
@@ -508,14 +574,18 @@ c
           do 750 k=0,numexc
             do 750 j=0,numexc
               do 750 i=0,numexc
-                do 750 Nix=0,numNph
-                  do 750 Zix=0,numZph
+                do 755 Nix=0,numN
+                  do 755 Zix=0,numZ
                     phexist2(Zix,Nix,i,j,k,l)=.false.
                     phexist1(Zix,Nix,i,j)=.false.
-                    do 760 nex=0,numdens
+  755           continue
+                do 760 Nix=0,numNph
+                  do 760 Zix=0,numZph
+                    do 765 nex=0,numdens
                       phtable2(Zix,Nix,i,j,k,l,nex)=0.
                       phtable1(Zix,Nix,i,j,nex)=0.
-  760               continue
+  765               continue
+  760           continue
   750   continue
 
 c Configurations for microscopic particle-hole state densities
@@ -647,7 +717,7 @@ c
       do 1070 l=0,numl
         JminU(l)=numJ
         JmaxU(l)=0
-        do 1080 type=-1,9
+        do 1080 type=-1,11
           urrexist(type,l)=.false.
  1080   continue
  1070 continue
@@ -658,4 +728,4 @@ c
  1090 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

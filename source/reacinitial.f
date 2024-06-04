@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 22, 2011
+c | Date  : December 13, 2013
 c | Task  : Initialization of arrays for various cross sections
 c +---------------------------------------------------------------------
 c
@@ -26,8 +26,10 @@ c xstotinc    : total cross section (neutrons only) for incident channel
 c xsreacinc   : reaction cross section for incident channel
 c xsoptinc    : optical model reaction cross section for incident
 c               channel
+c xsracape    : direct radiative capture cross section
 c xselasinc   : total elastic cross section (neutrons only) for
 c               incident channel
+c xsinitpop   : initial population cross section
 c numl        : maximal number of l-values
 c Sstrength   : s,p,d,etc-wave strength function
 c strengthl   : l neutron strength function
@@ -38,6 +40,7 @@ c sigurrf     : (l,j) fission cross section for URR
 c Tjlinc      : transmission coefficients as a function of spin
 c               and l for the incident channel
 c Turr        : (l,j) transmission coefficient for URR calculation
+c Purrlj      : (l,j) parity for URR calculation
 c xsbinarylj  : (l,j) cross section for URR calculation
 c nulj        : (l,j) number of degrees of freedom for URR calculation
 c urrwidth    : channel width in URR
@@ -55,8 +58,12 @@ c
       lmaxinc=0
       xstotinc=0.
       xsreacinc=0.
+      xsracape=0.
+      xsracapedisc=0.
+      xsracapecont=0.
       xsoptinc=0.
       xselasinc=0.
+      xsinitpop=0.
       do 10 l=0,numl
         Sstrength(l)=0.
         strengthl(l)=0.
@@ -69,6 +76,7 @@ c
           sigurrc(l,j)=0.
           sigurrf(l,j)=0.
           Turrljinc(l,J)=0.
+          Purrlj(l,J)=1
           do 30 type=-1,numpar
             Turrlj(type,l,J)=0.
             xsbinarylj(type,l,J)=0.
@@ -76,6 +84,7 @@ c
             urrwidth(type,l,J)=0.
    30   continue
         Tlinc(l)=0.
+        spot(l)=0.
    10 continue
       do 40 LL=0,3*numl
         do 40 i=0,numlev2
@@ -129,7 +138,9 @@ c
       Exmax0(0,0)=Etotal
       Exmax(0,0)=Etotal
       Exinc=Etotal
-      deltaEx(0,0)=0.
+      do 105 i=0,numex
+        deltaEx(0,0,i)=0.
+  105 continue
 c
 c ****************** Initialize giant resonance arrays *****************
 c
@@ -439,6 +450,7 @@ c xsbinemis  : cross section for emission from first compound nucleus
 c xsemis     : emission spectrum from compound nucleus
 c xsngnspec  : total (projectile,gamma-ejectile) spectrum
 c numlev     : maximum number of included discrete levels
+c xsracappop : population cross section for radiative capture
 c xspopex0   : binary population cross section for discrete states
 c preeqpopex : pre-equilibrium population cross section summed over
 c              spin and parity
@@ -467,6 +479,7 @@ c
           Fcomp(Zix,Nix)=0.
   510 continue
       do 520 nex=0,numex
+        xsracappopex(nex)=0.
         do 520 Nix=0,numN
           do 520 Zix=0,numZ
             xspopex(Zix,Nix,nex)=0.
@@ -476,6 +489,7 @@ c
       do 530 parity=-1,1,2
         do 530 J=0,numJ
           do 530 nex=0,numex
+            xsracappop(nex,J,parity)=0.
             do 530 Nix=0,numN
               do 530 Zix=0,numZ
                 xspop(Zix,Nix,nex,J,parity)=0.
@@ -582,10 +596,14 @@ c
   720   continue
       endif
       if (flagfission) then
-        do 730 nex=0,numex
+        do 730 nex=0,numex+1
           do 730 Nix=0,numN
             do 730 Zix=0,numZ
               fisfeedex(Zix,Nix,nex)=0.
+              do 735 parity=-1,1,2
+                do 735 J=0,numJ
+                  fisfeedJP(Zix,Nix,nex,J,parity)=0.
+  735         continue
   730   continue
       endif
       do 740 parity=-1,1,2
@@ -811,4 +829,4 @@ c
  1080 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,19 +2,21 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 22, 2011
+c | Date  : October 11, 2013
 c | Task  : Read input for fifth set of variables
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      logical      flagassign
       character*1  ch
-      character*80 word(40),key,value
+      character*80 word(40),key,value,cval
       integer      Zix,Nix,ibar,irad,Z,N,oddZ,oddN,lval,type,mt,is,igr,
-     +             i,iz,ia,ivalue,type2,omptype,nr,k
-      real         alphaldall,betaldall,gammashell1all,
-     +             Pshiftconstantall,val
+     +             i,class,iz,ia,ival,type2,omptype,nr,k,l,iword,ilev0,
+     +             nbr,ilev1
+      real         alphaldall,betaldall,gammashell1all,br,sum,val,
+     +             Pshiftconstantall
 c
 c ************** Defaults for fifth set of input variables *************
 c
@@ -90,8 +92,10 @@ c gp            : single-particle proton level density parameter
 c gn            : single-particle neutron level density parameter
 c gamgam        : total radiative width in eV
 c D0            : experimental s-wave resonance spacing in eV
-c S0            : s-wave strength function
 c etable,ftable : constant to adjust tabulated strength functions
+c ldadjust      : logical for energy-dependent level density adjustment
+c gamadjust     : logical for energy-dependent gamma adjustment
+c fisadjust     : logical for energy-dependent fission adjustment
 c irad          : variable to indicate M(=0) or E(=1) radiation
 c lval          : multipolarity
 c numgam        : maximum number of l-values for gamma multipolarity
@@ -102,8 +106,10 @@ c sgr           : strength of GR
 c epr           : energy of PR
 c gpr           : width of PR
 c tpr           : strength of PR
+c egradjust.....: adjustable factors for giant resonance parameters
+c                 (default 1.)
 c fiso          : correction factor for isospin forbidden transitions
-c aadjust....   : adjustable factors for level density parameters
+c aadjust,...   : adjustable factors for level density parameters
 c                 (default 1.)
 c axtype        : type of axiality of barrier
 c                 1: axial symmetry
@@ -113,6 +119,8 @@ c                 4: triaxial no left-right symmetry
 c                 5: no symmetry
 c fbarrier      : height of fission barrier
 c fwidth        : width of fission barrier
+c fbaradjust,...: adjustable factors for fission parameters
+c                 (default 1.)
 c betafiscor    : adjustable factor for fission path width
 c Zinit         : charge number of initial compound nucleus
 c Ninit         : neutron number of initial compound nucleus
@@ -142,13 +150,31 @@ c Emsdmin       : minimal outgoing energy for MSD calculation
 c Cstrip        : adjustable parameter for stripping/pick-up reactions
 c Cknock        : adjustable parameter for knockout reactions
 c Cbreak        : adjustable parameter for breakup reactions
+c nbranch       : number of branching levels
+c branchlevel   : level to which branching takes place
+c branchratio   : gamma-ray branching ratio to level
 c v1adjust....  : adjustable factors for OMP (default 1.)
+c preeqadjust   : logical for energy-dependent pre-eq. adjustment
+c Nadjust       : number of adjustable parameters
+c adjustkey     : keyword for local adjustment
+c adjustfile    : file for local adjustment
+c adjustpar     : local adjustment parameters
+c adjustix      : local adjustment index
+c nenadjust     : number of tabulated energies of local adjustment
+c Eadjust       : tabulated energy of local adjustment
+c Dadjust       : tabulated depth of local adjustment
 c ompadjustF    : logical for local OMP adjustment
 c ompadjustN    : number of energy ranges for local OMP adjustment
 c ompadjustE1   : start energy of local OMP adjustment
 c ompadjustE2   : end energy of local OMP adjustment
 c ompadjustD    : depth of local OMP adjustment
 c ompadjusts    : variance of local OMP adjustment
+c ompadjustp    : logical for energy-dependent OMP adjustment
+c Ejoin         : joining energy for high energy OMP
+c Vinfadjust    : adjustable factor for high energy limit of
+c                 real central potential
+c tljadjust     : logical for energy-dependent Tlj adjustment
+c tladjust      : adjustable factor for Tlj (default 1.)
 c jlmmode       : option for JLM imaginary potential normalization
 c flagrescue    : flag for final rescue: normalization to data
 c rescuefile    : file with incident energy dependent adjustment factors
@@ -159,10 +185,24 @@ c aradialcor    : adjustable parameter for shape of DF alpha potential
 c adepthcor     : adjustable parameter for depth of DF alpha potential
 c nanglerec     : number of recoil angles
 c RprimeU       : potential scattering radius
-c nTmax         : effective number of temperatures for Maxwellian 
+c nTmax         : effective number of temperatures for Maxwellian
 c                 average
 c astroT9       : temperature, in 10^9 K, for Maxwellian average
 c astroE        : energy, in MeV, for Maxwellian average
+c Ebeam         : incident energy in MeV for isotope production
+c Eback         : lower end of energy range in MeV for isotope
+c                 production
+c radiounit     : unit for radioactivity: Bq, kBq, MBq, Gbq,
+c                 mCi, Ci or kCi
+c yieldunit     : unit for isotope yield: num (number),
+c                 mug (micro-gram), mg, g, or kg
+c Ibeam         : beam current in mA for isotope production
+c Area          : target area in cm^2 for isotope production
+c Tirrad        : irradiation time per unit
+c unitTirrad    : irradiation time unit (y,d,h,m,s)
+c Tcool         : cooling time per unit
+c unitTcool     : cooling time unit (y,d,h,m,s)
+c rhotarget     : target material density
 c
       if (k0.eq.1.and.flagendf) then
         eninclow=0.
@@ -263,6 +303,9 @@ c
             Exmatch(Zix,Nix,ibar)=0.
             T(Zix,Nix,ibar)=0.
             E0(Zix,Nix,ibar)=1.e-20
+            Tadjust(Zix,Nix,ibar)=1.
+            E0adjust(Zix,Nix,ibar)=1.
+            Exmatchadjust(Zix,Nix,ibar)=1.
             Nlow(Zix,Nix,ibar)=-1
             Ntop(Zix,Nix,ibar)=-1
             s2adjust(Zix,Nix,ibar)=1.
@@ -275,18 +318,26 @@ c
           gn(Zix,Nix)=0.
           gamgam(Zix,Nix)=0.
           D0(Zix,Nix)=0.
-          S0(Zix,Nix)=0.
           etable(Zix,Nix)=0.
           ftable(Zix,Nix)=1.
+          ldadjust(Zix,Nix)=.false.
+          gamadjust(Zix,Nix)=.false.
+          fisadjust(Zix,Nix)=.false.
           do 40 irad=0,1
             do 40 lval=1,numgam
               do 40 igr=1,2
                 egr(Zix,Nix,irad,lval,igr)=0.
                 ggr(Zix,Nix,irad,lval,igr)=0.
                 sgr(Zix,Nix,irad,lval,igr)=0.
-                epr(Zix,Nix,irad,lval)=0.
-                gpr(Zix,Nix,irad,lval)=0.
-                tpr(Zix,Nix,irad,lval)=0.
+                epr(Zix,Nix,irad,lval,igr)=0.
+                gpr(Zix,Nix,irad,lval,igr)=0.
+                tpr(Zix,Nix,irad,lval,igr)=0.
+                egradjust(Zix,Nix,irad,lval,igr)=1.
+                ggradjust(Zix,Nix,irad,lval,igr)=1.
+                sgradjust(Zix,Nix,irad,lval,igr)=1.
+                epradjust(Zix,Nix,irad,lval,igr)=1.
+                gpradjust(Zix,Nix,irad,lval,igr)=1.
+                tpradjust(Zix,Nix,irad,lval,igr)=1.
    40     continue
           do type=0,6
             fiso(Zix,Nix,type)=1.
@@ -311,6 +362,8 @@ c
             axtype(Zix,Nix,ibar)=1
             fbarrier(Zix,Nix,ibar)=0.
             fwidth(Zix,Nix,ibar)=0.
+            fbaradjust(Zix,Nix,ibar)=1.
+            fwidthadjust(Zix,Nix,ibar)=1.
             Rtransmom(Zix,Nix,ibar)=1.
             Rclass2mom(Zix,Nix,ibar)=1.
             widthc2(Zix,Nix,ibar)=0.2
@@ -354,8 +407,27 @@ c
       do 70 type=0,6
         Cstrip(type)=1.
         Cknock(type)=1.
-        Cbreak(type)=1.
+c
+c Extra setting for problems with Kalbach model for (alpha,p) reactions
+c
+        if (k0.eq.6) then
+          Cbreak(type)=0.
+        else
+          Cbreak(type)=1.
+        endif
    70 continue
+      do 72 k=0,numlev
+        do 72 i=0,numlev
+          do 72 Nix=0,numN
+            do 72 Zix=0,numZ
+              branchlevel(Zix,Nix,i,k)=0
+              branchratio(Zix,Nix,i,k)=0.
+   72 continue
+      do 74 i=0,numlev
+        do 74 Nix=0,numN
+          do 74 Zix=0,numZ
+            nbranch(Zix,Nix,i)=0
+   74 continue
       do 80 type=1,6
         v1adjust(type)=1.
         v2adjust(type)=1.
@@ -365,6 +437,8 @@ c
         avadjust(type)=1.
         w1adjust(type)=1.
         w2adjust(type)=1.
+        w3adjust(type)=1.
+        w4adjust(type)=1.
         rwadjust(type)=-1.
         awadjust(type)=-1.
         rvdadjust(type)=-1.
@@ -383,7 +457,8 @@ c
         rwsoadjust(type)=-1.
         awsoadjust(type)=-1.
         rcadjust(type)=1.
-        do 90 omptype=1,12
+        Vinfadjust(type)=1.
+        do 90 omptype=1,numompadj
           ompadjustN(type,omptype)=0
           do 92 nr=1,numrange
             ompadjustE1(type,omptype,nr)=0.
@@ -392,9 +467,32 @@ c
             ompadjusts(type,omptype,nr)=1.
    92     continue
    90   continue
-   80 continue
-      do 94 type=1,6
         ompadjustF(type)=.false.
+        ompadjustp(type)=.false.
+   80 continue
+      do 81 type=1,6
+        Ejoin(type)=200.
+   81 continue
+      preeqadjust=.false.
+      Nadjust=0
+      do 82 i=1,numadj
+        adjustkey(i)='                                                 '
+        adjustfile(i)='                                                '
+        nenadjust(i)=0
+        do 84 k=1,4
+          adjustix(i,k)=0
+          adjustpar(i,k)=0.
+   84   continue
+        do 85 k=1,numenadj
+          Eadjust(i,k)=0.
+          Dadjust(i,k)=0.
+   85   continue
+   82 continue
+      do 94 type=-1,6
+        tljadjust(type)=.false.
+        do 96 l=0,numl
+          tladjust(type,l)=1.
+   96   continue
    94 continue
       flagrescue=.false.
       do 100 mt=1,nummt
@@ -421,6 +519,23 @@ c
       nTmax=numT
       astroT9=0.
       astroE=0.
+      Ebeam=-1.
+      Eback=-1.
+      Ibeam=1.
+      radiounit='gbq'
+      yieldunit='num'
+      Area=1.
+      Tirrad(1)=1
+      unitTirrad(1)='d'
+      Tcool(1)=1
+      unitTcool(1)='d'
+      do 108 k=2,5
+        Tirrad(k)=0
+        unitTirrad(k)=' '
+        Tcool(k)=0
+        unitTcool(k)=' '
+  108 continue
+      rhotarget=-1.
 c
 c **************** Read fifth set of input variables *******************
 c
@@ -442,6 +557,12 @@ c
         key=word(1)
         value=word(2)
         ch=word(2)(1:1)
+        Zix=0
+        Nix=0
+        type=0
+        lval=0
+        ibar=0
+        igr=1
 c
 c Test for keywords
 c
@@ -449,452 +570,309 @@ c Here, the various model parameters can be set to overrule the default
 c values. Most default values will be computed later on, since they
 c require more computation (e.g. level density parameters).
 c
-c iz    : charge number
-c ia    : mass number
-c val   : help variable
-c ivalue: help variable
+c Each keyword is characterized by a certain order of parameter
+c and value input. They are distinguished by different classes.
+c
+c Classes:
+c
+c 1: keyword Z A real-value [optional: local adjustment]
+c 2: keyword Z A integer-value
+c 3: keyword Z A real-value barrier [optional: local adjustment]
+c 4: keyword Z A integer-value barrier [optional: local adjustment]
+c 5: keyword Z A real-value rad-type l-val [optional: local adjustment]
+c 6: keyword particle-type real-value [optional: local adjustment]
+c 7: keyword particle-type integer-value
+c 8: keyword value [optional: local adjustment]
+c 9: keyword Z filename
+c
+c class     : input class
+c getvalues : subroutine to assign values to keywords
+c iz        : charge number
+c ia        : mass number
+c val       : real value
+c ival      : integer value
+c cval      : character value
+c flagassign: flag to assign value or not
 c
         if (key.eq.'elow') then
           read(value,*,end=1000,err=1000) eninclow
           goto 110
         endif
         if (key.eq.'massnucleus') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            massnucleus(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) massnucleus(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'massexcess') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            massexcess(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) massexcess(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'a') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            alev(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) alev(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'alimit') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            alimit(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) alimit(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'gammald') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            gammald(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) gammald(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'pair') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            pair(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) pair(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'pshift') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=115,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  115       Pshift(Zix,Nix,ibar)=val
-          endif
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) pshift(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'deltaw') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=120,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  120       deltaW(Zix,Nix,ibar)=val
-          endif
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) deltaW(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'exmatch') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=130,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  130       Exmatch(Zix,Nix,ibar)=val
-          endif
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Exmatch(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'t') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=140,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  140       T(Zix,Nix,ibar)=val
-          endif
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) T(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'e0') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=150,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  150       E0(Zix,Nix,ibar)=val
-          endif
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) E0(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'nlow') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) ivalue
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=160,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  160       Nlow(Zix,Nix,ibar)=ivalue
-          endif
+          class=4
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Nlow(Zix,Nix,ibar)=ival
           goto 110
         endif
         if (key.eq.'ntop') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) ivalue
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=170,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  170       Ntop(Zix,Nix,ibar)=ivalue
-          endif
+          class=4
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Ntop(Zix,Nix,ibar)=ival
           goto 110
         endif
         if (key.eq.'s2adjust') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=180,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  180       s2adjust(Zix,Nix,ibar)=val
-          endif
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) s2adjust(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'krotconstant') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=182,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  182       Krotconstant(Zix,Nix,ibar)=val
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            Krotconstant(Zix,Nix,ibar)=val
+            ldadjust(Zix,Nix)=.true.
           endif
           goto 110
         endif
         if (key.eq.'ctable') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=185,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  185       ctable(Zix,Nix,ibar)=val
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            ctable(Zix,Nix,ibar)=val
+            ldadjust(Zix,Nix)=.true.
           endif
           goto 110
         endif
         if (key.eq.'ptable') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=187,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  187       ptable(Zix,Nix,ibar)=val
-          endif
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) ptable(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'g') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            g(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) g(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'gp') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            gp(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) gp(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'gn') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            gn(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) gp(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'egr') then
-          igr=1
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            ch=word(5)(1:1)
-            if (ch.eq.'m'.or.ch.eq.'e') then
-              if (ch.eq.'m') irad=0
-              if (ch.eq.'e') irad=1
-              read(word(5)(2:2),*,end=1000,err=1000) lval
-              if (lval.lt.1.or.lval.gt.numgam) goto 1030
-              read(word(6),*,end=190,err=1000) igr
-              if (igr.lt.1.or.igr.gt.2) goto 1020
-  190         egr(Zix,Nix,irad,lval,igr)=val
-              goto 110
-            endif
-            goto 1000
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            egr(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
           endif
+          goto 110
         endif
         if (key.eq.'ggr') then
-          igr=1
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            ch=word(5)(1:1)
-            if (ch.eq.'m'.or.ch.eq.'e') then
-              if (ch.eq.'m') irad=0
-              if (ch.eq.'e') irad=1
-              read(word(5)(2:2),*,end=1000,err=1000) lval
-              if (lval.lt.1.or.lval.gt.numgam) goto 1030
-              read(word(6),*,end=200,err=1000) igr
-              if (igr.lt.1.or.igr.gt.2) goto 1020
-  200         ggr(Zix,Nix,irad,lval,igr)=val
-              goto 110
-            endif
-            goto 1000
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            ggr(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
           endif
+          goto 110
         endif
         if (key.eq.'sgr') then
-          igr=1
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            ch=word(5)(1:1)
-            if (ch.eq.'m'.or.ch.eq.'e') then
-              if (ch.eq.'m') irad=0
-              if (ch.eq.'e') irad=1
-              read(word(5)(2:2),*,end=1000,err=1000) lval
-              if (lval.lt.1.or.lval.gt.numgam) goto 1030
-              read(word(6),*,end=210,err=1000) igr
-              if (igr.lt.1.or.igr.gt.2) goto 1020
-  210         sgr(Zix,Nix,irad,lval,igr)=val
-              goto 110
-            endif
-            goto 1000
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            sgr(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
           endif
+          goto 110
         endif
         if (key.eq.'epr') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            ch=word(5)(1:1)
-            if (ch.eq.'m'.or.ch.eq.'e') then
-              if (ch.eq.'m') irad=0
-              if (ch.eq.'e') irad=1
-              read(word(5)(2:2),*,end=1000,err=1000) lval
-              if (lval.lt.1.or.lval.gt.numgam) goto 1030
-              epr(Zix,Nix,irad,lval)=val
-              goto 110
-            endif
-            goto 1000
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            epr(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
           endif
+          goto 110
         endif
         if (key.eq.'gpr') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            ch=word(5)(1:1)
-            if (ch.eq.'m'.or.ch.eq.'e') then
-              if (ch.eq.'m') irad=0
-              if (ch.eq.'e') irad=1
-              read(word(5)(2:2),*,end=1000,err=1000) lval
-              if (lval.lt.1.or.lval.gt.numgam) goto 1030
-              gpr(Zix,Nix,irad,lval)=val
-              goto 110
-            endif
-            goto 1000
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            gpr(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
           endif
+          goto 110
         endif
         if (key.eq.'spr') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            ch=word(5)(1:1)
-            if (ch.eq.'m'.or.ch.eq.'e') then
-              if (ch.eq.'m') irad=0
-              if (ch.eq.'e') irad=1
-              read(word(5)(2:2),*,end=1000,err=1000) lval
-              if (lval.lt.1.or.lval.gt.numgam) goto 1030
-              tpr(Zix,Nix,irad,lval)=val
-              goto 110
-            endif
-            goto 1000
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            tpr(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
           endif
+          goto 110
+        endif
+        if (key.eq.'egradjust') then
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            egradjust(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
+          endif
+          goto 110
+        endif
+        if (key.eq.'ggradjust') then
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            ggradjust(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
+          endif
+          goto 110
+        endif
+        if (key.eq.'sgradjust') then
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            sgradjust(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
+          endif
+          goto 110
+        endif
+        if (key.eq.'epradjust') then
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            epradjust(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
+          endif
+          goto 110
+        endif
+        if (key.eq.'gpradjust') then
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            gpradjust(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
+          endif
+          goto 110
+        endif
+        if (key.eq.'spradjust') then
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            tpradjust(Zix,Nix,irad,lval,igr)=val
+            gamadjust(Zix,Nix)=.true.
+          endif
+          goto 110
         endif
         if (key.eq.'fiso') then
-          do 215 type=0,6
+          do 120 type=0,6
             if (ch.eq.parsym(type)) then
               type2=type
-              goto 216
+              goto 130
             endif
-  215     continue
+  120     continue
           goto 1000
-  216     continue
+  130     continue
           read(word(3),*,end=1000,err=1000) iz
           read(word(4),*,end=1000,err=1000) ia
           read(word(5),*,end=1000,err=1000) val
@@ -908,655 +886,592 @@ c
           goto 110
         endif
         if (key.eq.'gamgam') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            gamgam(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) gamgam(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'d0') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            D0(Zix,Nix)=val*1000.
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) D0(Zix,Nix)=val*1000.
           goto 110
         endif
         if (key.eq.'aadjust') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            aadjust(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) aadjust(Zix,Nix)=val
+          goto 110
+        endif
+        if (key.eq.'tadjust') then
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Tadjust(Zix,Nix,ibar)=val
+          goto 110
+        endif
+        if (key.eq.'e0adjust') then
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) E0adjust(Zix,Nix,ibar)=val
+          goto 110
+        endif
+        if (key.eq.'exmatchadjust') then
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Exmatchadjust(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'gnadjust') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            gnadjust(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) gnadjust(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'gpadjust') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            gpadjust(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) gpadjust(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'gamgamadjust') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            gamgamadjust(Zix,Nix)=val
-          endif
-          goto 110
-        endif
-        if (key.eq.'s0') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            S0(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) gamgamadjust(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'etable') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
             etable(Zix,Nix)=val
+            gamadjust(Zix,Nix)=.true.
           endif
           goto 110
         endif
         if (key.eq.'ftable') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
             ftable(Zix,Nix)=val
+            gamadjust(Zix,Nix)=.true.
           endif
           goto 110
         endif
         if (key.eq.'fisbar') then
           ibar=1
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=220,err=1000) ibar
-            if (ibar.lt.1.or.ibar.gt.numbar) goto 1010
-  220       fbarrier(Zix,Nix,ibar)=val
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            fbarrier(Zix,Nix,ibar)=val
+            fisadjust(Zix,Nix)=.true.
           endif
           goto 110
         endif
         if (key.eq.'fishw') then
           ibar=1
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=230,err=1000) ibar
-            if (ibar.lt.1.or.ibar.gt.numbar) goto 1010
-  230       fwidth(Zix,Nix,ibar)=val
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            fwidth(Zix,Nix,ibar)=val
+            fisadjust(Zix,Nix)=.true.
+          endif
+          goto 110
+        endif
+        if (key.eq.'fisbaradjust') then
+          ibar=1
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            fbaradjust(Zix,Nix,ibar)=val
+            fisadjust(Zix,Nix)=.true.
+          endif
+          goto 110
+        endif
+        if (key.eq.'fishwadjust') then
+          ibar=1
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            fwidthadjust(Zix,Nix,ibar)=val
+            fisadjust(Zix,Nix)=.true.
           endif
           goto 110
         endif
         if (key.eq.'rtransmom') then
           ibar=1
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=240,err=1000) ibar
-            if (ibar.lt.1.or.ibar.gt.numbar) goto 1010
-  240       Rtransmom(Zix,Nix,ibar)=val
-          endif
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Rtransmom(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'rclass2mom') then
           ibar=1
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=250,err=1000) ibar
-            if (ibar.lt.1.or.ibar.gt.numbar) goto 1010
-  250       Rclass2mom(Zix,Nix,ibar)=val
-          endif
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Rclass2mom(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'class2width') then
           ibar=1
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=260,err=1000) ibar
-            if (ibar.lt.1.or.ibar.gt.numbar) goto 1010
-  260       widthc2(Zix,Nix,ibar)=val
-          endif
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) widthc2(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'levelfile') then
-          read(word(2),*,end=1000,err=1000) iz
-          Zix=Zinit-iz
-          if (Zix.lt.0.or.Zix.gt.numZ) then
-            goto 1040
-          else
-            levelfile(Zix)=word(3)
-            goto 110
-          endif
+          class=10
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) levelfile(Zix)=cval
+          goto 110
         endif
         if (key.eq.'deformfile') then
-          read(word(2),*,end=1000,err=1000) iz
-          Zix=Zinit-iz
-          if (Zix.lt.0.or.Zix.gt.numZ) then
-            goto 1040
-          else
-            deformfile(Zix)=word(3)
-            goto 110
-          endif
+          class=10
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) deformfile(Zix)=cval
+          goto 110
         endif
         if (key.eq.'hbtransfile') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            hbtransfile(Zix,Nix)=word(4)
-            goto 110
-          endif
+          class=10
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) hbtransfile(Zix,Nix)=cval
+          goto 110
         endif
         if (key.eq.'class2file') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            clas2file(Zix,Nix)=word(4)
-            goto 110
-          endif
+          class=10
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) clas2file(Zix,Nix)=cval
+          goto 110
         endif
         if (key.eq.'optmodfilen') then
-          read(word(2),*,end=1000,err=1000) iz
-          Zix=Zinit-iz
-          if (Zix.lt.0.or.Zix.gt.numZ) then
-            goto 1040
-          else
-            optmodfileN(Zix)=word(3)
-            goto 110
-          endif
+          class=10
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) optmodfilen(Zix)=cval
+          goto 110
         endif
         if (key.eq.'optmodfilep') then
-          read(word(2),*,end=1000,err=1000) iz
-          Zix=Zinit-iz
-          if (Zix.lt.0.or.Zix.gt.numZ) then
-            goto 1040
-          else
-            optmodfileP(Zix)=word(3)
-            goto 110
-          endif
+          class=10
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) optmodfilep(Zix)=cval
+          goto 110
         endif
         if (key.eq.'radialfile') then
-          read(word(2),*,end=1000,err=1000) iz
-          Zix=Zinit-iz
-          if (Zix.lt.0.or.Zix.gt.numZ) then
-            goto 1040
-          else
-            radialfile(Zix)=word(3)
-            goto 110
-          endif
+          class=10
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) radialfile(Zix)=cval
+          goto 110
         endif
         if (key.eq.'ompenergyfile') then
           ompenergyfile=value
           goto 110
         endif
         if (key.eq.'beta2') then
-          ibar=0
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=270,err=1000) ibar
-            if (ibar.lt.0.or.ibar.gt.numbar) goto 1010
-  270       beta2(Zix,Nix,ibar)=val
-          endif
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) beta2(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'axtype') then
           ibar=1
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) ivalue
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            read(word(5),*,end=280,err=1000) ibar
-            if (ibar.lt.1.or.ibar.gt.numbar) goto 1010
-  280       axtype(Zix,Nix,ibar)=ivalue
-          endif
+          class=4
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) axtype(Zix,Nix,ibar)=ival
           goto 110
         endif
         if (key.eq.'vfiscor') then
-          read(word(2),*,end=1000,err=1000) iz
-          read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
-          Zix=Zinit-iz
-          Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            vfiscor(Zix,Nix)=val
-          endif
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) vfiscor(Zix,Nix)=val
           goto 110
         endif
         if (key.eq.'betafiscor') then
+          class=1
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) betafiscor(Zix,Nix)=val
+          goto 110
+        endif
+        if (key.eq.'branch') then
           read(word(2),*,end=1000,err=1000) iz
           read(word(3),*,end=1000,err=1000) ia
-          read(word(4),*,end=1000,err=1000) val
+          read(word(4),*,end=1000,err=1000) ilev0
+          read(word(5),*,end=1000,err=1000) nbr
           Zix=Zinit-iz
           Nix=Ninit-ia+iz
-          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
-            goto 1040
-          else
-            betafiscor(Zix,Nix)=val
+          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN)
+     +      goto 1040
+          if (ilev0.lt.0..or.ilev0.gt.numlev) goto 1060
+          if (nbr.lt.0..or.nbr.gt.numlev) goto 1060
+          iword=5
+          sum=0.
+          do 140 k=1,nbr
+            iword=iword+1
+            read(word(iword),*,end=1000,err=1000) ilev1
+            if (ilev1.lt.0..or.ilev1.gt.numlev) goto 1060
+            iword=iword+1
+            read(word(iword),*,end=1000,err=1000) br
+            if (br.lt.0.) goto 1070
+            branchlevel(Zix,Nix,ilev0,k)=ilev1
+            branchratio(Zix,Nix,ilev0,k)=br
+            sum=sum+br
+  140     continue
+          if (sum.gt.0.) then
+            do 150 k=1,nbr
+              branchratio(Zix,Nix,ilev0,k)=branchratio(Zix,Nix,ilev0,k)
+     +          /sum
+  150       continue
           endif
+          nbranch(Zix,Nix,ilev0)=nbr
           goto 110
         endif
         if (key.eq.'cstrip') then
-          do 290 type=0,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 300
-            endif
-  290     continue
-          goto 1000
-  300     read(word(3),*,end=1000,err=1000) Cstrip(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Cstrip(type)=val
           goto 110
         endif
         if (key.eq.'cknock') then
-          do 310 type=0,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 320
-            endif
-  310     continue
-          goto 1000
-  320     read(word(3),*,end=1000,err=1000) Cknock(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Cknock(type)=val
           goto 110
         endif
         if (key.eq.'cbreak') then
-          do 322 type=0,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 324
-            endif
-  322     continue
-          goto 1000
-  324     read(word(3),*,end=1000,err=1000) Cbreak(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Cbreak(type)=val
           goto 110
         endif
         if (key.eq.'v1adjust') then
-          do 330 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 340
-            endif
-  330     continue
-          goto 1000
-  340     read(word(3),*,end=1000,err=1000) v1adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            v1adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'v2adjust') then
-          do 350 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 360
-            endif
-  350     continue
-          goto 1000
-  360     read(word(3),*,end=1000,err=1000) v2adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            v2adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'v3adjust') then
-          do 370 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 380
-            endif
-  370     continue
-          goto 1000
-  380     read(word(3),*,end=1000,err=1000) v3adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            v3adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'v4adjust') then
-          do 390 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 400
-            endif
-  390     continue
-          goto 1000
-  400     read(word(3),*,end=1000,err=1000) v4adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            v4adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'rvadjust') then
-          do 410 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 420
-            endif
-  410     continue
-          goto 1000
-  420     read(word(3),*,end=1000,err=1000) rvadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            rvadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'avadjust') then
-          do 430 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 440
-            endif
-  430     continue
-          goto 1000
-  440     read(word(3),*,end=1000,err=1000) avadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            avadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'w1adjust') then
-          do 450 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 460
-            endif
-  450     continue
-          goto 1000
-  460     read(word(3),*,end=1000,err=1000) w1adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            w1adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'w2adjust') then
-          do 470 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 480
-            endif
-  470     continue
-          goto 1000
-  480     read(word(3),*,end=1000,err=1000) w2adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            w2adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
+          goto 110
+        endif
+        if (key.eq.'w3adjust') then
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            w3adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
+          goto 110
+        endif
+        if (key.eq.'w4adjust') then
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            w4adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'rwadjust') then
-          do 490 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 500
-            endif
-  490     continue
-          goto 1000
-  500     read(word(3),*,end=1000,err=1000) rwadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            rwadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'awadjust') then
-          do 510 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 520
-            endif
-  510     continue
-          goto 1000
-  520     read(word(3),*,end=1000,err=1000) awadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            awadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'rvdadjust') then
-          do 530 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 540
-            endif
-  530     continue
-          goto 1000
-  540     read(word(3),*,end=1000,err=1000) rvdadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            rvdadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'avdadjust') then
-          do 550 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 560
-            endif
-  550     continue
-          goto 1000
-  560     read(word(3),*,end=1000,err=1000) avdadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) avdadjust(type)=val
+          ompadjustp(type)=.true.
           goto 110
         endif
         if (key.eq.'rwdadjust') then
-          do 570 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto  580
-            endif
-  570     continue
-          goto 1000
-  580     read(word(3),*,end=1000,err=1000) rwdadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            rwdadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'awdadjust') then
-          do 590 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 600
-            endif
-  590     continue
-          goto 1000
-  600     read(word(3),*,end=1000,err=1000) awdadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            awdadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'d1adjust') then
-          do 610 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 620
-            endif
-  610     continue
-          goto 1000
-  620     read(word(3),*,end=1000,err=1000) d1adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            d1adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'d2adjust') then
-          do 630 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 640
-            endif
-  630     continue
-          goto 1000
-  640     read(word(3),*,end=1000,err=1000) d2adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            d2adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'d3adjust') then
-          do 650 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 660
-            endif
-  650     continue
-          goto 1000
-  660     read(word(3),*,end=1000,err=1000) d3adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            d3adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'rvsoadjust') then
-          do 670 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 680
-            endif
-  670     continue
-          goto 1000
-  680     read(word(3),*,end=1000,err=1000) rvsoadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            rvsoadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'avsoadjust') then
-          do 690 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 700
-            endif
-  690     continue
-          goto 1000
-  700     read(word(3),*,end=1000,err=1000) avsoadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            avsoadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'vso1adjust') then
-          do 710 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 720
-            endif
-  710     continue
-          goto 1000
-  720     read(word(3),*,end=1000,err=1000) vso1adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            vso1adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'vso2adjust') then
-          do 730 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 740
-            endif
-  730     continue
-          goto 1000
-  740     read(word(3),*,end=1000,err=1000) vso2adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            vso2adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'rwsoadjust') then
-          do 750 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 760
-            endif
-  750     continue
-          goto 1000
-  760     read(word(3),*,end=1000,err=1000) rwsoadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            rwsoadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'awsoadjust') then
-          do 770 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 780
-            endif
-  770     continue
-          goto 1000
-  780     read(word(3),*,end=1000,err=1000) awsoadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            awsoadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'wso1adjust') then
-          do 790 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 800
-            endif
-  790     continue
-          goto 1000
-  800     read(word(3),*,end=1000,err=1000) wso1adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            wso1adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'wso2adjust') then
-          do 810 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 820
-            endif
-  810     continue
-          goto 1000
-  820     read(word(3),*,end=1000,err=1000) wso2adjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            wso2adjust(type)=val
+            ompadjustp(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'rcadjust') then
-          do 830 type=1,6
-            if (ch.eq.parsym(type)) then
-              type2=type
-              goto 840
-            endif
-  830     continue
-          goto 1000
-  840     read(word(3),*,end=1000,err=1000) rcadjust(type2)
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            rcadjust(type)=val
+            ompadjustp(type)=.true.
+          endif
+          goto 110
+        endif
+        if (key.eq.'ejoin') then
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Ejoin(type)=val
+          goto 110
+        endif
+        if (key.eq.'vinfadjust') then
+          class=6
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Vinfadjust(type)=val
+          goto 110
+        endif
+        if (key.eq.'tljadjust') then
+          class=8
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            tladjust(type,lval)=val
+            tljadjust(type)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'rvadjustf'.or.key.eq.'avadjustf'.or.
@@ -1577,14 +1492,15 @@ c
           if (key.eq.'avsoadjustf') omptype=10
           if (key.eq.'rwsoadjustf') omptype=11
           if (key.eq.'awsoadjustf') omptype=12
-          do 850 type=1,6
+          if (key.eq.'rcadjustf') omptype=13
+          do 160 type=1,6
             if (ch.eq.parsym(type)) then
               type2=type
-              goto 860
+              goto 170
             endif
-  850     continue
+  160     continue
           goto 1000
-  860     ompadjustF(type2)=.true.
+  170     ompadjustF(type2)=.true.
           ompadjustN(type2,omptype)=ompadjustN(type2,omptype)+1
           nr=ompadjustN(type2,omptype)
           read(word(3),*,end=1000,err=1000)
@@ -1599,20 +1515,20 @@ c
           read(word(2),*,end=1000,err=1000) mt
           if (mt.lt.1.or.mt.gt.nummt) goto 1050
           is=-1
-          do 870 k=1,71
+          do 210 k=1,71
             if (word(3)(k:k+1).eq.'_g') then
               is=0
-              goto 880
+              goto 220
             endif
             if (word(3)(k:k+1).eq.'_m') then
               is=1
-              goto 880
+              goto 220
             endif
-  870     continue
-  880     rescuefile(mt,is)=word(3)
+  210     continue
+  220     rescuefile(mt,is)=word(3)
           val=1.
-          read(word(4),*,end=890,err=1000) val
-  890     grescue(mt,is)=val
+          read(word(4),*,end=230,err=1000) val
+  230     grescue(mt,is)=val
           flagrescue=.true.
           goto 110
         endif
@@ -1621,39 +1537,90 @@ c
           goto 110
         endif
         if (key.eq.'lvadjust') then
-          read(value,*,end=1000,err=1000) lvadjust
+          class=9
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            lvadjust=val
+            ompadjustp(1)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'lwadjust') then
-          read(value,*,end=1000,err=1000) lwadjust
+          class=9
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            lwadjust=val
+            ompadjustp(1)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'lv1adjust') then
-          read(value,*,end=1000,err=1000) lv1adjust
+          class=9
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            lv1adjust=val
+            ompadjustp(1)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'lw1adjust') then
-          read(value,*,end=1000,err=1000) lw1adjust
+          class=9
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            lw1adjust=val
+            ompadjustp(1)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'lvsoadjust') then
-          read(value,*,end=1000,err=1000) lvsoadjust
+          class=9
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            lvsoadjust=val
+            ompadjustp(1)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'lwsoadjust') then
-          read(value,*,end=1000,err=1000) lwsoadjust
+          class=9
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            lwsoadjust=val
+            ompadjustp(1)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'aradialcor') then
-          read(value,*,end=1000,err=1000) aradialcor
+          class=9
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            aradialcor=val
+            ompadjustp(6)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'adepthcor') then
-          read(value,*,end=1000,err=1000) adepthcor
+          class=9
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            adepthcor=val
+            ompadjustp(6)=.true.
+          endif
           goto 110
         endif
         if (key.eq.'gnorm') then
-          read(value,*,end=1000,err=1000) gnorm
+          class=9
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) gnorm=val
           goto 110
         endif
         if (key.eq.'spincutmodel') then
@@ -1673,7 +1640,10 @@ c
           goto 110
         endif
         if (key.eq.'rspincut') then
-          read(value,*,end=1000,err=1000) Rspincut
+          class=9
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Rspincut=val
           goto 110
         endif
         if (key.eq.'alphald') then
@@ -1721,7 +1691,13 @@ c
           goto 110
         endif
         if (key.eq.'m2constant') then
-          read(value,*,end=1000,err=1000) M2constant
+          class=9
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) then
+            M2constant=val
+            preeqadjust=.true.
+          endif
           goto 110
         endif
         if (key.eq.'m2limit') then
@@ -1801,6 +1777,52 @@ c
           flagastrogs=.true.
           goto 110
         endif
+        if (key.eq.'ebeam') then
+          read(value,*,end=1000,err=1000) Ebeam
+          goto 110
+        endif
+        if (key.eq.'eback') then
+          read(value,*,end=1000,err=1000) Eback
+          goto 110
+        endif
+        if (key.eq.'radiounit') then
+          read(value,*,end=1000,err=1000) radiounit
+          goto 110
+        endif
+        if (key.eq.'yieldunit') then
+          read(value,*,end=1000,err=1000) yieldunit
+          goto 110
+        endif
+        if (key.eq.'ibeam') then
+          read(value,*,end=1000,err=1000) Ibeam
+          goto 110
+        endif
+        if (key.eq.'area') then
+          read(value,*,end=1000,err=1000) Area
+          goto 110
+        endif
+        if (key.eq.'tirrad') then
+          Tirrad(1)=0
+          unitTirrad(1)=' '
+          do 310 k=1,5
+            read(word(2*k),'(i9)',end=110,err=1000) Tirrad(k)
+            read(word(2*k+1),'(a1)',end=1000,err=1000) unitTirrad(k)
+  310     continue
+          goto 110
+        endif
+        if (key.eq.'rho') then
+          read(value,*,end=1000,err=1000) rhotarget
+          goto 110
+        endif
+        if (key.eq.'tcool') then
+          Tcool(1)=0
+          unitTcool(1)=' '
+          do 320 k=1,5
+            read(word(2*k),*,end=110,err=1000) Tcool(k)
+            read(word(2*k+1),*,end=1000,err=1000) unitTcool(k)
+  320     continue
+          goto 110
+        endif
         goto 110
  1040   write(*,'(" TALYS-warning: Z,N index out of range,",
      +    " keyword ignored: ",a80)') inline(i)
@@ -1855,19 +1877,19 @@ c
         endif
   950 continue
       return
+
+c Error and warning messages
+c
  1000 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
-      stop
- 1010 write(*,'(" TALYS-error: 0(1) <= fission barrier <=",i3,
-     +  ", ibar index out of range: ",a80)') numbar,inline(i)
-      stop
- 1020 write(*,'(" TALYS-error: 0 <= resonance number <= 2",
-     +  ", igr index out of range: ",a80)') inline(i)
-      stop
- 1030 write(*,'(" TALYS-error: 0 <= multipole radiation <= ",i1,
-     +  ", lval index out of range: ",a80)') numgam,inline(i)
       stop
  1050 write(*,'(" TALYS-error: 1 <= MT number <= ",i4,
      +  ", MT index out of range: ",a80)') nummt,inline(i)
       stop
+ 1060 write(*,'(" TALYS-error: 0 <= level number <= ",i4,
+     +  ", ilev0, ilev1 or nbr index out of range: ",a80)')
+     +  numlev,inline(i)
+ 1070 write(*,'(" TALYS-error: 0 <= branching ratio",
+     +  ", br index out of range: ",a80)') inline(i)
+      stop
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,17 +2,18 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 30, 2010
+c | Date  : April 4, 2012
 c | Task  : Contribution of breakup reactions
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer type,type2,nen
-      real    Nab(numpar,numpar),r0,Deff,Ca,Cb,Ecent,arg,step,Sab,F,H,
-     +        Feff,width,fac1,Emax,wplus,wmin,Epk,Tpren,Ehalf,xsbreakup,
-     +        Eout,wi,fac2,TE,PE
+      character*80 key
+      integer      type,type2,nen
+      real         Nab(numpar,numpar),r0,Deff,Ca,Cb,Ecent,arg,step,Sab,
+     +             F,H,Feff,width,fac1,Emax,wplus,wmin,Epk,Tpren,factor,
+     +             Ehalf,xsbreakup,Eout,wi,fac2,TE,PE
 c
 c ************************** Kalbach model *****************************
 c
@@ -150,14 +151,18 @@ c Breakup cross section
 c
 c Tpren    : barrier-penetrability factor
 c Cbreak   : adjustable parameter for break-up reactions
+c adjust   : subroutine for energy-dependent parameter adjustment
+c factor   : multiplication factor
 c Ehalf    : help variable
 c twothird : 2/3
 c xsbreakup: break-up cross section
 c
         Ehalf=42.*(parA(k0)-parA(type))**twothird
         Tpren=1./(1.+exp((Ehalf-Einc)/14.))
-        xsbreakup=Cbreak(type)*Nab(k0,type)*Deff*Deff*exp(Einc/170.)*
-     +    Tpren
+        key='cbreak'
+        call adjust(Einc,key,0,0,type,0,factor)
+        xsbreakup=factor*Cbreak(type)*Nab(k0,type)*Deff*Deff*
+     +    exp(Einc/170.)*Tpren
 c
 c Break-up term that depends on emission energy.
 c
@@ -188,4 +193,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

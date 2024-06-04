@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : March 11, 2010
+c | Date  : July 26, 2013
 c | Task  : Compound emission spectra
 c +---------------------------------------------------------------------
 c
@@ -55,6 +55,7 @@ c is denoted by nexmax.
 c
       do 10 nex=maxex(Zcomp,Ncomp),Nlast(Zcomp,Ncomp,0)+1,-1
         Exinc=Ex(Zcomp,Ncomp,nex)
+        dExinc=deltaEx(Zcomp,Ncomp,nex)
         Ex0plus=Exinc+0.5*dExinc
         Ex0min=Exinc-0.5*dExinc
         do 20 type=0,6
@@ -63,8 +64,8 @@ c
           Nix=Nindex(Zcomp,Ncomp,type)
           Exm=Ex0plus-S(Zcomp,Ncomp,type)
           if (type.gt.1) Exm=Exm-egrid(ebegin(type))
-          dEx=deltaEx(Zix,Nix)
           do 30 nexout=maxex(Zix,Nix),0,-1
+            dEx=deltaEx(Zix,Nix,nexout)
             Exmin=Ex(Zix,Nix,nexout)-0.5*dEx
             if (Exmin.lt.Exm) then
               nexmax(type)=nexout
@@ -104,8 +105,8 @@ c
 c mcontrib: contribution to emission spectrum
 c speceps : limit for cross section spectra
 c
-          dEx=deltaEx(Zix,Nix)
           do 130 nexout=0,nexmax(type)
+            dEx=deltaEx(Zix,Nix,nexout)
             if (nexout.eq.0.and.NL.eq.0) goto 130
             if (mcontrib(type,nex,nexout).le.speceps) goto 130
             Exout=Ex(Zix,Nix,nexout)
@@ -332,4 +333,4 @@ c
    10 continue
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

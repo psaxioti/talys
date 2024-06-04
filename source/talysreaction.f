@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 23, 2011
+c | Date  : December 2, 2013
 c | Task  : Reaction models
 c +---------------------------------------------------------------------
 c
@@ -14,6 +14,7 @@ c ************************* Reaction calculation ***********************
 c
 c Basic cross sections (optical model) and initialisation
 c
+c flagreaction: flag for calculation of nuclear reactions
 c flagompall  : flag for new optical model calculation for all residual
 c               nuclei
 c basicxs     : subroutine for basic cross sections and transmission
@@ -23,22 +24,26 @@ c gamma       : subroutine for gamma cross section and transmission
 c               coefficients
 c enincmax    : maximum incident energy
 c epreeq      : on-set incident energy for preequilibrium calculation
+c flagracap   : flag for radiative capture model
 c preeqinit   : subroutine for initialization of general
 c               pre-equilibrium parameters
 c excitoninit : subroutine for initialization of exciton model
 c               parameters
+c racapinit   : subroutine for initialization of radiative capture model
 c flagcomp    : flag for compound nucleus calculation
 c compoundinit: subroutine for initialization of compound model
 c               parameters
 c flagastro   : flag for calculation of astrophysics reaction rate
 c astroinit   : subroutine for initialization of astrophysics quantities
 c
+      if (.not.flagreaction) goto 100
       if (.not.flagompall) call basicxs(0,0)
       if (parinclude(0)) call gamma(0,0)
-      if (enincmax.ge.epreeq) then
+      if (enincmax.ge.epreeq.or.flagracap) then
         call preeqinit
         call excitoninit
       endif
+      if (flagracap) call racapinit
       if (flagcomp) call compoundinit
       if (flagastro) call astroinit
 c
@@ -85,9 +90,13 @@ c
 c
 c Direct reactions
 c
-c direct: subroutine for calculation of direct inelastic cross sections
+c direct   : subroutine for calculation of direct inelastic cross
+c            sections
+c flagracap: flag for radiative capture model
+c racap    : subroutine for radiative capture model
 c
         call direct
+        if (flagracap) call racap
 c
 c Pre-equilibrium reactions
 c
@@ -145,6 +154,7 @@ c spectra      : subroutine for creation of particle spectra
 c flagfission  : flag for fission
 c flagmassdis  : flag for calculation of fission fragment mass yields
 c massdis      : subroutine for fission fragment yields
+c massdisout   : subroutine for output of fission fragment yields
 c residual     : subroutine for residual production cross sections
 c totalrecoil  : subroutine for recoil results
 c flagrescue   : flag for final rescue: normalization to data
@@ -158,7 +168,10 @@ c output       : subroutine for output
 c
         call totalxs
         if (flagspec.or.flagddx) call spectra
-        if (flagfission.and.flagmassdis) call massdis
+        if (flagfission.and.flagmassdis) then
+          call massdis
+          call massdisout
+        endif
         call residual
         if (flagrecoil) call totalrecoil
         if (flagrescue) call normalization
@@ -178,6 +191,8 @@ c               integral spectrum
 c flagendf    : flag for information for ENDF-6 file
 c endf        : subroutine for cross sections and information for
 c               ENDF-6 file
+c flagprod    : flag for isotope production
+c isoprod     : subroutine for isotope production
 c flagmain    : flag for main output
 c timer       : subroutine for output of execution time
 c
@@ -188,7 +203,8 @@ c
       endif
       if (flagintegral) call integral
       if (flagendf) call endf
+  100 if (flagprod) call isoprod
       if (flagmain) call timer
       return
       end
-Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
