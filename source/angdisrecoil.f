@@ -9,8 +9,30 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer Zcomp,Ncomp,type,Zix,Nix,nex,iang
-      real    SS
+      integer   Zcomp,Ncomp,type,Zix,Nix,nex,iang
+      real      SS
+      real      compmass,ratio
+      real      xsCMlev0,xsCMlev
+      real      Exrec1,Exrec2
+      real      pejcm1,pejcm2
+      real      sumang,inorm
+      real      angnorm
+      real      ddxCM,fluxCM
+      integer   irenorm
+      real      Emaxi
+      real      dEori,dEnew,renorm
+      real      labsurf,labsurf1,labsurf2
+      real      scovej1(1:numen2,0:2*numangcont+1)
+      real      scovej2(1:numen2,0:2*numangcont+1)
+      real      scovrec1(0:numenrec,0:2*numangrec+1)
+      real      scovrec2(0:numenrec,0:2*numangrec+1)
+      integer   xlim1(2),ylim1(2),xlim2(2),ylim2(2)
+      real      ddxLAB
+      integer   iymax,iymaxp1
+      integer   ix,iy,iymod,iys
+      real      ddxejlabdis(0:numpar,0:numen2,0:numangcont)
+      real      ddxrecadd,sumddxrec,fluxadd,surfbin
+      integer   iarec2,inex
 c
 c recoil local variables
 c
@@ -65,32 +87,6 @@ c ddxrecadd  : help variable
 c ddxrec     : LAB ddx array
 c areareclab : Total surface of LAB ddx bins
 c ddxrectot  : Total ddx integral
-c
-      real      compmass,ratio
-      real      xsCMlev0,xsCMlev
-      real      Exrec1,Exrec2
-      real      pejcm1,pejcm2
-      real      sumang,inorm
-      real      angnorm
-      real      ddxCM,fluxCM
-      integer   irenorm
-      real      Emaxi
-      real      dEori,dEnew,renorm
-      real      labsurf,labsurf1,labsurf2
-      dimension scovej1(1:numen2,0:2*numangcont+1)
-      dimension scovej2(1:numen2,0:2*numangcont+1)
-      dimension scovrec1(0:numenrec,0:2*numangrec+1)
-      dimension scovrec2(0:numenrec,0:2*numangrec+1)
-      real      scovej1,scovej2,scovrec1,scovrec2
-      dimension xlim1(2),ylim1(2),xlim2(2),ylim2(2)
-      integer   xlim1,ylim1,xlim2,ylim2
-      real      ddxLAB
-      integer   iymax,iymaxp1
-      integer   ix,iy,iymod,iys
-      dimension ddxejlabdis(0:numpar,0:numen2,0:numangcont)
-      real      ddxejlabdis
-      real      ddxrecadd,sumddxrec,fluxadd,surfbin
-      integer   iarec2,inex
 c
 c Initialisations (angcm=0 since first compound system decay)
 c

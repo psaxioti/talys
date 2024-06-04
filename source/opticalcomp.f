@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 11, 2013
+c | Date  : December 15, 2014
 c | Task  : Optical potential for composite particles
 c +---------------------------------------------------------------------
 c
@@ -15,7 +15,9 @@ c
      +             vdn,rvdn,avdn,wdn,vp,rvp,avp,wp,rwp,awp,vdp,rvdp,
      +             avdp,wdp,vson,rvson,avson,wson,vsop,rvsop,avsop,wsop,
      +             en1(numrange),en2(numrange),Dr(numrange),
-     +             sr(numrange),factor
+     +             sr(numrange),factor,vkd,rvkd,avkd,wkd,rwkd,awkd,vdkd,
+     +             rvdkd,avdkd,wdkd,rwdkd,awdkd,vsokd,rvsokd,avsokd,
+     +             wsokd,rwsokd,awsokd,rckd,Efrac
 c
 c ******************* Optical model input file *************************
 c
@@ -193,12 +195,66 @@ c
 c
 c Alternative options for complex particle OMP
 c
+c altomp     : flag for alternative optical model
 c deuteronomp: deuteron optical model
 c alphaomp   : alpha optical model
 c
-      if (k.eq.3.and.deuteronomp.ge.2)
-     +  call opticaldeut(Zix,Nix,eopt)
-      if (k.eq.6.and.alphaomp.eq.2) call opticalalpha
+      if (altomp(k)) then
+        vkd=v
+        rvkd=rv
+        avkd=av
+        wkd=w
+        rwkd=rw
+        awkd=aw
+        vdkd=vd
+        rvdkd=rvd
+        avdkd=avd
+        wdkd=wd
+        rwdkd=rwd
+        awdkd=awd
+        vsokd=vso
+        rvsokd=rvso
+        avsokd=avso
+        wsokd=wso
+        rwsokd=rwso
+        awsokd=awso
+        rckd=rc
+        i=1
+        if (k.eq.3.and.deuteronomp.ge.2) then
+          call opticaldeut(Zix,Nix,eopt)
+          i=deuteronomp
+        endif
+        if (k.eq.6.and.(alphaomp.eq.2.or.alphaomp.ge.6)) then
+          call opticalalpha(Zix,Nix,eopt)
+          i=alphaomp
+        endif
+        Efrac=1.
+        if (eopt.le.Eompbeg0(k,i)) Efrac=0.
+        if (eopt.gt.Eompbeg0(k,i).and.eopt.le.Eompbeg1(k,i))
+     +    Efrac=(eopt-Eompbeg0(k,i))/(Eompbeg1(k,i)-Eompbeg0(k,i))
+        if (eopt.gt.Eompend1(k,i).and.eopt.le.Eompend0(k,i))
+     +    Efrac=1.-(eopt-Eompend1(k,i))/(Eompend0(k,i)-Eompend1(k,i))
+        if (eopt.gt.Eompend0(k,i)) Efrac=0.
+        v=Efrac*v+(1-Efrac)*vkd
+        rv=Efrac*rv+(1-Efrac)*rvkd
+        av=Efrac*av+(1-Efrac)*avkd
+        w=Efrac*w+(1-Efrac)*wkd
+        rw=Efrac*rw+(1-Efrac)*rwkd
+        aw=Efrac*aw+(1-Efrac)*awkd
+        vd=Efrac*vd+(1-Efrac)*vdkd
+        rvd=Efrac*rvd+(1-Efrac)*rvdkd
+        avd=Efrac*avd+(1-Efrac)*avdkd
+        wd=Efrac*wd+(1-Efrac)*wdkd
+        rwd=Efrac*rwd+(1-Efrac)*rwdkd
+        awd=Efrac*awd+(1-Efrac)*awdkd
+        vso=Efrac*vso+(1-Efrac)*vsokd
+        rvso=Efrac*rvso+(1-Efrac)*rvsokd
+        avso=Efrac*avso+(1-Efrac)*avsokd
+        wso=Efrac*wso+(1-Efrac)*wsokd
+        rwso=Efrac*rwso+(1-Efrac)*rwsokd
+        awso=Efrac*awso+(1-Efrac)*awsokd
+        rc=Efrac*rc+(1-Efrac)*rckd
+      endif
 c
 c Possible additional energy-dependent adjustment of the geometry
 c

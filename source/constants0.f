@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 23, 2012
+c | Date  : August 10, 2015
 c | Task  : Constants and basic properties of particles
 c +---------------------------------------------------------------------
 c
@@ -60,7 +60,9 @@ c
      +  'Lu','Hf','Ta','W ','Re','Os','Ir','Pt','Au','Hg',
      +  'Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
      +  'Pa','U ','Np','Pu','Am','Cm','Bk','Cf','Es','Fm',
-     +  'Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds'/
+     +  'Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds',
+     +  'Rg','Cn','B3','Fl','B5','Lv','B7','B8','B9','C0',
+     +  'C1','C2','C3','C4'/
       data (magic(indx),indx=1,8) /2,8,20,28,50,82,126,184/
 c
 c **************** Set character symbol for parities *******************
@@ -69,7 +71,7 @@ c The '+' parity will have the value 1 and the '-' parity the value -1
 c
 c cparity: parity (character)
 c
-      data (cparity(indx),indx=-1,1,2) /'-','+'/
+      data (cparity(indx),indx=-1,1) /'-',' ','+'/
 c
 c *********************** Fundamental constants ************************
 c
@@ -85,9 +87,13 @@ c avogadro: Avogadro's number
 c qelem   : elementary charge in C
 c
       data pi /3.14159265358979323/
-      data amu,e2 /931.49386,1.439965161/
-      data hbar,clight /6.5821220e-22,2.99792458e8/
-      data kT,emass /0.086173,0.510999/
-      data avogadro,qelem /6.0221367e23,1.6021773e-19/
+      data amu /931.49386/
+      data e2 /1.439965161/
+      data hbar /6.5821220e-22/
+      data clight /2.99792458e8/
+      data kT /0.086173/
+      data emass /0.510999/
+      data avogadro /6.0221367e23/
+      data qelem /1.6021773e-19/
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

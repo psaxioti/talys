@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 2, 2013
+c | Date  : June 15, 2014
 c | Task  : Reaction models
 c +---------------------------------------------------------------------
 c
@@ -155,6 +155,9 @@ c flagfission  : flag for fission
 c flagmassdis  : flag for calculation of fission fragment mass yields
 c massdis      : subroutine for fission fragment yields
 c massdisout   : subroutine for output of fission fragment yields
+c fymodel      : fission yield model, 1: Brosa 2: GEF
+c nubarout     : subroutine for output of number of fission neutrons 
+c                and spectra
 c residual     : subroutine for residual production cross sections
 c totalrecoil  : subroutine for recoil results
 c flagrescue   : flag for final rescue: normalization to data
@@ -170,7 +173,8 @@ c
         if (flagspec.or.flagddx) call spectra
         if (flagfission.and.flagmassdis) then
           call massdis
-          call massdisout
+          if (fymodel.le.2) call massdisout
+          if (fymodel.eq.2) call nubarout
         endif
         call residual
         if (flagrecoil) call totalrecoil
@@ -178,16 +182,20 @@ c
         if (nin.eq.numinclow+1.and.numinclow.gt.0) call thermal
    20   if (flagurr) call urr
         if (.not.flagastro) call output
+        if (flagfission.and.flagmassdis.and.fymodel.eq.3) call ffevap
+        if (flagrpevap) call rpevap
    10 continue
 c
 c Final output
 c
 c astro       : subroutine for astrophysical reaction rates
 c finalout    : subroutine for output of final results
+c flagres     : flag for output of low energy resonance cross sections
 c flagintegral: flag for calculation of effective cross section using
 c               integral spectrum
 c integral    : subroutine to calculate effective cross section for
 c               integral spectrum
+c flagsacs    : flag for statistical analysis of cross sections
 c flagendf    : flag for information for ENDF-6 file
 c endf        : subroutine for cross sections and information for
 c               ENDF-6 file
@@ -201,7 +209,9 @@ c
       else
         call finalout
       endif
+      if (flagres) call resonance
       if (flagintegral) call integral
+      if (flagsacs) call sacs
       if (flagendf) call endf
   100 if (flagprod) call isoprod
       if (flagmain) call timer

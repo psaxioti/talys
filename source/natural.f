@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 27, 2013
+c | Date  : December 1, 2014
 c | Task  : Calculation for natural elements
 c +---------------------------------------------------------------------
 c
@@ -21,7 +21,7 @@ c
       character*80 str(6)
       integer      i,k,k2,type,iang,j,n1,n2,nen,neniso(numiso),nenen,
      +             zbeg,zend,abeg,aend,iz,ia,npart,ih,it,id,ip,in,nex
-      real         en(numen2),xst(9),xstotnat(9,numen2),
+      real         en(numen2),xst(10),xstotnat(10,numen2),
      +             xsprodnat(numen2),xsyieldnat(numen2),xsnat(0:numen2),
      +             xs1nat(0:numen2),xs2nat(0:numen2),xs,y,xs1,xs2,
      +             enspec(numiso,0:numen2nat),E,entmp,Ea,Eb,Efac,
@@ -72,7 +72,7 @@ c
         en(k)=0.
         xsprodnat(k)=0.
         xsyieldnat(k)=0.
-        do 10 k2=1,9
+        do 10 k2=1,10
           xst(k2)=0.
           xstotnat(k2,k)=0.
    10 continue
@@ -84,9 +84,9 @@ c
             open (2,status='old',file=totfile)
             read(2,'(////)',end=50,err=50)
             do 30 k=1,numinc
-              read(2,'(f10.3,2x,1p,9e11.4)',end=50,err=30) en(k),
-     +          (xst(k2),k2=1,9)
-              do 40 k2=1,9
+              read(2,'(11e11.4)',end=50,err=30) en(k),
+     +          (xst(k2),k2=1,10)
+              do 40 k2=1,10
                 xstotnat(k2,k)=xstotnat(k2,k)+abun(i)*xst(k2)
    40         continue
    30       continue
@@ -98,12 +98,12 @@ c
      +    parsym(k0),Starget
         write(3,'("# ")')
         write(3,'("# ")')
-        write(3,'("# # energies =",i3)') numinc
+        write(3,'("# # energies =",i6)') numinc
         write(3,'("#    E      Non-elastic  Elastic     Total",
      +    "     Comp. el.  Shape el.  Reaction",
-     +    " Comp. nonel   Direct   Pre-equil.")')
+     +    " Comp. nonel   Direct   Pre-equil.   Dir. Capt.")')
         do 60 k=1,numinc
-          write(3,'(f10.3,2x,1p,9e11.4)') en(k),(xstotnat(k2,k),k2=1,9)
+          write(3,'(1p,11e11.4)') en(k),(xstotnat(k2,k),k2=1,10)
    60   continue
         close (unit=3)
 c
@@ -125,7 +125,7 @@ c
               open (2,status='old',file=prodfile)
               read(2,'(////)',end=150,err=150)
               do 140 k=1,numinc
-                read(2,'(f10.3,2e12.5)',end=150,err=140) en(k),xs,y
+                read(2,'(3e12.5)',end=150,err=140) en(k),xs,y
                 xsprodnat(k)=xsprodnat(k)+abun(i)*xs
                 xsyieldnat(k)=xsyieldnat(k)+abun(i)*y
   140         continue
@@ -137,11 +137,10 @@ c
      +      parsym(k0),Starget,parname(type)
           write(3,'("# ")')
           write(3,'("# ")')
-          write(3,'("# # energies =",i3)') numinc
+          write(3,'("# # energies =",i6)') numinc
           write(3,'("#    E         xs         Yield")')
           do 160 k=1,numinc
-            write(3,'(1p,e10.3,2e12.5)') en(k),xsprodnat(k),
-     +        xsyieldnat(k)
+            write(3,'(1p,3e12.5)') en(k),xsprodnat(k),xsyieldnat(k)
   160     continue
           close (unit=3)
   110   continue
@@ -191,7 +190,7 @@ c
      +        " angular distribution")') parsym(k0),Starget
             write(3,'("# E-incident = ",f7.3)') eninc(k)
             write(3,'("# ")')
-            write(3,'("# # angles   =",i3)') nangle+1
+            write(3,'("# # angles   =",i4)') nangle+1
             write(3,'("#   E         xs            Direct",
      +        "         Compound")')
             do 260 iang=0,nangle
@@ -306,7 +305,7 @@ c
      +        parsym(k0),Starget,parname(type)
             write(3,'("# E-incident = ",f7.3)') eninc(k)
             write(3,'("# ")')
-            write(3,'("# # energies =",i3)') nenen
+            write(3,'("# # energies =",i6)') nenen
             write(3,'("# E-out    Total       Direct    Pre-equil.",
      +        "  Mult. preeq  Compound")')
             do 490 nen=1,nenen
@@ -357,7 +356,7 @@ c
                 open (2,status='old',file=resfile)
                 read(2,'(////)',end=550,err=550)
                 do 540 k=1,numinc
-                  read(2,'(f10.3,e12.5)',end=550,err=540) en(k),xs
+                  read(2,'(2e12.5)',end=550,err=540) en(k),xs
                   xsnat(k)=xsnat(k)+abun(i)*xs
   540           continue
   550           close (unit=2)
@@ -369,10 +368,10 @@ c
      +          " - Total")') parsym(k0),Starget,ia,nuc(iz)
               write(3,'("# ")')
               write(3,'("# ")')
-              write(3,'("# # energies =",i3)') numinc
+              write(3,'("# # energies =",i6)') numinc
               write(3,'("#    E         xs")')
               do 560 k=1,numinc
-                write(3,'(1p,e10.3,e12.5)') en(k),xsnat(k)
+                write(3,'(1p,2e12.5)') en(k),xsnat(k)
   560         continue
               close (unit=3)
             endif
@@ -397,7 +396,7 @@ c
                   open (2,status='old',file=resfile)
                   read(2,'(////)',end=610,err=610)
                   do 600 k=1,numinc
-                    read(2,'(f10.3,e12.5)',end=610,err=600) en(k),xs
+                    read(2,'(2e12.5)',end=610,err=600) en(k),xs
                     xsnat(k)=xsnat(k)+abun(i)*xs
   600             continue
   610             close (unit=2)
@@ -409,10 +408,10 @@ c
      +            " - Level",i3)') parsym(k0),Starget,ia,nuc(iz),nex
                 write(3,'("# ")')
                 write(3,'("# ")')
-                write(3,'("# # energies =",i3)') numinc
+                write(3,'("# # energies =",i6)') numinc
                 write(3,'("#    E         xs")')
                 do 620 k=1,numinc
-                  write(3,'(1p,e10.3,e12.5)') en(k),xsnat(k)
+                  write(3,'(1p,2e12.5)') en(k),xsnat(k)
   620           continue
                 close (unit=3)
               endif
@@ -452,7 +451,7 @@ c
               open (2,status='old',file=xsfile)
               read(2,'(////)',end=750,err=750)
               do 740 k=1,numinc
-                read(2,'(f10.3,e12.5)',end=750,err=740) en(k),xs
+                read(2,'(2e12.5)',end=750,err=740) en(k),xs
                 xsnat(k)=xsnat(k)+abun(i)*xs
   740         continue
   750         close (unit=2)
@@ -463,10 +462,10 @@ c
             write(3,'("# ",a1," + nat-",a2)') parsym(k0),Starget
             write(3,'("# ")')
             write(3,'("# ")')
-            write(3,'("# # energies =",i3)') numinc
+            write(3,'("# # energies =",i6)') numinc
             write(3,'("#    E         xs")')
             do 760 k=1,numinc
-              write(3,'(1p,e10.3,e12.5)') en(k),xsnat(k)
+              write(3,'(1p,2e12.5)') en(k),xsnat(k)
   760       continue
             close (unit=3)
           endif
@@ -492,7 +491,7 @@ c
             open (2,status='old',file=fisfile)
             read(2,'(////)',end=840,err=840)
             do 830 k=1,numinc
-              read(2,'(f10.3,e12.5)',end=840,err=830) en(k),xs
+              read(2,'(2e12.5)',end=840,err=830) en(k),xs
               xsnat(k)=xsnat(k)+abun(i)*xs
   830       continue
   840       close (unit=2)
@@ -504,7 +503,7 @@ c
      +      "section")') parsym(k0),Starget
           write(3,'("# ")')
           write(3,'("# ")')
-          write(3,'("# # energies =",i3)') numinc
+          write(3,'("# # energies =",i6)') numinc
           write(3,'("#    E         xs")')
           do 850 k=1,numinc
             write(3,'(f7.3,1p,e12.5)') en(k),xsnat(k)
@@ -553,18 +552,18 @@ c
      +          parsym(k0),Starget,ia,nuc(iz)
               write(3,'("# ")')
               write(3,'("# ")')
-              write(3,'("# # energies =",i3)') numinc
+              write(3,'("# # energies =",i6)') numinc
               write(3,'("#    E         xs")')
               if (flagffevap) then
                 write(3,'("# E-incident   FF Yield   FP yield")')
                 do 960 nen=1,numinc
-                  write(3,'(1p,e10.3,e12.4,3x,e12.4)') eninc(nen),
+                  write(3,'(1p,3e12.5)') eninc(nen),
      +              xs1nat(nen),xs2nat(nen)
   960           continue
               else
                 write(3,'("# E-incident   FF Yield")')
                 do 970 nen=1,numinc
-                  write(3,'(1p,e10.3,e12.4)') eninc(nen),xs1nat(nen)
+                  write(3,'(1p,2e12.5)') eninc(nen),xs1nat(nen)
   970           continue
               endif
               close (unit=3)
@@ -710,7 +709,7 @@ c
      +            i3,a2)') parsym(k0),Starget,ia,nuc(iz)
                 write(3,'("# E-incident = ",f7.3)') eninc(k)
                 write(3,'("# ")')
-                write(3,'("# # energies =",i3)') nenen
+                write(3,'("# # energies =",i6)') nenen
                 write(3,'("# E-out    Cross section ")')
                 do 1280 nen=1,nenen
                   write(3,'(f7.3,1p,e12.5)') enspecnat(nen),

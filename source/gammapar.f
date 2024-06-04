@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 8, 2013
+c | Date  : October 11, 2015
 c | Task  : Gamma ray parameters
 c +---------------------------------------------------------------------
 c
@@ -15,7 +15,7 @@ c
       character*90 gamfile
       integer      Zix,Nix,Z,A,N,ia,irad,l,nen,it
       real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom,ee,et,ft,
-     +             factor,fe1(numTqrpa),fstrength,temp,dtemp
+     +             factor,fe1(numTqrpa),fstrength,temp,dtemp,fe1t
 c
 c ***************** Default giant resonance parameters *****************
 c
@@ -127,7 +127,6 @@ c
 c For Goriely's HFbcs or HFB QRPA strength function we overwrite the
 c E1 strength function with tabulated results, if available.
 c
-c nTqrpa       : number of temperatures for QRPA
 c numgamqrpa   : number of energies for QRPA strength function
 c eqrpa        : energy grid for QRPA strength function
 c fe1qrpa,fe1  : tabulated QRPA strength function
@@ -135,6 +134,7 @@ c adjust       : subroutine for energy-dependent parameter adjustment
 c factor       : multiplication factor
 c gamadjust    : logical for energy-dependent gamma adjustment
 c etable,ftable: constant to adjust tabulated strength functions
+c nTqrpa       : number of temperatures for QRPA
 c Tqrpa        : temperature for QRPA
 c qrpaexist    : flag for existence of tabulated QRPA strength functions
 c
@@ -143,6 +143,12 @@ c
      +  gamfile=path(1:lenpath)//'gamma/hfbcs/'//gamchar
       if (strength.eq.4)
      +  gamfile=path(1:lenpath)//'gamma/hfb/'//gamchar
+      if (strength.eq.6)
+     +  gamfile=path(1:lenpath)//'gamma/hfbt/'//gamchar
+      if (strength.eq.7)
+     +  gamfile=path(1:lenpath)//'gamma/rmf/'//gamchar
+      if (strength.eq.8)
+     +  gamfile=path(1:lenpath)//'gamma/gogny/'//gamchar
       inquire (file=gamfile,exist=lexist)
       if (.not.lexist) goto 210
       open (unit=2,status='old',file=gamfile)
@@ -154,6 +160,7 @@ c
   230   continue
         goto 220
       endif
+      if (strength.eq.6.or.strength.eq.7) nTqrpa=11
       do 240 nen=1,numgamqrpa
         read(2,'(f9.3,1p,20e12.3)') ee,(fe1(it),it=1,nTqrpa)
         if (gamadjust(Zix,Nix)) then
@@ -219,6 +226,20 @@ c
      +    sgr(Zix,Nix,0,l-1,1)*8.e-4
         kgr(Zix,Nix,0,l)=pi2h2c2/(2*l+1.)
   310 continue
+c
+c External strength functions
+c
+      if (E1file(Zix,Nix)(1:1).ne.' ') then
+        nen=0
+        open (unit=2,status='old',file=E1file(Zix,Nix))
+  400   read(2,*,err=410,end=500) ee,fe1t
+        nen=nen+1
+        eqrpa(Zix,Nix,nen)=ee
+        fe1qrpa(Zix,Nix,nen,1)=onethird*pi2h2c2*fe1t
+  410   if (nen.lt.numgamqrpa) goto 400
+  500   if (nen.gt.0) qrpaexist(Zix,Nix)=.true.
+        close (unit=2)
+      endif
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2012 A.J. Koning, S. Hilaire and S. Goriely

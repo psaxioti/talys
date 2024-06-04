@@ -48,9 +48,9 @@ c
           sm=0.5625/((k+0.5)*(k+1.5)*(m+0.5)*(m+1.5))*cnm*zn*zm
           sn=sn+sm
  10     continue
-        if (abs(sm).lt.1.e-6) go to 15
+        if (abs(sm).lt.1.e-6) goto 15
  15     sform=sform+sn
  20   continue
-      if (abs(sn).lt.1.e-5) go to 25
+      if (abs(sn).lt.1.e-5) goto 25
  25   return
       end

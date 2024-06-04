@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 19, 2013
+c | Date  : August 8, 2014
 c | Task  : ECIS calculation for incident particle on ENDF-6 energy grid
 c +---------------------------------------------------------------------
 c
@@ -281,7 +281,10 @@ c
         call ecisinput(Zix,Nix,k0,e,rotational,vibrational,jlmloc)
   110 continue
       if (.not.flagendfecis) return
-      if (.not.flagecisinp) return
+      if (.not.flagecisinp) then
+        close (unit=9)
+        return
+      endif
       write(9,'("fin")')
       close (unit=9)
 c

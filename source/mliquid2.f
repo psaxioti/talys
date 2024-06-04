@@ -1,8 +1,8 @@
-      double precision function mliquid2(Z,A)
+      function mliquid2(Z,A)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 3, 2007
+c | Date  : August 10, 2015
 c | Task  : Goriely liquid drop mass
 c +---------------------------------------------------------------------
 c
@@ -10,8 +10,8 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer          Z,A,N
-      double precision avol,as,asym,ass,ac,Mn,Mh,rA,rZ,rN,factor,Ev,
-     +                 Esur,Esym,Ecoul,Eldm
+      double precision mliquid2,avol,as,asym,ass,ac,Mn,Mh,rA,rZ,rN,
+     +                 factor,Ev,Esur,Esym,Ecoul,Eldm
 c
 c ****************** Spherical Goriely parameters **********************
 c
@@ -34,8 +34,13 @@ c
 c Goriely model: S. Goriely, ND2001, Tsukuba, Japan, J. Nuc. Sci Techn.
 c August 2002, suppl 2. p.536 (2002)
 c
-      data avol,as,asym,ass,ac /-15.6428,17.5418,27.9418,-25.3440,0.70/
-      data Mn,Mh/ 8.07132281,7.2889694/
+      avol=-15.6428
+      as=17.5418
+      asym=27.9418
+      ass=-25.3440
+      ac=0.70
+      Mn=8.07132281
+      Mh=7.2889694
       N=A-Z
       rA=real(A)
       rZ=real(Z)

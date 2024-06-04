@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 19, 2012
+c | Date  : October 27, 2015
 c | Task  : Output
 c +---------------------------------------------------------------------
 c
@@ -40,12 +40,12 @@ c flaggamdis   : flag for output of discrete gamma-ray intensities
 c gamdisout    : subroutine for output of discrete gamma-ray intensities
 c flagracap    : flag for radiative capture model
 c racapout     : subroutine for output of radiative capture model
+c flagffruns   : flag to denote that run is for fission fragment
+c flagrpruns   : flag to denote that run is for residual product
 c
       if (flagmain) then
-        if (.not.flaginitpop) then
-          call totalout
-          call binaryout
-        endif
+        call totalout
+        if (.not.flaginitpop) call binaryout
         call productionout
         call residualout
         if (flagfission) call fissionout
@@ -58,6 +58,8 @@ c
       if (flagddx) call ddxout
       if (flaggamdis) call gamdisout
       if (flagracap) call racapout
+      if (flagffruns.or.flagrpruns) 
+     +  write(*,'(/" End of calculation for ",i3,a2/)') Atarget,Starget
       return
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

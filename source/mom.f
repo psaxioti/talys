@@ -219,7 +219,7 @@ c
 c
 c     choose between relativistic and nonrelativistic kinematics.
 c
-      if(irel.ne.0) go to 5
+      if(irel.ne.0) goto 5
 c
 c     nonrelativistic kinematics.
 c
@@ -227,7 +227,7 @@ c
       aksq = emu * ecm
       ak = sqrt (aksq)
       grel=1.d0
-      go to 22
+      goto 22
 c
 c     relativistic kinematics.  schrodinger equation is written with
 c     reduced mass and ak.  ecm does not appear.  the choice for the
@@ -251,9 +251,9 @@ c
       ak=sqrt(temp)*xem/(197.32d0*wcm)
       aksq=ak*ak
       x=aux/(xemt*xemt)
-      if(x.gt.1.e-3) go to 8
+      if(x.gt.1.e-3) goto 8
       ecm=(.0625d0*x*x*x-.125d0*x*x+.5d0*x)*xemt
-      go to 10
+      goto 10
     8 ecm=wcm-xemt
 c
    10 wm=xem*(einc+xemt)/wcm
@@ -503,7 +503,7 @@ c     of PRC 58,1118 (1998). bug in v1.0, corrected in v1.01
       fi(n)=al0i*xlw*wzero
       gr(n)=altr*xlv*akmass*ren
       gi(n)=alti*xlw*cen/emass
-      if(kmw.eq.0) go to 30
+      if(kmw.eq.0) goto 30
       fi(n)=akmass*fi(n)
       gi(n)=akmass*gi(n)
  30   continue
@@ -771,16 +771,16 @@ c
       integer id
       vcorr=0.d0
       if(zzp.eq.0.d0) return
-      if(r.lt.rmax) go to 10
+      if(r.lt.rmax) goto 10
       vcorr=2.d0*zzp/(emu*r)
       return
    10 xr=10.d0*r
       id=xr
-      if(id.gt.0) go to 14
+      if(id.gt.0) goto 14
       id=1
       fracp=0.d0
       fracm=1.d0
-      go to 16
+      goto 16
    14 fracp=xr-id
       fracm=1.d0-fracp
    16 vcorr=fracm*vcoul(id)+fracp*vcoul(id+1)
@@ -795,7 +795,7 @@ C**** DOUBLE PRECISION *****************************************
       STEMP=0.0D0
       SDOT=0.0D0
       IF(N.LE.0)RETURN
-      IF(INCX.EQ.1.AND.INCY.EQ.1)GO TO 20
+      IF(INCX.EQ.1.AND.INCY.EQ.1)GOTO 20
       IX=1
       IY=1
       IF(INCX.LT.0)IX=(-N+1)*INCX+1
@@ -809,11 +809,11 @@ C**** DOUBLE PRECISION *****************************************
        RETURN
 c 20  M=MOD(N,5)
   20  M=N-5*(N/5)
-      IF(M.EQ.0)GO TO 40
+      IF(M.EQ.0)GOTO 40
       DO 30 I=1,M
       STEMP=STEMP+SX(I)*SY(I)
   30  CONTINUE
-      IF(N.LT.5)GO TO 60
+      IF(N.LT.5)GOTO 60
   40  MP1=M+1
       DO 50 I=MP1,N,5
       STEMP=STEMP+SX(I)*SY(I)+SX(I+1)*SY(I+1)+SX(I+2)*SY(I+2)
@@ -830,7 +830,7 @@ c 20  M=MOD(N,5)
       sSUM=0.0D0
       STEMP=0.0D0
       IF(N.LE.0)RETURN
-      IF(INCX.EQ.1)GO TO 20
+      IF(INCX.EQ.1)GOTO 20
       NINCX=N*INCX
       DO 10 N=1,NINCX,INCX
       STEMP=STEMP+SX(I)
@@ -839,11 +839,11 @@ c 20  M=MOD(N,5)
       RETURN
 c 20  M=MOD(N,6)
   20  M=N-6*(N/6)
-      IF(M.EQ.0)GO TO 40
+      IF(M.EQ.0)GOTO 40
       DO 30 I=1,M
       STEMP=STEMP+SX(I)
    30 CONTINUE
-      IF(N.LT.6)GO TO 60
+      IF(N.LT.6)GOTO 60
   40  MP1=M+1
       DO 50 I=MP1,N,6
       STEMP=STEMP+SX(I)+SX(I+1)+SX(I+2)+SX(I+3)

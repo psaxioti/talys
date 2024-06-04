@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 13, 2013
+c | Date  : June 2, 2014
 c | Task  : Calculate production yields
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer          it,Zix,Nix,Z,N,A,is,isob,Zp,Ncool
+      integer          it,Zix,Nix,Z,N,A,is,isob,Zparent,Nparent,Ncool
       real             rfac,yfac,N0
       double precision Th,dT,Tc,prate0,pratei,lamD,C1,TT,exp1,denom,
      +                 prateP,lamPD,CP1,exp2,term,t1,t2,expo1,expo2
@@ -154,12 +154,13 @@ c lamP,lamPD: decay rate for parent isotope
 c Ibeam     : beam current in mA
 c
                 do 180 isob=-1,1
-                  Zp=Zix-isob
-                  if (Zp.lt.0) goto 180
-                  if ((isob.eq.-1.and.rtyp(Zp,Nix,-1).eq.1).or.
-     +              (isob.eq.1.and.rtyp(Zp,Nix,-1).eq.2)) then
-                    prateP=dble(prate(Zp,Nix,is))
-                    lamPD=dble(lambda(Zp,Nix,is))
+                  Zparent=Zix-isob
+                  Nparent=Nix+isob
+                  if (Zparent.lt.0.or.Nparent.lt.0) goto 180
+                  if ((isob.eq.-1.and.rtyp(Zparent,Nparent,-1).eq.1).or.
+     +              (isob.eq.1.and.rtyp(Zparent,Nparent,-1).eq.2)) then
+                    prateP=dble(prate(Zparent,Nparent,is))
+                    lamPD=dble(lambda(Zparent,Nparent,is))
                     if (it.le.Ntime) then
                       if (prateP.gt.0..and.lamPD.gt.0.) then
                         CP1=dble(Ntar0)*prateP
@@ -174,7 +175,7 @@ c
 c
 c Cooling only
 c
-                      N0=Niso(Zp,Nix,is,Ntime)
+                      N0=Niso(Zparent,Nparent,is,Ntime)
                       t1=lamPD*(TT-Tir)
                       exp1=exp(-t1)
                       t2=lamD*(TT-Tir)

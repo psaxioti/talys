@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : December 7, 2013
+c | Date  : June 21, 2014
 c | Task  : Exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -20,8 +20,10 @@ c
 c ************************ Initialization ******************************
 c
 c channelsum: sum over exclusive channel cross sections
+c xsabs     : absorption cross section
 c
       channelsum=0.
+      xsabs=0.
 c
 c Initially, all the flux is in the initial compound state.
 c
@@ -124,6 +126,7 @@ c
           do 120 ip=0,ipend
           do 120 in=0,inend
             if (.not.chanopen(in,ip,id,it,ih,ia).and.idnumfull) goto 120
+            if (idnum.eq.numchantot) goto 120
             Ztot=ip+id+it+2*ih+2*ia
             Ntot=in+id+2*it+ih+2*ia
             npart=in+ip+id+it+ih+ia
@@ -131,10 +134,6 @@ c
             if (Ztot.ne.Zix.or.Ntot.ne.Nix) goto 120
             ident=100000*in+10000*ip+1000*id+100*it+10*ih+ia
             idnum=idnum+1
-            if (idnum.eq.numchantot+1) then
-              idnum=idnum-1
-              goto 700
-            endif
             idchannel(idnum)=ident
 c
 c Initialization of arrays. Since the idnum counter may be reset at the
@@ -394,6 +393,7 @@ c
             if (xspopnuc(Zix,Nix).gt.0.) xsratio(idnum)=
      +        xschannel(idnum)/xspopnuc(Zix,Nix)
             channelsum=channelsum+xschannel(idnum)
+            if (in.eq.0) xsabs=xsabs+xschannel(idnum)
 c
 c For non-threshold reactions (positive Q-value) we always assign a
 c minimum value to the exclusive cross section. (The transmission
@@ -447,6 +447,7 @@ c
                 endif
   510         continue
               channelsum=channelsum+xsfischannel(idnum)
+              xsabs=xsabs+xsfischannel(idnum)
             endif
 c
 c 9. Check.
@@ -642,7 +643,7 @@ c
             endif
             if (xschannel(idnum).lt.xseps.and.npart.gt.1.and.
      +        .not.chanopen(in,ip,id,it,ih,ia)) idnum=idnum-1
-            if (opennum.eq.numchantot) idnumfull=.true.
+            if (opennum.eq.numchantot-10) idnumfull=.true.
             if (idnum.lt.0) goto 120
             if (xschannel(idnum).lt.0.) xschannel(idnum)=xseps
   120     continue
@@ -651,7 +652,7 @@ c
 c Set threshold energy for inelastic scattering to that of first
 c excited state.
 c
-  700 do 710 idc=0,idnum
+      do 710 idc=0,idnum
         if (idchannel(idc).eq.100000) then
           Ethrexcl(idc,0)=Ethrexcl(idc,1)
           goto 720

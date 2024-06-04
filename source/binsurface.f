@@ -24,8 +24,7 @@ c
       real      yl,yu
       real      pi,twopi
       real      epsx,epsy
-      dimension xsurf(19),ysurf(19)
-      real      xsurf,ysurf
+      real      xsurf(19),ysurf(19)
       integer   isurf
       real      surfloc
       real      surfbin
@@ -45,19 +44,16 @@ c xr2,yr2,xr3,yr3 : help variables
 c xg,yg           : center of gravity of the intersection points
 c
 c
-      dimension xr(4),yr(4)
-      real      xr,yr
+      real      xr(4),yr(4)
       integer   nr,ir
       real      xr1,yr1
-      dimension xpts(12),ypts(12)
-      real      xpts,ypts
+      real      xpts(12),ypts(12)
       integer   ipts,npts
       real      xdiff,ydiff
       real      xr2,yr2,xr3,yr3
       real      xg,yg,weight
       real      norm1,norm2,norm12
-      dimension angsurf(19)
-      real      angsurf
+      real      angsurf(19)
       real      cos12,ang12,deter12
       real      ang1,ang2
 c

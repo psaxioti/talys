@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 1, 2012
+c | Date  : May 23, 2014
 c | Task  : Residual production cross sections
 c +---------------------------------------------------------------------
 c
@@ -27,7 +27,7 @@ c maxN        : maximal number of neutrons away from the initial
 c               compound nucleus
 c N           : neutron number of nucleus
 c Ninit       : neutron number of initial compound nucleus
-c numen       : maximum number of energies
+c numenin     : maximum number of energies
 c A           : mass number of nucleus
 c is          : isotope counter: -1=total, 0=ground state 1=isomer
 c Erp         : incident energy
@@ -50,7 +50,7 @@ c
           do 130 is=-1,numisom
             prodexist(Zix,Nix,is)=.false.
             Nenrp(Zix,Nix,is)=0
-            do 140 nen=1,numen
+            do 140 nen=1,numenin
               Erp(Zix,Nix,is,nen)=0.
               xsrp(Zix,Nix,is,nen)=0.
   140       continue
@@ -71,7 +71,7 @@ c
             if (string(1:1).eq.'#') goto 150
             read(string,*) E,xs
             iE=iE+1
-            if (iE.gt.numen) goto 160
+            if (iE.gt.numenin) goto 160
             Erp(Zix,Nix,is,iE)=E
             xsrp(Zix,Nix,is,iE)=xs
             goto 150
@@ -112,7 +112,7 @@ c
               if (E.ge.Eback.and.E.le.Ebeam.and.xs.gt.0.)
      +          flagpositive=.true.
               iE=iE+1
-              if (iE.gt.numen) goto 190
+              if (iE.gt.numenin) goto 190
               Erp(Zix,Nix,is,iE)=E
               xsrp(Zix,Nix,is,iE)=xs
 c

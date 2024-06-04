@@ -137,7 +137,7 @@ c
           vcm=vcmloc(ierec)
           fracCM=fracCMloc(ierec)
           do 220 nen=nenbeg,nenend
-            if (compspect(nen)+preeqspect(nen).eq.0.) go to 220
+            if (compspect(nen)+preeqspect(nen).eq.0.) goto 220
             Eejcm1=Ebottom(nen)
             if (Eejcm1.eq.0.) Eejcm1=0.5*egrid(1)
             Eejcm2=Etop(nen)
@@ -178,7 +178,7 @@ c
 c fluxCM     : Total flux that must be distributed in the LAB
 c
               fluxCM=xsgridad(nen,iang)*dEejcm*dcosangcont(iang)*fracCM
-              if (fluxCM.eq.0.) go to 230
+              if (fluxCM.eq.0.) goto 230
 c
 c EJECTILE and RECOIL TREATMENT
 c

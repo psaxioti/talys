@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 21, 2012
+c | Date  : May 6, 2015
 c | Task  : Total pre-equilibrium cross sections
 c +---------------------------------------------------------------------
 c
@@ -47,6 +47,8 @@ c               outgoing energy for breakup
 c xspreeqsum  : total preequilibrium cross section summed over particles
 c xspreeq     : preequilibrium cross section per particle type and
 c               outgoing energy
+c breakupmodel: model for break-up reaction: 1. Kalbach 2. Avrigeanu
+c xsEB        : elastic breakup cross section
 c
 c The pre-equilibrium spectra and spectra per exciton number are summed
 c to total pre-equilibrium cross sections. Special care is taken for the
@@ -89,6 +91,7 @@ c
      +    xspreeqtotki(type)+xspreeqtotbu(type)
         xspreeqsum=xspreeqsum+xspreeqtot(type)
    10 continue
+      if (breakupmodel.eq.2.and.k0.eq.3) xspreeqsum=xspreeqsum-xsEB(1)
 c
 c Prevent divergence of pre-equilibrium gamma cross sections in case
 c of absence of particle competition.

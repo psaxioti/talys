@@ -2,9 +2,10 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 16, 2013
+c | Date  : March 21, 2014
 c | Task  : Write model parameters per nucleus to separate file
 c +---------------------------------------------------------------------
+c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
@@ -62,6 +63,8 @@ c
       do 10 ibar=0,nfisbar(Zix,Nix)
         write(11,'("Pshift         ",2i4,f10.5,i4)') Z,A,
      +    Pshift(Zix,Nix,ibar),ibar
+        write(11,'("Pshiftadjust   ",2i4,f10.5,i4)') Z,A,
+     +    pshiftadjust(Zix,Nix,ibar),ibar
         write(11,'("deltaW         ",2i4,f10.5,i4)') Z,A,
      +    deltaW(Zix,Nix,ibar),ibar
         if (ldmodel(Zix,Nix).eq.1) then

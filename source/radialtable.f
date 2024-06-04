@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : May 11, 2011
+c | Date  : November 25, 2014
 c | Task  : Tabulated radial matter densities
 c +---------------------------------------------------------------------
 c
@@ -98,13 +98,13 @@ c Set JLM flags
 c
 c flagjlm : flag for using semi-microscopic JLM OMP
 c alphaomp: alpha optical model (1=normal, 2= McFadden-Satchler,
-c           3-5= folding potential)
+c           3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)
 
       if (flagjlm) then
         jlmexist(Zix,Nix,1)=.true.
         jlmexist(Zix,Nix,2)=.true.
       endif
-      if (alphaomp.ge.3) jlmexist(Zix,Nix,6)=.true.
+      if (alphaomp.ge.3.and.alphaomp.le.5) jlmexist(Zix,Nix,6)=.true.
    60 close (unit=2)
       return
       end

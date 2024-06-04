@@ -14,12 +14,12 @@ bindir=$Thome'/bin'   # destiny directory of the TALYS executable
 #
 # 1. Define the talys directory
 #
+cd ..
 talysdir=`pwd`
 #
 # 2. Ensure that all directories have execute permission and that 
 #    all files have a read and write permission   
 #
-cd ..
 chmod -R u+rwX talys
 #
 # 3. Ensure that TALYS can read the structure database by replacing
@@ -27,7 +27,7 @@ chmod -R u+rwX talys
 #
 datapath=${talysdir}'/'
 datapathnew=`echo $datapath | sed 's/\//\\\\\//g'`
-cd ${talysdir}'/source/'
+cd ${talysdir}'/talys/source/'
 sed "s/ home='.*'/ home='${datapathnew}'/" machine.f  > machine_tmp.f
 mv -f machine_tmp.f machine.f
 # 

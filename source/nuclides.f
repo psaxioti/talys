@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 17, 2013
+c | Date  : October 8, 2015
 c | Task  : Properties of nuclides
 c +---------------------------------------------------------------------
 c
@@ -121,6 +121,8 @@ c separation  : subroutine for separation energies and reduced and
 c               specific masses
 c primary     : flag to designate primary (binary) reaction
 c flagpartable: flag for output of model parameters on separate file
+c flagbestbr  : flag to use best set of branching ratios
+c branching   : subroutine for best set of branching ratios
 c Einc        : incident energy
 c enincmin    : minimum incident energy
 c parskip     : logical to skip outgoing particle
@@ -157,6 +159,7 @@ c
       call separation
       primary=.true.
       if (flagpartable) open (11,status='unknown',file='parameters.dat')
+      if (flagbestbr) call branching
       Einc=enincmin
       do 110 type=0,6
         if (parskip(type).and.type.ne.0) goto 110

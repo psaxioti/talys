@@ -2,15 +2,16 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 1, 2013
+c | Date  : November 1, 2015
 c | Task  : Check for errors in keywords
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer      numkey,i,j
-      parameter    (numkey=327)
+      integer      numkey
+      parameter    (numkey=345)
+      integer      i,j
       character*80 keyword(numkey),word(40),key
 c
 c Although it is difficult to prevent the user from all possible input
@@ -31,20 +32,22 @@ c
      +  'astroe', 'astrogs', 'astrot', 'asys', 'autorot', 'avadjust',
      +  'avadjustf', 'avdadjust', 'avdadjustf', 'avsoadjust',
      +  'avsoadjustf', 'awadjust', 'awadjustf', 'awdadjust',
-     +  'awdadjustf', 'awsoadjust', 'awsoadjustf', 'axtype', 'best',
-     +  'bestpath', 'beta2', 'betafiscor', 'betald', 'bins', 'branch',
+     +  'awdadjustf', 'awsoadjust', 'awsoadjustf', 'axtype', 
+     +  'best', 'bestbranch', 'bestend', 'bestpath', 'beta2', 
+     +  'betafiscor', 'betald', 'bins', 'branch', 'breakupmodel',
      +  'cbreak', 'cfermi', 'cfermibf', 'cglobal', 'channelenergy',
      +  'channels', 'cknock', 'class2', 'class2file', 'class2width',
      +  'colenhance', 'colldamp', 'components', 'compound', 'core',
      +  'coulomb', 'cpang', 'cstrip', 'ctable', 'ctmglobal', 'd0',
      +  'd1adjust', 'd2adjust', 'd3adjust', 'ddxmode', 'deformfile',
      +  'deltaw', 'deuteronomp', 'disctable', 'dispersion', 'e0',
-     +  'e0adjust', 'eciscalc', 'eciscompound', 'ecisdwba', 'ecissave',
-     +  'eback', 'ebeam', 'egr', 'egradjust', 'ejectiles', 'ejoin',
-     +  'electronconv', 'element', 'elow', 'elwidth', 'emsdmin', 'endf',
-     +  'endfdetail', 'endfecis', 'energy', 'epr', 'epradjust',
-     +  'equidistant', 'esurf', 'etable', 'exmatch', 'exmatchadjust',
-     +  'expmass', 'ffevaporation', 'fileangle', 'filechannels',
+     +  'e0adjust', 'e1file', 'eciscalc', 'eciscompound', 'ecisdwba', 
+     +  'ecissave', 'eback', 'ebeam', 'egr', 'egradjust', 'ejectiles', 
+     +  'ejoin', 'electronconv', 'element', 'elow', 'elwidth', 
+     +  'emsdmin', 'endf', 'endfdetail', 'endfecis', 'energy', 'epr', 
+     +  'epradjust', 'equidistant', 'estop', 'esurf', 'etable', 
+     +  'exmatch', 'exmatchadjust', 'expmass', 'ffevaporation', 
+     +  'ffspin', 'fileangle', 'filechannels',
      +  'fileddxa', 'fileddxe', 'filedensity', 'filediscrete',
      +  'fileelastic', 'filefission', 'filegamdis', 'filerecoil',
      +  'fileresidual', 'filespectrum', 'filetotal', 'fisbar',
@@ -52,9 +55,9 @@ c
      +  'fismodelalt', 'fiso', 'fission', 'ftable', 'fullhf', 'fymodel',
      +  'g', 'gamgam', 'gamgamadjust', 'gammald', 'gammashell1',
      +  'gammashell2', 'gammax', 'gefran', 'ggr', 'ggradjust',
-     +  'giantresonance',
-     +  'gn', 'gnadjust', 'gnorm', 'gp', 'gpadjust', 'gpr', 'gpradjust',
-     +  'gshell', 'hbstate', 'hbtransfile', 'ibeam','incadjust',
+     +  'giantresonance', 'gn', 'gnadjust', 'gnorm', 'gp', 'gpadjust', 
+     +  'gpr', 'gpradjust', 'group', 'gshell', 'hbstate', 'hbtransfile',
+     +  'ibeam','incadjust',
      +  'inccalc', 'integral', 'isomer', 'jlmmode', 'jlmomp', 'kph',
      +  'krotconstant', 'kvibmodel', 'labddx', 'ldmodel',
      +  'ldmodelracap', 'levelfile', 'liso', 'localomp', 'ltarget',
@@ -63,11 +66,12 @@ c
      +  'm2constant', 'm2limit', 'm2shift', 'mass', 'massdis',
      +  'massexcess', 'massmodel', 'massnucleus', 'maxband',
      +  'maxchannel', 'maxenrec', 'maxlevelsbin', 'maxlevelsres',
-     +  'maxlevelstar', 'maxn', 'maxrot', 'maxz', 'micro',
-     +  'mpreeqmode', 'msdbins', 'multipreeq', 'nlevels',
+     +  'maxlevelstar', 'maxn', 'maxnrp', 'maxrot', 'maxz', 'maxzrp',
+     +  'micro', 'mpreeqmode', 'msdbins', 'multipreeq', 'nlevels',
      +  'nlow', 'ntop', 'nulldev', 'ompenergyfile', 'omponly',
      +  'onestep', 'optmod', 'optmodall', 'optmodfilen', 'optmodfilep',
-     +  'outangle', 'outbasic', 'outcheck', 'outdensity', 'outdirect',
+     +  'outangle', 'outbasic', 'outbinspectra', 'outcheck', 
+     +  'outdensity', 'outdirect',
      +  'outdiscrete', 'outdwba', 'outecis', 'outexcitation',
      +  'outfission', 'outfy', 'outgamdis', 'outgamma', 'outinverse',
      +  'outlegendre', 'outlevels', 'outmain', 'outomp',
@@ -76,21 +80,24 @@ c
      +  'pair', 'pairconstant', 'pairmodel', 'parity', 'partable',
      +  'pglobal', 'phmodel', 'popeps', 'preeqcomplex', 'preeqmode',
      +  'preeqspin', 'preeqsurface', 'preequilibrium', 'production',
-     +  'projectile', 'pshift', 'pshiftconstant', 'ptable', 'racap',
-     +  'radialfile', 'radialmodel', 'radiounit', 'rcadjust',
-     +  'rclass2mom',
-     +  'reaction', 'recoil', 'recoilaverage', 'relativistic',
-     +  'rescuefile', 'rfiseps', 'rgamma', 'rho', 'rnunu', 'rnupi',
-     +  'rotational', 'rpinu', 'rpipi', 'rprime', 'rspincut',
+     +  'projectile', 'pshift', 'pshiftadjust', 'pshiftconstant', 
+     +  'popmev',
+     +  'ptable', 'racap', 'radialfile', 'radialmodel', 'radiounit', 
+     +  'rcadjust', 'rclass2mom', 'reaction', 'recoil', 'recoilaverage',
+     +  'relativistic', 'rescuefile', 'reslib', 'resonance', 'rfiseps', 
+     +  'rgamma', 'rho', 'rnunu', 'rnupi', 'rotational', 'rpevap', 
+     +  'rpinu', 'rpipi', 'rprime', 'rspincut',
      +  'rtransmom', 'rvadjust', 'rvadjustf', 'rvdadjust', 'rvdadjustf',
      +  'rvsoadjust', 'rvsoadjustf', 'rwadjust', 'rwadjustf',
      +  'rwdadjust', 'rwdadjustf', 'rwsoadjust', 'rwsoadjustf',
-     +  's2adjust', 'segment', 'sfexp', 'sfth', 'sgr', 'sgradjust',
-     +  'shellmodel', 'soswitch', 'spherical', 'spincutmodel', 'spr',
+     +  's2adjust', 'sacs', 'segment', 'sfexp', 'sfth', 'sgr', 
+     +  'sgradjust', 'shellmodel', 'skipcn', 'soswitch', 'spherical', 
+     +  'spincutmodel', 'spr',
      +  'spradjust', 'statepot', 'strength', 'strengthm1', 'strucpath',
      +  'sysreaction', 't', 'tadjust', 'tcool', 'tirrad', 'tljadjust',
-     +  'transeps', 'transpower', 'twocomponent', 'ufermi', 'ufermibf',
-     +  'urr', 'urrnjoy', 'v1adjust', 'v2adjust', 'v3adjust',
+     +  'transeps', 'transpower', 'tres', 'twocomponent', 'ufermi', 
+     +  'ufermibf', 'urr', 'urrnjoy', 
+     +  'v1adjust', 'v2adjust', 'v3adjust',
      +  'v4adjust', 'vfiscor', 'vso1adjust', 'vso2adjust', 'vinfadjust',
      +  'w1adjust', 'w2adjust', 'w3adjust', 'w4adjust', 'wso1adjust',
      +  'wso2adjust', 'widthfluc', 'widthmode', 'xsalphatherm',

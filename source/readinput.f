@@ -23,6 +23,7 @@ c The actual keywords will be read from these later on. For natural
 c elements, the input file only needs to be read once.
 c
       if (iso.ne.1) return
+      if (nlines.gt.0) return
       i=1
    10 read(*,'(a80)',end=100) inline(i)
       i=i+1

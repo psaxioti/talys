@@ -69,19 +69,14 @@ c
 c    end of initial setting and begin to racap calculation.
 c
       call racapcalc(Einc,Ztarget,Atarget,beta2(Zix,Nix,0),
-     &  jdis(Zix,Nix,0),parlev(Zix,Nix,0),
-     &  gsspin(Zix,Nix),gsparity(Zix,Nix),
-     &  expmass(Zix,Nix),thmass(Zix,Nix),
-     &  Zix,parA(k0),parspin(k0),parmass(k0),
-     &  jdis(0,0,0),parlev(0,0,0),gsspin(0,0),
-     &  gsparity(0,0),expmass(0,0),thmass(0,0),qq,
+     &  jdis(Zix,Nix,0),parlev(Zix,Nix,0),gsspin(Zix,Nix),
+     &  gsparity(Zix,Nix),expmass(Zix,Nix),thmass(Zix,Nix),
+     &  Zix,parA(k0),parspin(k0),parmass(k0),jdis(0,0,0),parlev(0,0,0),
+     &  gsspin(0,0),gsparity(0,0),expmass(0,0),thmass(0,0),qq,
      &  numlev2,nlevexpracap,erac,jrac,prac,exfin,
-     &  numjlm,jlmracap1,jlmracap2,
-     &  numJ,numdensracap,chglposj,chglnegj,
-     &  vncap1,rvncap1,avncap1,
-     &  vncap2,rvncap2,avncap2,
-     &  xsall,xsracape,xspex,xsp,iopt,
-     &  pi,e2,amu,hbarc,nlevracap(0,0),spfacst,ispect)
+     &  numjlm,jlmracap1,jlmracap2,numJ,numdensracap,chglposj,chglnegj,
+     &  vncap1,rvncap1,avncap1,vncap2,rvncap2,avncap2,xsall,xsracape,
+     &  xspex,xsp,iopt,pi,e2,amu,hbarc,nlevracap(0,0),spfacst,ispect)
 c
 c racap output cross section,transfer the unit of the cross section to millibarns.
 c
@@ -125,8 +120,6 @@ c            spectfac(0,0,nex)=spfacst(i)
         endif
       enddo
 c
-      return
-      end
 c
 c++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 c
@@ -134,18 +127,15 @@ c     end of data and values setting, beginning the main program of racap.
 c
 c++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 c
+      return
+      end
       subroutine racapcalc(ein,kz1,ka1,beta2tar,
-     &  spinexptar,iparexptar,
-     &  spinthtar,iparthtar,
-     &  a1exp,a1th,
-     &  kz2,ka2,spinexpproj,a2,
-     &  spinexpcn,iparexpcn,spinthcn,
-     &  iparthcn,afexp,afth,Sn,
+     &  spinexptar,iparexptar,spinthtar,iparthtar,
+     &  a1exp,a1th,kz2,ka2,spinexpproj,a2,
+     &  spinexpcn,iparexpcn,spinthcn,iparthcn,afexp,afth,Sn,
      &  levmax,iexplvnum,explveng,explvsp,iexplvpar,exf,
-     &  nmax,potjlmini,potjlmfin,
-     &  jspmax,nldmax,rhonldposj,rhonldnegj,
-     &  vncapini,rncapini,ancapini,
-     &  vncapfnl,rncapfnl,ancapfnl,
+     &  nmax,potjlmini,potjlmfin,jspmax,nldmax,rhonldposj,rhonldnegj,
+     &  vncapini,rncapini,ancapini,vncapfnl,rncapfnl,ancapfnl,
      &  xsall,esig,xspopex,xspop,iopt,
      &  pi,e2,amu,hc,nlevtot,spfacst,ispect)
 c
@@ -178,12 +168,12 @@ c
       real ecm,rad1,fnorm
       real xsall(3),esig
       real spfacst(levmax)
-      dimension rr(nmax)
+      real rr(nmax)
+      double precision rhodens(nmax)
       dimension potf(0:nmax),wff(0:nmax),poti(nmax),wfi(nmax)
       dimension vi(nmax),vf(nmax),vinit(nmax)
       dimension soinit(nmax),sof(nmax)
       dimension rho(2,3),rho1(2,3),rhof(2,3),nz(2)
-      double precision rhodens(nmax)
       dimension crossx(3),sfactor(3)
       dimension spinff(levmax),ipaff(levmax)
       dimension rhobin(levmax,0:jspmax,2)
@@ -516,6 +506,7 @@ c
       do 710 jlev=1,nlevf
       jspin=idnint(spinff(jlev)-dble(mod(kaf,2))/2.)
       jspin=min(jspin,jspmax)
+      jspin=max(jspin,0)
       jparity=idnint(ipaff(jlev)/2.d0+1.5d0)
   710 rhobin(jlev,jspin,jparity)=1.d0
       nlevfmax=nlevf
@@ -735,19 +726,19 @@ c     add the constrain of the coupling of li with Ii to Ji
 c     add the constrain of the coupling of lf with If to Jf
 c
       if (ji.gt.(ifv+2*li).or.ji.lt.abs(ifv-2*li).or.n0.lt.0) goto 501
-      if (jf.lt.abs(2*lf-ifv).or.jf.gt.2*lf+ifv.or.n0.lt.0) go to 501
-      if (ji.lt.abs(2*li-ii).or.ji.gt.2*li+ii.or.n0.lt.0) go to 501
+      if (jf.lt.abs(2*lf-ifv).or.jf.gt.2*lf+ifv.or.n0.lt.0) goto 501
+      if (ji.lt.abs(2*li-ii).or.ji.gt.2*li+ii.or.n0.lt.0) goto 501
 c
       if (lam.eq.1) then
-        if(lam*2.lt.abs(ji-jf).or.lam*2.gt.ji+jf) go to 501
+        if(lam*2.lt.abs(ji-jf).or.lam*2.gt.ji+jf) goto 501
       endif
 c
       if (lam.eq.2) then
-        if(lam*2.lt.abs(ji-jf).or.lam*2.gt.ji+jf) go to 501
+        if(lam*2.lt.abs(ji-jf).or.lam*2.gt.ji+jf) goto 501
       endif
 c
       if (lam.eq.3) then
-        if(2.lt.abs(ji-jf).or.2.gt.ji+jf) go to 501
+        if(2.lt.abs(ji-jf).or.2.gt.ji+jf) goto 501
       endif
 c
       if (lam.eq.1) then
@@ -997,14 +988,9 @@ c     end of loop all the available excited states in final nucleus
 c
       return
       end
-c
-c++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-c==========================================================================
+      subroutine sixj(j1,j2,j3,l1,l2,l3,q)
 c
 c     sixj
-      subroutine sixj(j1,j2,j3,l1,l2,l3,q)
       implicit double precision (a-h,o-z)
       dimension m(7),m1(4),m2(4),m3(4),ft(0:100)
       save
@@ -1024,11 +1010,11 @@ c     sixj
       m(3)=k1+i2+k3
       m(4)=k1+k2+i3
       do 17 i=1,4
-      if(mod(m(i),2).eq.1) go to 8
+      if(mod(m(i),2).eq.1) goto 8
    17 continue
       l=max(i1+i2+k1+k2,i1+i3+k1+k3,i2+i3+k2+k3)
       l=l/2
-      if(l.le.lmem) go to 6
+      if(l.le.lmem) goto 6
       do 10 i=lmem,l
    10 ft(i+1)=ft(i)*(i+1)
       lmem=l
@@ -1037,29 +1023,29 @@ c     sixj
       if(k1.lt.abs(i2-k3).or.k1.gt.i2+k3) return
       if(k1.lt.abs(k2-i3).or.k1.gt.k2+i3) return
       if(i1) 8,2,1
-    2 if(i2.lt.0) go to 8
-    9 if(i3.lt.0) go to 8
-   14 if(k1.lt.0) go to 8
-   19 if(k2.lt.0) go to 8
-   23 if(k3.lt.0) go to 8
+    2 if(i2.lt.0) goto 8
+    9 if(i3.lt.0) goto 8
+   14 if(k1.lt.0) goto 8
+   19 if(k2.lt.0) goto 8
+   23 if(k3.lt.0) goto 8
    27 q=sqrt(1.0d0/(i2+1)/(k2+1))
       is=(i2+k2+k1)/2+is
       if(mod(is,2).eq.1) q=-q
       return
-    1 if(i1.gt.1) go to 3
+    1 if(i1.gt.1) goto 3
       if(i2.lt.0) return
    12 if(i3.lt.0) return
    16 if(k1.lt.0) return
    21 if(k2.lt.0) return
    25 if(k3.lt.0) return
-   28 if(i2.lt.i3) go to 4
+   28 if(i2.lt.i3) goto 4
       ic=i2
       i2=i3
       i3=ic
       ic=k2
       k2=k3
       k3=ic
-    4 if(k2.gt.k3) go to 5
+    4 if(k2.gt.k3) goto 5
       i11=i1+k1+i2-k2
       i11=i11/2
       i12=i11-i2+k2
@@ -1074,56 +1060,56 @@ c     sixj
       is =i12-1+is
       if(mod(is ,2).eq.1) q=-q
       return
-    3 if(i2.ge.i1) go to 7
-      if(i2.lt.0) go to 8
+    3 if(i2.ge.i1) goto 7
+      if(i2.lt.0) goto 8
       ic=i2
       i2=i1
       i1=ic
       ic=k1
       k1=k2
       k2=ic
-      if(i1.eq.0) go to 9
-      if(i1.eq.1) go to 12
-    7 if(i3.ge.i1) go to 13
-      if(i3.lt.0) go to 8
+      if(i1.eq.0) goto 9
+      if(i1.eq.1) goto 12
+    7 if(i3.ge.i1) goto 13
+      if(i3.lt.0) goto 8
       ic=i3
       i3=i1
       i1=ic
       ic=k3
       k3=k1
       k1=ic
-      if(i1.eq.0) go to 14
-      if(i1.eq.1) go to 16
-   13 if(k1.ge.i1) go to 18
-      if(k1.lt.0) go to 8
+      if(i1.eq.0) goto 14
+      if(i1.eq.1) goto 16
+   13 if(k1.ge.i1) goto 18
+      if(k1.lt.0) goto 8
       ic=k1
       k1=i1
       i1=ic
       ic=k2
       k2=i2
       i2=ic
-      if(i1.eq.0) go to 19
-      if(i1.eq.1) go to 21
-   18 if(k2.ge.i1) go to 22
-      if(k2.lt.0) go to 8
+      if(i1.eq.0) goto 19
+      if(i1.eq.1) goto 21
+   18 if(k2.ge.i1) goto 22
+      if(k2.lt.0) goto 8
       ic=k2
       k2=i1
       i1=ic
       ic=k1
       k1=i2
       i2=ic
-      if (i1.eq.0) go to 23
-      if(i1.eq.1) go to 25
-   22 if(k3.ge.i1) go to 26
-      if(k3.lt.0) go to 8
+      if (i1.eq.0) goto 23
+      if(i1.eq.1) goto 25
+   22 if(k3.ge.i1) goto 26
+      if(k3.lt.0) goto 8
       ic=k3
       k3=i1
       i1=ic
       ic=k1
       k1=i3
       i3=ic
-      if(i1.eq.0) go to 27
-      if(i1.eq.1) go to 28
+      if(i1.eq.0) goto 27
+      if(i1.eq.1) goto 28
    26 m1(4)=i3
       m1(1)=i3
       m1(3)=k3
@@ -1173,11 +1159,9 @@ c     sixj
  1010 format(10h erreur 6j,2(3x,3i3))
       return
       end
-c
-c==========================================================================
+      subroutine clebs (l1,l2,l3,m1,m2,m3,q)
 c
 c     clebs
-      subroutine clebs (l1,l2,l3,m1,m2,m3,q)
       implicit double precision (a-h,o-z)
       dimension ft(0:100)
       save
@@ -1274,12 +1258,9 @@ c     clebs
       if(mod(l +is,2).eq.1)q=-q
       return
       end
-c
-c==========================================================================
-c
+      subroutine calmagelc (kzmag,kamag,dmagxy,qelcxytar,b2tar)
 c     subroutine for calculating the magnetic dipole and electric quadrupole
 c
-      subroutine calmagelc (kzmag,kamag,dmagxy,qelcxytar,b2tar)
       implicit double precision (a-h,o-z)
       real b2tar
       dimension lnmag(33),snmag(33),nncom(33)
@@ -1393,15 +1374,15 @@ c
 c
 c     finish electric quadrupole
 c
-      return
-      end
 c
 c     end of subroutine for calculating the magnetic dipole and electric quadrupole
 c
 c==========================================================================
+      return
+      end
+      subroutine num1l(n,h,e,s2,u,s,no,eps)
 c
 c     num1l
-      subroutine num1l(n,h,e,s2,u,s,no,eps)
 c     version corrigee le 21 nov 72
 c     integration de l"equation de schroedinger par la methode de numero
 c     pour e negatif
@@ -1415,7 +1396,7 @@ c     controle des conditions asymptotiques
       if(e.gt.0) e=0
       dei=0
       epss=.1d-10
-      if(u(n-1).gt.epss) go to 10
+      if(u(n-1).gt.epss) goto 10
       dei=u(n-1)-epss
       do 8 k=1,n
     8 u(k)=u(k)-dei
@@ -1430,7 +1411,7 @@ c     calcul du nombre d"etats lies par integration a energie nulle
    18 b1=s(1)*(1-aa)
       do 38 k=2,n
       b2=12*s(k-1)-10*b1-b0
-      if (abs(b2).lt.1.d+10) go to 22
+      if (abs(b2).lt.1.d+10) goto 22
       b2=b2*1.d-20
       b1=b1*1.d-20
    22 aa=h12*u(k)
@@ -1439,23 +1420,23 @@ c     calcul du nombre d"etats lies par integration a energie nulle
    38 b1=b2
       do 42 k=5,n
       n0=k
-      if(u(k).lt.0) go to 44
+      if(u(k).lt.0) goto 44
    42 continue
    44 nel=0
       do 52 k=n0,n
       if (s(k-1)*s(k)) 46,50,52
    46 nel=nel+2
-      go to 52
+      goto 52
    50 nel=nel+1
    52 continue
       nel=nel/2
-      if(nel.gt.no) go to 64
-      if(nel.eq.no) go to 60
+      if(nel.gt.no) goto 64
+      if(nel.eq.no) goto 60
    62 no=-1
       return
    60 rap1=s(n-1)/s(n)
       rap2=exp(h*sqrt(u(n-1)-e))
-      if(rap1.lt.rap2) go to 62
+      if(rap1.lt.rap2) goto 62
 c     calcul de emin et emax entre lesquelles se trouve l"energie propre
    64 umin=u(1)
       do 70 k=2,n
@@ -1472,7 +1453,7 @@ c     bornes (emin,emax)
       e2=emax
       j=2
       i=1
-      go to 102
+      goto 102
 c     reduction des bornes emin et emax
    90 emin=e1
       emax=e2
@@ -1482,7 +1463,7 @@ c     reduction des bornes emin et emax
   100 e=emin+te*i/j
   102 de=0
   104 e=e+de
-      if(e.gt.0) go to 204
+      if(e.gt.0) goto 204
       s(n)=1.d-10
       n1=n-1
       expo=min(h*sqrt((u(n-1)+u(n))/2-e),80.d0)
@@ -1499,7 +1480,7 @@ c     reduction des bornes emin et emax
       s(k)=b2/(1-aa)
       b0=b1
       b1=b2
-      if(u(k).lt.e) go to 140
+      if(u(k).lt.e) goto 140
   138 continue
   140 n1=k
 c     normalisation de la fonction d"onde a s(n1)
@@ -1527,30 +1508,30 @@ c     calcul de la correction d"energie
       do 180 k=1,n
   180 som=som+s(k)*s(k)
       de=((-s(n1-1)+2-s(n1+1))/(h*h)+u(n1)-e)/som
-      if(abs(de).gt.eps) go to 104
+      if(abs(de).gt.eps) goto 104
 c     calcul du nombre de noeuds de l"etat propre trouve
       do 182 k=5,n
-      if(u(k).lt.e) go to 184
+      if(u(k).lt.e) goto 184
   182 continue
   184 n0=k
       nel=0
       do 192 k=n0,n1
       if(s(k-1)*s(k)) 186,190,192
   186 nel=nel+2
-      go to 192
+      goto 192
   190 nel=nel+1
   192 continue
       nel=nel/2
 c     l"etat propre trouve est-il le bon
       if(nel-no) 198,214,202
   198 if(e.gt.e1) e1=e
-      go to 204
+      goto 204
   202 if(e.lt.e2) e2=e
   204 i=i+2
-      if (i.le.j)  go to 100
+      if (i.le.j)  goto 100
       j=2*j
-      if(abs(e1-emin).gt.eps.or.abs(emax-e2).gt.eps) go to 90
-      go to 98
+      if(abs(e1-emin).gt.eps.or.abs(emax-e2).gt.eps) goto 90
+      goto 98
 c     normalisation de la fonction propre
   214 som=1/sqrt(som*h)
       do 218 k=1,n
@@ -1562,11 +1543,9 @@ c     debut formats
      1 no=-1,/)
 c     fin formats
       end
-c
-c==========================================================================
+      subroutine dephase(maxv,h,w,y,eps,delta,l,eta,qk,rfin,ifail)
 c
 c     dephase
-      subroutine dephase(maxv,h,w,y,eps,delta,l,eta,qk,rfin,ifail)
       implicit double precision (a-h,o-z)
       dimension fg(2),dfc(101),gc(101),dgc(101),fc(101),w(200),y(200)
       ifail=0
@@ -1611,7 +1590,7 @@ c     dephase
       d=fc(ll)*y(n-1)-fg(1)*y(n)
       z=fg(1)*gc(ll)-fg(2)*fc(ll)
       del=abs(z)/sqrt(c*c+d*d)
-      if(abs(1-dd/del).lt.pas) go to 24
+      if(abs(1-dd/del).lt.pas) goto 24
       dd = del
       fg(1)=fc(ll)
       fg(2)=gc(ll)
@@ -1628,11 +1607,9 @@ c      print2000,l,qk
  2000 format(15x,29h no conv. in dephase() for l=,i3,3h k=,f10.6)
  2001 format(15x,' the potential has no coulomb asymptotic form')
       end
-c
-c==========================================================================
+      subroutine coufra(rho,eta,minl,maxl,fc,fcp,gc,gcp)
 c
 c     coufra
-      subroutine coufra(rho,eta,minl,maxl,fc,fcp,gc,gcp)
       implicit double precision (a-h,o-z)
       double precision k,k1,k2,k3,k4,m1,m2,m3,m4
 c     dimension fc(maxl),fcp(maxl),gc(maxl),gcp(maxl)
@@ -1650,7 +1627,7 @@ c     dimension fc(maxl),fcp(maxl),gc(maxl),gcp(maxl)
       turn = eta+sqrt(eta2+xll1)
       if(r.lt.turn.and.abs(eta).ge.1.d-6) ktr = -1
       ktrp = ktr
-      go to 2
+      goto 2
     1 r = turn
       tf = f
       tfp = fp
@@ -1667,9 +1644,9 @@ c     fraction continue pour fp(maxl)/f(maxl) ; xl=f ; xlprime=fp ********
       d = 0
       f = 1
       k = (pl*pl-pl+etar)*(pl+pl-1)
-      if(pl*pl+pl+etar.ne.0.) go to 3
+      if(pl*pl+pl+etar.ne.0.) goto 3
       r = r*1.0000001d0
-      go to 2
+      goto 2
     3 h = (pl*pl+eta2)*(1-pl*pl)*rho2
       k = k+dk+pl*pl*6
       d = 1/(d*h+k)
@@ -1678,10 +1655,10 @@ c     fraction continue pour fp(maxl)/f(maxl) ; xl=f ; xlprime=fp ********
       pl = pl+1
       fp = fp+del
       if(d.lt.0) f = -f
-      if(pl.gt.20000.0d0) go to 11
-      if(abs(del/fp).ge.acc) go to 3
+      if(pl.gt.20000.0d0) goto 11
+      if(abs(del/fp).ge.acc) goto 3
       fp = f*fp
-      if(lmax.eq.minl) go to 5
+      if(lmax.eq.minl) goto 5
       fc(lmax+1) = f
       fcp(lmax+1) = fp
 c     recurrence arriere pour f et fp ; gc,gcp utilises pour stockage ***
@@ -1695,7 +1672,7 @@ c     recurrence arriere pour f et fp ; gc,gcp utilises pour stockage ***
     4 l = l-1
       f = fc(lmin1)
       fp = fcp(lmin1)
-    5 if(ktrp.eq.-1) go to 1
+    5 if(ktrp.eq.-1) goto 1
 c     meme calcul pour r = turn si rho.lt.turn
 c     p + i.q calcule en minl , equation (32)
       p = 0.0
@@ -1726,8 +1703,8 @@ c     p + i.q calcule en minl , equation (32)
       t = dp*h-dq*k
       dq = dp*k+dq*h
       dp = t
-      if(pl.gt.46000.0d0) go to 11
-      if(abs(dp)+abs(dq).ge.(abs(p)+abs(q))*acc) go to 6
+      if(pl.gt.46000.0d0) goto 11
+      if(abs(dp)+abs(dq).ge.(abs(p)+abs(q))*acc) goto 6
       p = p/r
       q = q/r
 c     calcul de fp,g,gp, et normalisation de f en l = minl **************
@@ -1736,7 +1713,7 @@ c     calcul de fp,g,gp, et normalisation de f en l = minl **************
       w = 1.0/sqrt(abs(fp*g-f*gp))
       g = w*g
       gp = w*gp
-      if(ktr.eq.1) go to 8
+      if(ktr.eq.1) goto 8
       f = tf
       fp = tfp
       lmax = maxl
@@ -1767,14 +1744,14 @@ c     voir fox et mayers(1968) pg 202
       gp = gp+(m1+m2+m2+m3+m4)*r3
       r = rh
       i2 = i2-1
-      if(abs(gp).gt.1.d300) go to 11
-      if(i2.ge.0) go to 7
+      if(abs(gp).gt.1.d300) goto 11
+      if(i2.ge.0) goto 7
       w = 1.0/(fp*g-f*gp)
 c     recurrence avant a partir de gc(minl) et gcp(minl)
 c     renormalisation de fc et fcp pour chaque valeur de l **************
     8 gc(lmin1) = g
       gcp(lmin1) = gp
-      if(lmax.eq.minl) go to 10
+      if(lmax.eq.minl) goto 10
       do 9 l=lmin1,lmax
       t = gc(l+1)
       gc(l+1) = (gc(l)*gc(l+1)-gcp(l))/gcp(l+1)
@@ -1790,11 +1767,8 @@ c     renormalisation de fc et fcp pour chaque valeur de l **************
    11 w = 0.0
       g = 0.0
       gp = 0.0
-      go to 8
+      goto 8
       end
-c
-c==========================================================================
-c
       subroutine intu1(u,nr,du,volj,rms,rin,key)
 c**************************************************************
 c
@@ -1871,9 +1845,6 @@ c**************************************************************
       if(sum1.ne.0.) rms=sum2/sum1
       return
       end
-c
-c==========================================================================
-c
       subroutine foldpot(e,rho,ka,kz,vfold,hu,volj,ipot)
       implicit double precision(a-h,o-z)
       parameter(nmx=1000,ndimax=5001)

@@ -3,7 +3,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 4, 2013
+c | Date  : July 14, 2014
 c | Task  : Assign values to keywords
 c +---------------------------------------------------------------------
 c
@@ -16,7 +16,7 @@ c
       character*1  ch
       character*80 keyword(numEkey),word(40),key,adfile,cval
       integer      class,Zix,Nix,type,ibar,irad,lval,igr,ival,i,iz,ia,
-     +             k,type2,j
+     +             in,k,type2,j
       real         val,Ea,Eb,Em,D,Eadj(0:numenadj),Dadj(numenadj)
 c
 c Several keywords may be altered over local energy ranges
@@ -55,6 +55,7 @@ c  8: keyword particle-type real value integer-value
 c     [optional: local adjustment]
 c  9: keyword value [optional: local adjustment]
 c 10: keyword Z filename
+c 11: keyword Z A filename
 c
 c flagassign: flag to assign value or not
 c word      : words on input line
@@ -167,15 +168,27 @@ c
 c
 c Keywords with input files
 c
-      if (class.eq.10) then
+      if (class.ge.10) then
         read(word(2),*,end=100,err=100) iz
         Zix=Zinit-iz
         if (Zix.lt.0.or.Zix.gt.numZ) then
           goto 200
         else
-          cval=word(3)
+          if (class.eq.11) then
+            read(word(3),*,end=100,err=100) ia
+            in=ia-iz
+            Nix=Ninit-in
+            if (Nix.lt.0.or.Nix.gt.numN) then
+              goto 200
+            else
+              cval=word(4)
+            endif
+            i=4
+          else
+            cval=word(3)
+            i=3
+          endif
         endif
-        i=3
       endif
 c
 c Local energy-dependent adjustment of parameters

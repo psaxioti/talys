@@ -58,7 +58,7 @@ c
      +      Atarget,Starget
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
-          write(1,'("# # coeff.   =",i3)') J2end+1
+          write(1,'("# # coeff.   =",i4)') J2end+1
           write(1,'("#  L       Total           Direct",
      +      "        Compound       Normalized    ENDF-6")')
           do 20 LL=0,J2end
@@ -104,7 +104,7 @@ c
      +      Atarget,Starget
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
-          write(1,'("# # angles   =",i3)') nangle+1
+          write(1,'("# # angles   =",i4)') nangle+1
           write(1,'("# Angle       xs            Direct",
      +      "         Compound")')
           do 40 iang=0,nangle
@@ -137,7 +137,7 @@ c
      +      Atarget,Starget
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
-          write(1,'("# # angles   =",i3)') nangle+1
+          write(1,'("# # angles   =",i4)') nangle+1
           write(1,'("# Angle       xs            Direct",
      +      "         Compound    c.s./Rutherford")')
           do 60 iang=0,nangle
@@ -191,7 +191,7 @@ c
      +        i3)')  parsym(k0),Atarget,Starget,i
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
-            write(1,'("# # coeff.   =",i3)') J2end+1
+            write(1,'("# # coeff.   =",i4)') J2end+1
             write(1,'("#  L       Total           Direct",
      +        "        Compound       Normalized    ENDF-6")')
             do 130 LL=0,J2end
@@ -230,7 +230,7 @@ c
      +      " - Level",i3)') parsym(k0),Atarget,Starget,i
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
-          write(1,'("# # angles   =",i3)') nangle+1
+          write(1,'("# # angles   =",i4)') nangle+1
           write(1,'("# Angle      xs           Direct       Compound")')
           do 160 iang=0,nangle
             write(1,'(f5.1,1p,3e15.5)') angle(iang),discad(k0,i,iang),
@@ -282,7 +282,7 @@ c
      +          Atarget,Starget,parsym(k0),parsym(type),i
               write(1,'("# E-incident = ",f7.3)') Einc
               write(1,'("# ")')
-              write(1,'("# # coeff.   =",i3)') J2end+1
+              write(1,'("# # coeff.   =",i4)') J2end+1
               write(1,'("#  L       Total           Direct",
      +          "        Compound       Normalized    ENDF-6")')
               do 240 LL=0,J2end
@@ -324,7 +324,7 @@ c
      +        Atarget,Starget,parsym(k0),parsym(type),i
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
-            write(1,'("# # angles   =",i3)') nangle+1
+            write(1,'("# # angles   =",i4)') nangle+1
             write(1,'("# Angle      xs           Direct",
      +        "        Compound")')
             do 270 iang=0,nangle

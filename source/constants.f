@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 27, 2012
+c | Date  : October 27, 2015
 c | Task  : Constants and initialization
 c +---------------------------------------------------------------------
 c
@@ -74,11 +74,22 @@ c
 c iso      : counter for isotope
 c numiso   : maximum number of isotopes per element
 c natstring: string extension for file names
+c nlines   : number of input lines
 c
       iso=1
       do 110 i=1,numiso
         natstring(i)='    '
   110 continue
+      nlines=0
+c
+c **************** Set flag for fission fragment evaporation ***********
+c
+c flagffruns: flag to denote that run is for fission fragment
+c flagrpruns: flag to denote that run is for residual product
+c
+      flagffruns=.false.
+      flagrpruns=.false.
+      nin0=0
 c
 c *********************** Set default mass for fission *****************
 c

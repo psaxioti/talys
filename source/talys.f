@@ -1,7 +1,18 @@
+      program talys
 c
-c                            TALYS-1.6
+c +---------------------------------------------------------------------
+c | Author: Arjan Koning, Stephane Hilaire and Stephane Goriely
+c | Date  : December 28, 2015
+c | Task  : Main program
+c +---------------------------------------------------------------------
 c
-c                   (Version: December 23, 2013)
+c ****************** Declarations and common blocks ********************
+c
+      include "talys.cmb"
+c
+c                            TALYS-1.8
+c
+c                   (Version: December 28, 2015)
 c
 c             Nuclear reactions from 1 keV to 200 MeV.
 c
@@ -39,18 +50,6 @@ c       | Phone: (+32) 2 650 2843                               |
 c       | Email: sgoriely@astro.ulb.ac.be                       |
 c       |-------------------------------------------------------|
 c
-      program talys
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning, Stephane Hilaire and Stephane Goriely
-c | Date  : December 23, 2013
-c | Task  : Main program
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-c
 c ************* Input, initialization and reaction models **************
 c
 c machine      : subroutine for machine dependent statements
@@ -68,4 +67,4 @@ c
       call talysreaction
       if (flagnatural) call natural
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2015 A.J. Koning, S. Hilaire and S. Goriely

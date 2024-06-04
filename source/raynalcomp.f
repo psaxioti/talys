@@ -120,6 +120,7 @@ c E0comp,E0   : constant of temperature formula
 c tgo         : slow s-wave neutron gamma width/spacing
 c swaveth     : theoretical strength function for s-wave
 c
+      tgo=0.
       if (parinclude(0)) then
         Zix=0
         Nix=0

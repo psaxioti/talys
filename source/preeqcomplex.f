@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 21, 2012
+c | Date  : April 13, 2015
 c | Task  : Pre-equilibrium complex particle emission
 c +---------------------------------------------------------------------
 c
@@ -14,15 +14,25 @@ c
 c
 c ********************** Various components ****************************
 c
-c stripping: subroutine for contribution of stripping and pickup
-c            reactions
-c knockout : subroutine for contribution of knockout reactions
-c k0       : index of incident particle
-c breakup  : subroutine for contribution of breakup reactions
+c stripping   : subroutine for contribution of stripping and pickup
+c               reactions
+c knockout    : subroutine for contribution of knockout reactions
+c k0          : index of incident particle
+c breakupmodel: model for break-up reaction: 1. Kalbach 2. Avrigeanu
+c breakup     : subroutine for contribution of breakup reactions
+c breakupAVR  : subroutine for contribution of breakup reactions,
+c               Avrigeanu model
 c
       call stripping
       call knockout
-      if (k0.gt.2) call breakup
+      if (k0.gt.2) then
+        if (breakupmodel.eq.1) then
+          call breakup
+        else
+ctest     call BUinitial
+          call breakupAVR
+        endif
+      endif
 c
 c *************************** Corrections ******************************
 c

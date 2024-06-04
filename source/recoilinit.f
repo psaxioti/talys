@@ -191,12 +191,12 @@ c
         Emaxlab=Emaxinc-S(0,0,type)
         Enrjlabmax(type)=Emaxlab
         iejlab(type)=0
-        if (Emaxlab.lt.0.) go to 50
+        if (Emaxlab.lt.0.) goto 50
         maxentype=0
         do 60 iej=0,maxen
           if (egrid(iej).ge.Emaxlab) then
             maxentype=iej
-            go to 70
+            goto 70
           endif
    60   continue
    70   if (maxen.gt.0.and.egrid(maxen).lt.Emaxlab) maxentype=maxen
@@ -301,13 +301,13 @@ c
           if (type.eq.5) if5=if5+1
           if (type.eq.6) if6=if6+1
           numZres=numZcomp+parZ(type)
-          if (numZres.gt.maxZ+2) go to 140
-          if (numZres.gt.Zinit) go to 140
+          if (numZres.gt.maxZ+2) goto 140
+          if (numZres.gt.Zinit) goto 140
           numNres=numNcomp+parN(type)
-          if (numNres.gt.maxN+2) go to 140
-          if (numNres.gt.Ninit) go to 140
+          if (numNres.gt.maxN+2) goto 140
+          if (numNres.gt.Ninit) goto 140
           EexCMloc=EexCMmax(ires)-S(numZcomp,numNcomp,type)
-          if (EexCMloc.le.0.) go to 140
+          if (EexCMloc.le.0.) goto 140
           do 150 k=1,numrestot
             io1=numZN(k,1)
             io2=numZN(k,2)
@@ -321,7 +321,7 @@ c
      +         2*(numZN(k,4)+numZN(k,6))
             if ((numZk.eq.numZres).and.(numNk.eq.numNres)) then
               EexCMmax(k)=max(EexCMmax(k),EexCMloc)
-              go to 140
+              goto 140
             endif
   150     continue
 c A new residual is reached
@@ -334,7 +334,7 @@ c A new residual is reached
           EexCMmax(numrestot)=EexCMloc
   140   continue
   130 continue
-      if (iloop.eq.1) go to 120
+      if (iloop.eq.1) goto 120
 c
 c ******** Define excitation energy bins for all residual nuclei *******
 c
@@ -388,7 +388,7 @@ c
      +                2*(numZN(k,5)+numZN(k,6))
                 numNres=numZN(k,1)+numZN(k,3)+numZN(k,5)+
      +                2*(numZN(k,4)+numZN(k,6))
-                go to 220
+                goto 220
               endif
   210       continue
 c
@@ -396,7 +396,7 @@ c If the residual nucleus is not among the considered ones it means
 c that it cannot be obtained because all possible residuals have been
 c defined in loop 130. We thus consider another ejectile.
 c
-            go to 200
+            goto 200
 c
 c Loop over the various excitation energies bins of the residual
 c nucleus to deduce the lab recoil energy for these bins
@@ -413,7 +413,7 @@ c
               EejCM=ECMbin-EexCM(ifinal,iexfinal)
               EejCM=EejCM-S(numZcomp,numNcomp,type)
               if (abs(EejCM).le.1.0e-10) EejCM=0.
-              if (EejCM.le.0.) go to 230
+              if (EejCM.le.0.) goto 230
               if (type.ne.0) then
                   PrecCM=ejectmass*sqrt(2*ratio*EejCM)
                 else
@@ -473,10 +473,10 @@ c
       enddo
       do 460 iz=0,maxZ+2
         do 470 in=0,maxN+2
-          if (Erecmaxmax(iz,in).le.0.) go to 470
+          if (Erecmaxmax(iz,in).le.0.) goto 470
           derec=Erecmaxmax(iz,in)/(maxenrec+1)
           ires=irecmaxmax(iz,in)
-          if (ires.eq.0) go to 470
+          if (ires.eq.0) goto 470
           do 480 iexc=0,numenrec
             Erecmin(iz,in,iexc)=iexc*derec
             Erecmax(iz,in,iexc)=(iexc+1)*derec
@@ -489,7 +489,7 @@ c ************* Creation of the area array for the recoils *************
 c
       do 500 iz=0,maxZ+2
         do 510 in=0,maxN+2
-          if (Erecmaxmax(iz,in).eq.0.) go to 510
+          if (Erecmaxmax(iz,in).eq.0.) goto 510
           do 520 ierec=0,maxenrec
             wnrj=Erecmax(iz,in,ierec)-Erecmin(iz,in,ierec)
             do 530 iang=0,2*nanglerec+1

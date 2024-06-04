@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 20, 2012
+c | Date  : December 11, 2014
 c | Task  : Output of residual production cross sections
 c +---------------------------------------------------------------------
 c
@@ -82,6 +82,8 @@ c xsresprod  : total residual production (= reaction) cross section
 c flagfission: flag for fission
 c xsfistot   : total fission cross section
 c xsnonel    : non-elastic cross section
+c flaginitpop: flag for initial population distribution
+c xsinitpop  : initial population cross section
 c
       write(*,'(/" Total residual production cross section:",f12.5)')
      +  xsresprod
@@ -91,8 +93,13 @@ c
         write(*,'(" Fission + res. production cross section:",f12.5)')
      +    xsresprod+xsfistot
       endif
-      write(*,'(" Non-elastic cross section              :",f12.5)')
-     +  xsnonel
+      if (flaginitpop) then
+        write(*,'(" Initial population cross section       :",f12.5)')
+     +    xsinitpop
+      else
+        write(*,'(" Non-elastic cross section              :",f12.5)')
+     +    xsnonel
+      endif
 c
 c Write results to separate file
 c
@@ -149,27 +156,27 @@ c
      +          Qres(Zcomp,Ncomp,nex),nucmass(Zcomp,Ncomp)
               write(1,'("# E-threshold=",1p,e12.5)')
      +          Ethresh(Zcomp,Ncomp,nex)
-              write(1,'("# # energies =",i3)') numinc
+              write(1,'("# # energies =",i6)') numinc
               if (flagcompo) then
-                write(1,'("#    E         xs                    ",
+                write(1,'("#     E         xs                     ",
      +            " Direct  Preequilibrium Compound")')
                 do 130 nen=1,numinclow
-                  write(1,'(1p,e10.3,e12.5,12x,3e12.5)') eninc(nen),
+                  write(1,'(1p,2e12.5,12x,3e12.5)') eninc(nen),
      +              fxspopnuc(nen,Zcomp,Ncomp),0.,0.,
      +              fxspopnuc(nen,Zcomp,Ncomp)
   130           continue
                 do 140 nen=numinclow+1,nin-1
-                  write(1,'(1p,e10.3,e12.5,12x,3e12.5)') eninc(nen),
+                  write(1,'(1p,2e12.5,12x,3e12.5)') eninc(nen),
      +              0.,0.,0.,0.
   140           continue
               else
-                write(1,'("#    E         xs")')
+                write(1,'("#     E          xs")')
                 do 150 nen=1,numinclow
-                  write(1,'(1p,e10.3,e12.5)') eninc(nen),
+                  write(1,'(1p,2e12.5)') eninc(nen),
      +              fxspopnuc(nen,Zcomp,Ncomp)
   150           continue
                 do 160 nen=numinclow+1,nin-1
-                  write(1,'(1p,e10.3,e12.5)') eninc(nen),0.
+                  write(1,'(1p,2e12.5)') eninc(nen),0.
   160           continue
               endif
             else
@@ -179,11 +186,11 @@ c
   170         continue
             endif
             if (flagcompo) then
-              write(1,'(1p,e10.3,e12.5,12x,3e12.5)') Einc,
+              write(1,'(1p,2e12.5,12x,3e12.5)') Einc,
      +          xspopnuc(Zcomp,Ncomp),xspopdir(Zcomp,Ncomp),
      +          xspoppreeq(Zcomp,Ncomp),xspopcomp(Zcomp,Ncomp)
             else
-              write(1,'(1p,e10.3,e12.5)') Einc,xspopnuc(Zcomp,Ncomp)
+              write(1,'(1p,2e12.5)') Einc,xspopnuc(Zcomp,Ncomp)
             endif
   200       close (unit=1)
 c
@@ -214,15 +221,15 @@ c
      +              f11.6)') Qres(Zcomp,Ncomp,nex),nucmass(Zcomp,Ncomp)
                   write(1,'("# E-threshold=",1p,e12.5)')
      +              Ethresh(Zcomp,Ncomp,nex)
-                  write(1,'("# # energies =",i3)') numinc
-                  write(1,'("#    E         xs      Branching")')
+                  write(1,'("# # energies =",i6)') numinc
+                  write(1,'("#     E          xs      Branching")')
                   do 240 nen=1,numinclow
-                    write(1,'(1p,e10.3,e12.5,0p,f9.5)') eninc(nen),
+                    write(1,'(1p,3e12.5)') eninc(nen),
      +                fxspopex(nen,Zcomp,Ncomp,nex),
      +                fxsbranch(nen,Zcomp,Ncomp,nex)
   240             continue
                   do 250 nen=numinclow+1,nin-1
-                    write(1,'(1p,e10.3,e12.5,0p,f9.5)') eninc(nen),0.,
+                    write(1,'(1p,3e12.5)') eninc(nen),0.,
      +                fxsbranch(max(numinclow,1),Zcomp,Ncomp,nex)
   250             continue
                 else
@@ -231,7 +238,7 @@ c
                     read(1,*,end=270,err=270)
   260             continue
                 endif
-                write(1,'(1p,e10.3,e12.5,0p,f9.5)') Einc,
+                write(1,'(1p,3e12.5)') Einc,
      +            xspopex(Zcomp,Ncomp,nex),xsbranch(Zcomp,Ncomp,nex)
   270           close (unit=1)
               endif

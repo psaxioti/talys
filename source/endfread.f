@@ -195,14 +195,14 @@ c
      +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
       write(1,'("# ")')
-      write(1,'("# # energies =",i4)') nen6+numinclow
+      write(1,'("# # energies =",i6)') nen6+numinclow
       write(1,'("#    E        Non-elastic Elastic     Total")')
       do 310 nen=1,numinclow
-        write(1,'(1p,e12.5,2x,3e11.4)') eninc(nen),fxsnonel(nen),
+        write(1,'(1p,4e12.5)') eninc(nen),fxsnonel(nen),
      +    fxselastot(nen),fxstotinc(nen)
   310 continue
       do 320 nen=1,nen6
-        write(1,'(1p,e12.5,2x,3e11.4)') e6(nen),xsnon6(nen),
+        write(1,'(1p,4e12.5)') e6(nen),xsnon6(nen),
      +    xselas6(nen),xstot6(nen)
   320 continue
       close (unit=1)
@@ -214,13 +214,13 @@ c
      +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
       write(1,'("# ")')
-      write(1,'("# # energies =",i4)') nen6+numinclow
+      write(1,'("# # energies =",i6)') nen6+numinclow
       write(1,'("#    E      Cross section")')
       do 410 nen=1,numinclow
-        write(1,'(1p,e12.5,2x,e11.4)') eninc(nen),fxstotinc(nen)
+        write(1,'(1p,2e12.5)') eninc(nen),fxstotinc(nen)
   410 continue
       do 420 nen=1,nen6
-        write(1,'(1p,e12.5,2x,e11.4)') e6(nen),xstot6(nen)
+        write(1,'(1p,2e12.5)') e6(nen),xstot6(nen)
   420 continue
       close (unit=1)
 c
@@ -231,13 +231,13 @@ c
      +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
       write(1,'("# ")')
-      write(1,'("# # energies =",i4)') nen6+numinclow
+      write(1,'("# # energies =",i6)') nen6+numinclow
       write(1,'("#    E      Cross section")')
       do 510 nen=1,numinclow
-        write(1,'(1p,e12.5,2x,e11.4)') eninc(nen),fxselastot(nen)
+        write(1,'(1p,2e12.5)') eninc(nen),fxselastot(nen)
   510 continue
       do 520 nen=1,nen6
-        write(1,'(1p,e12.5,2x,e11.4)') e6(nen),xselas6(nen)
+        write(1,'(1p,2e12.5)') e6(nen),xselas6(nen)
   520 continue
       close (unit=1)
 c
@@ -248,13 +248,13 @@ c
      +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
       write(1,'("# ")')
-      write(1,'("# # energies =",i4)') nen6+numinclow
+      write(1,'("# # energies =",i6)') nen6+numinclow
       write(1,'("#    E      Cross section")')
       do 610 nen=1,numinclow
-        write(1,'(1p,e12.5,2x,e11.4)') eninc(nen),fxsnonel(nen)
+        write(1,'(1p,2e12.5)') eninc(nen),fxsnonel(nen)
   610 continue
       do 620 nen=1,nen6
-        write(1,'(1p,e12.5,2x,e11.4)') e6(nen),xsnon6(nen)
+        write(1,'(1p,2e12.5)') e6(nen),xsnon6(nen)
   620 continue
       close (unit=1)
       return

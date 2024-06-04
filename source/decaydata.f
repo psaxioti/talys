@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 20, 2012
+c | Date  : August 18, 2014
 c | Task  : Decay data
 c +---------------------------------------------------------------------
 c
@@ -70,6 +70,7 @@ c
         Nix=Ninit-N
         is=-1
         if (string(11:11).eq.'M') is=1
+        if (string(11:11).eq.'N') is=2
   110   read(1,'(a80)',end=200) string
         if (string(72:80).ne.'8457    2') goto 110
         read(string(1:11),*) Thalf(Zix,Nix,is)

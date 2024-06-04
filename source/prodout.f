@@ -39,23 +39,23 @@ c
      +  (Tcool(i),i=1,5)
       write(*,'(" Energy range                : ",f7.3," --> ",f7.3,
      +  " MeV")') Ebeam,Eback
-      write(*,'(" Beam current                : ",f7.3," mA")')
+      write(*,'(" Beam current                : ",f12.3," mA")')
      +  Ibeam
-      write(*,'(" Target material density     : ",f7.3," g/cm^3")')
+      write(*,'(" Target material density     : ",f12.3," g/cm^3")')
      +  rhotarget
-      write(*,'(" Target area                 : ",f7.3," cm^2")')
+      write(*,'(" Target area                 : ",f12.3," cm^2")')
      +  Area
-      write(*,'(" Effective target thickness  : ",f7.3," cm")')
+      write(*,'(" Effective target thickness  : ",f12.3," cm")')
      +  targetdx
-      write(*,'(" Effective target volume     : ",f7.3," cm^3")')
+      write(*,'(" Effective target volume     : ",f12.3," cm^3")')
      +  Vtar
-      write(*,'(" Effective target mass       : ",f7.3," g   ")')
+      write(*,'(" Effective target mass       : ",f12.3," g   ")')
      +  Mtar
       write(*,'(" Number of target atoms      : ",1p,e12.5)')
      +  Ntar0
       write(*,'(" Number of incident particles: ",1p,e12.5," s^-1")')
      +  projnum
-      write(*,'(" Produced heat in target     : ",f7.3," kW")')
+      write(*,'(" Produced heat in target     : ",f12.3," kW")')
      +  heat
 c
 c Output to files per residual product

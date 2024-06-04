@@ -122,7 +122,7 @@ c
         write(1,'("# # transitions from ",f5.1,a1,
      +    " GS to ",i3,a2," levels:",i3)') spintar,cpar,Acpracap,
      +    nuc(Zcpracap),nlevracap(0,0)
-        write(1,'("# # energies =",i3)') nracapout
+        write(1,'("# # energies =",i6)') nracapout
         write(1,'("#    E         xs                    ",
      +    " xs(E1)      xs(E2)      xs(M1)     xs(tot)")')
         close(1)
@@ -131,7 +131,7 @@ c
       do 30 nen=1,nin+4
         read(1,*,end=40,err=40)
    30 continue
-      write(1,'(1p,e10.3,e12.5,12x,4e12.5)') eninc(nin),xsracap(nin),
+      write(1,'(1p,2e12.5,12x,4e12.5)') eninc(nin),xsracap(nin),
      +  xsracapEM(nin,1,1), xsracapEM(nin,1,2),
      +  xsracapEM(nin,0,1),xspopnuc(0,0)
    40 close(1)

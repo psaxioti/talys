@@ -1,4 +1,4 @@
-      double precision function bsfgmodel(Zix,Nix,ald,Eex,P,ibar)
+      function bsfgmodel(Zix,Nix,ald,Eex,P,ibar)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
@@ -10,7 +10,7 @@ c ******************* Declarations and common blocks *******************
 c
       integer          Zix,Nix,ibar
       real             ald,Eex,P,sigma,spincut,U,an,ap,T2
-      double precision invfermi,fermi,term,expo,deninv
+      double precision bsfgmodel,invfermi,fermi,term,expo,deninv
 c
 c *********************** Level density formula ************************
 c

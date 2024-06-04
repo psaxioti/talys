@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning, Eric Bauge and Pascal Romain
-c | Date  : April 27, 2013
+c | Date  : August 10, 2015
 c | Task  : Read ECIS results for incident energy
 c +---------------------------------------------------------------------
 c
@@ -12,7 +12,7 @@ c
       character*72     line
       integer          infilecs,infiletr,infileang,infileleg,infilein,
      +                 Zix,Nix,i,nJ,k,nS,lev,l,ispin,nSt,nL,ii,iSt,iang,
-     +                 itype
+     +                 itype,istat
       real             groundspin2,rj,jres,factor,xsr,eps
       double precision xs,Tcoef,ddl,teps
 c
@@ -279,7 +279,8 @@ c
       read(infileang,'(12x,i3)') nS
       do 410 iang=0,nangle
         do 410 k=1,nS
-          read(infileang,'(i3,12x,e12.5)',end=410,err=410) itype,xs
+          read(infileang,'(i3,12x,e12.5)',iostat=istat) itype,xs
+          if (istat.ne.0) goto 410
           xsr=1.e38
           if (xs.le.1.e38) xsr=real(xs)
           if (itype.eq.0) directad(k0,Ltarget,iang)=xsr
@@ -303,7 +304,8 @@ c
           read(infileang,'(i5,7x,i3)') i,nS
           do 520 iang=0,nangle
             do 530 k=1,nS
-              read(infileang,'(i3,12x,e12.5)',end=530,err=530) itype,xs
+              read(infileang,'(i3,12x,e12.5)',iostat=istat) itype,xs
+              if (istat.ne.0) goto 530
               ii=indexcc(Zix,Nix,i)
               if (itype.eq.0) directad(k0,ii,iang)=real(xs)
   530       continue

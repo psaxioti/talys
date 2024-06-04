@@ -67,7 +67,6 @@ c inverseecis: subroutine for ECIS calculation for outgoing particles
 c              and energy grid
 c
       if (.not.invexist(Zcomp,Ncomp)) call inverseecis(Zcomp,Ncomp)
-      invexist(Zcomp,Ncomp)=.true.
 c
 c Modification 5/5/11 by Kevin Kelley
 c If the user has specified 'eciscalc n' and a cs/tr file pair is not
@@ -101,7 +100,8 @@ c flaginverse: flag for output of transmission coefficients and inverse
 c              reaction cross sections
 c inverseout : subroutine for reaction output for outgoing channels
 c
-      if (flagecisinp) call inverseread(Zcomp,Ncomp)
+      if (flagecisinp.and.invexist(Zcomp,Ncomp)) 
+     +  call inverseread(Zcomp,Ncomp)
       call inversenorm(Zcomp,Ncomp)
       if (flaginverse) call inverseout(Zcomp,Ncomp)
       return

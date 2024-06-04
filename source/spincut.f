@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : April 4, 2012
+c | Date  : October 10, 2015
 c | Task  : Spin cutoff factor
 c +---------------------------------------------------------------------
 c
@@ -86,14 +86,14 @@ c
       Em=Exmatch(Zix,Nix,ibar)
       if (ldmod.eq.2.or.ldmod.ge.4) Em=S(Zix,Nix,1)
       if (ldmod.eq.3)
-     +  Em=Ucrit(Zix,Nix)-pair(Zix,Nix)-Pshift(Zix,Nix,ibar)
+     +  Em=Ucrit(Zix,Nix,ibar)-pair(Zix,Nix)-Pshift(Zix,Nix,ibar)
       if (Eex.le.Em) then
         aldm=ignatyuk(Zix,Nix,Em,ibar)
         Umatch=Em-pair(Zix,Nix)-Pshift(Zix,Nix,ibar)
         if (Umatch.gt.0.) then
           if (spincutmodel.eq.1) then
             if (ldmod.eq.3) then
-              s2m=scutconst*aldcrit(Zix,Nix)*Tcrit(Zix,Nix)
+              s2m=scutconst*aldcrit(Zix,Nix,ibar)*Tcrit(Zix,Nix)
             else
               s2m=scutconst*sqrt(aldm*Umatch)
             endif

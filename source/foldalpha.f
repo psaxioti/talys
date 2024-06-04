@@ -66,7 +66,7 @@ c expj0      : saturation value of the imaginary volume integral
 c--------------------------------------------------------------------------------------
 c
       v5d=0.
-      goto (10,20,30) alphaomp-2
+      goto (10,20,30,200) alphaomp-2
    10 continue
 c--------------------------------------------------------------------------------------
 c Case alphaomp=3
@@ -288,14 +288,15 @@ c-----------------------------------------------------------------
   100 continue
 c calculate the coulomb radius based on elton's formula
       rc=1.123+2.352*(a**(-.666666))-2.07*(a**(-1.333333))
+  200 continue
       return
       end
+      subroutine afold(z,a,e,rb,mp,rv,u,radmom,rhomom,nrad)
 c
 c---------------------------------------------------------------------------
 c subroutine for double folding potential for alpha projectiles
 c---------------------------------------------------------------------------
 c
-      subroutine afold(z,a,e,rb,mp,rv,u,radmom,rhomom,nrad)
 c
 c determination of the real folding potential through the product of the fourier transforms
 c Z          : charge number of target nucleus
@@ -384,7 +385,7 @@ c id=1 if d1=d2
         goto 20
    16   de=227*(1.-0.004*e/amp)
    20   continue
-        if (pass) go to 25
+        if (pass) goto 25
         no=1
         if(amp.gt.1.) call dense(no)
         pass=.true.
@@ -490,7 +491,6 @@ c  cf demetriou et al. (2002) NPA707, page 258
   521 continue
       return
       end
-c
       subroutine intu(u,nr,du,volj,rms,rin)
 c----------------------------------------------------------------------------------
 c determination of the Volume Integral and root-mean-square radius of the potential
@@ -550,7 +550,6 @@ c
       if (sum1.ne.0.) rms=sum2/sum1
       return
       end
-c
       subroutine dense(n0)
 c
 c determination of radial density distribution of the alpha system
@@ -569,7 +568,7 @@ c  as a sum of Gaussians
         roe(i,no)=0.
    1    fro(i,no)=0.
       n=nr(no)
-  700 if(no.eq.2)go to 50
+  700 if(no.eq.2)goto 50
       uu=2./3.
       g=sqrt(uu)
       ri(1)=0.2
@@ -618,7 +617,6 @@ c  as a sum of Gaussians
    50 continue
       return
       end
-c
       subroutine ftrans(bcof,lm,npoint,r,h,p,bint,b,ndim)
 c performs Fourier transform
       implicit double precision (a-h,o-z)
@@ -774,7 +772,6 @@ c performs Fourier transform
   420 bcof(npoint,l)=.5*bcof(npoint,l)
       return
       end
-c
       function dfac(l)
       implicit double precision (a-h,o-z)
       dfac=1.
@@ -785,7 +782,6 @@ c
    10 dfac=dfac*x
       return
       end
-c
       function sinint(x)
       implicit double precision (a-h,o-z)
       real*8 x,sinint
@@ -847,7 +843,6 @@ c
       sinint=b-f*cos(x)-g*sin(x)
       return
       end
-c
       subroutine mahaux(at,elab,eref,expj0,as,es,v5,rw,aw,dwv,dws,dvolj,
      &  efermi)
       implicit double precision(a-h,o-z)

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 10, 2012
+c | Date  : August 31, 2014
 c | Task  : Output of double-differential cross sections
 c +---------------------------------------------------------------------
 c
@@ -81,7 +81,7 @@ c
      +        parsym(k0),Atarget,Starget,parname(type)
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# E-emission = ",f7.3)') enf
-            write(1,'("# # angles =",i3)') nanglecont+1
+            write(1,'("# # angles =",i4)') nanglecont+1
             write(1,'("# Angle    Total       Direct    Pre-equil.",
      +        "  Mult. preeq  Compound")')
             do 50 iang=0,nanglecont
@@ -141,7 +141,7 @@ c
      +          parname(type)
               write(1,'("# E-incident = ",f7.3)') Einc
               write(1,'("# E-emission = ",f7.3)') enf
-              write(1,'("# # angles =",i3)') nanglecont+1
+              write(1,'("# # angles =",i4)') nanglecont+1
               write(1,'("# Angle    Total")')
               do 90 iang=0,nanglecont
                 xsa=ddxejlab(type,nen,iang)
@@ -196,7 +196,7 @@ c
      +        parsym(k0),Atarget,Starget,parname(type)
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# Angle      = ",f7.3)') angf
-            write(1,'("# # energies =",i3)')
+            write(1,'("# # energies =",i6)')
      +        eendout(type)-ebegin(type)+1
             write(1,'("# E-out    Total       Direct    Pre-equil.",
      +        "  Mult. preeq  Compound")')
@@ -251,7 +251,7 @@ c
      +          parname(type)
               write(1,'("# E-incident = ",f7.3)') Einc
               write(1,'("# Angle      = ",f7.3)') angf
-              write(1,'("# # energies =",i3)') iejlab(type)
+              write(1,'("# # energies =",i6)') iejlab(type)
               write(1,'("# E-out    Total")')
               do 190 nen=1,iejlab(type)
                 xsa=ddxejlab(type,nen,iang)

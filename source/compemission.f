@@ -1,4 +1,4 @@
-      subroutine compemission(Zcomp,Ncomp,nex)
+      subroutine compemission(Zcomp,Ncomp)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
@@ -324,10 +324,12 @@ c Create final spectra
 c
 c xsmpeemis: multiple-preequilibrium emission spectrum from
 c            compound nucleus
+c xsbinspec: emission spectrum from compound nucleus per bin
 c
           do 180 nen=ebegin(type),eend(type)
             xsemis(type,nen)=xsemis(type,nen)+xsgrid(nen)
             xsmpeemis(type,nen)=xsmpeemis(type,nen)+xsmpegrid(nen)
+            xsbinspec(type,nex,nen)=xsgrid(nen)+xsmpegrid(nen)
   180     continue
   110   continue
    10 continue

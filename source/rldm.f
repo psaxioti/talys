@@ -65,7 +65,7 @@ c
       b2=(x1b(ix+1,iy+1 )-x1b(ix,iy+1))*dx+x1b(ix,iy+1)
       b1=(x1b(ix+1,iy)-x1b(ix,iy))*dx+x1b(ix,iy)
       bfrldm=(b2-b1)*dy+b1
-      go to 95
+      goto 95
    30 if(x-.5)35,35,60
    35 by=20.*y+1.
       if(by-10.)45,45,40
@@ -82,7 +82,7 @@ c
       b1=(x2b(ix+1,iy)-x2b(ix,iy))*dx+x2b(ix,iy)
       b2=(x2b(ix+1,iy+1 )-x2b(ix,iy+1))*dx+x2b(ix,iy+1)
       bfrldm=(b2-b1)*dy+b1
-      go to 95
+      goto 95
    60 if(x-.95)70,70,65
    65 x=.95
    70 ix=int(20.*x+1.)

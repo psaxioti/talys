@@ -17,8 +17,9 @@ c--------------------------------------------------------------------c
       end
       subroutine mass10(nx,nz,E)     ! Duflo-Zuker fevrier 1996
 c Calculation of binding energy E (nx neutrons,nz protons)
-      dimension b(10),dyda(10),op(2),n2(2),dx(2),qx(2),os(2),
-     &          onp(0:8,2,2),oei(2),dei(2),nn(2),noc(18,2),pp(2),y(2)
+      real b(10),dyda(10),op(2),dx(2),qx(2),os(2),
+     &          onp(0:20,2,2),oei(2),dei(2),pp(2),y(2)
+      integer   n2(2),nn(2),noc(28,2)
       data b/0.7043,17.7418,16.2562,37.5562,53.9017,0.4711,2.1307,
      &       0.0210,40.5356,6.0632/
 c*********
@@ -42,11 +43,11 @@ c********                          ! beginning of main loop
       enddo
 c--------                          ! beginning of loop over N and Z
       do j=1,2
-        do l=1,18
+        do l=1,28
           noc(l,j)=0
         enddo
         do l=1,2
-          do k=0,8
+          do k=0,20
             onp(k,l,j)=0.
           enddo
         enddo
@@ -100,8 +101,8 @@ c--------
           pi=ip
           den=((pi+1)*(pi+2))**(3./2.)
           op(j)=op(j)+onp(ip,1,j)                                ! FM
-          os(j)=os(j)+onp(ip,2,j)*(1.+onp(ip,1,j))*(pi*pi/den)   ! SO
-     &               +onp(ip,2,j)*(1.-onp(ip,1,j))*((4*pi-5)/den)
+          os(j)=os(j)+onp(ip,2,j)*(1.+onp(ip,1,j))*(pi*pi/den)   
+     &               +onp(ip,2,j)*(1.-onp(ip,1,j))*((4*pi-5)/den) ! SO
         enddo
         op(j)=op(j)*op(j)
       enddo

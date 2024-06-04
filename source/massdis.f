@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 15, 2013
+c | Date  : November 14, 2015
 c | Task  : Fission fragment yields
 c +---------------------------------------------------------------------
 c
@@ -10,60 +10,105 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       include "gef.cmb"
+      integer numZff,numNff
+      parameter (numZff=80,numNff=150)
+      character*13 fffile
       character*90 gefpath
-      real         fiseps,Exfis(1000),xsfis(1000),fisepsA,partfisxs,
-     +             sumpre,sumpost,xsfpapre(nummass),xsfpapost(nummass),
-     +             Fmulti,beldm1(136,203),ushell1(136,203)
-      integer      iz,ia,in,i,j,gefwrite,Zcomp,Ncomp,Z,A,Zix,Nix,nexend,
-     +             iskip,istep,nex,nen,lengefpath
+      real         fiseps,Exfis(1000),xsfis(1000),Jfis,fisepsA,fisepsB,
+     +             partfisxs,sumpre,sumpost,Fmulti,beldm1(136,203),
+     +             ushell1(136,203),xstabtot(numZff,numNff),
+     +             xstabcomp(0:numZ,0:numN,numZff,numNff),
+     +             popfpEx(numZff,numNff,0:numpop),
+     +             popfpJ(numZff,numNff,0:numJ),Ebin(0:numpop),
+     +             term,Etabtot(numZff,numNff,1000),partfisJ(0:numJ),
+     +             Jtabtot(numZff,numNff,100),sumJ,sumxs,sumE,
+     +             xsfisFF,Ytabtot(numZff,numNff)
+      integer      iz,ia,in,i,j,gefwrite,Zcomp,Ncomp,Z,A,odd,Zix,Nix,
+     +             nexend,iskip,istep,nex,nen,lengefpath,type,iza,
+     +             nexgef,Jgef,nb,parity
 c
 c ************************** Mass yields *******************************
 c
-c fiseps     : limit for fission cross section per nucleus
-c Rfiseps    : ratio for limit for fission cross section per nucleus
 c xsfistot   : total fission cross section
 c nummass    : number of masses
-c xsfpapre   : pre-neutron emission cross section
-c xsfpapost  : post-neutron emission corrected cross section
-c yieldapre  : pre-neutron emission fission yield
-c yieldapost : post-neutron emission corrected fission yield
+c xsfpApre   : pre-neutron emission cross section
+c xsfpApost  : post-neutron emission corrected cross section
+c yieldApre  : pre-neutron emission fission yield
+c yieldApost : post-neutron emission corrected fission yield
 c numelem    : number of elements
-c xsfpzapre  : pre-neutron emission isotopic cross section
-c xsfpzapost : post-neutron emission corrected isotopic cross section
-c yieldzapre : pre-neutron emission isotopic yield
-c yieldzapost: post-neutron emission corrected isotopic yield
+c xsfpZApre  : pre-neutron emission isotopic cross section
+c xsfpZApost : post-neutron emission corrected isotopic cross section
+c yieldZApre : pre-neutron emission isotopic yield
+c yieldZApost: post-neutron emission corrected isotopic yield
 c fymodel    : fission yield model, 1: Brosa 2: GEF
 c path       : directory containing structure files to be read
 c gefpath    : path for GEF files
 c lengefpath : character length of path for GEF files
 c flagoutfy  : flag for output detailed fission yield calculation
 c gefwrite   : integer for output detailed fission yield calculation
+c Rfiseps    : ratio for limit for fission cross section per nucleus
+c fiseps     : limit for fission cross section per excitation energy bin
 c
 c Initialization
 c
+      do ia=1,nummass
+        xsfpApre(ia)=0.
+        xsfpApost(ia)=0.
+        yieldApre(ia)=0.
+        yieldApost(ia)=0.
+        do type=0,numpar 
+          nupre(type,ia)=0.
+          nupost(type,ia)=0.
+        enddo
+      enddo
+      do in=1,numneu
+        yieldNpre(in)=0.
+        yieldNpost(in)=0.
+        do iz=1,numelem
+          xsfpZApre(iz,in)=0.
+          xsfpZApost(iz,in)=0.
+          yieldZApre(iz,in)=0.
+          yieldZApost(iz,in)=0.
+          do nex=0,numlev
+            xsfpex(iz,in,nex)=0.
+          enddo
+        enddo
+      enddo
+      yieldtotpre=0.
+      xsfptotpre=0.
+      yieldtotpost=0.
+      xsfptotpost=0.
+      do type=0,6  
+        do i=1,numnu
+          Pdisnu(type,i)=0.
+        enddo
+        nubar(type)=0.
+      enddo
+      do iz=1,numZff
+        do in=1,numNff
+          xstabtot(iz,in)=0.
+          do nex=1,1000
+            Etabtot(iz,in,nex)=0.
+          enddo
+          do J=1,100
+            Jtabtot(iz,in,J)=0.
+          enddo
+          do nex=0,numpop
+            popfpEx(iz,in,nex)=0.
+          enddo
+          do J=0,numJ
+            popfpJ(iz,in,J)=0.
+          enddo
+          do Zcomp=0,maxZ
+            do Ncomp=0,maxN
+              xstabcomp(Zcomp,Ncomp,iz,in)=0.
+            enddo
+          enddo
+        enddo
+      enddo
       fiseps=Rfiseps*xsfistot
-      do 10 ia=1,nummass
-        xsfpapre(ia)=0.
-        xsfpapost(ia)=0.
-        yieldapre(ia)=0.
-        yieldapost(ia)=0.
-        nupre(ia)=0.
-        nupost(ia)=0.
-        do 10 iz=1,numelem
-          xsfpzapre(iz,ia)=0.
-          xsfpzapost(iz,ia)=0.
-          yieldzapre(iz,ia)=0.
-          yieldzapost(iz,ia)=0.
-   10 continue
-      do 15 in=1,nummass-numelem
-        yieldnpre(in)=0.
-        yieldnpost(in)=0.
-   15 continue
-      do 17 i=1,numnu
-        Pdisnu(i)=0.
-   17 continue
-      nubar=0.
-      if (fymodel.eq.2) then
+      if (fiseps.eq.0.) return
+      if (fymodel.ge.2) then
         gefpath=path(1:lenpath)//'fission/gef/'
         lengefpath=lenpath+12
         if (flagoutfy) then
@@ -113,7 +158,6 @@ c AA,A       : mass number of residual nucleus
 c Zindex,Zix : charge number index for residual nucleus
 c Nindex,Nix : neutron number index for residual nucleus
 c maxex      : maximum excitation energy bin for compound nucleus
-c fiseps     : limit for fission cross section per excitation energy bin
 c iskip,istep: help variables
 c xsbinary   : cross section from initial compound to residual nucleus
 c Ex         : excitation energy
@@ -135,9 +179,10 @@ c
         do 20 Ncomp=0,maxN
           Z=ZZ(Zcomp,Ncomp,0)
           A=AA(Zcomp,Ncomp,0)
+          odd=mod(A,2)
           Zix=Zindex(Zcomp,Ncomp,0)
           Nix=Nindex(Zcomp,Ncomp,0)
-          if (xsfeed(Zcomp,Ncomp,-1).lt.fiseps) goto 20
+          if (xsfeed(Zcomp,Ncomp,-1).le.fiseps) goto 20
           if (Zcomp.eq.0.and.Ncomp.eq.0) then
             nexend=maxex(Zcomp,Ncomp)+1
           else
@@ -154,9 +199,17 @@ c
             nen=0
           endif
           do 40 nex=nexend,0,-1
-            if (nex.eq.maxex(Zcomp,Ncomp)+1) then
+            if (Zcomp.eq.0.and.Ncomp.eq.0.and.
+     +        nex.eq.maxex(Zcomp,Ncomp)+1) then
               excfis=Etotal
               partfisxs=xsbinary(-1)
+              do 42 J=0,numJ
+                partfisJ(J)=0.
+                do 44 parity=-1,1,2
+                  partfisJ(J)=partfisJ(J)+
+     +              fisfeedJP(Zcomp,Ncomp,nex,J,parity)
+   44           continue
+   42         continue
             else
               if (mod(iskip,istep).ne.0) then
                 iskip=iskip+1
@@ -165,8 +218,17 @@ c
               if (nex-istep+1.lt.0) goto 40
               if (Ex(Zcomp,Ncomp,nex-istep+1).ge.30.) then
                 partfisxs=0.
+                do 45 J=0,numJ
+                  partfisJ(J)=0.
+   45           continue
                 do 50 i=0,istep-1
                   partfisxs=partfisxs+fisfeedex(Zcomp,Ncomp,nex-i)
+                  do 55 J=0,numJ
+                    do 57 parity=-1,1,2
+                      partfisJ(J)=partfisJ(J)+
+     +                  fisfeedJP(Zcomp,Ncomp,nex-i,J,parity)
+   57               continue
+   55             continue
    50           continue
                 if (partfisxs.ne.0) then
                   excfis=0.
@@ -180,85 +242,243 @@ c
               else
                 excfis=Ex(Zcomp,Ncomp,nex)
                 partfisxs=fisfeedex(Zcomp,Ncomp,nex)
+                do 62 J=0,numJ
+                  partfisJ(J)=0.
+                  do 64 parity=-1,1,2
+                    partfisJ(J)=partfisJ(J)+
+     +                fisfeedJP(Zcomp,Ncomp,nex,J,parity)
+   64             continue
+   62           continue
               endif
             endif
             if (partfisxs.gt.fisepsA) then
 c
 c Brosa
+c Normalization: sum over disa = 2.
 c
               if (fymodel.eq.1) then
                 call brosafy(Zix,Nix)
                 do 70 ia=1,A
-                  xsfpapre(ia)=xsfpapre(ia)+disa(ia)*partfisxs
-                  xsfpapost(ia)=xsfpapost(ia)+disacor(ia)*partfisxs
+                  xsfpApre(ia)=xsfpApre(ia)+0.5*disa(ia)*partfisxs
+                  xsfpApost(ia)=xsfpApost(ia)+0.5*disacor(ia)*partfisxs
                   do 70 iz=1,Z
-                    xsfpzapre(iz,ia)=xsfpzapre(iz,ia)+
-     +                disaz(ia,iz)*partfisxs
-                    xsfpzapost(iz,ia)=xsfpzapost(iz,ia)+
-     +                disazcor(ia,iz)*partfisxs
+                    in=ia-iz
+                    if (in.lt.1.or.in.gt.numneu) goto 70
+                    xsfpZApre(iz,in)=xsfpZApre(iz,in)+
+     +                0.5*disaz(ia,iz)*partfisxs
+                    xsfpZApost(iz,in)=xsfpZApost(iz,in)+
+     +                0.5*disazcor(ia,iz)*partfisxs
    70             continue
-              else
+              endif
 c
 c GEF
 c
+              if (fymodel.eq.2) then
                 nen=nen+1
                 Exfis(nen)=excfis
                 xsfis(nen)=partfisxs
               endif
+c
+c GEF + TALYS evaporation
+c Normalization: sum over Ytab, Etab, Jtab = 1
+c
+c flagfisout   : flag for output of fission information
+c
+              if (fymodel.eq.3.and.A.le.350) then
+                fisepsB=fisepsA/(5*maxJ(Zcomp,Ncomp,nex))*0.5
+                do 75 J=0,maxJ(Zcomp,Ncomp,nex)
+                  if (partfisJ(J).lt.fisepsB) goto 75
+                  Jfis=real(J)+0.5*odd
+                  call gefsub(Z,A,excfis,Jfis)
+                  write(*,*) " FF excitation for Z= ",
+     +              Z," A= ",A," Ex= ",excfis," J= ",Jfis," xs= ",
+     +              partfisJ(J)," N_cases:",N_cases
+                  do 80 iza=1,N_cases
+                    iz=NZMkey(iza,3)
+                    in=NZMkey(iza,2)
+                    if (iz.gt.numZff.or.in.gt.numNff) goto 80
+                    term=Ytab(iza)*partfisJ(J)
+                    xstabtot(iz,in)=xstabtot(iz,in)+term
+                    xstabcomp(Zcomp,Ncomp,iz,in)=
+     +                xstabcomp(Zcomp,Ncomp,iz,in)+term
+                    do 85 nexgef=1,1000
+                      Etabtot(iz,in,nexgef)=Etabtot(iz,in,nexgef)+
+     +                  term*Etab(iza,nexgef)
+   85               continue
+                    do 87 Jgef=1,100
+                      Jtabtot(iz,in,Jgef)=Jtabtot(iz,in,Jgef)+
+     +                  term*Jtab(iza,Jgef)
+   87               continue
+   80             continue
+   75           continue
+              endif
             endif
    40     continue
+c
+c GEF
+c Normalization: sum over ysum,yAz= 2. * sigma_fission
+c
+c flagffspin: flag to use spin distribution in initial population
+c
           if (fymodel.eq.2.and.A.le.350) then
             call geftalys(real(Z),real(A),nen,Exfis,xsfis,gefwrite,
      +        gefran)
-            do 90 ia=1,A
-              xsfpapre(ia)=xsfpapre(ia)+ysum(ia)
-              xsfpapost(ia)=xsfpapost(ia)+ysump(ia)
+            do ia=1,A
+              xsfpApre(ia)=xsfpApre(ia)+0.5*ysum(ia)
+              xsfpApost(ia)=xsfpApost(ia)+0.5*ysump(ia)
               if (ia.le.200) then
-                do 100 iz=1,Z
-                  xsfpzapre(iz,ia)=xsfpzapre(iz,ia)+yAZ(ia,iz)
-                  xsfpzapost(iz,ia)=xsfpzapost(iz,ia)+yAZp(ia,iz)
-  100           continue
+                do iz=1,Z
+                  in=ia-iz
+                  if (in.ge.1.and.in.le.numneu) then
+                    xsfpZApre(iz,in)=xsfpZApre(iz,in)+0.5*yAZ(ia,iz)
+                    xsfpZApost(iz,in)=xsfpZApost(iz,in)+0.5*yAZp(ia,iz)
+                  endif
+                enddo
               endif
-   90       continue
+            enddo
             if (xsfistot.gt.0.) then
               Fmulti=Ncomp*xsfeed(Zcomp,Ncomp,-1)
-              do 110 i=1,numnu
+              do i=1,numnu
                 if (ann_sum(i).gt.0.)
-     +            Pdisnu(i)=Pdisnu(i)+(Fmulti+ann_sum(i))/xsfistot
-  110         continue
-              do 120 ia=1,A
+     +            Pdisnu(1,i)=Pdisnu(1,i)+(Fmulti+ann_sum(i))/xsfistot
+              enddo    
+              do ia=1,A
                 if (anpre_sum(ia).gt.0.)
-     +            nupre(ia)=nupre(ia)+(Fmulti+anpre_sum(ia))/xsfistot
+     +            nupre(1,ia)=nupre(1,ia)+(Fmulti+anpre_sum(ia))/
+     +            xsfistot
                 if (anpost_sum(ia).gt.0.)
-     +            nupost(ia)=nupost(ia)+(Fmulti+anpost_sum(ia))/xsfistot
-  120         continue
-              nubar=nubar+(Fmulti+anMean_sum)/xsfistot
+     +            nupost(1,ia)=nupost(1,ia)+(Fmulti+anpost_sum(ia))/
+     +            xsfistot
+              enddo    
+              nubar(1)=nubar(1)+(Fmulti+anMean_sum)/xsfistot
             endif
           endif
    20 continue
+c
+c GEF + TALYS evaporation
+c
+      if (fymodel.eq.3) then
+        Ebin(0)=0.
+        do i=1,numpop
+          Ebin(i)=0.1*i
+        enddo
+        sumxs=0.
+        do 131 iz=1,numZff
+          do 132 in=1,numNff
+            if (xstabtot(iz,in).eq.0.) goto 132
+            sumxs=sumxs+xstabtot(iz,in)
+            sumE=0.
+            do nexgef=1,1000
+              sumE=sumE+Etabtot(iz,in,nexgef)
+            enddo       
+            if (sumE.gt.0.) then
+              do nexgef=1,1000
+                Etabtot(iz,in,nexgef)=Etabtot(iz,in,nexgef)/sumE
+              enddo       
+            endif
+            sumJ=0.
+            do Jgef=1,100
+              sumJ=sumJ+Jtabtot(iz,in,Jgef)
+            enddo       
+            if (sumJ.gt.0.) then
+              do Jgef=1,100
+                Jtabtot(iz,in,Jgef)=Jtabtot(iz,in,Jgef)/sumJ
+              enddo       
+            endif
+  132     continue
+  131   continue
+        if (sumxs.gt.0.) then
+          do iz=1,numZff
+            do in=1,numNff
+              Ytabtot(iz,in)=xstabtot(iz,in)/sumxs
+            enddo         
+          enddo         
+        endif
+        do iz=1,numZff
+          do in=1,numNff
+            ia=iz+in
+            xsfisFF=xsfistot*Ytabtot(iz,in)
+            xsfpApre(ia)=xsfpApre(ia)+xsfisFF
+            xsfpZApre(iz,in)=xsfpZApre(iz,in)+xsfisFF
+            do nexgef=1,1000
+              popfpEx(iz,in,nexgef)=popfpEx(iz,in,nexgef)+
+     +          xsfisFF*Etabtot(iz,in,nexgef)
+            enddo
+            do J=1,30
+              popfpJ(iz,in,J)=Jtabtot(iz,in,J)
+            enddo     
+          enddo     
+        enddo     
+        do 160 iz=1,Z
+          do 170 ia=1,A
+            in=ia-iz
+            if (in.lt.1.or.in.gt.numneu) goto 170
+            if (xsfpZApre(iz,in).eq.0.) goto 170
+            sumJ=0.
+            do J=1,30
+              sumJ=sumJ+popfpJ(iz,in,J)
+            enddo
+            if (sumJ.gt.0.) then
+              do J=1,30
+                popfpJ(iz,in,J)=popfpJ(iz,in,J)/sumJ
+              enddo
+            endif
+            nb=numpop
+            do 165 nex=100,numpop
+              if (popfpEx(iz,in,nex).lt.1.e-9) then
+                nb=nex
+                goto 167
+              endif
+  165       continue
+  167       nb=max(nb,1)
+            fffile='ff000000.ex'
+            write(fffile(3:5),'(i3.3)') iz
+            write(fffile(6:8),'(i3.3)') ia
+            open (unit=1,status='unknown',file=fffile)
+            if (flagffspin) then
+              write(1,*) nb+1,30,1," xs= ",xsfpZApre(iz,in)
+              do nex=0,nb
+                write(1,'(f10.5,1p,30e12.5)') Ebin(nex),
+     +            (0.5*popfpEx(iz,in,nex)*popfpJ(iz,in,J),
+     +            J=1,30)
+              enddo
+            else
+              write(1,*) nb+1,0,1," xs= ",xsfpZApre(iz,in)
+              do nex=0,nb
+                write(1,'(f10.5,1pe12.5)') Ebin(nex),popfpEx(iz,in,nex)
+              enddo
+            endif
+            close(1)
+  170     continue
+  160   continue
+      endif
 c
 c Normalization to fission yields (sum = 2)
 c
       sumpre=0.
       sumpost=0.
-      do 210 ia=1,Atarget
-        sumpre=sumpre+xsfpapre(ia)
-        sumpost=sumpost+xsfpapost(ia)
-  210 continue
-      sumpre=0.5*sumpre
-      sumpost=0.5*sumpost
+      do ia=1,Atarget
+        sumpre=sumpre+xsfpApre(ia)
+        sumpost=sumpost+xsfpApost(ia)
+      enddo
       do 220 iz=1,Ztarget
         do 230 ia=iz+1,Atarget
-          if (xsfpzapre(iz,ia).eq.0.) goto 230
           in=ia-iz
-          if (in.gt.nummass-numelem) goto 230
-          if (sumpre.gt.0.) yieldzapre(iz,ia)=xsfpzapre(iz,ia)/sumpre
-          if (sumpost.gt.0.) yieldzapost(iz,ia)=
-     +      xsfpzapost(iz,ia)/sumpost
-          yieldapre(ia)=yieldapre(ia)+yieldzapre(iz,ia)
-          yieldapost(ia)=yieldapost(ia)+yieldzapost(iz,ia)
-          yieldnpre(in)=yieldnpre(in)+yieldzapre(iz,ia)
-          yieldnpost(in)=yieldnpost(in)+yieldzapost(iz,ia)
+          if (in.gt.numneu) goto 230
+          if (xsfpZApre(iz,in).eq.0.) goto 230
+          if (sumpre.gt.0.) yieldZApre(iz,in)=2.*xsfpZApre(iz,in)/sumpre
+          yieldApre(ia)=yieldApre(ia)+yieldZApre(iz,in)
+          yieldNpre(in)=yieldNpre(in)+yieldZApre(iz,in)
+          yieldtotpre=yieldtotpre+yieldZApre(iz,in)
+          xsfptotpre=xsfptotpre+xsfpZApre(iz,in)
+          if (fymodel.le.2) then
+            if (sumpost.gt.0.) yieldZApost(iz,in)=
+     +        2.*xsfpZApost(iz,in)/sumpost
+            yieldApost(ia)=yieldApost(ia)+yieldZApost(iz,in)
+            yieldNpost(in)=yieldNpost(in)+yieldZApost(iz,in)
+            yieldtotpost=yieldtotpost+yieldZApost(iz,in)
+            xsfptotpost=xsfptotpost+xsfpZApost(iz,in)
+          endif
   230   continue
   220 continue
       return

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 10, 2012
+c | Date  : August 31, 2014
 c | Task  : Output of fission cross sections
 c +---------------------------------------------------------------------
 c
@@ -75,13 +75,13 @@ c
      +          parsym(k0),Atarget,Starget,A,nuc(Z)
               write(1,'("#                 ")')
               write(1,'("#                 ")')
-              write(1,'("# # energies =",i3)') numinc
+              write(1,'("# # energies =",i6)') numinc
               write(1,'("#    E         xs ")')
               do 130 nen=1,numinclow
-                write(1,'(1p,e10.3,e12.5)') eninc(nen),0.
+                write(1,'(1p,2e12.5)') eninc(nen),0.
   130         continue
               do 140 nen=numinclow+1,nin-1
-                write(1,'(1p,e10.3,e12.5)') eninc(nen),0.
+                write(1,'(1p,2e12.5)') eninc(nen),0.
   140         continue
             else
               open (unit=1,status='old',file=rpfile)
@@ -89,7 +89,7 @@ c
                 read(1,*)
   150         continue
             endif
-            write(1,'(1p,e10.3,e12.5)') Einc,xsfeed(Zcomp,Ncomp,-1)
+            write(1,'(1p,2e12.5)') Einc,xsfeed(Zcomp,Ncomp,-1)
             close (unit=1)
   120     continue
   110   continue

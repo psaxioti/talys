@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Gilles Noguere and Arjan Koning
-c | Date  : October 23, 2013
+c | Date  : August 31, 2014
 c | Task  : Output of unresolved resonance parameters in separate files
 c +---------------------------------------------------------------------
 c
@@ -129,7 +129,7 @@ c
             if (type.eq.4) write(1,'("# Neutron strength function")')
             if (type.eq.5) write(1,'("# Average proton width")')
             if (type.eq.6) write(1,'("# Average alpha width")')
-            write(1,'("# # energies =",i3)') numinc
+            write(1,'("# # energies =",i6)') numinc
             if (type.eq.2) write(ufor1(38:44),'("spacing")')
             if (type.eq.4) write(ufor1(38:45),'("strength")')
             write(1,fmt=ufor1)
@@ -178,7 +178,7 @@ c
             else
               write(1,'("# Neutron strength function per l")')
             endif
-            write(1,'("# # energies =",i3)') numinc
+            write(1,'("# # energies =",i6)') numinc
             if (type.eq.7) then
               write(1,'("# E [MeV]     spacing")')
             else
@@ -246,7 +246,7 @@ c
             write(1,'("# URR cross section ratio TALYS:NJOY")')
             write(1,'("# R ratio    = ",1pe12.5)') Rprime/RprimeU
           endif
-          write(1,'("# energies   = ",i3)') numinc
+          write(1,'("# energies   = ",i6)') numinc
           write(1,'("# E [MeV]   total       elastic    ",
      +      " capture     fission")')
           do 350 nen=1,numinclow

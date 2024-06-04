@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Pascal Romain
-c | Date  : March 27, 2012
+c | Date  : August 8, 2014
 c | Task  : Build rotational bands on class2 states
 c +---------------------------------------------------------------------
 c
@@ -78,16 +78,10 @@ c
           if (Eband.gt.Ecut) goto 20
           nfisc2rot(Zix,Nix,nbi)=nfisc2rot(Zix,Nix,nbi)+1
           itstot=nfisc2rot(Zix,Nix,nbi)
-          if (itstot.gt.numrot) then
-            write(*,'(" TALYS-error: Due to the number of",
-     +        " class 2 states, the number of rotational states",
-     +        " exceeds ",i3)') numrot
-            write(*,'(" numrot in talys.cmb should be increased")')
-            stop
-          endif
           efisc2rot(Zix,Nix,nbi,itstot)=Eband
           jfisc2rot(Zix,Nix,nbi,itstot)=rj
           pfisc2rot(Zix,Nix,nbi,itstot)=pfisc2hb(Zix,Nix,nbi,i)
+          if (itstot.eq.numrot) goto 10
           goto 30
    20   continue
    10 continue

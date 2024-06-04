@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 10, 2012
+c | Date  : May 28, 2015
 c | Task  : Calculate effective cross section for integral spectrum
 c +---------------------------------------------------------------------
 c
@@ -12,7 +12,7 @@ c
       character*80  fluxfile
       integer       i,istat,nen,Nspec,Nxs,nen0,is,k
       real          Efluxup(0:numenin),Eflux(0:numenin),fspec(numenin),
-     +              fluxsum,Exs(0:numenin),xs(0:numenin),xseff,Efl,Ea1,
+     +              fluxsum,Exs(0:numP),xs(0:numP),xseff,Efl,Ea1,
      +              Eb1,xsa,xsb,xsf,xsexp,ratio
 c
 c ********* Read integral spectrum from experimental database **********
@@ -70,7 +70,7 @@ c
         if (istat.eq.0) then
           Exs(0)=0.
           xs(0)=0.
-          read(3,'(///,14x,i3,/)') Nxs
+          read(3,'(///,14x,i6,/)') Nxs
           do 210 nen=1,Nxs
             read(3,*) Exs(nen),xs(nen)
   210     continue

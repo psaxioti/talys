@@ -35,14 +35,14 @@ c lenpath: length of pathname
 c
 c The maximum length of the path is 60 characters
 c
-      home='/home/finux01b/akoning/talys/'
+      home='/home/finux01b/akoning/'
       lenhome=0
       do 10 i=1,60
         if (home(i:i).eq.' ') goto 100
         lenhome=lenhome+1
    10 continue
-  100 path=home(1:lenhome)//'structure/'
-      lenpath=lenhome+10
+  100 path=home(1:lenhome)//'talys/structure/'
+      lenpath=lenhome+16
 c
 c Test to check accessibility of structure files
 c

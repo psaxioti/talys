@@ -1,4 +1,4 @@
-      double precision function gilcam(Zix,Nix,ald,Eex,P,ibar)
+      function gilcam(Zix,Nix,ald,Eex,P,ibar)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       integer          Zix,Nix,ibar
       real             ald,Eex,P
-      double precision fermi,expo
+      double precision gilcam,fermi,expo
 c
 c *********************** Level density formula ************************
 c

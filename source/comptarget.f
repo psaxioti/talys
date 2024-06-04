@@ -295,7 +295,8 @@ c
                 endif
                 fisterm=CNfactor*(J2+1.)*factor1
                 xsbinary(-1)=xsbinary(-1)+fisterm
-                fisfeedJP(0,0,maxex(0,0)+1,J,parity)=fisterm
+                fisfeedJP(0,0,maxex(0,0)+1,J,parity)=
+     +            fisfeedJP(0,0,maxex(0,0)+1,J,parity)+fisterm
 c
 c Extract (L,J) dependent parameters for URR (Gilles Noguere)
 c

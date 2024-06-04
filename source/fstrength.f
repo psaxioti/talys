@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : April 4, 2012
+c | Date  : July 14, 2014
 c | Task  : Gamma ray strength functions
 c +---------------------------------------------------------------------
 c
@@ -34,7 +34,8 @@ c ggr,ggr1 : width of GR
 c kgr,kgr1 : constant for gamma-ray strength function
 c egr2,ggr2: help variables
 c Egam2    : help variable
-c strength : strength function of Kopecky-Uhl (1) or Brink-Axel (2)
+c strength : strength function of Kopecky-Uhl (1) or Brink-Axel (2) 
+c            or microscopic tables (>=3)
 c
 c Models for E1 gamma-ray strength function:
 c
@@ -43,6 +44,9 @@ c 2. Brink-Axel
 c 3. Goriely HFBCS
 c 4. Goriely HFB
 c 5. Goriely Hybrid model
+c 6. Goriely T-dependent HFB 
+c 7. T-dependent RMF 
+c 8. Gogny D1M HFB+QRPA
 c
       fstrength=0.
       do 10 i=1,ngr(Zcomp,Ncomp,irad,l)
@@ -110,7 +114,8 @@ c
 c
 c 2. Brink-Axel standard Lorentzian.
 c
-        if (strength.eq.2.or.((strength.eq.3.or.strength.eq.4).and.
+        if (strength.eq.2.or.((strength.eq.3.or.strength.eq.4.or.
+     +    strength.ge.6).and.
      +    .not.qrpaexist(Zcomp,Ncomp)).or.l.ne.1.or.irad.ne.1) then
           enum=0.
           if (Egamma.gt.0.001) then
@@ -128,7 +133,8 @@ c eqrpa,Eq  : energy grid for QRPA strength function
 c fe1qrpa   : tabulated QRPA strength function
 c eb,ee,....: help variables
 c
-        if ((strength.eq.3.or.strength.eq.4).and.qrpaexist(Zcomp,Ncomp)
+        if ((strength.eq.3.or.strength.eq.4.or.strength.ge.6.or.
+     +    E1file(Zcomp,Ncomp).ne.' ').and.qrpaexist(Zcomp,Ncomp)
      +    .and.l.eq.1.and.irad.eq.1) then
           if ((k0.gt.0.or.Egamma.ne.Einc).and.nTqrpa.gt.1) then
             e=min(Efs,20.)+S(Zcomp,Ncomp,k0)-delta(Zcomp,Ncomp,0)-Egamma

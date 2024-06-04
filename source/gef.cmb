@@ -1,9 +1,9 @@
 c
-c                      GEF.CMB for TALYS-1.6
+c                      GEF.CMB for TALYS-1.56
 c
 c +---------------------------------------------------------------------
 c | Author: Vasily Simutkin, Michail Onegin and Arjan Koning
-c | Date  : December 23, 2013
+c | Date  : May 19, 2014
 c | Task  : File with common blocks for GEF routines
 c +---------------------------------------------------------------------
 c
@@ -12,3 +12,7 @@ c
       common /outgef/ysum(350),ysump(350),yAZ(350,150),yAZp(350,150),
      ; anpre_sum(350),anpost_sum(350),ann_sum(50),anMean_sum
       real ysum,ysump,yAZ,yAZp,anpre_sum,anpost_sum,ann_sum,anMean_sum
+      common /gefsubi/ NZMkey(10000,3),N_cases
+      common /gefsubr/ Etab(10000,0:1000),Jtab(10000,100),Ytab(10000)
+      integer NZMkey,N_cases
+      real Etab,Jtab,Ytab

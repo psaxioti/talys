@@ -21,10 +21,12 @@ c
       real      eps,fmin,extern,psh(k),pd(k),pa(k),pe(k),pr(mmax),
      +          pex(mmax),pc(mmax),gam,betap,alpha,fn,fmax,fmax2,pmax,
      +          sum,sum2,fr,fex,std,f(nmaxp1),ssh(mmax,nmaxp1)
-      data alpha/1./,betap/.5/,gam/2./
 c
 c **********************************************************************
 c
+      alpha=1.
+      betap=0.5
+      gam=2.
       if (k.le.mmax) goto 4
       write (*,5) k,mmax
  5    format(/1x,"from fmin: introduced number of parameters",i4,
@@ -48,12 +50,12 @@ c
         ssh(i,i+1)=ssh(i,i+1) + pd(i)
  11   continue
       do 16 jk=1,n1
-        if (jk.eq.1) go to 14
+        if (jk.eq.1) goto 14
         do 12 i=1,k
           psh(i)=ssh(i,jk)
  12     continue
  14     icall=icall+1
-        if (icall.gt.ncall) go to 80
+        if (icall.gt.ncall) goto 80
         f(jk)=extern(psh,k)
  16   continue
 c
@@ -98,13 +100,13 @@ c
 c
 c     check accuracy.
 c
-      if (eps.lt.0.) go to 74
+      if (eps.lt.0.) goto 74
       std=0.
       do 72 i=1,k
         pmax=abs(pc(i)-ssh(i,maxf))
  72   continue
       if (pmax.gt.std) std=pmax
-      go to 80
+      goto 80
  74   sum=0.
       do 76 jk=1,n1
         sum=sum+f(jk)
@@ -115,7 +117,7 @@ c
         sum2=sum2+(f(jk)-sum)**2
  78   continue
       std=sqrt(sum2/fn)
- 80   if (icall.lt.ncall.and.std.gt.abs(eps)) go to 27
+ 80   if (icall.lt.ncall.and.std.gt.abs(eps)) goto 27
       do 82 i=1,k
         psh(i)=ssh(i,minf)
  82   continue
@@ -127,14 +129,14 @@ c
         pr(i)=(1.+alpha)*pc(i)-alpha*ssh(i,maxf)
  28   continue
       do 29 i=1,k
-        if (pr(i).lt.pa(i).or.pr(i).gt.pe(i)) go to 30
+        if (pr(i).lt.pa(i).or.pr(i).gt.pe(i)) goto 30
  29   continue
       icall=icall+1
-      if (icall.gt.ncall) go to 80
+      if (icall.gt.ncall) goto 80
       fr=extern(pr,k)
-      go to 31
+      goto 31
  30   icall=icall+1
-      if (icall.gt.ncall) go to 80
+      if (icall.gt.ncall) goto 80
       fr=abs(fmax)*(1.+abs((pr(i)-pc(i))/pd(i)))
  31   if (fr.lt.fmin)  goto 40
       if (fr.gt.fmax2)  goto 50
@@ -146,14 +148,14 @@ c
         pex(i)=gam*pr(i)+(1.-gam)*pc(i)
  42   continue
       do 32 i=1,k
-        if (pex(i).lt.pa(i).or.pex(i).gt.pe(i)) go to 33
+        if (pex(i).lt.pa(i).or.pex(i).gt.pe(i)) goto 33
  32   continue
       icall=icall+1
-      if (icall.gt.ncall) go to 80
+      if (icall.gt.ncall) goto 80
       fex=extern(pex,k)
-      go to 34
+      goto 34
  33   icall=icall+1
-      if (icall.gt.ncall) go to 80
+      if (icall.gt.ncall) goto 80
       fex=abs(fmax)*(1.+abs((pex(i)-pc(i))/pd(i)))
  34   if (fex.gt.fmin)  goto 44
  45   do 46  i=1,k
@@ -178,7 +180,7 @@ c
         pex(i)=betap*ssh(i,maxf)+(1.-betap)*pc(i)
  56   continue
       icall=icall+1
-      if (icall.gt.ncall) go to 80
+      if (icall.gt.ncall) goto 80
       fex=extern(pex,k)
       if (fex.lt.fmax)  goto 45
 c
@@ -191,8 +193,8 @@ c
           psh(i)=ssh(i,jk)
  64     continue
         icall=icall+1
-        if (icall.gt.ncall) go to 80
+        if (icall.gt.ncall) goto 80
         f(jk)=extern(psh,k)
  62   continue
-      go to 17
+      goto 17
       end

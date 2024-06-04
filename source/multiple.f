@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : December 9, 2013
+c | Date  : October 27, 2015
 c | Task  : Multiple emission
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*13 fisfile
+      character*13 fisfile,rpfile
       character*60 form1,form2
       integer      Zcomp,Ncomp,type,nen,nex,nexout,Zix,Nix,Z,N,A,odd,NL,
      +             J,idensfis,parity,J2,Jfis,iang,p,h
@@ -47,6 +47,7 @@ c reaction flux. If so, determine the nuclear structure for the residual
 c nuclei. Initialize emission spectrum for this compound nucleus.
 c Determine excitation energy grid for residual nuclei.
 c
+c skipCN    : flag to skip compound nucleus in evaporation chain
 c xspopnuc  : population cross section per nucleus
 c popeps    : limit for population cross section per nucleus
 c parskip   : logical to skip outgoing particle
@@ -56,6 +57,7 @@ c eend      : last energy point of energy grid
 c xsemis    : emission spectrum from compound nucleus
 c xsmpeemis : multiple-preequilibrium emission spectrum from compound
 c             nucleus
+c xsbinspec : emission spectrum from compound nucleus per bin
 c numex     : maximal number of excitation energies (set in talys.cmb)
 c xspartial : emitted cross section flux per energy bin
 c xsmpe     : multiple-preequilibrium cross section per energy bin
@@ -71,15 +73,39 @@ c xspopsave : help variable for diagnosis
 c Dmulti    : depletion factor for multiple preequilibrium
 c exgrid    : subroutine to set excitation energy grid
 c
+          if (skipCN(Zcomp,Ncomp).eq.1) goto 10
           if (xspopnuc(Zcomp,Ncomp).lt.popeps) then
             xspopnuc(Zcomp,Ncomp)=0.
             goto 500
+          endif
+          Z=ZZ(Zcomp,Ncomp,0)
+          N=NN(Zcomp,Ncomp,0)
+          A=AA(Zcomp,Ncomp,0)
+          if (flagrpevap.and.(Zcomp.eq.maxZrp.or.Ncomp.eq.maxNrp)) then
+            xspopnuc0(Z,A)=xspopnuc(Zcomp,Ncomp)
+            rpfile='rp000000.ex'
+            write(rpfile(3:5),'(i3.3)') Z
+            write(rpfile(6:8),'(i3.3)') A
+            open (unit=1,status='unknown',file=rpfile)
+            write(1,*) maxex(Zcomp,Ncomp)+1,30,1," xs= ",
+     +        xspopnuc(Zcomp,Ncomp)
+            do nex=0,maxex(Zcomp,Ncomp)
+              do parity=-1,1,2
+                write(1,'(f10.5,1p,31e12.5)') Ex(Zcomp,Ncomp,nex),
+     +            (xspop(Zcomp,Ncomp,nex,J,parity),J=0,30)
+              enddo
+            enddo
+            close(1)
+            goto 10
           endif
           do 20 type=0,6
             if (flagspec) then
               do 30 nen=0,numen
                 xsemis(type,nen)=0.
                 xsmpeemis(type,nen)=0.
+                do 35 nex=0,numex+1
+                  xsbinspec(type,nex,nen)=0.
+   35           continue
    30         continue
             endif
             do 40 nex=0,numex+1
@@ -139,9 +165,6 @@ c xspopex      : population cross section summed over spin and parity
 c xspop        : population cross section
 c
           dExinc=deltaEx(Zcomp,Ncomp,maxex(Zcomp,Ncomp))
-          Z=ZZ(Zcomp,Ncomp,0)
-          N=NN(Zcomp,Ncomp,0)
-          A=AA(Zcomp,Ncomp,0)
           odd=mod(A,2)
           if (flagpop) then
             if (.not.strucwrite(Zcomp,Ncomp)) then
@@ -428,7 +451,7 @@ c Einc        : incident energy in MeV
 c deltaE      : energy bin around outgoing energies
 c
           if (flagspec) then
-            call compemission(Zcomp,Ncomp,nex)
+            call compemission(Zcomp,Ncomp)
             do 310 type=0,6
               if (parskip(type)) goto 310
               emissum(type)=0.
@@ -471,6 +494,24 @@ c
   340             continue
               endif
   310       continue
+c
+c Output of emission spectrum per bin
+c
+c flagbinspec: flag for output of emission spectrum per excitation bin
+c
+            if (flagbinspec) then
+              do 350 nex=maxex(Zcomp,Ncomp),1,-1
+                write(*,'(/" Emission spectra from Z=",i3," N=",i3,
+     +            " (",i3,a2,"), Ex=",f12.5," MeV"/)') Z,N,A,nuc(Z),
+     +            Ex(Zcomp,Ncomp,nex)
+                write(*,'("  Energy ",7(2x,a8,2x)/)') (parname(type),
+     +            type=0,6)
+                do 360 nen=ebegin(0),eendhigh
+                  write(*,'(1x,f8.3,1p,7e12.5)') egrid(nen),
+     +              (xsbinspec(type,nex,nen),type=0,6)
+  360           continue
+  350         continue
+            endif
           endif
 c
 c **** Write partial emission channels and production cross sections ***
@@ -657,8 +698,8 @@ c
                   if (fisfeedJP(Zcomp,Ncomp,nex,J,parity).gt.0.)
      +              Jfis=max(Jfis,J)
   422       continue
-            write(1,'("# # energies =",i3)') nen+1
-            write(1,'("# # spins    =",i3)') Jfis+1
+            write(1,'("# # energies =",i6)') nen+1
+            write(1,'("# # spins    =",i4)') Jfis+1
             form1='("#    Ex   Population",xx(5x,i2,"+",9x,i2,"-",4x))'
             write(form1(25:26),'(i2.2)') Jfis+1
             form2='(1x,f8.3,1p,e12.5,xx(2e12.5))'

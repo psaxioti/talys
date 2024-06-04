@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 11, 2012
+c | Date  : October 15, 2015
 c | Task  : Total cross sections
 c +---------------------------------------------------------------------
 c
@@ -54,6 +54,8 @@ c Ncomp       : neutron number index for compound nucleus
 c maxN        : maximal number of neutrons away from the initial
 c               compound nucleus
 c xsfeed      : cross section from compound to residual nucleus
+c flaginitpop : flag for initial population distribution
+c xsinitpop   : initial population cross section
 c multiplicity: particle multiplicity
 c xsnonel     : non-elastic cross section
 c
@@ -64,8 +66,13 @@ c
           do 120 Ncomp=0,maxN
             xsparticle(type)=xsparticle(type)+xsfeed(Zcomp,Ncomp,type)
   120   continue
-        if (xsnonel.ne.0.)
-     +    multiplicity(type)=xsparticle(type)/xsnonel
+        if (flaginitpop) then
+          if (xsinitpop.ne.0.)
+     +      multiplicity(type)=xsparticle(type)/xsinitpop
+        else
+          if (xsnonel.ne.0.)
+     +      multiplicity(type)=xsparticle(type)/xsnonel
+        endif
   110 continue
 c
 c ******************* Total fission cross sections ********************
@@ -82,6 +89,7 @@ c
           do 210 Ncomp=0,maxN
           xsfistot=xsfistot+xsfeed(Zcomp,Ncomp,-1)
   210   continue
+        if (.not.flagffruns) xsfistot0=xsfistot
         if (flagastro) xsastrofis(nin)=xsfistot
       endif
       return

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 10, 2012
+c | Date  : August 31, 2014
 c | Task  : Output of particle production cross sections
 c +---------------------------------------------------------------------
 c
@@ -49,10 +49,10 @@ c
      +        parsym(k0),Atarget,Starget,parname(type)
             write(1,'("# Q-value    =",1p,e12.5)') Q(type)
             write(1,'("# ")')
-            write(1,'("# # energies =",i3)') numinc
+            write(1,'("# # energies =",i6)') numinc
             write(1,'("#    E         xs         Yield")')
             do 20 nen=1,numinclow
-              write(1,'(1p,e10.3,2e12.5)') eninc(nen),0.,0.
+              write(1,'(1p,3e12.5)') eninc(nen),0.,0.
    20       continue
           else
             open (unit=1,status='old',file=totfile)
@@ -60,7 +60,7 @@ c
               read(1,*,end=40,err=40)
    30       continue
           endif
-          write(1,'(1p,e10.3,2e12.5)') Einc,xsparticle(type),
+          write(1,'(1p,3e12.5)') Einc,xsparticle(type),
      +      multiplicity(type)
    40     close (unit=1)
         endif
@@ -86,10 +86,10 @@ c
      +        "  Total")') parsym(k0),Atarget,Starget,parsym(k0)
             write(1,'("# ")')
             write(1,'("# ")')
-            write(1,'("# # energies =",i3)') numinc
+            write(1,'("# # energies =",i6)') numinc
             write(1,'("#    E         xs")')
             do 110 nen=1,numinclow
-              write(1,'(1p,e10.3,e12.5)') eninc(nen),0.
+              write(1,'(1p,2e12.5)') eninc(nen),0.
   110       continue
           else
             open (unit=1,status='old',file=fisfile)
@@ -97,7 +97,7 @@ c
               read(1,*,end=130,err=130)
   120       continue
           endif
-          write(1,'(1p,e10.3,e12.5)') Einc,xsfistot
+          write(1,'(1p,2e12.5)') Einc,xsfistot
   130     close (unit=1)
         endif
       endif

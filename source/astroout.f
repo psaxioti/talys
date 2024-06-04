@@ -2,19 +2,24 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Goriely, Stephane Hilaire, Arjan Koning
-c | Date  : June 10, 2012
+c | Date  : August 10, 2014
 c | Task  : Output of astrophysical reaction rates
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*13  astrofile
-      character*1   targetparity,yesno
-      integer       Acomp,Zcomp,Ncomp,i,Z,A,ires,iresprod,iwriterp,
-     +              zrespro((numZ+1)*(numN+1)),
-     +              arespro((numZ+1)*(numN+1))
-      real          rateastrorp(numT,(numZ+1)*(numN+1)),rateastroeps
+      integer      numZ1,numN1
+      parameter    (numZ1=numZ+1,numN1=numN+1)
+      logical      lexist
+      character*4  machar
+      character*90 mafile
+      character*13 astrofile
+      character*1  targetparity,yesno
+      integer      Acomp,Zcomp,Ncomp,i,Z,A,ires,iresprod,iwriterp,ia,
+     +             zrespro(numZ1*numN1),arespro(numZ1*numN1)
+      real         rateastrorp(numT,numZ1*numN1),rateastroeps,
+     +             ratio,macs,dmacs,xs,dxs
 c
 c ************************ Output of reaction rates ********************
 c
@@ -76,6 +81,36 @@ c
    20   continue
    10 continue
 c
+c Comparison with experimental MACS at 30 keV
+c
+      if (astroE.ge.0.029.and.astroE.le.0.031) then
+        Z=Ztarget
+        A=Atarget
+        ratio=0.
+        macs=0.
+        dmacs=0.
+        machar='z   '
+        write(machar(2:4),'(i3.3)') Z
+        mafile=path(1:lenpath)//'gamma/macs/'//machar
+        inquire (file=mafile,exist=lexist)
+        if (.not.lexist) goto 100
+        open (unit=2,status='old',file=mafile)
+   70   read(2,'(4x,i4,2(e12.4))',end=80) ia,xs,dxs
+        if (A.ne.ia) goto 70
+        macs=xs
+        dmacs=dxs
+   80   close (unit=2)
+        if (macs.gt.0.) ratio=macsastro(0,0,1)/macs
+        astrofile='macs.g'
+        open (unit=1,status='unknown',file=astrofile)
+        write(1,'("# Z   A     MACS(mb)    Exp(mb)     dEXP",
+     +    "(mb)   MACS/Exp")')
+        write(1,'(2i4,1p,4e12.5)') Z,A,macsastro(0,0,1),macs,dmacs,
+     +    ratio
+        close (unit=1)
+      endif
+c
+c
 c Write results to separate files
 c
 c rateastroeps: cutoff value
@@ -87,7 +122,7 @@ c parsym      : symbol of particle
 c k0          : index of incident particle
 c flagfission : flag for fission
 c
-      astrofile='astrorate.g'
+  100 astrofile='astrorate.g'
       open (unit=1,status='unknown',file=astrofile)
       if (nTmax.eq.1) then
         write(1,'("# Reaction rate for ",i3,a2,"(",a1,",g) at <E>=",

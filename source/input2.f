@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 28, 2013
+c | Date  : November 1, 2015
 c | Task  : Read input for second set of variables
 c +---------------------------------------------------------------------
 c
@@ -52,16 +52,23 @@ c mpreeqmode  : designator for multiple pre-equilibrium model
 c phmodel     : particle-hole state density model
 c nlev        : number of excited levels for nucleus
 c ldmodel     : level density model
+c skipCN      : flag to skip compound nucleus in evaporation chain
 c col         : help variable
 c flagcol     : flag for collective enhancement of level density
 c numlev      : maximum number of included discrete levels
 c flagomponly : flag to execute ONLY an optical model calculation
 c flagequi    : flag to use equidistant excitation bins instead of
 c               logarithmic bins
+c flagpopMeV  : flag to use initial population per MeV instead of
+c               histograms
 c flagracap   : flag for radiative capture model
 c ldmodelracap: level density model for direct radiative capture
 c spectfacexp : experimental spectroscopic factor
 c spectfacth  : theoretical spectroscopic factor
+c maxZrp      : maximal number of protons away from the initial
+c               compound nucleus before new residual evaporation
+c maxNrp      : maximal number of neutrons away from the initial
+c               compound nucleus before new residual evaporation
 c
       do 10 type=0,6
         outtype(type)=' '
@@ -106,6 +113,7 @@ c
         do 30 Zix=0,numZ
           nlev(Zix,Nix)=0
           ldmodel(Zix,Nix)=0
+          skipCN(Zix,Nix)=0
           col(Zix,Nix)=0
           flagcol(Zix,Nix)=flagcolall
           spectfacth(Zix,Nix)=0.
@@ -114,8 +122,11 @@ c
    30 continue
       flagomponly=.false.
       flagequi=.false.
+      flagpopMeV=.false.
       flagracap=.false.
       ldmodelracap=1
+      maxZrp=numZ-2
+      maxNrp=numN-2
 c
 c **************** Read second set of input variables ******************
 c
@@ -258,6 +269,18 @@ c
           endif
           goto 110
         endif
+        if (key.eq.'skipcn') then
+          read(word(2),*,end=300,err=300) iz
+          read(word(3),*,end=300,err=300) ia
+          Zix=Zinit-iz
+          Nix=Ninit-ia+iz
+          if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
+            goto 1000
+          else
+            skipCN(Zix,Nix)=1
+          endif
+          goto 110
+        endif
         if (key.eq.'widthmode') then
           read(value,*,end=300,err=300) wmode
           goto 110
@@ -300,6 +323,12 @@ c
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif
+        if (key.eq.'popmev') then
+          if (ch.eq.'n') flagpopMeV=.false.
+          if (ch.eq.'y') flagpopMeV=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
         if (key.eq.'racap') then
           if (ch.eq.'n') flagracap=.false.
           if (ch.eq.'y') flagracap=.true.
@@ -308,6 +337,14 @@ c
         endif
         if (key.eq.'ldmodelracap') then
           read(value,*,end=300,err=300) ldmodelracap
+          goto 110
+        endif
+        if (key.eq.'maxzrp') then
+          read(value,*,end=300,err=300) maxZrp
+          goto 110
+        endif
+        if (key.eq.'maxnrp') then
+          read(value,*,end=300,err=300) maxNrp
           goto 110
         endif
         if (key.eq.'sfth') then
@@ -368,7 +405,6 @@ c
         do 310 Zix=0,numZ
           if (ldmodel(Zix,Nix).eq.0) ldmodel(Zix,Nix)=ldmodelall
           if (col(Zix,Nix).eq.0) flagcol(Zix,Nix)=flagcolall
-          if (ldmodel(Zix,Nix).ge.4) flagcol(Zix,Nix)=.false.
           if (spectfacth(Zix,Nix).eq.0.) spectfacth(Zix,Nix)=sfthall
           do 310 nex=0,numlev
             if (spectfacexp(Zix,Nix,nex).eq.0.)

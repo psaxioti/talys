@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : September 26, 2006
+c | Date  : August 10, 2015
 c | Task  : Fission fragment yields based on Brosa model
 c +---------------------------------------------------------------------
 c
@@ -36,7 +36,7 @@ c
      +     Eneck_sl(9), Eneck_st(9)
       real Eneck(9), hmneck(9), elneck(9)
       real Eneckinter(9,2), hmneckinter(9,2), elneckinter(9,2)
-      data temps/0.0,0.3,0.6,0.9,1.2,1.6,2.0,2.5,3.0/
+      data (temps(i),i=1,9) /0.0,0.3,0.6,0.9,1.2,1.6,2.0,2.5,3.0/
 c
 c Zix            : charge number index for residual nucleus
 c Nix            : neutron number index for residual nucleus
@@ -90,7 +90,7 @@ c
 c
 c     initialize
 c
-      do 5, k=1,9
+      do 5 k=1,9
         bf_sl(k)=0.
         bf_st(k)=0.
         bf_st2(k)=0.
@@ -98,8 +98,8 @@ c
         bfsplin_st(k)=0.
         bfsplin_st2(k)=0.
  5    continue
-      do 7, k=1,9
-         do 7, i=1,2
+      do 7 k=1,9
+         do 7 i=1,2
          bindgs(k,i)=0.
  7    continue
 c
@@ -119,11 +119,11 @@ c      determine position nucleus in array
 c
       read(2,'(4x,i4)') amassmax
       rewind(2)
-      do 8,k=1,numoff
+      do 8 k=1,numoff
         amassar(k)=amassmax-noff(k)
  8    continue
       massdif=amassmax-A
-      do 9, k=1,numoff
+      do 9 k=1,numoff
          if(massdif.GE.noff(k).and.massdif.LE.noff(k+1))then
             if(massdif.EQ.noff(k))then
                index1=k
@@ -193,13 +193,13 @@ c
 c
 c      superlong (sl), standard 1 (st), standard 2 (st2) loop
 c
-      do 1000, iloop=1,3
-         do 18, k=1,9
+      do 1000 iloop=1,3
+         do 18 k=1,9
             bfsplin(k)=0.
             hwsplin(k)=0.
             bf(k)=0.
             hw(k)=0.
-            do 18, i=1,2
+            do 18 i=1,2
                bfinter(k,i)=0.
                hwinter(k,i)=0.
  18      continue
@@ -251,7 +251,7 @@ c      interpolate, if necessary, barrier parameters
 c
          numtemp=1
          if(index2.EQ.-1)then
-            do 31, k=1,9
+            do 31 k=1,9
                if(bfinter(k,1).NE.0.)then
                   bf(k)=bfinter(k,1)
                   hw(k)=hwinter(k,1)
@@ -260,7 +260,7 @@ c
  31         continue
          else
             if(abs(noff(index1)-noff(index2)).EQ.3)then
-               do 32, k=1,9
+               do 32 k=1,9
                   if(bfinter(k,1).NE.0.and.bfinter(k,2).NE.0.)then
                      massdif=abs(amassar(index1)-A)
                      bf(k)= bfinter(k,1)+
@@ -271,7 +271,7 @@ c
                   endif
  32            continue
             else
-               do 33, k=1,9
+               do 33 k=1,9
                   if(bfinter(k,1).NE.0.and.bfinter(k,2).NE.0.)then
                      bf(k)=0.5*(bfinter(k,1)+bfinter(k,2))
                      hw(k)=0.5*(hwinter(k,1)+hwinter(k,2))
@@ -327,7 +327,7 @@ c
          if(iloop.EQ.1)then
             sl=trcof
             numtempsl=numtemp
-            do 105, k=1,numtemp
+            do 105 k=1,numtemp
                bf_sl(k)=bf(k)
                hw_sl(k)=hw(k)
                bfsplin_sl(k)=bfsplin(k)
@@ -336,7 +336,7 @@ c
             if(iloop.EQ.2)then
                st=trcof
                numtempst=numtemp
-               do 106, k=1,numtemp
+               do 106 k=1,numtemp
                   bf_st(k)=bf(k)
                   hw_st(k)=hw(k)
                   bfsplin_st(k)=bfsplin(k)
@@ -344,7 +344,7 @@ c
             else
                st2=trcof
                numtempst2=numtemp
-               do 107, k=1,numtemp
+               do 107 k=1,numtemp
                   bf_st2(k)=bf(k)
                   bfsplin_st2(k)=bfsplin(k)
  107           continue
@@ -400,8 +400,8 @@ c
 c      MASS DISTRIBUTION
 c      second loop over fission modes starts here
 c
-      do 2000, iloop=1,3
-         do 201, k=1,9
+      do 2000 iloop=1,3
+         do 201 k=1,9
             bf(k)=0.
             bfsplin(k)=0.
  201     continue
@@ -409,7 +409,7 @@ c
             dont=.false.
             numtemp=numtempsl
             if(sl.eq.0.)dont=.true.
-            do 203, k=1,numtemp
+            do 203 k=1,numtemp
                bf(k)=bf_sl(k)
                bfsplin(k)=bfsplin_sl(k)
  203        continue
@@ -420,7 +420,7 @@ c
                dont=.false.
                numtemp=numtempst
                if(st.eq.0.)dont=.true.
-               do 204, k=1,numtemp
+               do 204 k=1,numtemp
                   bf(k)=bf_st(k)
                   bfsplin(k)=bfsplin_st(k)
  204           continue
@@ -430,7 +430,7 @@ c
                dont=.false.
                numtemp=numtempst2
                if(st2.eq.0.)dont=.true.
-               do 206, k=1,numtemp
+               do 206 k=1,numtemp
                   bf(k)=bf_st2(k)
                   bfsplin(k)=bfsplin_st2(k)
  206           continue
@@ -442,26 +442,26 @@ c
 c
 c      initialize arrays for mass and charge yields
 c
-         do 400, k=1,nummass
+         do 400 k=1,nummass
             fmass(k)=0.
             fmasscor(k)=0.
-            do 400, i=1,numelem
+            do 400 i=1,numelem
                fmz(k,i)=0.
                fmzcor(k,i)=0.
  400     continue
 c
 c      initialize arrays for neck parameters
 c
-         do 270, k=1,9
+         do 270 k=1,9
             hmneck(k)=0.
             elneck(k)=0.
             Eneck(k)=0.
-            do 270, i=1,2
+            do 270 i=1,2
                hmneckinter(k,i)=0.
                elneckinter(k,i)=0.
                Eneckinter(k,i)=0.
  270     continue
-         do 300, k=1, numtemp
+         do 300 k=1, numtemp
             if(iloop.EQ.2.and.k.EQ.numtemp)then
                hmneck(k)=hmneck_sl(k)
                elneck(k)=elneck_sl(k)
@@ -507,7 +507,7 @@ c
 c     interpolate, if necessary, prescission shape parameters
 c
          if(index2.EQ.-1)then
-            do 331, k=1,9
+            do 331 k=1,9
                if(hmneckinter(k,1).NE.0.)then
                   hmneck(k)=hmneckinter(k,1)*A/amassar(index1)
                   elneck(k)=elneckinter(k,1)
@@ -516,7 +516,7 @@ c
  331        continue
          else
             if(abs(noff(index1)-noff(index2)).EQ.3)then
-               do 332, k=1,9
+               do 332 k=1,9
                   if(hmneckinter(k,1).NE.0.and.
      +                 hmneckinter(k,2).NE.0.)then
                      massdif=abs(amassar(index1)-A)
@@ -532,7 +532,7 @@ c
                   endif
  332            continue
             else
-               do 333, k=1,9
+               do 333 k=1,9
                   if(hmneckinter(k,1).NE.0.and.
      +                 hmneckinter(k,2).NE.0.)then
                     hmneck(k)=0.5*(hmneckinter(k,1)+hmneckinter(k,2))
@@ -597,37 +597,37 @@ c
          endif
 17998    continue
          if(iloop.EQ.1)then
-            do 500,k=1,nummass
+            do 500 k=1,nummass
                fmass_sl(k)=fmass(k)*sl
                fmasscor_sl(k)=fmasscor(k)*sl
-               do 500, i=1,numelem
+               do 500 i=1,numelem
                   fmz_sl(k,i)=fmz(k,i)*sl
                   fmzcor_sl(k,i)=fmzcor(k,i)*sl
  500        continue
-            do 501, k=1,numtemp
+            do 501 k=1,numtemp
                hmneck_sl(k)=hmneck(k)
                elneck_sl(k)=elneck(k)
                Eneck_sl(k)=Eneck(k)
  501        continue
          else
             if(iloop.EQ.2)then
-               do 505,k=1,nummass
+               do 505 k=1,nummass
                   fmass_st(k)=fmass(k)*st
                   fmasscor_st(k)=fmasscor(k)*st
-               do 505, i=1,numelem
+               do 505 i=1,numelem
                   fmz_st(k,i)=fmz(k,i)*st
                   fmzcor_st(k,i)=fmzcor(k,i)*st
  505           continue
-               do 506, k=1,numtemp
+               do 506 k=1,numtemp
                   hmneck_st(k)=hmneck(k)
                   elneck_st(k)=elneck(k)
                   Eneck_st(k)=Eneck(k)
  506           continue
             else
-               do 510,k=1,nummass
+               do 510 k=1,nummass
                   fmass_st2(k)=fmass(k)*st2
                   fmasscor_st2(k)=fmasscor(k)*st2
-               do 510, i=1,numelem
+               do 510 i=1,numelem
                   fmz_st2(k,i)=fmz(k,i)*st2
                   fmzcor_st2(k,i)=fmzcor(k,i)*st2
  510           continue
@@ -650,7 +650,7 @@ c flagffevap: flag for calculation of particle evaporation from
 c             fission fragment mass yields
 c
       somtot=1.
-      do 4000,k=1,nummass
+      do 4000 k=1,nummass
          disa(k)=(fmass_sl(k)+fmass_st(k)+fmass_st2(k))/somtot
          if (flagffevap) then
             disacor(k)=(fmasscor_sl(k)+fmasscor_st(k)+
@@ -658,7 +658,7 @@ c
          else
             disacor(k)=0.
          endif
-         do 4000, i=1,numelem
+         do 4000 i=1,numelem
          disaz(k,i)=(fmz_sl(k,i)+fmz_st(k,i)+fmz_st2(k,i))/somtot
          if(flagffevap)then
             disazcor(k,i)=(fmzcor_sl(k,i)+fmzcor_st(k,i)+

@@ -111,8 +111,6 @@ C
       enddo
       if (flagfisout) close (22)
       END
-
-C===================================================================
       subroutine wkbfis(iz,in,uexcit, tff, phase, tdir)
 C
 C     Roberto Capote, IAEA/NDS
@@ -301,7 +299,6 @@ C
 
       RETURN
       END
-
       real function Fmoment(Eps)
 C
 C     Integrand (To be called from Gauss-Legendre integration routine)
@@ -316,7 +313,6 @@ C
       Fmoment = 2.d0*SMIU* sqrt( abs (UEXC - Vdef(Eps)) )
       return
       end
-
       real function FmomentParab(Eps)
 C
 C     Integrand (To be called from Gauss-Legendre integration routine)
@@ -331,7 +327,6 @@ C
       FmomentParab = 2.d0*Smiu* sqrt( abs (Uexc - VdefParab(Eps)) )
       return
       end
-
       real function VdefParab(EPS)
 C
 C     This function calculates parabolic shape of the deformation energy
@@ -348,7 +343,6 @@ c     INCLUDE 'vdeform.inc'
       VdefParab = Vheight(K) + (-1)**K*(SMIU*Vwidth(K)*(EPS-Vpos(K)))**2
       return
       end
-
       real function Vdef(EPS)
 C
 C     This function calculates real shape of the deformation energy
@@ -390,7 +384,6 @@ C       We assume that in this case vi = vip
       Vdef = vi + (EPS-ei)/(eip-ei)*(vip-vi)
       return
       end
-
       real FUNCTION FindIntersect(uexc,ja,jb,iswell)
 C
 C     Calculates solutions (beta2(i)) of the equation
@@ -445,7 +438,6 @@ C       BARRIERS
       ENDIF
       RETURN
       END
-
       INTEGER FUNCTION Find_Extrem (Nsmooth)
 C
 C     Find all extremums of the smoothed deformation energy curve
@@ -643,7 +635,6 @@ c write(22,*) ' PARABOLIC FITTING CHISQR = ',CHISQR
       CENTR = EPS(imax) + CENTR
       return
       end
-
       SUBROUTINE WPLFT(NPTS,NTERMS,IERR,MODE,X,Y,A,SIGMAA,CHISQR)
 
 C FITS A POLYNOMIAL OF THE FORM:
@@ -739,7 +730,7 @@ C       S=NPTS*(NPTS+1)/2
 C       INVERT SYMMETRIC MATRIX
 
         CALL MATINVM( DEG, DET, ARRAY )
-        IF(DET.NE.0.D0) GO TO 101
+        IF(DET.NE.0.D0) GOTO 101
         IERR = 2
         RETURN
 
@@ -786,28 +777,6 @@ C       CALCULATE UNCERTAINTIES
 
         RETURN
         END
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-c       real FUNCTION SPOLFT(X,NTERMS,SIGMAA,ARRAY)
-c       real X, SIGMAA
-c       INTEGER NTERMS
-c       INTEGER MAXDEG
-c       PARAMETER (MAXDEG=3)
-c       real ARRAY(MAXDEG,MAXDEG)
-
-c       INTEGER DEG
-
-c       DEG = NTERMS-1
-c       S2YFIT = SIGMAA
-c       DO 160 J = 1, DEG
-c       S2YFIT = S2YFIT + X**(J+J) * ARRAY(J,J)
-c       DO 160 K = J+1, DEG
-c160     S2YFIT = S2YFIT + 2.*X**(J+K) * ARRAY(J,K)
-c       SPOLFT = SQRT( S2YFIT )
-c       RETURN
-c       END
-
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
         SUBROUTINE MATINVM( NORDER, DET, ARRAY )
 
         INTEGER MAXDEG
@@ -827,7 +796,7 @@ C       FIND LARGEST ELEMENT ARRAY(I,J) IN REST OF MATRIX
         AMAX=0.D0
 21      DO 30 I=K,NORDER
         DO 30 J=K,NORDER
-        IF(abs(AMAX).GT.abs(ARRAY(I,J))) GO TO 30
+        IF(abs(AMAX).GT.abs(ARRAY(I,J))) GOTO 30
         AMAX=ARRAY(I,J)
         IK(K)=I
         JK(K)=J
@@ -835,7 +804,7 @@ C       FIND LARGEST ELEMENT ARRAY(I,J) IN REST OF MATRIX
 
 C       INTERCHANGE ROWS AND COLUMNS TO PUT AMAX IN ARRAY(K,K)
 
-        IF(AMAX.NE.0.D0) GO TO 41
+        IF(AMAX.NE.0.D0) GOTO 41
         DET=0.D0
         RETURN
 41      I=IK(K)
@@ -889,3 +858,22 @@ C       RESTORE ORDENING OF MATRIX
 130     CONTINUE
         RETURN
         END
+C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+c       real FUNCTION SPOLFT(X,NTERMS,SIGMAA,ARRAY)
+c       real X, SIGMAA
+c       INTEGER NTERMS
+c       INTEGER MAXDEG
+c       PARAMETER (MAXDEG=3)
+c       real ARRAY(MAXDEG,MAXDEG)
+
+c       INTEGER DEG
+
+c       DEG = NTERMS-1
+c       S2YFIT = SIGMAA
+c       DO 160 J = 1, DEG
+c       S2YFIT = S2YFIT + X**(J+J) * ARRAY(J,J)
+c       DO 160 K = J+1, DEG
+c160     S2YFIT = S2YFIT + 2.*X**(J+K) * ARRAY(J,K)
+c       SPOLFT = SQRT( S2YFIT )
+c       RETURN
+c       END

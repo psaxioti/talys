@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : April 27, 2013
+c | Date  : August 10, 2015
 c | Task  : Read ECIS results for direct cross section
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical lexist
-      integer          type,Zix,Nix,NL,i,iS,nS,k,nleg,l,iang,itype
+      integer          type,Zix,Nix,NL,i,iS,nS,k,nleg,l,iang,itype,istat
       real             levelenergy,xsdwbatot
       double precision xs,ddl
 c
@@ -104,9 +104,11 @@ c Read direct angular distribution
 c
           read(8,'(12x,i3)') nS
           do 220 iang=0,nangle
-            do 220 k=1,nS
-              read(8,'(i3,12x,e12.5)',end=220,err=220) itype,xs
+            do 230 k=1,nS
+              read(8,'(i3,12x,e12.5)',iostat=istat) itype,xs
+              if (istat.ne.0) goto 230
               if (itype.eq.0) directad(type,i,iang)=real(xs)
+  230       continue
   220     continue
    20   continue
 c
@@ -143,7 +145,8 @@ c
               read(8,'(12x,i3)') nS
               do 340 iang=0,nanglecont
                 do 340 k=1,nS
-                  read(8,'(i3,12x,e12.5)',err=340,end=340) itype,xs
+                  read(8,'(i3,12x,e12.5)',iostat=istat) itype,xs
+                  if (istat.ne.0) goto 340
                   if (itype.eq.0) grcollad(k0,l,i,iang)=real(xs)
   340         continue
   310     continue

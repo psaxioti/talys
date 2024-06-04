@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : February 28, 2013
+c | Date  : August 10, 2015
 c | Task  : Predefined incident energy grids
 c +---------------------------------------------------------------------
 c
@@ -32,8 +32,9 @@ c        15  -  30 MeV : dE= 1.0 MeV
 c        30  -  60 MeV : dE= 2.0 MeV
 c        60  -  80 MeV : dE= 5.0 MeV
 c        80  - 160 MeV : dE=10.0 MeV
-c        160 - 600 MeV : dE=20.0 MeV
-c        600 -1000 MeV : dE=50.0 MeV
+c        160 - 300 MeV : dE=20.0 MeV
+c        300 - 600 MeV : dE=50.0 MeV
+c        600 -1000 MeV : dE=100.0 MeV
 c
 c This grid ensures that the excitation functions are sufficiently
 c smooth at low energies, while at higher energies a somewhat coarser
@@ -41,9 +42,20 @@ c energy grid can be used.
 c For various pre-defined energy grids (energy filenames), subsets of
 c this grid can be taken.
 c
-      data (E(nen),nen=1,14) /
-     +   1.e-11,2.53e-8,  1.e-6,  1.e-5,  1.e-4,  0.001,  0.002,  0.004,
-     +    0.007,   0.01,   0.02,   0.04,   0.07,    0.1/
+      E(1)=1.e-11
+      E(2)=2.53e-8
+      E(3)=1.e-6
+      E(4)=1.e-5
+      E(5)=1.e-4
+      E(6)=0.001
+      E(7)=0.002
+      E(8)=0.004
+      E(9)=0.007
+      E(10)=0.01
+      E(11)=0.02
+      E(12)=0.04
+      E(13)=0.07
+      E(14)=0.1
 c
 c Test for existence of pre-defined energy grid
 c
@@ -93,7 +105,8 @@ c
       if (Eeps.gt.60.) degrid=5.
       if (Eeps.gt.80.) degrid=10.
       if (Eeps.gt.160.) degrid=20.
-      if (Eeps.gt.600.) degrid=50.
+      if (Eeps.gt.300.) degrid=50.
+      if (Eeps.gt.600.) degrid=100.
       goto 110
   120 Nnen=nen
 c

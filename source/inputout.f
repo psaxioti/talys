@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 1, 2013
+c | Date  : November 1, 2015
 c | Task  : Write input parameters
 c +---------------------------------------------------------------------
 c
@@ -65,6 +65,8 @@ c               compound nucleus
 c nbins0      : number of continuum excitation energy bins
 c flagequi    : flag to use equidistant excitation bins instead of
 c               logarithmic bins
+c flagpopMeV  : flag to use initial population per MeV instead of
+c               histograms
 c segment     : number of segments to divide emission energy grid
 c nlevmax     : maximum number of included discrete levels for target
 c nlevmaxres  : maximum number of included discrete levels for residual
@@ -90,6 +92,8 @@ c maxchannel  : maximal number of outgoing particles in individual
 c               channel description (e.g. this is 3 for (n,2np))
 c flagmicro   : flag for completely microscopic Talys calculation
 c flagbest    : flag to use best set of adjusted parameters
+c flagbestbr  : flag to use best set of branching ratios
+c flagbestend : flag to put best set of parameters at end of input file
 c flagrel     : flag for relativistic kinematics
 c flagrecoil  : flag for calculation of recoils
 c flaglabddx  : flag for calculation of DDX in LAB system
@@ -105,10 +109,17 @@ c disctable   : table with discrete levels
 c flagprod    : flag for isotope production
 c flagoutfy   : flag for output detailed fission yield calculation
 c gefran      : number of random events for GEF calculation
+c Estop       : incident energy above which TALYS stops
+c flagrpevap  : flag for evaporation of residual products at high
+c               incident energies
+c maxZrp      : maximal number of protons away from the initial
+c               compound nucleus before new residual evaporation
+c maxNrp      : maximal number of neutrons away from the initial
+c               compound nucleus before new residual evaporation
 c
       write(*,'(" #"/" # Basic physical and numerical parameters")')
       write(*,'(" #")')
-      write(*,'(" ejectiles ",7(1x,a1),"  outtype      ",
+      write(*,'(" ejectiles",7(1x,a1),"   outtype      ",
      +  "outgoing particles")') (outtype(type),type=0,6)
       write(*,'(" maxz              ",i3,"     maxZ         ",
      +  "maximal number of protons away from the initial",
@@ -121,6 +132,9 @@ c
       write(*,'(" equidistant         ",a1,"     flagequi    ",
      +  " flag to use equidistant excitation bins instead of ",
      +  "logarithmic bins")') yesno(flagequi)
+      write(*,'(" popmev              ",a1,"     flagpopmev  ",
+     +  " flag to use initial population per MeV instead of ",
+     +  "histograms")') yesno(flagpopmev)
       write(*,'(" segment           ",i3,"     segment    ",
      +  "  number of segments to divide emission energy grid")') segment
       write(*,'(" maxlevelstar      ",i3,"     nlevmax",
@@ -169,6 +183,12 @@ c
       write(*,'(" best                ",a1,"     flagbest ",
      +  "    flag to use best set of adjusted parameters")')
      +  yesno(flagbest)
+      write(*,'(" bestbranch          ",a1,"     flagbestbr  ",
+     +  " flag to use flag to use only best set of branching ratios")')
+     +  yesno(flagbestbr)
+      write(*,'(" bestend             ",a1,"     flagbestend ",
+     +  " flag to put best set of parameters at end of input file")')
+     +  yesno(flagbestend)
       write(*,'(" relativistic        ",a1,"     flagrel",
      +  "      flag for relativistic kinematics")') yesno(flagrel)
       write(*,'(" recoil              ",a1,"     flagrecoil",
@@ -200,6 +220,17 @@ c
      +  yesno(flagoutfy)
       write(*,'(" gefran        ",i7,"     gefran       number ",
      +  "of random events for GEF calculation")') gefran
+      write(*,'(" Estop            ",f8.3," Estop   ",
+     +  "     incident energy above which TALYS stops")') Estop
+      write(*,'(" rpevap              ",a1,"     flagrpevap  ",
+     +  " flag for evaporation of residual products at high",
+     +  " incident energies")') yesno(flagrpevap)
+      write(*,'(" maxZrp            ",i3,"     maxZrp       ",
+     +  "maximal number of protons away from the initial",
+     +  " compound nucleus before residual evaporation")') maxZrp
+      write(*,'(" maxNrp            ",i3,"     maxNrp       ",
+     +  "maximal number of neutons away from the initial",
+     +  " compound nucleus before residual evaporation")') maxNrp
 c
 c Isotope production
 c
@@ -228,14 +259,14 @@ c
      +    "   unit for radioactivity")') radiounit
         write(*,'(" yieldunit             ",a3," yieldunit ",
      +    "   unit for isotope yield")') yieldunit
-        write(*,'(" Ibeam             ",f7.3," Ibeam ",
+        write(*,'(" Ibeam            ",f8.3," Ibeam ",
      +    "       beam current in mA")') Ibeam
         do 30 i=1,5
           if (Tirrad(i).gt.0) write(*,'(" Tirrad      ",i9,
      +      "     Tirrad       ",a1," of irradiation time")')
      +      Tirrad(i),unitTirrad(i)
    30   continue
-        write(*,'(" Area              ",f7.3," Area  ",
+        write(*,'(" Area             ",f8.3," Area  ",
      +    "       target area in cm^2")') Area
         do 40 i=1,5
           if (Tcool(i).gt.0) write(*,'(" Tcool       ",i9,"     Tcool ",
@@ -275,7 +306,7 @@ c flagendfecis: flag for new ECIS calculation for ENDF-6 files
 c radialmodel : model for radial matter densities (JLM OMP only)
 c jlmmode     : option for JLM imaginary potential normalization
 c alphaomp    : alpha optical model (1=normal, 2= McFadden-Satchler,
-c               3-5= folding potential)
+c               3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)
 c deuteronomp : deuteron optical model (1=normal, 2=Daehnick,
 c               3=Bojowald, 4=Han-Shi-Shen, 5=An-Cai)
 c
@@ -350,7 +381,8 @@ c
      +  jlmmode
       write(*,'(" alphaomp           ",i2,"     alphaomp    ",
      +  " alpha optical model (1=normal, 2= McFadden-Satchler,",
-     +  " 3-5= folding potential)")') alphaomp
+     +  " 3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)")') 
+     +  alphaomp
       write(*,'(" deuteronomp        ",i2,"     deuteronomp ",
      +  " deuteron optical model (1=normal, 2=Daehnick,",
      +  " 3=Bojowald, 4=Han-Shi-Shen, 5=An-Cai)")') deuteronomp
@@ -439,6 +471,7 @@ c flagpreeq   : flag for pre-equilibrium calculation
 c preeqmode   : designator for pre-equilibrium model
 c flagmulpre  : flag for multiple pre-equilibrium calculation
 c mpreeqmode  : designator for multiple pre-equilibrium model
+c breakupmodel: model for break-up reaction: 1. Kalbach 2. Avrigeanu
 c emulpre     : on-set incident energy for multiple preequilibrium
 c phmodel     : particle-hole state density model
 c pairmodel   : model for preequilibrium pairing energy
@@ -474,6 +507,9 @@ c
       write(*,'(" mpreeqmode         ",i2,"     mpreeqmode",
      +  "   designator for multiple pre-equilibrium model")')
      +  mpreeqmode
+      write(*,'(" breakupmodel       ",i2,"     breakupmodel",
+     +  " model for break-up reaction: 1. Kalbach 2. Avrigeanu")')
+     +  breakupmodel
       write(*,'(" phmodel            ",i2,"     phmodel    ",
      +  "  particle-hole state density model")') phmodel
       write(*,'(" pairmodel          ",i2,"     pairmodel",
@@ -548,6 +584,7 @@ c flagffevap : flag for calculation of particle evaporation from
 c              fission fragment mass yields
 c flagfisfeed: flag for output of fission per excitation bin
 c fymodel    : fission yield model, 1: Brosa 2: GEF
+c flagffspin : flag to use spin distribution in initial FF population
 c
       write(*,'(" #"/" # Fission"/" #")')
       write(*,'(" fission             ",a1,"     flagfission",
@@ -571,6 +608,9 @@ c
      +  yesno(flagfisfeed)
       write(*,'(" fymodel             ",i1,"     fymodel    ",
      +  "  fission yield model, 1: Brosa 2: GEF")') fymodel
+      write(*,'(" ffspin              ",a1,"     flagffspin ",
+     +  "  flag to use spin distribution in initial FF population")')
+     +  yesno(flagffspin)
 c
 c 9. Output
 c
@@ -592,6 +632,9 @@ c flagpeout   : flag for output of pre-equilibrium results
 c flagfisout  : flag for output of fission information
 c flagdisc    : flag for output of discrete state cross sections
 c flagspec    : flag for output of spectra
+c flagbinspec : flag for output of emission spectrum per excitation bin
+c flagres     : flag for output of low energy resonance cross sections
+c flaggroup   : flag for output of low energy groupwise cross sections
 c eadd        : on-set incident energy for addition of discrete states
 c               to spectra
 c eaddel      : on-set incident energy for addition of elastic peak
@@ -608,6 +651,7 @@ c flagexc     : flag for output of excitation functions
 c flagcompo   : flag for output of cross section components
 c flagendf    : flag for information for ENDF-6 file
 c flagendfdet : flag for detailed ENDF-6 information per channel
+c flagsacs    : statistical analysis of cross sections
 c flagpartable: flag for output of model parameters on separate file
 c
       write(*,'(" #"/" # Output"/" #")')
@@ -648,6 +692,15 @@ c
       write(*,'(" outspectra          ",a1,"     flagspec",
      +  "     flag for output of double-differential cross",
      +  " sections")') yesno(flagspec)
+      write(*,'(" outbinspectra       ",a1,"     flagbinspec",
+     +  "  flag for output of emission spectrum per",
+     +  " excitation bin")') yesno(flagbinspec)
+      write(*,'(" resonance           ",a1,"     flagres ",
+     +  "     flag for output of low energy resonance cross",
+     +  " sections")') yesno(flagres)
+      write(*,'(" group               ",a1,"     flaggroup ",
+     +  "   flag for output of low energy groupwise cross",
+     +  " sections")') yesno(flaggroup)
       if (numinc.gt.1.and.enincmin.lt.eadd.and.enincmax.ge.eadd)
      +  then
         write(*,'(" adddiscrete       ",f7.3," eadd         on-set ",
@@ -692,6 +745,9 @@ c
       write(*,'(" endfdetail          ",a1,"     flagendfdet",
      +  "  flag for detailed ENDF-6 information per channel")')
      +  yesno(flagendfdet)
+      write(*,'(" sacs                ",a1,"     flagsacs    ",
+     +  " flag for statistical analysis of cross sections")')
+     +  yesno(flagsacs)
       write(*,'(" partable            ",a1,"     flagpartable",
      +  " flag for output of model parameters on separate file")')
      +  yesno(flagpartable)

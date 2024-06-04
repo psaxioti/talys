@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Goriely & Arjan Koning
-c | Date  : December 23, 2013
+c | Date  : August 10, 2015
 c | Task  : Tabulated spin- and parity-dependent particle-hole level
 c |         densities
 c +---------------------------------------------------------------------
@@ -14,7 +14,7 @@ c
       character*4      denchar
       character*6      phdir
       character*90     denfile
-      integer          Zix,Nix,Z,A,ia,parity,nex,J
+      integer          Zix,Nix,Z,A,ia,parity,nex,J,istat
       real             ephjpgrid
       double precision ldtot,ld2j1(0:numJ)
 c
@@ -57,7 +57,8 @@ c
       if (lexist) then
         open (unit=2,status='old',file=denfile)
         do 10 parity=1,-1,-2
-   20     read(2,'(/31x,i3//)',end=10,err=10) ia
+   20     read(2,'(/31x,i3//)',iostat=istat) ia
+          if (istat.ne.0) goto 10
           if (A.ne.ia) then
             do 30 nex=1,nenphdens+1
               read(2,'()')
@@ -81,6 +82,12 @@ c
           endif
    10   continue
         close (unit=2)
+        if (A.ne.ia) then
+          write(*,'("Input ph file not available:",a90)') denfile
+          write(*,'(" For A=",i3," --> Change of ldmodelracap=1",
+     +      " to ldmodelracap=2")') A
+          ldmodelracap=2
+        endif
       else
         write(*,'("Input ph file not available:",a90)') denfile
         write(*,'("  Change of ldmodelracap=1 to ldmodelracap=2")')

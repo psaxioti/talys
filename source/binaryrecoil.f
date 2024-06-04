@@ -9,9 +9,35 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer type,Zix,Nix
-      integer nen
-      real    SS
+      integer   type,Zix,Nix
+      integer   nen
+      real      SS
+      real      compmass,ratio
+      real      sumejbinlab(0:6),sumrecbinlab(0:6)
+      real      dEejcm
+      real      pejcm1,pejcm2
+      real      Exrec1,Exrec2
+      integer   iex
+      integer   iex1,iex2
+      integer   iexmin,iexmax,numbinrec
+      integer   iang
+      real      ddxCM
+      real      fluxCM
+      integer   irenorm
+      real      Emaxi
+      real      dEori,dEnew,renorm
+      real      labsurf1,labsurf2,labsurf
+      real      scovej1(numen2,0:2*numangcont+1)
+      real      scovej2(numen2,0:2*numangcont+1)
+      real      scovrec1(0:numenrec,0:2*numangrec+1)
+      real      scovrec2(0:numenrec,0:2*numangrec+1)
+      integer   xlim1(2),ylim1(2),xlim2(2),ylim2(2)
+      real      ddxLAB
+      integer   iymax,iymaxp1
+      integer   ix,iy,iymod,iys
+      real      ddxrecadd,surfbin,fluxadd
+      real      sum,sumenrec,sumenej
+      integer   iarec2
 c
 c ************************** Local variables ***************************
 c
@@ -89,35 +115,6 @@ c ddxrecadd    : help variable
 c ddxrec       : LAB ddx array
 c areareclab   : Total surface of LAB ddx bins
 c ddxrectot    : Total ddx integral
-c
-
-      real      compmass,ratio
-      real      sumejbinlab(0:6),sumrecbinlab(0:6)
-      real      dEejcm
-      real      pejcm1,pejcm2
-      real      Exrec1,Exrec2
-      integer   iex
-      integer   iex1,iex2
-      integer   iexmin,iexmax,numbinrec
-      integer   iang
-      real      ddxCM
-      real      fluxCM
-      integer   irenorm
-      real      Emaxi
-      real      dEori,dEnew,renorm
-      real      labsurf1,labsurf2,labsurf
-      real      scovej1(numen2,0:2*numangcont+1)
-      real      scovej2(numen2,0:2*numangcont+1)
-      real      scovrec1(0:numenrec,0:2*numangrec+1)
-      real      scovrec2(0:numenrec,0:2*numangrec+1)
-      integer   xlim1(2),ylim1(2),xlim2(2),ylim2(2)
-      real      ddxLAB
-      integer   iymax,iymaxp1
-      integer   ix,iy,iymod,iys
-      real      ddxrecadd,surfbin,fluxadd
-      real      sum,sumenrec,sumenej
-      integer   iarec2
-c
 c parskip  : logical to skip outgoing particle
 c flagspec : flag for output of spectra
 c ebegin   : first energy point of energy grid

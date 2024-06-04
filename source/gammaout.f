@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 25, 2012
+c | Date  : July 14, 2014
 c | Task  : Output of gamma-ray strength functions, transmission
 c |         coefficients and cross sections
 c +---------------------------------------------------------------------
@@ -74,6 +74,9 @@ c
       if (strength.eq.3) model="Goriely HFbcs tables     "
       if (strength.eq.4) model="Goriely HFB tables       "
       if (strength.eq.5) model="Goriely Hybrid model     "
+      if (strength.eq.6) model="Goriely T-dep. HFB Tables"
+      if (strength.eq.7) model="Goriely T-dep. RMF Tables"
+      if (strength.eq.8) model="Gogny D1M HFB+QRPA Tables"
       write(*,'(/" Gamma-ray strength function model for E1: ",a25)')
      +  model
       if (strengthM1.eq.1) model="RIPL-1                   "

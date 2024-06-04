@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : June 2, 2012
+c | Date  : January 10, 2014
 c | Task  : Tabulated level densities
 c +---------------------------------------------------------------------
 c
@@ -43,7 +43,7 @@ c
       nloop=0
       if (flagfission) nloop=nfisbar(Zix,Nix)
       ldmod=ldmodel(Zix,Nix)
-      if (ldmod.eq.5) then
+      if (ldmod.eq.5.or.ldmod.eq.6) then
         ploop=-1
         pardisloc=1.
       else

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : April 21, 2012
+c | Date  : December 8, 2015
 c | Task  : Energy and angle grid
 c +---------------------------------------------------------------------
 c
@@ -329,7 +329,7 @@ c rescuefile: file with incident energy dependent adjustment factors
 c
       if (flagrescue) then
         do 510 mt=1,nummt
-          do 520 is=-1,1
+          do 520 is=-1,numisom
             Crescue(mt,is)=1.
             do 530 nen=1,numen6
               Erescue(mt,is,nen)=0.
@@ -340,11 +340,12 @@ c
               nen=1
   540         read(2,*,end=550) Erescue(mt,is,nen),val
               frescue(mt,is,nen)=grescue(mt,is)*val
-              if (nen.gt.1.and.(Erescue(mt,is,nen).le.
-     +          Erescue(mt,is,nen-1))) then
-                write(*,'(" TALYS-error: energies in rescuefile must",
-     +            " be given in ascending order")')
-                stop
+              if (nen.gt.1) then
+                if (Erescue(mt,is,nen).le.Erescue(mt,is,nen-1)) then
+                  write(*,'(" TALYS-error: energies in rescuefile must",
+     +              " be given in ascending order")')
+                  stop
+                endif
               endif
               nen=nen+1
               if (nen.gt.numen6+1) then

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : June 11, 2007
+c | Date  : August 10, 2015
 c | Task  : Fission fragment mass yields per fission mode based on RNRM
 c +---------------------------------------------------------------------
 c
@@ -28,11 +28,13 @@ c
      +     ap,ztot,atot,fmzcor(nummass,numelem),fmz(nummass,numelem),
      +     zf1(4000,numelem),ald,ignatyuk,dumm
       external fidi,rpoint,evap
-      data r0,xnu,rayl/1.15,1.0,11.00/
 c
 c determine mass and charge grid (depending whether evaporation
 c correction is required)
 c
+      r0=1.15
+      xnu=1.0
+      rayl=11.00
       Zix=Zinit-Z
       Nix=Ninit-(A-Z)
       atot=real(A)
@@ -94,12 +96,14 @@ c
       psh(i)=.65
       pa(i)=.3
       pe(i)=1.
- 30   pd(i)=.35
+      pd(i)=.35
+ 30   continue
       do 31 i=5,6
       psh(i)=.8
       pa(i)=.6
       pe(i)=1.
- 31   pd(i)=.2
+      pd(i)=.2
+ 31   continue
       psh(7)=1.
       pa(7)=.5
       pe(7)=10.
@@ -112,14 +116,16 @@ c
 c fmin needs a few starts to find the right values.
 c
       do 102 k=1,15
-      if (k.LT.2) go to 100
+      if (k.LT.2) goto 100
       delt=.2**((k+1)/2)
       do 101 i=1,7
       pa(i)=psh(i)-delt
       pe(i)=psh(i)+delt
- 101  pd(i)=delt
+      pd(i)=delt
+ 101  continue
  100  fimin=fmin(fidi,7,psh,pd,pa,pe,200,-1.E-4)
- 102  if (fimin.lt.1.E-3) goto 103
+      if (fimin.lt.1.E-3) goto 103
+ 102  continue
  103  d=totl-r1-r3
 c
 c graphical discussion of the rupture shape.
@@ -172,7 +178,7 @@ c
       am2=atot-am1
       jmx=jmx+1
       mcount=1
-      do 3, izloop=1,2*izstepnum+1
+      do 3 izloop=1,2*izstepnum+1
       ze1=zda*am1+(izloop-izstepnum-1)*zstepsize
       ze2=ztot-ze1
       if(ze1.lt.0..or.ze2.lt.0.)goto 3
@@ -246,7 +252,7 @@ c
  71   continue
       do 74 k=1, jimax
          wgt(k)=wgt(k)/sumw
-         do 73, i=1,izmax
+         do 73 i=1,izmax
             zdis(k,i)=zdis(k,i)/sumtmp(k)
             iaf1=max(int(af1(k)+0.5),1)
             izf1=max(int(zf1(k,i)+0.5),1)

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 9, 2013
+c | Date  : October 8, 2014
 c | Task  : Discrete levels
 c +---------------------------------------------------------------------
 c
@@ -14,7 +14,7 @@ c
       character*4  levelchar
       character*90 levfile
       integer      Zix,Nix,Z,A,nlev2,ia,nlevlines,nnn,i,j,klev(numlev),
-     +             ii,nb,Lis
+     +             ii,nb,Lis,N
       real         br(numlev),con(numlev)
 c
 c ******************** Default nuclear levels **************************
@@ -165,16 +165,16 @@ c
 c
 c Overwrite value of isomer for shorter-lived target level.
 c
-c Ltarget: excited level of target
-c isomer : definition of isomer in seconds
+c Ltarget0: excited level of target
+c isomer  : definition of isomer in seconds
 c
-        if (Ltarget.ne.0.and.Zix.eq.parZ(k0).and.Nix.eq.parN(k0).
-     +    and.i.eq.Ltarget.and.tau(Zix,Nix,i).lt.isomer)
+        if (Ltarget0.ne.0.and.Zix.eq.parZ(k0).and.Nix.eq.parN(k0)
+     +    .and.i.eq.Ltarget0.and.tau(Zix,Nix,i).lt.isomer)
      +    isomer=tau(Zix,Nix,i)
 c
 c Set highest discrete level equal to isomer if that exists
 c
-        if (i.gt.nlev(Zix,Nix).and.tau(Zix,Nix,i).ge.isomer )
+        if (i.gt.nlev(Zix,Nix).and.tau(Zix,Nix,i).ge.isomer)
      +    nlev(Zix,Nix)=i
    30 continue
 c
@@ -198,15 +198,16 @@ c
 c
 c Read extra levels which are used only for the level density matching
 c problem or for direct reactions (deformation parameters). The
-c branching ratios and lifetimes are not read for these higher levels.
+c branching ratios are not read for these higher levels.
 c
 c nlevmax2,numlev2: maximum number of levels
 c
       nlevmax2(Zix,Nix)=min(nnn,numlev2)
       do 80 i=nlev2+1,nlevmax2(Zix,Nix)
-        read(2,'(4x,f11.6,f6.1,3x,i2,i3,29x,2a1)') edis(Zix,Nix,i),
-     +    jdis(Zix,Nix,i),parlev(Zix,Nix,i),nb,jassign(Zix,Nix,i),
-     +    passign(Zix,Nix,i)
+        read(2,'(4x,f11.6,f6.1,3x,i2,i3,18x,e10.3,1x,2a1)') 
+     +    edis(Zix,Nix,i),jdis(Zix,Nix,i),parlev(Zix,Nix,i),nb,
+     +    tau(Zix,Nix,i),jassign(Zix,Nix,i),passign(Zix,Nix,i)
+        jdis(Zix,Nix,i)=min(jdis(Zix,Nix,i),real(numJ))
         do 90 j=1,nb
           read(2,*)
    90   continue
@@ -230,7 +231,7 @@ c parZ   : charge number of particle
 c k0     : index for incident particle
 c parN   : neutron number of particle
 c
-      if (Ltarget.ne.0) then
+      if (Lisoinp.eq.-1.and.Ltarget.ne.0) then
         if (Zix.eq.parZ(k0).and.Nix.eq.parN(k0).and.
      +    Ltarget.gt.nlev(Zix,Nix)) then
           write(*,'(" TALYS-error: excited level of target does",
@@ -270,6 +271,25 @@ c
       else
         Liso=Lisoinp
       endif
+c
+c Special treatment for isomers in the continuum. There are about 10
+c known isomers whose level number is larger than 30. To avoid
+c wasting too much memory we renumber the isomer in the continuum
+c to the last discrete level taken into account in the calculation.
+c
+      do 210 i=nlev2+1,nlevmax2(Zix,Nix)
+        if (tau(Zix,Nix,i).ge.isomer) then
+          N=nlev(Zix,Nix)
+          edis(Zix,Nix,N)=edis(Zix,Nix,i)
+          jdis(Zix,Nix,N)=jdis(Zix,Nix,i)
+          parlev(Zix,Nix,N)=parlev(Zix,Nix,i)
+          tau(Zix,Nix,N)=tau(Zix,Nix,i)
+          jassign(Zix,Nix,N)=' '
+          passign(Zix,Nix,N)=' '
+          if (Liso.gt.0.and.Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) 
+     +      Ltarget=N
+        endif
+  210 continue
       return
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

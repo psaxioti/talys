@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
-c | Date  : September 10, 2007
+c | Date  : august 8, 2014
 c | Task  : Build rotational bands on transition states
 c +---------------------------------------------------------------------
 c
@@ -54,16 +54,10 @@ c
           if (Eband.gt.fecont(Zix,Nix,nbi)) goto 20
           nfistrrot(Zix,Nix,nbi)=nfistrrot(Zix,Nix,nbi)+1
           itstot=nfistrrot(Zix,Nix,nbi)
-          if (itstot.gt.numrot) then
-            write(*,'(" TALYS-error: Due to the number of",
-     +        " head band states, the number of rotational states",
-     +        " exceeds ",i3)') numrot
-            write(*,'(" numrot in talys.cmb should be increased")')
-            stop
-          endif
           efistrrot(Zix,Nix,nbi,itstot)=Eband
           jfistrrot(Zix,Nix,nbi,itstot)=rj
           pfistrrot(Zix,Nix,nbi,itstot)=pfistrhb(Zix,Nix,nbi,i)
+          if (itstot.gt.numrot) goto 10
           goto 30
    20   continue
    10 continue

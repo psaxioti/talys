@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 19, 2012
+c | Date  : December 11, 2014
 c | Task  : Output of total cross sections
 c +---------------------------------------------------------------------
 c
@@ -16,6 +16,8 @@ c ********************* Total cross sections ***************************
 c
 c Einc        : incident energy in MeV
 c nin         : counter for incident energy
+c flaginitpop : flag for initial population distribution
+c xsinitpop   : initial population cross section
 c eninccm     : center-of-mass incident energy in MeV
 c k0          : index of incident particle
 c xstotinc    : total cross section (neutrons only) for incident channel
@@ -37,6 +39,11 @@ c
       else
         write(*,'(/" ########### REACTION SUMMARY FOR E=",1p,e12.5,
      +    " ###########"/)') Einc
+      endif
+      if (flaginitpop) then
+        write(*,'(" 1. Initial population cross section =",1p,e12.5/)')
+     +    xsinitpop
+        return
       endif
       write(*,'(" Center-of-mass energy: ",f7.3/)') eninccm
       write(*,'(" 1. Total (binary) cross sections"/)')
@@ -77,12 +84,12 @@ c
      +      parsym(k0),Atarget,Starget
           write(1,'("# ")')
           write(1,'("# ")')
-          write(1,'("# # energies =",i3)') numinc
-          write(1,'("#    E      Non-elastic  Elastic     Total",
-     +      "     Comp. el.  Shape el.  Reaction",
-     +      " Comp. nonel   Direct   Pre-equil.  Dir. Capt.")')
+          write(1,'("# # energies =",i6)') numinc
+          write(1,'("#     E      Non-elastic    Elastic     Total",
+     +      "     Comp. el.   Shape el.   Reaction",
+     +      "   Comp. nonel   Direct    Pre-equil.  Dir. Capt.")')
           do 10 nen=1,numinclow
-            write(1,'(1p,e10.3,2x,9e11.4)') eninc(nen),fxsnonel(nen),
+            write(1,'(1p,10e12.5)') eninc(nen),fxsnonel(nen),
      +        fxselastot(nen),fxstotinc(nen),fxscompel(nen),
      +        fxselasinc(nen),fxsreacinc(nen),fxscompnonel(nen),
      +        fxsdirdiscsum(nen),fxspreeqsum(nen)
@@ -93,7 +100,7 @@ c
             read(1,*,end=30,err=30)
    20     continue
         endif
-        write(1,'(1p,e10.3,2x,10e11.4)') Einc,xsnonel,xselastot,
+        write(1,'(1p,11e12.5)') Einc,xsnonel,xselastot,
      +    xstotinc,xscompel,xselasinc,xsreacinc,xscompnonel,
      +    xsdirdiscsum,xspreeqsum,xsracape
    30   close (unit=1)
@@ -107,10 +114,10 @@ c
      +      parsym(k0),Atarget,Starget
           write(1,'("# ")')
           write(1,'("# ")')
-          write(1,'("# # energies =",i3)') numinc
+          write(1,'("# # energies =",i6)') numinc
           write(1,'("#    E      Cross section")')
           do 40 nen=1,numinclow
-            write(1,'(1p,e10.3,2x,e11.4)') eninc(nen),fxstotinc(nen)
+            write(1,'(1p,2e12.5)') eninc(nen),fxstotinc(nen)
    40     continue
         else
           open (unit=1,status='old',file=totfile)
@@ -118,7 +125,7 @@ c
             read(1,*,end=60,err=60)
    50     continue
         endif
-        write(1,'(1p,e10.3,2x,e11.4)') Einc,xstotinc
+        write(1,'(1p,2e12.5)') Einc,xstotinc
    60   close (unit=1)
 c
 c Elastic cross sections only
@@ -130,10 +137,10 @@ c
      +      parsym(k0),Atarget,Starget
           write(1,'("# ")')
           write(1,'("# ")')
-          write(1,'("# # energies =",i3)') numinc
+          write(1,'("# # energies =",i6)') numinc
           write(1,'("#    E      Cross section")')
           do 70 nen=1,numinclow
-            write(1,'(1p,e10.3,2x,e11.4)') eninc(nen),fxselastot(nen)
+            write(1,'(1p,2e12.5)') eninc(nen),fxselastot(nen)
    70     continue
         else
           open (unit=1,status='old',file=totfile)
@@ -141,7 +148,7 @@ c
             read(1,*,end=90,err=90)
    80     continue
         endif
-        write(1,'(1p,e10.3,2x,e11.4)') Einc,xselastot
+        write(1,'(1p,2e12.5)') Einc,xselastot
    90   close (unit=1)
 c
 c Nonelastic cross sections only
@@ -153,10 +160,10 @@ c
      +      parsym(k0),Atarget,Starget
           write(1,'("# ")')
           write(1,'("# ")')
-          write(1,'("# # energies =",i3)') numinc
+          write(1,'("# # energies =",i6)') numinc
           write(1,'("#    E      Cross section")')
           do 100 nen=1,numinclow
-            write(1,'(1p,e10.3,2x,e11.4)') eninc(nen),fxsnonel(nen)
+            write(1,'(1p,2e12.5)') eninc(nen),fxsnonel(nen)
   100     continue
         else
           open (unit=1,status='old',file=totfile)
@@ -164,7 +171,7 @@ c
             read(1,*,end=120,err=120)
   110     continue
         endif
-        write(1,'(1p,e10.3,2x,e11.4)') Einc,xsnonel
+        write(1,'(1p,2e12.5)') Einc,xsnonel
   120   close (unit=1)
       endif
       return

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : December 2, 2013
+c | Date  : October 27, 2015
 c | Task  : Read input for third set of variables
 c +---------------------------------------------------------------------
 c
@@ -82,6 +82,7 @@ c flagmassdis : flag for calculation of fission fragment mass yields
 c flagffevap  : flag for calculation of particle evaporation from
 c               fission fragment mass yields
 c fymodel     : fission yield model, 1: Brosa 2: GEF
+c flagffspin  : flag to use spin distribution in initial FF population
 c flagfisfeed : flag for output of fission per excitation bin
 c flagendf    : flag for information for ENDF-6 file
 c flagendfdet : flag for detailed ENDF-6 information per channel
@@ -96,6 +97,8 @@ c flagexpmass : flag for using experimental nuclear mass if available
 c flagjlm     : flag for using semi-microscopic JLM OMP
 c flagomponly : flag to execute ONLY an optical model calculation
 c flagmicro   : flag for completely microscopic Talys calculation
+c flagffruns  : flag to denote that run is for fission fragment
+c flagrpruns  : flag to denote that run is for residual product
 c
       flageciscalc=.true.
       flaginccalc=.true.
@@ -176,6 +179,7 @@ c
       flagffevap=.true.
       fymodel=2
       flagfisfeed=.false.
+      flagffspin=.false.
       flagendf=.false.
       if (k0.le.1) then
         flagendfdet=.true.
@@ -241,19 +245,23 @@ c
           read(value,*,end=300,err=300) strength
           goto 110
         endif
-        if (key.eq.'strengthM1') then
+        if (key.eq.'strengthm1') then
           read(value,*,end=300,err=300) strengthM1
           goto 110
         endif
         if (key.eq.'eciscalc') then
           if (ch.eq.'n') flageciscalc=.false.
           if (ch.eq.'y') flageciscalc=.true.
+          if (flagffruns) flageciscalc=.true.
+          if (flagrpruns) flageciscalc=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif
         if (key.eq.'inccalc') then
           if (ch.eq.'n') flaginccalc=.false.
           if (ch.eq.'y') flaginccalc=.true.
+          if (flagffruns) flaginccalc=.true.
+          if (flagrpruns) flaginccalc=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif
@@ -356,6 +364,7 @@ c
         if (key.eq.'fission') then
           if (ch.eq.'n') flagfission=.false.
           if (ch.eq.'y') flagfission=.true.
+          if (flagffruns) flagfission=.false.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif
@@ -503,6 +512,12 @@ c
         if (key.eq.'fisfeed') then
           if (ch.eq.'n') flagfisfeed=.false.
           if (ch.eq.'y') flagfisfeed=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
+        if (key.eq.'ffspin') then
+          if (ch.eq.'n') flagffspin=.false.
+          if (ch.eq.'y') flagffspin=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif

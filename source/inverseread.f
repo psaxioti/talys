@@ -35,7 +35,7 @@ c
       if (.not.lexist) then
         write(*,'(" TALYS-error: The first calculation of a run",
      +    " should always be done with ecissave y and",
-     +    " eciscalc y")')
+     +    " eciscalc y. Non-existent file: ",a13)') csfile
         stop
       endif
       open (unit=3,status='unknown',file=csfile)
@@ -147,14 +147,14 @@ c
             do 230 l=0,numl
               if (Tjl(type,nen,-1,l).ne.0.and.Tjl(type,nen,1,l).eq.0)
      +          Tjl(type,nen,1,l)=Tjl(type,nen,-1,l)
-              if (Tjl(type,nen,-1,l).eq.0.and.Tjl(type,nen,1,l).ne.0.
-     +          and.l.gt.0) Tjl(type,nen,-1,l)=Tjl(type,nen,1,l)
+              if (Tjl(type,nen,-1,l).eq.0.and.Tjl(type,nen,1,l).ne.0
+     +          .and.l.gt.0) Tjl(type,nen,-1,l)=Tjl(type,nen,1,l)
               Tl(type,nen,l)=((l+1)*Tjl(type,nen,1,l)+
      +          l*Tjl(type,nen,-1,l))/(2*l+1)
               teps=Tl(type,nen,0)*translimit/(2*l+1)
               teps=max(teps,transeps)
-              if (Tjl(type,nen,-1,l).lt.teps.and.Tjl(type,nen,1,l).
-     +          lt.teps) then
+              if (Tjl(type,nen,-1,l).lt.teps.and.Tjl(type,nen,1,l)
+     +          .lt.teps) then
                 lmax(type,nen)=l-1
                 goto 220
               endif
@@ -172,16 +172,16 @@ c
      +          Tjl(type,nen,0,l)=Tjl(type,nen,-1,l)
               if (Tjl(type,nen,-1,l).ne.0.and.Tjl(type,nen,1,l).eq.0)
      +          Tjl(type,nen,1,l)=Tjl(type,nen,-1,l)
-              if (Tjl(type,nen,-1,l).eq.0.and.Tjl(type,nen,1,l).ne.0.
-     +          and.l.gt.0)
+              if (Tjl(type,nen,-1,l).eq.0.and.Tjl(type,nen,1,l).ne.0
+     +          .and.l.gt.0)
      +          Tjl(type,nen,-1,l)=Tjl(type,nen,1,l)
               Tl(type,nen,l)=((2*l+3)*Tjl(type,nen,1,l)+
      +          (2*l+1)*Tjl(type,nen,0,l)+
      +          (2*l-1)*Tjl(type,nen,-1,l))/(3*(2*l+1))
               teps=Tl(type,nen,0)*translimit/(2*l+1)
               teps=max(teps,transeps)
-              if (Tjl(type,nen,-1,l).lt.teps.and.Tjl(type,nen,0,l).
-     +          lt.teps.and.Tjl(type,nen,1,l).lt.teps) then
+              if (Tjl(type,nen,-1,l).lt.teps.and.Tjl(type,nen,0,l)
+     +          .lt.teps.and.Tjl(type,nen,1,l).lt.teps) then
                 lmax(type,nen)=l-1
                 goto 240
               endif

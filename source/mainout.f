@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 23, 2013
+c | Date  : December 28, 2015
 c | Task  : Main output
 c +---------------------------------------------------------------------
 c
@@ -13,8 +13,8 @@ c
 c
 c *************************** Code and version *************************
 c
-      write(*,'(/"    TALYS-1.6 (Version: December 23, 2013)"/)')
-      write(*,'(" Copyright (C) 2013  A.J. Koning, S. Hilaire ",
+      write(*,'(/"    TALYS-1.8 (Version: December 28, 2015)"/)')
+      write(*,'(" Copyright (C) 2015  A.J. Koning, S. Hilaire ",
      +  "and S. Goriely      ")')
       write(*,'(24x," NRG          CEA          ULB    "/)')
       write(*,'(" Dimensions - Cross sections: mb, Energies: MeV, ",
@@ -82,7 +82,7 @@ c
         if (numinc.eq.1) then
           write(*,'(/," 1 incident energy (LAB):"/)')
         else
-          write(*,'(/,1x,i3," incident energies (LAB):"/)') numinc
+          write(*,'(/,i6," incident energies (LAB):"/)') numinc
         endif
         do 20 i=1,numinc
           if (eninc(i).lt.0.001) then
@@ -95,7 +95,7 @@ c
 c
 c Initial population distribution
 c
-c npopbins: number of excitation energy bins for population distribution
+c npopE   : number of energies for population distribution
 c npopJ   : number of spins for population distribution
 c Exdist  : excitation energy of population distribution
 c Pdistex : population distribution, spin-independent
@@ -104,18 +104,18 @@ c
 
         write(*,'(/," Initial population distribution - Bins: ",i3,
      +    " Spins: ",i3," Maximum excitation energy:",f12.5/)')
-     +    npopbins,npopJ,eninc(1)
+     +    npopE,npopJ,eninc(1)
         if (npopJ.eq.0) then
           write(*,'("    Ex     Population "/)')
-          do 30 i=1,npopbins
-            write(*,'(1p,2e10.3)') Exdist(i),Pdistex(i)
+          do 30 i=1,npopE
+            write(*,'(1p,2e10.3)') EdistE(i),PdistE(i)
   30      continue
         else
           write(*,'("    Ex ",11("      J=",i2)/)')
      +      (J,J=0,10)
           do 40 parity=-1,1,2
-            do 40 i=1,npopbins
-              write(*,'(1p,12e10.3)') Exdist(i),(Pdist(i,J,parity),
+            do 40 i=1,npopE
+              write(*,'(1p,12e10.3)') EdistE(i),(PdistJP(i,J,parity),
      +          J=0,10)
   40      continue
         endif

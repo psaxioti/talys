@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 4, 2011
+c | Date  : July 14, 2014
 c | Task  : Convert input line from upper case to lowercase
 c +---------------------------------------------------------------------
 c
@@ -26,6 +26,10 @@ c
      +    inline(i)(k:k)=char(ichar(inline(i)(k:k))+32)
   10  continue
       do 20 k=0,60
+        if (inline(i)(k+1:k+6).eq.'e1file') then
+          inline(i)(k+7:80)=str(k+7:80)
+          return
+        endif
         if (inline(i)(k+1:k+7).eq.'energy ') then
           inline(i)(k+8:80)=str(k+8:80)
           return

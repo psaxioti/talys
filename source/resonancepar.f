@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 25, 2012
+c | Date  : March 5, 2014
 c | Task  : S-wave resonance parameters
 c +---------------------------------------------------------------------
 c
@@ -76,6 +76,8 @@ c
         endif
       endif
       gamgam(Zix,Nix)=gamgamadjust(Zix,Nix)*gamgam(Zix,Nix)
+      if (Zix.eq.0.and.Nix.eq.0.and.gnorm.ne.-1.) 
+     +  gnorm=gamgamadjust(Zix,Nix)*gnorm
       return
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

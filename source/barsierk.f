@@ -140,3 +140,4 @@ c
  120  format(/,10x,'*  *  *  barfit called with a =',i3,', outside ',
      1 'the allowed values for z = ',i3,' *  *  *')
       end
+Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

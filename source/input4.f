@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 1, 2013
+c | Date  : November 1, 2015
 c | Task  : Read input for fourth set of variables
 c +---------------------------------------------------------------------
 c
@@ -36,6 +36,10 @@ c ddxmode     : mode for double-differential cross sections: 0: None,
 c               1: Angular distributions, 2: Spectra per angle, 3: Both
 c flaglegendre: flag for output of Legendre coefficients
 c flagspec    : flag for output of spectra
+c flagbinspec : flag for output of emission spectrum per excitation bin
+c flagres     : flag for output of low energy resonance cross sections
+c reslib      : library with resonance parameters
+c flaggroup   : flag for output of low energy groupwise cross sections
 c flagrecoil  : flag for calculation of recoils
 c flagddx     : flag for output of double-differential cross sections
 c flagoutdwba : flag for output of DWBA cross sections for MSD
@@ -67,9 +71,10 @@ c flagctmglob : flag for global CTM model (no discrete level info)
 c cglobal     : global constant to adjust tabulated level densities
 c pglobal     : global constant to adjust tabulated level densities
 c alphaomp    : alpha optical model (1=normal, 2= McFadden-Satchler,
-c               3-5= folding potential)
+c               3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)
 c deuteronomp : deuteron optical model (1=normal, 2=Daehnick,
 c               3=Bojowald, 4=Han-Shi-Shen, 5=An-Cai)
+c altomp      : flag for alternative optical model 
 c soswitch    : switch for deformed spin-orbit calculation and sequential
 c               iterations in ECIS
 c flagpartable: flag for output of model parameters on separate file
@@ -84,6 +89,7 @@ c fismodelalt : alternative fission model for default barriers
 c eurr        : off-set incident energy for URR calculation
 c lurr        : maximal orbital angular momentum for URR
 c flagurrnjoy : normalization of URR parameters with NJOY method
+c Tres        : temperature for broadening low energy cross sections
 c flagendf    : flag for information for ENDF-6 file
 c Atarget     : mass of target nucleus
 c flagurr     : flag for output of unresolved resonance parameters
@@ -94,6 +100,10 @@ c flagendfdet : flag for detailed ENDF-6 information per channel
 c flagprod    : flag for isotope production
 c flagoutfy   : flag for output detailed fission yield calculation
 c gefran      : number of random events for GEF calculation
+c flagrpevap  : flag for evaporation of residual products at high 
+c               incident energies
+c flagffruns  : flag to denote that run is for fission fragment
+c flagrpruns  : flag to denote that run is for residual product
 c
       flagmain=.true.
       flagpop=flagbasic
@@ -113,7 +123,11 @@ c
       ddxmode=0
       flaglegendre=.false.
       flagspec=.false.
+      flagbinspec=.false.
       if (flagrecoil) flagspec=.true.
+      flagres=.false.
+      flaggroup=.false.
+      reslib='default'
       flagddx=.false.
       flagoutdwba=.false.
       flaggamdis=.false.
@@ -157,8 +171,11 @@ c
       flagctmglob=.false.
       cglobal=1.e-20
       pglobal=1.e-20
-      alphaomp=1
+      alphaomp=6
       deuteronomp=1
+      do 5 type=1,6
+        altomp(type)=.false.
+    5 continue
       soswitch=3.
       if (k0.ne.1.or..not.flagcomp) then
         eurr=0.
@@ -168,6 +185,7 @@ c
       flagurr=.false.
       lurr=2
       flagurrnjoy=.false.
+      Tres=293.16
 c
 c If the results of TALYS are used to create ENDF-6 data files,
 c several output flags are automatically set.
@@ -195,9 +213,11 @@ c
           flagchannels=.true.
         endif
       endif
+      if (flagffruns.or.flagrpruns) flagdisc=.false.
       flagprod=.false.
       flagoutfy=.false.
       gefran=50000
+      flagrpevap=.false.
 c
 c **************** Read fourth set of input variables ******************
 c
@@ -292,6 +312,7 @@ c
         if (key.eq.'outdiscrete') then
           if (ch.eq.'n') flagdisc=.false.
           if (ch.eq.'y') flagdisc=.true.
+          if (flagffruns.or.flagrpruns) flagdisc=.false.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
         endif
@@ -299,6 +320,28 @@ c
           if (ch.eq.'n') flagspec=.false.
           if (ch.eq.'y') flagspec=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
+        if (key.eq.'outbinspectra') then
+          if (ch.eq.'n') flagbinspec=.false.
+          if (ch.eq.'y') flagbinspec=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
+        if (key.eq.'resonance') then
+          if (ch.eq.'n') flagres=.false.
+          if (ch.eq.'y') flagres=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
+        if (key.eq.'group') then
+          if (ch.eq.'n') flaggroup=.false.
+          if (ch.eq.'y') flaggroup=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
+        if (key.eq.'reslib') then
+          reslib=value
           goto 10
         endif
         if (key.eq.'outangle') then
@@ -462,6 +505,12 @@ c
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
         endif
+        if (key.eq.'rpevap') then
+          if (ch.eq.'n') flagrpevap=.false.
+          if (ch.eq.'y') flagrpevap=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
         if (key.eq.'maxchannel') then
           read(value,*,end=200,err=200) maxchannel
           goto 10
@@ -486,12 +535,18 @@ c
           read(value,*,end=200,err=200) pglobal
           goto 10
         endif
+        if (key.eq.'tres') then
+          read(value,*,end=200,err=200) Tres
+          goto 10
+        endif
         if (key.eq.'alphaomp') then
           read(value,*,end=200,err=200) alphaomp
+          altomp(6)=.true.
           goto 10
         endif
         if (key.eq.'deuteronomp') then
           read(value,*,end=200,err=200) deuteronomp
+          altomp(3)=.true.
           goto 10
         endif
         if (key.eq.'soswitch') then

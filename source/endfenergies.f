@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 9, 2013
+c | Date  : September 5, 2014
 c | Task  : Energy grid for ENDF-6 file
 c +---------------------------------------------------------------------
 c
@@ -179,11 +179,22 @@ c
           e6(nen)=e6(nen2)
           e6(nen2)=e6tmp
   310 continue
-      return
+c
+c Remove incident energies above energy given by Estop
+c
+c Estop: incident energy above which TALYS stops
+c
+      do 330 i=1,nen
+        if (e6(i).gt.Estop) then
+          nen6=i-1
+          goto 400
+        endif
+  330 continue
+  400 return
   510 write(*,'(" TALYS-error: Problem in file ",a73)') ompenergyfile
       write(*,'(" after E= ",e12.5)') Ein
       stop
-  520 write(*,'(" TALYS-error: there are more than",i4,
+  520 write(*,'(" TALYS-error: there are more than",i6,
      +  " incident energies in file ",a73)') numen6,ompenergyfile
       write(*,'(" numen6 in talys.cmb should be increased")')
       stop

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 10, 2012
+c | Date  : August 31, 2014
 c | Task  : Output of cross sections for discrete states
 c +---------------------------------------------------------------------
 c
@@ -138,10 +138,11 @@ c
      +          cparity(parlev(Zix,Nix,nex))
               write(1,'("# E-threshold=",1p,e12.5)')
      +          Ethresh(Zix,Nix,nex)
-              write(1,'("# # energies =",i3)') numinc
-              write(1,'("#    E         xs        Direct    Compound")')
+              write(1,'("# # energies =",i6)') numinc
+              write(1,'("#     E          xs        Direct",
+     +          "     Compound")')
               do 150 nen=1,numinclow
-                write(1,'(1p,e10.3,3e12.5)') eninc(nen),
+                write(1,'(1p,43e12.5)') eninc(nen),
      +            fxsdisc(nen,type,nex),fxsdirdisc(nen,type,nex),
      +            fxscompdisc(nen,type,nex)
   150         continue
@@ -151,7 +152,7 @@ c
                 read(1,*)
   160         continue
             endif
-            write(1,'(1p,e10.3,3e12.5)') Einc,xsdisc(type,nex),
+            write(1,'(1p,4e12.5)') Einc,xsdisc(type,nex),
      +        xsdirdisc(type,nex),xscompdisc(type,nex)
             close (unit=1)
           endif
@@ -182,11 +183,11 @@ c
      +        reactionstring(type)
             write(1,'("# Q-value    =",1p,e12.5)') Qres(Zix,Nix,NL)
             write(1,'("# E-threshold=",1p,e12.5)') Ethresh(Zix,Nix,NL)
-            write(1,'("# # energies =",i3)') numinc
-            write(1,'("#    E         xs      Continuum      (",a1,
+            write(1,'("# # energies =",i6)') numinc
+            write(1,'("#     E          xs       Continuum      (",a1,
      +        ",g",a1,")")') parsym(k0),parsym(type)
             do 220 nen=1,numinclow
-              write(1,'(1p,e10.3,3e12.5)') eninc(nen),
+              write(1,'(1p,4e12.5)') eninc(nen),
      +          fxsexclcont(nen,type)+fxsngn(nen,type),
      +          fxsexclcont(nen,type),fxsngn(nen,type)
   220       continue
@@ -196,7 +197,7 @@ c
               read(1,*)
   230       continue
           endif
-          write(1,'(1p,e10.3,3e12.5)') Einc,
+          write(1,'(1p,4e12.5)') Einc,
      +      xsexclcont(type)+xsngn(type),xsexclcont(type),xsngn(type)
           close (unit=1)
   210   continue
@@ -216,11 +217,11 @@ c
      +        reactionstring(type)
             write(1,'("#         ")')
             write(1,'("#         ")')
-            write(1,'("# # energies =",i3)') numinc
+            write(1,'("# # energies =",i6)') numinc
             write(1,'("#    E       Total     Discrete     ",
      +        "  Continuum  (",a1,",g",a1,")")') parsym(k0),parsym(type)
             do 320 nen=1,numinclow
-              write(1,'(1p,e10.3,4e12.5)') eninc(nen),
+              write(1,'(1p,5e12.5)') eninc(nen),
      +          fxsexclusive(nen,type),fxsdisctot(nen,type),
      +          fxsexclcont(nen,type),fxsngn(nen,type)
   320       continue
@@ -230,7 +231,7 @@ c
               read(1,*)
   330       continue
           endif
-          write(1,'(1p,e10.3,4e12.5)') Einc,xsexclusive(type),
+          write(1,'(1p,5e12.5)') Einc,xsexclusive(type),
      +      xsdisctot(type),xsexclcont(type),xsngn(type)
           close (unit=1)
   310   continue

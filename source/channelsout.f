@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 27, 2012
+c | Date  : December 11, 2014
 c | Task  : Output of exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -149,18 +149,18 @@ c
      +            parsym(k0),Atarget,Starget,isostring,reacstring(idc)
                 write(1,'("# Q-value    =",1p,e12.5)') Qexcl(idc,0)
                 write(1,'("# E-threshold=",1p,e12.5)') Ethrexcl(idc,0)
-                write(1,'("# # energies =",i3)') numinc
+                write(1,'("# # energies =",i6)') numinc
                 if (flagcompo) then
-                  write(1,'("#    E         xs       gamma xs  ",
+                  write(1,'("#     E          xs       gamma xs  ",
      +              "xs/res.prod.xs              Direct  ",
      +              "Preequilibrium Compound")')
                 else
-                  write(1,'("#    E         xs       gamma xs  ",
+                  write(1,'("#     E          xs       gamma xs  ",
      +              "xs/res.prod.xs")')
                 endif
                 if (flagcompo) then
                   do 130 nen=1,numinclow
-                    write(1,'(1p,e10.3,3e12.5,12x,3e12.5)') eninc(nen),
+                    write(1,'(1p,4e12.5,12x,3e12.5)') eninc(nen),
      +                fxschannel(nen,idc),fxsgamchannel(nen,idc),
      +                fxsratio(nen,idc),
      +                Fdir(Zcomp,Ncomp)*fxschannel(nen,idc),
@@ -171,12 +171,12 @@ c
                       fxsratio(nen,idc)=0.
   130             continue
                   do 140 nen=numinclow+1,nin-1
-                    write(1,'(1p,e10.3,3e12.5,12x,3e12.5)')
+                    write(1,'(1p,4e12.5,12x,3e12.5)')
      +                eninc(nen),0.,0.,0.,0.,0.,0.
   140             continue
                 else
                   do 150 nen=1,numinclow
-                    write(1,'(1p,e10.3,3e12.5)') eninc(nen),
+                    write(1,'(1p,4e12.5)') eninc(nen),
      +                fxschannel(nen,idc),fxsgamchannel(nen,idc),
      +                fxsratio(nen,idc)
                       fxschannel(nen,idc)=0.
@@ -184,7 +184,7 @@ c
                       fxsratio(nen,idc)=0.
   150             continue
                   do 160 nen=numinclow+1,nin-1
-                    write(1,'(1p,e10.3,3e12.5)') eninc(nen),0.,0.,0.
+                    write(1,'(1p,4e12.5)') eninc(nen),0.,0.,0.
   160             continue
                 endif
               else
@@ -194,13 +194,13 @@ c
   170           continue
               endif
               if (flagcompo) then
-                write(1,'(1p,e10.3,3e12.5,12x,3e12.5)') Einc,
+                write(1,'(1p,4e12.5,12x,3e12.5)') Einc,
      +            xschannel(idc),xsgamchannel(idc),xsratio(idc),
      +            Fdir(Zcomp,Ncomp)*xschannel(idc),
      +            Fpreeq(Zcomp,Ncomp)*xschannel(idc),
      +            Fcomp(Zcomp,Ncomp)*xschannel(idc)
               else
-                write(1,'(1p,e10.3,3e12.5)') Einc,xschannel(idc),
+                write(1,'(1p,4e12.5)') Einc,xschannel(idc),
      +            xsgamchannel(idc),xsratio(idc)
               endif
   180         close (unit=1)
@@ -229,16 +229,16 @@ c
      +                f11.6)') Qexcl(idc,nex),edis(Zcomp,Ncomp,nex)
                     write(1,'("# E-threshold=",1p,e12.5)')
      +                Ethrexcl(idc,nex)
-                    write(1,'("# # energies =",i3)') numinc
-                    write(1,'("#    E         xs      Branching")')
+                    write(1,'("# # energies =",i6)') numinc
+                    write(1,'("#     E          xs       Branching")')
                     do 240 nen=1,numinclow
-                      write(1,'(1p,e10.3,2e12.5)') eninc(nen),
+                      write(1,'(1p,3e12.5)') eninc(nen),
      +                  fxschaniso(nen,idc,nex),fexclyield(nen,idc,nex)
                         fxschaniso(nen,idc,nex)=0.
                         fexclyield(nen,idc,nex)=0.
   240               continue
                     do 250 nen=numinclow+1,nin-1
-                      write(1,'(1p,e10.3,2e12.5)') eninc(nen),0.,0.
+                      write(1,'(1p,3e12.5)') eninc(nen),0.,0.
   250               continue
                   else
                     open (unit=1,status='old',file=isofile)
@@ -246,7 +246,7 @@ c
                       read(1,*,end=270,err=270)
   260               continue
                   endif
-                  write(1,'(1p,e10.3,e12.5,0p,f11.5)') Einc,
+                  write(1,'(1p,3e12.5)') Einc,
      +              xschaniso(idc,nex),exclyield(idc,nex)
   270             close (unit=1)
                 endif
@@ -269,8 +269,8 @@ c
      +              Starget,isostring,reacstring(idc)
                   write(1,'("# Q-value    =",1p,e12.5)') Qexcl(idc,0)
                   write(1,'("# E-threshold=",1p,e12.5)') Ethrexcl(idc,0)
-                  write(1,'("# # energies =",i3)') numinc
-                  write(1,'("#    E         xs       gamma xs  ")')
+                  write(1,'("# # energies =",i6)') numinc
+                  write(1,'("# L1 L2    xs         Estart      Eend")')
                   do 310 nen=1,numinclow
                     Ngam=0
                     do 320 i1=1,numlev
@@ -278,7 +278,7 @@ c
                         if (fxsgamdischan(nen,idc,i1,i2).gt.0.)
      +                    Ngam=Ngam+1
   320               continue
-                    write(1,'(1p,e10.3,i5)') eninc(nen),Ngam
+                    write(1,'(1p,e12.5,i5)') eninc(nen),Ngam
                     do 330 i1=1,numlev
                       do 330 i2=0,i1
                         if (fxsgamdischan(nen,idc,i1,i2).gt.0.)
@@ -288,7 +288,7 @@ c
   330                 continue
   310             continue
                   do 340 nen=numinclow+1,nin-1
-                    write(1,'(1p,e10.3,i5)') eninc(nen),0
+                    write(1,'(1p,e12.5,i5)') eninc(nen),0
   340             continue
                 else
                   open (unit=1,status='old',file=gamfile)
@@ -296,7 +296,7 @@ c
                     read(1,*,end=400,err=400)
   350             continue
                   do 360 nen=1,nin-1
-                    read(1,'(10x,i5)',end=400,err=400) Ngam
+                    read(1,'(12x,i5)',end=400,err=400) Ngam
                     do 370 i1=1,Ngam
                       read(1,*,end=400,err=400)
   370               continue
@@ -307,7 +307,7 @@ c
                   do 380 i2=0,i1
                     if (xsgamdischan(idc,i1,i2).gt.0.) Ngam=Ngam+1
   380           continue
-                write(1,'(1p,e10.3,i5)') Einc,Ngam
+                write(1,'(1p,e12.5,i5)') Einc,Ngam
                 do 390 i1=1,numlev
                   do 390 i2=0,i1
                     if (xsgamdischan(idc,i1,i2).gt.0.)
@@ -328,6 +328,7 @@ c flagfission : flag for fission
 c chanfisexist: flag for existence of exclusive fission cross section
 c fisstring   : string for exclusive fission reaction channel
 c xsfischannel: fission channel cross section
+c xsabs       : absorption cross section
 c channelsum  : sum over exclusive channel cross sections
 c xsngnsum    : sum over total (projectile,gamma-ejectile) cross
 c               sections
@@ -358,14 +359,21 @@ c
      +      xsfischannel(idc),fisstring(idc)
   410   continue
       endif
+      write(*,'(/" Absorption cross section                 :",f12.5)')
+     +  xsabs
       write(*,'(/" Sum over exclusive channel cross sections:",f12.5)')
      +  channelsum
       write(*,'(" (n,gn) + (n,gp) +...(n,ga) cross sections:",f12.5)')
      +  xsngnsum
       write(*,'(" Total                                    :",f12.5)')
      +  channelsum+xsngnsum
-      write(*,'(" Non-elastic cross section                :",f12.5)')
-     +  xsnonel
+      if (flaginitpop) then
+        write(*,'(" Initial population cross section         :",f12.5)')
+     +    xsinitpop
+      else
+        write(*,'(" Non-elastic cross section                :",f12.5)')
+     +    xsnonel
+      endif
 c
 c Write results on separate files
 c
@@ -397,10 +405,10 @@ c
      +            parsym(k0),Atarget,Starget,isostring,fisstring(idc)
                 write(1,'("# Q-value    =",1p,e12.5)') Qexcl(idc,0)
                 write(1,'("# E-threshold=",1p,e12.5)') Ethrexcl(idc,0)
-                write(1,'("# # energies =",i3)') numinc
+                write(1,'("# # energies =",i6)') numinc
                 write(1,'("#    E         xs")')
                 do 530 nen=1,nin-1
-                  write(1,'(1p,e10.3,e12.5)') eninc(nen),0.
+                  write(1,'(1p,2e12.5)') eninc(nen),0.
   530           continue
               else
                 open (unit=1,status='old',file=xsfile)
@@ -408,7 +416,7 @@ c
                   read(1,*,end=550,err=550)
   540           continue
               endif
-              write(1,'(1p,e10.3,e12.5)') Einc,xsfischannel(idc)
+              write(1,'(1p,2e12.5)') Einc,xsfischannel(idc)
   550         close (unit=1)
             endif
   520     continue
@@ -489,7 +497,7 @@ c
      +        parsym(k0),Atarget,Starget,isostring,reacstring(idc)
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
-            write(1,'("# # energies =",i3)') eendhigh-ebegin(0)+1
+            write(1,'("# # energies =",i6)') eendhigh-ebegin(0)+1
             write(1,'("# E-out  ",7(2x,a8,2x))')
      +        (parname(type),type=0,6)
             if (npart.eq.0) then
@@ -593,7 +601,7 @@ c
      +          parsym(k0),Atarget,Starget,isostring,fisstring(idc)
               write(1,'("# E-incident = ",f7.3)') Einc
               write(1,'("# ")')
-              write(1,'("# # energies =",i3)') eendhigh-ebegin(0)+1
+              write(1,'("# # energies =",i6)') eendhigh-ebegin(0)+1
               write(1,'("# E-out  ",7(2x,a8,2x))')
      +          (parname(type),type=0,6)
               do 770 nen=ebegin(0),eendhigh
@@ -689,7 +697,7 @@ c
      +        isostring,reacstring(idc)
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
-            write(1,'("# # energies =",i3)') maxenrec+1
+            write(1,'("# # energies =",i6)') maxenrec+1
             write(1,'("# E-out Cross section")')
             do 950 nen=0,maxenrec
               write(1,'(f7.3,1p,e12.5)') Erec(Zcomp,Ncomp,nen),

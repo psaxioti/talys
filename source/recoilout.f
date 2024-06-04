@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 1, 2012
+c | Date  : August 31, 2014
 c | Task  : Output of recoils
 c +---------------------------------------------------------------------
 c
@@ -74,7 +74,7 @@ c
      +      i3,a2)') parsym(k0),Atarget,Starget,A,nuc(Z)
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
-          write(1,'("# # energies =",i3)') maxenrec+1
+          write(1,'("# # energies =",i6)') maxenrec+1
           write(1,'("# E-out   Cross section")')
           do 30 nen=0,maxenrec
             write(1,'(f7.3,1p,e12.5)') Erec(Zcomp,Ncomp,nen),

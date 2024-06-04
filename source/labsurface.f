@@ -25,12 +25,9 @@ c
       integer   Zcomp,Ncomp,type,ityp,Zix,Nix
       real      x1,cos1,sin1,x2,cos2,sin2,x3,cos3,sin3
       real      totsurf
-      dimension limx(2),limy(2)
-      integer   limx,limy
-      dimension sparte(numen2,0:2*numangcont+1)
-      real      sparte
-      dimension spartr(0:numenrec,0:2*numangrec+1)
-      real      spartr
+      integer   limx(2),limy(2)
+      real      sparte(numen2,0:2*numangcont+1)
+      real      spartr(0:numenrec,0:2*numangrec+1)
 c
 c ************************** Local variables ***************************
 c
@@ -162,7 +159,7 @@ c
             xu1=Eejlabmax(type,ix)
             if (belongs(x1,xl1,xu1)) then
               ix1=ix
-              go to 11
+              goto 11
             endif
    10     continue
         endif
@@ -175,7 +172,7 @@ c
             xu2=Eejlabmax(type,ix)
             if (belongs(x2,xl2,xu2)) then
               ix2=ix
-              go to 21
+              goto 21
             endif
    20     continue
         endif
@@ -188,7 +185,7 @@ c
             xu3=Eejlabmax(type,ix)
             if (belongs(x3,xl3,xu3)) then
               ix3=ix
-              go to 31
+              goto 31
             endif
    30     continue
         endif
@@ -208,7 +205,7 @@ c
           endif
           if (belongs(yc1,yl1,yu1)) then
             iy1=iy+nt1*(iymax+1)
-            go to 41
+            goto 41
           endif
    40   continue
    41   do 50 iy=0,iymax
@@ -223,7 +220,7 @@ c
           endif
           if (belongs(yc2,yl2,yu2)) then
             iy2=iy+nt2*(iymax+1)
-            go to 51
+            goto 51
           endif
    50   continue
    51   do 60 iy=0,iymax
@@ -238,7 +235,7 @@ c
           endif
           if (belongs(yc3,yl3,yu3)) then
             iy3=iy+nt3*(iymax+1)
-            go to 61
+            goto 61
           endif
    60   continue
    61   ixmin=min(ix1,ix2)
@@ -353,7 +350,7 @@ c
             xu1=Erecmax(Zix,Nix,ix)
             if (belongs(x1,xl1,xu1)) then
               ix1=ix
-              go to 211
+              goto 211
             endif
   210     continue
         endif
@@ -366,7 +363,7 @@ c
             xu2=Erecmax(Zix,Nix,ix)
             if (belongs(x2,xl2,xu2)) then
               ix2=ix
-              go to 221
+              goto 221
             endif
   220     continue
         endif
@@ -379,7 +376,7 @@ c
             xu3=Erecmax(Zix,Nix,ix)
             if (belongs(x3,xl3,xu3)) then
               ix3=ix
-              go to 231
+              goto 231
             endif
   230     continue
         endif
@@ -399,7 +396,7 @@ c
           endif
           if (belongs(yc1,yl1,yu1)) then
             iy1=iy+nt1*(iymax+1)
-            go to 241
+            goto 241
           endif
   240   continue
   241   do 250 iy=0,iymax
@@ -414,7 +411,7 @@ c
           endif
           if (belongs(yc2,yl2,yu2)) then
             iy2=iy+nt2*(iymax+1)
-            go to 251
+            goto 251
           endif
   250   continue
   251   do 260 iy=0,iymax
@@ -429,7 +426,7 @@ c
           endif
           if (belongs(yc3,yl3,yu3)) then
             iy3=iy+nt3*(iymax+1)
-            go to 261
+            goto 261
           endif
   260   continue
   261   ixmin=min(ix1,ix2)

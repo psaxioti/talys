@@ -19,11 +19,11 @@ c
 c **********************************************************************
 c
       d=totl-r1-r3
-      if (z.lt.-r1.or.z.gt.d+r3) go to 3
-      if (z.gt.z1) go to 1
+      if (z.lt.-r1.or.z.gt.d+r3) goto 3
+      if (z.gt.z1) goto 1
       rhodi=sqrt(r1**2-z**2)
       return
- 1    if (z.gt.z3) go to 2
+ 1    if (z.gt.z3) goto 2
       rhodi=r2+aaa*aaa*cur*(cosh((z-z2)/aaa)-1.)
       return
  2    rhodi=sqrt(r3**2-(z-d)**2)

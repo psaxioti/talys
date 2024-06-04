@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer mt,MTchan(nummt),is,nen,mtf,idc,Zix,Nix,type,iyield,
-     +        iiso,i1,i2,mt0,mtc,mtd,nex
+     +        iiso,i1,i2,mt0,mtc,mtd,nex,is2
       real    Efac,xsdiftot,xsdifelas,xsadd,xsdif,ratio,R,xsfrac,
      +        xsdifiso,ratioiso,xsdifgs,ratiogs
 c
@@ -123,7 +123,7 @@ c Erescue  : energy grid for adjustment factors
 c frescue  : adjustment factor
 c
       do 110 mt=1,nummt
-        do 120 is=-1,1
+        do 120 is=-1,numisom
           Crescue(mt,is)=1.
           if (Nrescue(mt,is).eq.0) goto 120
           if (nin.eq.numinclow+1.or.Einc.le.Erescue(mt,is,1)) then
@@ -168,15 +168,21 @@ c
       if (Crescue(2,-1).ne.1.) xsdifelas=xselastot*(1./Crescue(2,-1)-1.)
       xsadd=0.
       do 210 mt=4,nummt
-        if (Crescue(mt,-1).eq.1..and.Crescue(mt,0).eq.1..and.
-     +    Crescue(mt,1).eq.1.) goto 210
-        iiso=0
+        do 215 is=-1,numisom
+          if (Crescue(mt,is).ne.1.) goto 217
+  215   continue
+        goto 210
+  217   iiso=0
         xsdifiso=0.
         ratioiso=1.
-        do 220 is=1,-1,-1
-          if (is.ge.0.and.Crescue(mt,0).eq.1..and.Crescue(mt,1).eq.1.)
-     +      goto 220
-          xsdif=0.
+        do 220 is=numisom,-1,-1
+          if (is.ge.0) then
+            do 225 is2=-1,numisom
+              if (Crescue(mt,is2).ne.1.) goto 227
+  225       continue
+            goto 220
+          endif
+  227     xsdif=0.
           ratio=1./Crescue(mt,is)
 c
 c Fission
@@ -192,6 +198,7 @@ c
             xsdif=xsfistot*(ratio-1.)
             xsadd=xsadd+xsdif
             xsfistot=xsfistot*ratio
+            xsfistot0=xsfistot0*ratio
             do 230 mtf=19,38
               if (mtf.gt.21.and.mtf.lt.38) goto 230
               do 240 idc=0,idnum
@@ -254,7 +261,6 @@ c flagcompo : flag for output of cross section components
 c xspopdir  : direct population cross section per nucleus
 c xspoppreeq: preequilibrium population cross section per nucleus
 c xspopcomp : compound population cross section per nucleus
-
 c
             if (is.eq.1) then
               do 270 i1=1,numlev

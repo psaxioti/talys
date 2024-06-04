@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Arjan Koning
-c | Date  : April 4, 2012
+c | Date  : March 5, 2014
 c | Task  : Normalization of gamma ray strength functions
 c +---------------------------------------------------------------------
 c
@@ -21,27 +21,28 @@ c neutrons.
 c
 c ************** Normalization of transmission coefficients ***********
 c
-c Zcomp    : charge number index for compound nucleus
-c Ncomp    : neutron number index for compound nucleus
-c gnorm    : gamma normalization factor
-c gamgam   : total radiative width
-c gamgamth : theoretical total radiative width
-c ebegin   : first energy point of energy grid
-c eend     : last energy point of energy grid
-c Einc     : incident energy in MeV
-c Egamma   : gamma energy
-c egrid    : outgoing energy grid
-c Ecomp    : total energy of composite system
-c gamadjust: logical for energy-dependent gamma adjustment
-c adjust   : subroutine for energy-dependent parameter adjustment
-c factor   : multiplication factor
-c lmax     : maximal l-value for transmission coefficients
-c gammax   : number of l-values for gamma multipolarity
-c Tgamma   : gamma transmission coefficient
-c twopi    : 2.*pi
-c fstrength: gamma ray strength function
-c Tjl      : transmission coefficients as a function of particle type,
-c            energy, spin and l-value
+c Zcomp       : charge number index for compound nucleus
+c Ncomp       : neutron number index for compound nucleus
+c gnorm       : gamma normalization factor
+c gamgamadjust: adjustable factor for radiative parameters
+c gamgam      : total radiative width
+c gamgamth    : theoretical total radiative width
+c ebegin      : first energy point of energy grid
+c eend        : last energy point of energy grid
+c Einc        : incident energy in MeV
+c Egamma      : gamma energy
+c egrid       : outgoing energy grid
+c Ecomp       : total energy of composite system
+c gamadjust   : logical for energy-dependent gamma adjustment
+c adjust      : subroutine for energy-dependent parameter adjustment
+c factor      : multiplication factor
+c lmax        : maximal l-value for transmission coefficients
+c gammax      : number of l-values for gamma multipolarity
+c Tgamma      : gamma transmission coefficient
+c twopi       : 2.*pi
+c fstrength   : gamma ray strength function
+c Tjl         : transmission coefficients as a function of 
+c               particle type, energy, spin and l-value
 c
       if (gnorm.eq.-1.) then
         if (gamgamth(Zcomp,Ncomp).ne.0.) then

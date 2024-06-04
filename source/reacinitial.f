@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 13, 2013
+c | Date  : May 6, 2015
 c | Task  : Initialization of arrays for various cross sections
 c +---------------------------------------------------------------------
 c
@@ -230,6 +230,9 @@ c xspreeqtotki  : preequilibrium cross section per particle type for
 c                 knockout and inelastic
 c xspreeqtotbu  : preequilibrium cross section per particle type for
 c                 breakup
+c xsBUnuc       : nucleon breakup cross section
+c xsEB          : elastic breakup cross section
+c xsBF          : nucleon inelastic breakup cross section
 c xssteptot     : preequilibrium cross section per particle type and
 c                 stage
 c numJ          : maximal J-value
@@ -293,6 +296,9 @@ c
         xspreeqtotps(type)=0.
         xspreeqtotki(type)=0.
         xspreeqtotbu(type)=0.
+        xsBUnuc(type)=0.
+        xsEB(type)=0.
+        xsBF(type)=0.
   250 continue
       do 260 p=1,numparx
         do 260 type=0,numpar
@@ -426,6 +432,16 @@ c xspopcomp  : compound population cross section per nucleus
 c Fdir       : direct population fraction per nucleus
 c Fpreeq     : preequilibrium population fraction per nucleus
 c Fcomp      : compound population fraction per nucleus
+c xsBFnuc    : inelastic breakup enhancement brought by breakup neutrons
+c              and protons interacting with the same Atarget and leading
+c              to the same residual nucleus, (Z,N), populated by the
+c              deuteron interaction process
+c xspopnucT  : total population cross section per nucleus including the
+c              inelastic breakup enhancement             
+c ENHratio   : breakup nucleons enhancing reaction cross
+c              sections, PRC 89,044613 Eq. (7),
+c              n + Atarget  sig(n,Z,A,Eout)/sig_Total(n,Enout);
+c              p + Atarget  sig(p,Z,A,Eout)/sig_Reaction(p,Epout)
 c xspopex    : population cross section summed over spin and parity
 c maxJ       : maximal J-value
 c xspop      : population cross section
@@ -477,7 +493,15 @@ c
           Fdir(Zix,Nix)=0.
           Fpreeq(Zix,Nix)=0.
           Fcomp(Zix,Nix)=0.
+          xsBFnuc(Zix,Nix)=0.
+          xspopnucT(Zix,Nix)=0.
   510 continue
+      do 515 nen=0,numen
+        do 515 Nix=0,numN
+          do 515 Zix=0,numZ
+            do 515 type=0,numpar
+              ENHratio(type,Zix,Nix,nen)=0.
+  515 continue
       do 520 nex=0,numex
         xsracappopex(nex)=0.
         do 520 Nix=0,numN
@@ -563,6 +587,7 @@ c               sections
 c idnum       : counter for exclusive channel
 c flagchannels: flag for exclusive channels calculation
 c channelsum  : sum over exclusive channel cross sections
+c xsabs       : absorption cross section
 c numNchan    : maximal number of outgoing neutron units in individual
 c               channel description
 c numZchan    : maximal number of outgoing proton units in individual
@@ -582,6 +607,7 @@ c
       idnum=-1
       if (flagchannels) then
         channelsum=0.
+        xsabs=0.
         do 710 nexout=0,numex+1
           do 710 nex=0,numex+1
             do 710 type=0,numpar
@@ -681,6 +707,21 @@ c
           xsspeccheck(type,nen)=0.
   870   continue
   860 continue
+      do 880 nen=0,numen2
+        do 890 type=0,numpar
+          espec(type,nen)=0.
+          xsmpreeqout(type,nen)=0.
+          xssumout(type,nen)=0.
+          xscompout(type,nen)=0.
+          xsdiscout(type,nen)=0.
+          xspreeqout(type,nen)=0.
+          xspreeqpsout(type,nen)=0.
+          xspreeqkiout(type,nen)=0.
+          xspreeqbuout(type,nen)=0.
+          preeqratio(type,nen)=0.
+          buratio(type,nen)=0.
+  890   continue
+  880 continue
 c
 c ************* Initialization of total cross section arrays ***********
 c
@@ -751,6 +792,14 @@ c
         xsparticle(type)=0.
   910 continue
       xsfistot=0.
+      if (.not.flagffruns) xsfistot0=0.
+      if (.not.flagrpruns) then
+        do i=1,numelem
+          do ia=1,nummass
+            xspopnuc0(i,ia)=0.
+          enddo
+        enddo
+      endif
       maxA=maxZ+maxN
       xsresprod=0.
       do 920 ia=0,numA
@@ -775,6 +824,7 @@ c
             fxsdisctot(nen,type)=0.
             fxsexclcont(nen,type)=0.
             fxsngn(nen,type)=0.
+            fnubar(nen,type)=0.
             do 960 n1=0,numlev
               fxsdisc(nen,type,n1)=0.
               fxsdirdisc(nen,type,n1)=0.

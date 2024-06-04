@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 19, 2013
+c | Date  : October 10, 2015
 c | Task  : Output of level density
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*12     ldfile
+      character*12     ldfile,ldstring
       character*25     model
       integer          Zix,Nix,Z,N,A,ldmod,ibar,odd,J,ploop,parity,nex,
      +                 NL,NT,i
@@ -129,8 +129,10 @@ c
       write(*,'(" Adj. pair shift :",4f10.5)') (Pshift(Zix,Nix,ibar),
      +  ibar=0,nfisbar(Zix,Nix))
       if (ldmod.eq.3) then
-        write(*,'(" Critical energy :",f10.5)') Ucrit(Zix,Nix)
-        write(*,'(" Condensation en.:",f10.5)') Econd(Zix,Nix)
+        write(*,'(" Critical energy :",4f10.5)') (Ucrit(Zix,Nix,ibar),
+     +    ibar=0,nfisbar(Zix,Nix))
+        write(*,'(" Condensation en.:",4f10.5)') (Econd(Zix,Nix,ibar),
+     +    ibar=0,nfisbar(Zix,Nix))
         write(*,'(" Critical temp.  :",f10.5)') Tcrit(Zix,Nix)
       endif
       write(*,'(" Discrete sigma  :",4f10.5)')
@@ -222,8 +224,8 @@ c
           do 140 nex=1,nendens(Zix,Nix)
             Eex=edens(nex)
             ald=ignatyuk(Zix,Nix,Eex,ibar)
-            if (ldmod.eq.3.and.Eex.lt.Ucrit(Zix,Nix)-
-     +        P-Pshift(Zix,Nix,ibar)) ald=aldcrit(Zix,Nix)
+            if (ldmod.eq.3.and.Eex.lt.Ucrit(Zix,Nix,ibar)-
+     +        P-Pshift(Zix,Nix,ibar)) ald=aldcrit(Zix,Nix,ibar)
             call colenhance(Zix,Nix,Eex,ald,ibar,Krot,Kvib,Kcoll)
             if (flagcol(Zix,Nix).and..not.ldexist(Zix,Nix,ibar)) then
               write(*,'(1x,f6.2,2f7.3,1p,13e10.3)') Eex,ald,
@@ -262,114 +264,131 @@ c avdev      : average deviation
 c
 c Output given in general output file and on separate files.
 c
-      NL=Nlow(Zix,Nix,0)
-      NT=Ntop(Zix,Nix,0)
-      write(*,'(/" Discrete levels versus total level density"/)')
-      write(*,'("   Energy Level   N_cumulative"/)')
-      if (filedensity) then
-        ldfile='ld000000.tot'
-        write(ldfile(3:8),'(2i3.3)') Z,A
-        open (unit=1,status='unknown',file=ldfile)
-        write(1,'("# Level density for ",i3,a2)') A,nuc(Z)
-        if (flagcol(Zix,Nix).and..not.ldexist(Zix,Nix,0)) then
-          write(1,'("# Model: ",a25,"Collective enhancement: yes",
-     +      " beta2:",f12.5)') model,beta2(Zix,Nix,0)
-        else
-          write(1,'("# Model: ",a25,"Collective enhancement: no")')
-     +      model
-        endif
-        write(1,'("# Experimental D0 :",f18.2," eV +- ",f15.5)')
-     +    D0(Zix,Nix),dD0(Zix,Nix)
-        if (dD0(Zix,Nix).eq.0.) then
-          chi2D0=0.
-        else
-          chi2D0=(abs(D0theo(Zix,Nix)-D0(Zix,Nix))/dD0(Zix,Nix))**2
-        endif
-        if (D0(Zix,Nix).eq.0.) then
-          Dratio=0.
-        else
-          Dratio=D0theo(Zix,Nix)/D0(Zix,Nix)
-        endif
-        write(1,'("# Theoretical D0  :",f18.2," eV Chi2:",1p,e12.5,0p,
-     +    " Dtheo/Dexp: ",f9.5)') D0theo(Zix,Nix),chi2D0,Dratio
-        write(1,'("# Nlow: ",i3," Ntop: ",i3,
-     +    "           Mass in a.m.u.  : ",f10.6)') Nlow(Zix,Nix,0),
-     +    Ntop(Zix,Nix,0),nucmass(Zix,Nix)
-        if (ldmod.le.3) then
-          write(1,'("# a(Sn)           :",f10.5,"   Asymptotic a    :",
-     +      f10.5)')  alev(Zix,Nix),alimit(Zix,Nix)
-          write(1,'("# Shell correction:",f10.5,"   Damping gamma   :",
-     +      f10.5)') deltaW(Zix,Nix,0),gammald(Zix,Nix)
-          write(1,'("# Pairing energy  :",f10.5,
-     +      "   Separation en.  :",f10.5)') P,SS
-          write(1,'("# Disc. sigma     :",f10.5,"   Sigma (Sn)      :",
-     +      f10.5)') sqrt(scutoffdisc(Zix,Nix,0)),
-     +      sqrt(spincut(Zix,Nix,ignatyuk(Zix,Nix,SS,0),SS,0))
-          if (ldmod.eq.3) then
-            write(1,'("# Adj. pair shift :",f10.5,
-     +        "   delta0          :",f10.5,"   Crit. a:",f10.5)')
-     +        Pshift(Zix,Nix,0),delta0(Zix,Nix),aldcrit(Zix,Nix)
+      do 210 ibar=0,nfisbar(Zix,Nix)
+        NL=Nlow(Zix,Nix,ibar)
+        NT=Ntop(Zix,Nix,ibar)
+        write(*,'(/" Discrete levels versus total level density"/)')
+        write(*,'("   Energy Level   N_cumulative"/)')
+        if (filedensity) then
+          ldfile='ld000000.tot'
+          if (ibar.gt.0) write(ldfile(10:12),'(i3.3)') ibar
+          write(ldfile(3:8),'(2i3.3)') Z,A
+          open (unit=1,status='unknown',file=ldfile)
+          if (ibar.gt.0) then
+            ldstring=' Barrier    '
+            write(ldstring(10:10),'(i1)') ibar
           else
-            write(1,'("# Adj. pair shift :",f10.5)') Pshift(Zix,Nix,0)
+            ldstring='            '
           endif
-          if (ldmod.eq.1) then
-            write(1,'("# Matching Ex     :",f10.5,
-     +        "   Temperature     :",f10.5,"   E0:",f10.5)')
-     +        Exmatch(Zix,Nix,0),T(Zix,Nix,0),E0(Zix,Nix,0)
+          write(1,'("# Level density for ",i3,a2,a12)') A,nuc(Z),
+     +      ldstring
+          if (flagcol(Zix,Nix).and..not.ldexist(Zix,Nix,ibar)) then
+            write(1,'("# Model: ",a25,"Collective enhancement: yes",
+     +        " beta2:",f12.5)') model,beta2(Zix,Nix,ibar)
+          else
+            write(1,'("# Model: ",a25,"Collective enhancement: no")')
+     +        model
           endif
-          if (ldmod.eq.2) write(1,'("#")')
-          if (ldmod.eq.3) then
-            write(1,'("# Critical energy :",f10.5,
-     +        "   Condensation en.:",f10.5,"   Crit. T:",f10.5)')
-     +        Ucrit(Zix,Nix),Econd(Zix,Nix),Tcrit(Zix,Nix)
+          write(1,'("# Experimental D0 :",f18.2," eV +- ",f15.5)')
+     +      D0(Zix,Nix),dD0(Zix,Nix)
+          if (dD0(Zix,Nix).eq.0.) then
+            chi2D0=0.
+          else
+            chi2D0=(abs(D0theo(Zix,Nix)-D0(Zix,Nix))/dD0(Zix,Nix))**2
           endif
-        else
-          write(1,'("# ctable          :",f10.5)') ctable(Zix,Nix,0)
-          write(1,'("# ptable          :",f10.5)') ptable(Zix,Nix,0)
-          write(1,'("#")')
-          write(1,'("#")')
-          write(1,'("#")')
-          write(1,'("#")')
+          if (D0(Zix,Nix).eq.0.) then
+            Dratio=0.
+          else
+            Dratio=D0theo(Zix,Nix)/D0(Zix,Nix)
+          endif
+          write(1,'("# Theoretical D0  :",f18.2," eV Chi2:",1p,e12.5,
+     +      0p," Dtheo/Dexp: ",f9.5)') D0theo(Zix,Nix),chi2D0,Dratio
+          write(1,'("# Nlow: ",i3," Ntop: ",i3,
+     +      "           Mass in a.m.u.  : ",f10.6)') Nlow(Zix,Nix,ibar),
+     +      Ntop(Zix,Nix,ibar),nucmass(Zix,Nix)
+          if (ldmod.le.3) then
+            write(1,'("# a(Sn)           :",f10.5,
+     +        "   Asymptotic a    :",f10.5)')  alev(Zix,Nix),
+     +        alimit(Zix,Nix)
+            write(1,'("# Shell correction:",f10.5,
+     +        "   Damping gamma   :",f10.5)') deltaW(Zix,Nix,ibar),
+     +        gammald(Zix,Nix)
+            write(1,'("# Pairing energy  :",f10.5,
+     +        "   Separation en.  :",f10.5)') P,SS
+            write(1,'("# Disc. sigma     :",f10.5,
+     +        "   Sigma (Sn)      :",f10.5)') 
+     +        sqrt(scutoffdisc(Zix,Nix,ibar)),
+     +        sqrt(spincut(Zix,Nix,ignatyuk(Zix,Nix,SS,ibar),SS,ibar))
+            if (ldmod.eq.3) then
+              write(1,'("# Adj. pair shift :",f10.5,
+     +          "   delta0          :",f10.5,"   Crit. a:",f10.5)')
+     +          Pshift(Zix,Nix,ibar),delta0(Zix,Nix),
+     +          aldcrit(Zix,Nix,ibar)
+            else
+              write(1,'("# Adj. pair shift :",f10.5)') 
+     +          Pshift(Zix,Nix,ibar)
+            endif
+            if (ldmod.eq.1) then
+              write(1,'("# Matching Ex     :",f10.5,
+     +          "   Temperature     :",f10.5,"   E0:",f10.5)')
+     +          Exmatch(Zix,Nix,ibar),T(Zix,Nix,ibar),E0(Zix,Nix,ibar)
+            endif
+            if (ldmod.eq.2) write(1,'("#")')
+            if (ldmod.eq.3) then
+              write(1,'("# Critical energy :",f10.5,
+     +          "   Condensation en.:",f10.5,"   Crit. T:",f10.5)')
+     +          Ucrit(Zix,Nix,ibar),Econd(Zix,Nix,ibar),Tcrit(Zix,Nix)
+            endif
+          else
+            write(1,'("# ctable          :",f10.5)') 
+     +        ctable(Zix,Nix,ibar)
+            write(1,'("# ptable          :",f10.5)') 
+     +        ptable(Zix,Nix,ibar)
+            write(1,'("#")')
+            write(1,'("#")')
+            write(1,'("#")')
+            write(1,'("#")')
+          endif
+          write(1,'("# Energy  Level N_cumulative    Total l.d. ",
+     +      "       a            Sigma  ")')
         endif
-        write(1,'("# Energy  Level N_cumulative    Total l.d. ",
-     +    "       a            Sigma  ")')
-      endif
-      Ncum=real(NL)
-      chi2=0.
-      avdev=0.
-      do 210 i=NL+1,nlevmax2(Zix,Nix)-1
-        if (edis(Zix,Nix,i+1).eq.0.) goto 210
-        Eex=0.5*(edis(Zix,Nix,i)+edis(Zix,Nix,i-1))
-        dEx=edis(Zix,Nix,i)-edis(Zix,Nix,i-1)
-        dens=densitytot(Zix,Nix,Eex,0,ldmod)
-        Ncum=Ncum+dens*dEx
-        if (Ncum.lt.1.e5) then
-          Eex=edis(Zix,Nix,i)
-          write(*,'(1x,f8.4,i4,f12.3)') Eex,i,Ncum
-          if (filedensity) then
-           if (ldmod.le.3) then
-             ald=ignatyuk(Zix,Nix,Eex,0)
-             if (ldmod.eq.3.and.Eex.lt.Ucrit(Zix,Nix)-P-
-     +         Pshift(Zix,Nix,0)) ald=aldcrit(Zix,Nix)
-             dens=densitytot(Zix,Nix,Eex,0,ldmod)
-             sigma=sqrt(spincut(Zix,Nix,ald,Eex,0))
-             write(1,'(f8.4,i4,4f14.3)') Eex,i,Ncum,dens,ald,sigma
-           else
-             write(1,'(f8.4,i4,2f14.3)') Eex,i,Ncum,dens
-           endif
+        Ncum=real(NL)
+        chi2=0.
+        avdev=0.
+        do 220 i=NL+1,nlevmax2(Zix,Nix)-1
+          if (edis(Zix,Nix,i+1).eq.0.) goto 220
+          Eex=0.5*(edis(Zix,Nix,i)+edis(Zix,Nix,i-1))
+          dEx=edis(Zix,Nix,i)-edis(Zix,Nix,i-1)
+          dens=densitytot(Zix,Nix,Eex,ibar,ldmod)
+          Ncum=Ncum+dens*dEx
+          if (Ncum.lt.1.e5) then
+            Eex=edis(Zix,Nix,i)
+            write(*,'(1x,f8.4,i4,f12.3)') Eex,i,Ncum
+            if (filedensity) then
+              if (ldmod.le.3) then
+                ald=ignatyuk(Zix,Nix,Eex,ibar)
+                if (ldmod.eq.3.and.Eex.lt.Ucrit(Zix,Nix,ibar)-P-
+     +            Pshift(Zix,Nix,ibar)) ald=aldcrit(Zix,Nix,ibar)
+                dens=densitytot(Zix,Nix,Eex,ibar,ldmod)
+                sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
+                write(1,'(f8.4,i4,4f14.3)') Eex,i,Ncum,dens,ald,sigma
+              else
+                write(1,'(f8.4,i4,2f14.3)') Eex,i,Ncum,dens
+              endif
+            endif
           endif
-        endif
-        if (i.le.NT) then
-          chi2=chi2+(Ncum-i)**2/i
-          avdev=avdev+abs(Ncum-i)/(NT-NL)
+          if (i.le.NT) then
+            chi2=chi2+(Ncum-i)**2/i
+            avdev=avdev+abs(Ncum-i)/(NT-NL)
+          endif
+  220   continue
+        if (filedensity) then
+          write(1,'("# Chi-square per point for levels between ",
+     +      "Nlow and Ntop: ",1p,e12.5," Average deviation: ",e12.5)')
+     +      chi2,avdev
+          close (1)
         endif
   210 continue
-      if (filedensity) then
-        write(1,'("# Chi-square per point for levels between ",
-     +    "Nlow and Ntop: ",1p,e12.5," Average deviation: ",e12.5)')
-     +    chi2,avdev
-        close (1)
-      endif
       return
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

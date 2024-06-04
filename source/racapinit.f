@@ -14,31 +14,28 @@ c
       integer ptclp,holep,ptcln,holen
       integer xprty,wprty
       integer parity
-      real phdens2,Eldpd,Sldpd
+      real phdens2
       real racapdamp,ignatyuk
       real Ephracap,sigparleldenp,sigparleldenn,surfwellE
       real e,spinf,sf,eopt
-      double precision density,ldmdposj,ldmdnegj,ldmdpos,ldmdneg
-      double precision phmdpos,phmdposj,phmdnegj
-      double precision phjpmdpos,phjpmdneg,phjpmdposj,phjpmdnegj
       logical surfwellgo,lexist
       integer nexphjp,nex
       real eb, ee, Egridphjp(0:numdens)
       double precision ldbpos, ldbneg, ldepos, ldeneg
       double precision lldbpos,lldepos,lldbneg,lldeneg
-      double precision ldtabpos,ldtabneg
+      double precision ldtabpos,ldtabneg,density
       character*100 filespec
-      dimension ldmdposj(numdensracap,0:numJph),
+      double precision ldmdposj(numdensracap,0:numJph),
      +          ldmdnegj(numdensracap,0:numJph),
      +          phmdposj(numdensracap,0:numJph),
      +          phmdnegj(numdensracap,0:numJph),
      +          phjpmdposj(numdensracap,0:numJph),
      +          phjpmdnegj(numdensracap,0:numJph)
-      dimension ldmdpos(numdensracap),ldmdneg(numdensracap)
+      double precision ldmdpos(numdensracap),ldmdneg(numdensracap)
 ctest dimension phmdpos(numdensracap),phmdneg(numdensracap)
-      dimension phmdpos(numdensracap)
-      dimension phjpmdpos(numdensracap),phjpmdneg(numdensracap)
-      dimension Eldpd(numdensracap),Sldpd(0:numJph)
+      double precision phmdpos(numdensracap)
+      double precision phjpmdpos(numdensracap),phjpmdneg(numdensracap)
+      real Eldpd(numdensracap),Sldpd(0:numJph)
 c
 c ********************** General initializations ***********************
 c
@@ -395,8 +392,8 @@ c
         do 130 i=1,jlev
           read(10,'(2x,i3,f8.4,f6.2,2x,i2,f10.5)') j,e,spinf,parity,sf
           do nex=0,Nlast(0,0,0)
-            if (abs(edis(0,0,nex)-e).lt.1.d-1.and.jdis(0,0,nex).
-     +        eq.spinf.and.parlev(0,0,nex).eq.parity) then
+            if (abs(edis(0,0,nex)-e).lt.1.d-1.and.jdis(0,0,nex)
+     +        .eq.spinf.and.parlev(0,0,nex).eq.parity) then
               spectfac(0,0,nex)=sf
               goto 130
             endif
@@ -407,5 +404,4 @@ c
       endif
       return
       end
-
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

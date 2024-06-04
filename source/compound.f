@@ -90,7 +90,11 @@ c
             else
               fiscontr2=(tfu-tf)/(log(tfu)-log(tf))*dE2
             endif
-            fiscontr=(fiscontr1+fiscontr2)/(Explus-Exmin)
+            if (Explus.gt.Exmin) then
+              fiscontr=(fiscontr1+fiscontr2)/(Explus-Exmin)
+            else
+              fiscontr=0.
+            endif
             if (fiscontr.le.10.*transeps) fiscontr=0.
             denomhf=fiscontr
           else

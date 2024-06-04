@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 19, 2012
+c | Date  : August 31, 2014
 c | Task  : Output of binary cross sections
 c +---------------------------------------------------------------------
 c
@@ -71,11 +71,11 @@ c
      +      parsym(k0),Atarget,Starget
           write(1,'("# ")')
           write(1,'("# ")')
-          write(1,'("# # energies =",i3)') numinc
+          write(1,'("# # energies =",i6)') numinc
           write(1,'("#    E       ",7(2x,a8,1x))')
      +      (parname(type),type=0,6)
           do 20 nen=1,numinclow
-            write(1,'(1p,e10.3,2x,7e11.4)') eninc(nen),
+            write(1,'(1p,8e12.5)') eninc(nen),
      +        (fxsbinary(nen,type),type=0,6)
   20     continue
         else
@@ -84,7 +84,7 @@ c
             read(1,*,end=40,err=40)
   30     continue
         endif
-        write(1,'(1p,e10.3,2x,7e11.4)') Einc,(xsbinary(type),type=0,6)
+        write(1,'(1p,8e12.5)') Einc,(xsbinary(type),type=0,6)
   40    close (unit=1)
       endif
       return

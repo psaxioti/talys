@@ -1,4 +1,4 @@
-      double precision function fermi(Zix,Nix,ald,Eex,P,ibar)
+      function fermi(Zix,Nix,ald,Eex,P,ibar)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
@@ -10,7 +10,7 @@ c ******************* Declarations and common blocks *******************
 c
       integer          Zix,Nix,ibar
       real             ald,Eex,P,U,sigma,spincut,denom
-      double precision factor
+      double precision fermi,factor
 c
 c *********************** Total level density **********************
 c

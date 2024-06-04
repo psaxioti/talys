@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 6, 2012
+c | Date  : August 10, 2015
 c | Task  : Read input for sixth set of variables
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       character*1  ch
       character*80 word(40),key,value
-      integer      type,i,i2,ivalue
+      integer      type,i,i2,ivalue,istat
       real         val
 c
 c ************* Defaults for sixth set of input variables **************
@@ -56,6 +56,7 @@ c filedensity : flag for level densities on separate files
 c flagastro   : flag for calculation of astrophysics reaction rate
 c flagintegral: flag for calculation of effective cross section using
 c               integral spectrum
+c flagsacs    : flag for statistical analysis of cross sections
 c Nflux       : number of reactions with integral data
 c xsfluxfile  : TALYS cross section file for integral data
 c fluxname    : name of integral spectrum
@@ -66,7 +67,7 @@ c
         transeps=1.e-18
         xseps=1.e-17
         popeps=1.e-13
-        Rfiseps=1.e-13
+        Rfiseps=1.e-6
       else
         transpower=5
         transeps=1.e-8
@@ -154,6 +155,7 @@ c
       filedensity=.true.
       if (flagastro) fileresidual=.true.
       flagintegral=.false.
+      flagsacs=.false.
       Nflux=0
       do 100 i=1,numflux
         xsfluxfile(i)='                                                '
@@ -201,7 +203,7 @@ c
           read(value,*,end=300,err=300) popeps
           goto 110
         endif
-        if (key.eq.'Rfiseps') then
+        if (key.eq.'rfiseps') then
           read(value,*,end=300,err=300) Rfiseps
           goto 110
         endif
@@ -287,12 +289,19 @@ c
         endif
         if (key.eq.'integral') then
           Nflux=Nflux+1
-          if (k0.ne.1) goto 350
+          if (k0.gt.1) goto 350
           if (Nflux.gt.numflux) goto 360
           xsfluxfile(Nflux)=value
           fluxname(Nflux)=word(3)
-          read(word(4),*,err=110,end=300) integralexp(Nflux)
           flagintegral=.true.
+          read(word(4),*,iostat=istat) integralexp(Nflux)
+          if (istat.ne.0) goto 110
+          goto 110
+        endif
+        if (key.eq.'sacs') then
+          if (ch.eq.'n') flagsacs=.false.
+          if (ch.eq.'y') flagsacs=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif
         if (key.eq.'fileangle') then
@@ -335,7 +344,7 @@ c
   340 write(*,'(" TALYS-error: number of fileddxa <=",i3,
      +  ", index out of range: ",a80)') numfile,inline(i)
   350 write(*,'(" TALYS-error: effective cross section can only be",
-     +  " calculated for incident neutrons")')
+     +  " calculated for incident photons and neutrons")')
   360 write(*,'(" TALYS-error: number of integral data sets <=",i3,
      +  ", index out of range: ",a80)') numflux,inline(i)
       stop

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : July 25, 2013
+c | Date  : July 17, 2014
 c | Task  : Binary reaction results
 c +---------------------------------------------------------------------
 c
@@ -375,6 +375,8 @@ c
       xspopex(parZ(k0),parN(k0),Ltarget)=0.
       xspop(parZ(k0),parN(k0),Ltarget,int(targetspin),targetP)=0.
       preeqpopex(parZ(k0),parN(k0),Ltarget)=0.
+      Einc0=Einc
+      nin0=nin
 c
 c **************************** Recoils *********************************
 c

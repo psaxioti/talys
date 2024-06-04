@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 10, 2012
+c | Date  : October 17, 2014
 c | Task  : Output of particle spectra
 c +---------------------------------------------------------------------
 c
@@ -38,13 +38,27 @@ c
         if (parskip(type)) goto 10
         if (xsparticle(type).eq.0.) goto 10
         write(*,'(/" Spectra for outgoing ",a8/)') parname(type)
-        write(*,'("  Energy   Total       Direct    Pre-equil.",
-     +    "  Mult. preeq  Compound"/)')
-        do 20 nen=ebegin(type),eendout(type)
-          write(*,'(1x,f7.3,1p,5e12.5)') espec(type,nen),
-     +      xssumout(type,nen),xsdiscout(type,nen),xspreeqout(type,nen),
-     +      xsmpreeqout(type,nen),xscompout(type,nen)
-   20   continue
+        if (k0.le.2.and.type.le.2) then
+          write(*,'("  Energy   Total       Direct    Pre-equil.",
+     +      "  Mult. preeq  Compound"/)')
+          do 20 nen=ebegin(type),eendout(type)
+            write(*,'(1x,f7.3,1p,5e12.5)') espec(type,nen),
+     +        xssumout(type,nen),xsdiscout(type,nen),
+     +        xspreeqout(type,nen),xsmpreeqout(type,nen),
+     +        xscompout(type,nen)
+   20     continue
+        else
+          write(*,'("  Energy   Total       Direct    Pre-equil.",
+     +      "  Mult. preeq  Compound    Stripping   Knock-out",
+     +      "   Break-up"/)')
+          do 25 nen=ebegin(type),eendout(type)
+            write(*,'(1x,f7.3,1p,8e12.5)') espec(type,nen),
+     +        xssumout(type,nen),xsdiscout(type,nen),
+     +        xspreeqout(type,nen),xsmpreeqout(type,nen),
+     +        xscompout(type,nen),xspreeqpsout(type,nen),
+     +        xspreeqkiout(type,nen),xspreeqbuout(type,nen)
+   25     continue
+        endif
         if (flagrecoil.and.flaglabddx) then
           write(*,'(/" LAB spectra for outgoing ",a8/)') parname(type)
           write(*,'("  Energy   Cross section"/)')
@@ -76,15 +90,29 @@ c
      +      parsym(k0),Atarget,Starget,parname(type)
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
-          write(1,'("# # energies =",i3)') eendout(type)-ebegin(type)+1
-          write(1,'("# E-out    Total       Direct    Pre-equil.",
-     +      "  Mult. preeq  Compound  Pre-eq ratio")')
-          do 40 nen=ebegin(type),eendout(type)
-            write(1,'(f7.3,1p,6e12.5)')
-     +        espec(type,nen),xssumout(type,nen),xsdiscout(type,nen),
-     +        xspreeqout(type,nen),xsmpreeqout(type,nen),
-     +        xscompout(type,nen),preeqratio(type,nen)
-   40     continue
+          write(1,'("# # energies =",i6)') eendout(type)-ebegin(type)+1
+          if (k0.le.2.and.type.le.2) then
+            write(1,'("# E-out    Total       Direct    Pre-equil.",
+     +        "  Mult. preeq  Compound   PE ratio   ")')
+            do 40 nen=ebegin(type),eendout(type)
+              write(1,'(f7.3,1p,6e12.5)')
+     +          espec(type,nen),xssumout(type,nen),xsdiscout(type,nen),
+     +          xspreeqout(type,nen),xsmpreeqout(type,nen),
+     +          xscompout(type,nen),preeqratio(type,nen)
+   40       continue
+          else
+            write(1,'("# E-out    Total       Direct    Pre-equil.",
+     +        "  Mult. preeq  Compound    PE ratio   BU ratio   ",
+     +        " Stripping   Knock-out   Break-up")')
+            do 45 nen=ebegin(type),eendout(type)
+              write(1,'(f7.3,1p,10e12.5)')
+     +          espec(type,nen),xssumout(type,nen),xsdiscout(type,nen),
+     +          xspreeqout(type,nen),xsmpreeqout(type,nen),
+     +          xscompout(type,nen),preeqratio(type,nen),
+     +          buratio(type,nen),xspreeqpsout(type,nen),
+     +          xspreeqkiout(type,nen),xspreeqbuout(type,nen)
+   45       continue
+          endif
           close (unit=1)
           if (flagrecoil.and.flaglabddx) then
             specfile(14:16)='lab'
@@ -94,7 +122,7 @@ c
      +        Starget,parname(type)
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
-            write(1,'("# # energies =",i3)') iejlab(type)
+            write(1,'("# # energies =",i6)') iejlab(type)
             write(1,'("# E-out    Total")')
             do 50 nen=1,iejlab(type)
               write(1,'(f7.3,1p,e12.5)') Eejlab(type,nen),

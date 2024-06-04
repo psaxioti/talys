@@ -13,8 +13,8 @@ c
       integer Zcomp,Ncomp,ppi,hpi,pnu,hnu,n,h,type,Zix,Nix,zejec,nejec,
      +        nen,nen1,ppires,pnures,nres
       real    gsp,gsn,gs,damp,ignatyuk,edepth,U,preeqpair,phcomp,
-     +        wemissum2(0:numparx,0:numparx,0:numparx,0:numparx,
-     +        0:numen),phdens2,Ewell,Eout,xs,factor,Eres,phres1,phres2,
+     +       wemissum2(0:numparx,0:numparx,0:numparx,0:numparx,0:numen),
+     +        phdens2,Ewell,Eout,xs,factor,Eres,phres1,phres2,
      +        g2E,branchplus,branchzero,phratio,Ures,phres,Emax,dE
 c
 c *************************** Emission rates ***************************

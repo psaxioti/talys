@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 28, 2013
+c | Date  : May 23, 2014
 c | Task  : Calculate reaction rates
 c +---------------------------------------------------------------------
 c
@@ -13,7 +13,7 @@ c
       parameter (numint=100)
       integer   Ninte,nE,Zix,Nix,N,is,nen
       real      dE,dxdEsum,Eint(numint),dEdx,dxdE(numint),ratesum,
-     +          Erpgrid(0:numen),E,Ea,Eb,xsa,xsb,xs
+     +          Erpgrid(0:numenin),E,Ea,Eb,xsa,xsb,xs
 c
 c *********** Determine integration grid and stopping power ************
 c

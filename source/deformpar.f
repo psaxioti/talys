@@ -198,8 +198,8 @@ c deformmodel  : model for theoretical deformation parameters
 c beta2,beta4  : deformation parameters
 c dspin        : angular momentum increase for rotational band
 c
-      if (colltype(Zix,Nix).eq.'S'.and.(.not.flagspher).and.A.gt.150.
-     +  and.distance.ge.8.and.flagautorot) then
+      if (colltype(Zix,Nix).eq.'S'.and.(.not.flagspher).and.A.gt.150
+     +  .and.distance.ge.8.and.flagautorot) then
         indexlevel(Zix,Nix,1)=0
         indexcc(Zix,Nix,1)=0
         leveltype(Zix,Nix,0)='R'

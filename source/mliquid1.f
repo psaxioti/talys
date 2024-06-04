@@ -1,8 +1,8 @@
-      double precision function mliquid1(Z,A)
+      function mliquid1(Z,A)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 8, 2005
+c | Date  : August 10, 2015
 c | Task  : Myers-Swiatecki liquid drop mass
 c +---------------------------------------------------------------------
 c
@@ -10,8 +10,8 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer          Z,A,N,oddZ,oddN
-      double precision a1,a2,kappa,c3,c4,Mn,Mh,rA,rZ,rN,factor,Ev,Esur,
-     +                 Ecoul,deltaP,Eldm
+      double precision mliquid1,a1,a2,kappa,c3,c4,Mn,Mh,rA,rZ,rN,factor,
+     +                 Ev,Esur,Ecoul,deltaP,Eldm
 c
 c ************** Spherical Myers-Swiatecki parameters ******************
 c
@@ -36,8 +36,13 @@ c Myers-Swiatecki model: Nucl. Phys. 81 (1966) 1.
 c We use the original M-S parameters, see Mengoni and Nakajima,
 c J. Nucl. Sci. Technol.  31[2], p 151 (1994).
 c
-      data a1,a2,kappa,c3,c4 /15.677,18.56,1.79,0.717,1.21129/
-      data Mn,Mh/ 8.07144,7.28899/
+      a1=15.677
+      a2=18.56
+      kappa=1.79
+      c3=0.717
+      c4=1.21129
+      Mn=8.07144
+      Mh=7.28899
       N=A-Z
       rA=real(A)
       rZ=real(Z)

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 10, 2013
+c | Date  : September 24, 2015
 c | Task  : Set excitation energy grid
 c +---------------------------------------------------------------------
 c
@@ -133,8 +133,12 @@ c
             goto 180
           endif
           Ex(Zix,Nix,nex)=edis(Zix,Nix,nex)
-          if (nex.gt.0) deltaEx(Zix,Nix,nex)=
-     +      0.5*(edis(Zix,Nix,min(NL,nex+1))-edis(Zix,Nix,nex-1))
+          if (nex.gt.0) then
+            deltaEx(Zix,Nix,nex)=
+     +        0.5*(edis(Zix,Nix,min(NL,nex+1))-edis(Zix,Nix,nex-1))
+          else
+            deltaEx(Zix,Nix,nex)=0.5*edis(Zix,Nix,1)
+          endif
   140   continue
 c
 c Division of the continuum into bins.

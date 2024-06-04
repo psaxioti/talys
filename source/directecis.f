@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 19, 2013
+c | Date  : August 8, 2014
 c | Task  : ECIS calculation of direct cross section
 c +---------------------------------------------------------------------
 c
@@ -214,7 +214,10 @@ c
    30     continue
         endif
    10 continue
-      if (.not.flagecisinp) return
+      if (.not.flagecisinp) then
+        close (unit=9)
+        return
+      endif
       write(9,'("fin")')
       close (unit=9)
       legendre=.false.

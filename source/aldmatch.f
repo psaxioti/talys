@@ -2,19 +2,20 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire, Marieke Duijvestijn and Arjan Koning
-c | Date  : April 7, 2006
+c | Date  : August 10, 2015
 c | Task  : Effective level density parameter
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer          Zix,Nix,ibar,A,jmax,j
+      integer jmax
+      parameter (jmax=40)
+      integer          Zix,Nix,ibar,A,j
       real             aldmatch,Eex,rjbegin,rj,aldref,ignatyuk,spindis,
      +                 sigma,spincut,Krot,Kvib,Kcoll,aldacc,ald1,ald2,
      +                 dald,aldmid,sigmamid
       double precision rhosum,factor,fermi,rhoref,fdiff,fmid
-      parameter (jmax=40)
 c
 c ************ Search for effective level density parameter ************
 c

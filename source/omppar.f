@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 15, 2012
+c | Date  : December 15, 2014
 c | Task  : Optical model parameters
 c +---------------------------------------------------------------------
 c
@@ -252,6 +252,39 @@ c
           Wjoin(k)=w
         endif
   310 continue
+c
+c Set energy ranges of alternative optical models
+c
+c Eompbeg0: upper energy of KD03 OMP
+c Eompbeg1: lower energy of alternative OMP
+c Eompend1: upper energy of alternative OMP
+c Eompend0: lower energy of KD03 OMP
+c
+c Eompbeg0 <=  Eompbeg1 <=  Eompend1 <=  Eompend0
+c 
+c Deuteron OMPs
+c
+      do 410 i=2,5
+        Eompbeg0(3,i)=0.
+        Eompbeg1(3,i)=0.
+        Eompend1(3,i)=200.
+        Eompend0(3,i)=300.
+  410 continue
+      Eompend1(3,2)=90.
+      Eompend0(3,2)=150.
+      Eompend1(3,3)=100.
+      Eompend0(3,3)=150.
+c
+c Alpha OMPs
+c
+      do 420 i=2,8
+        Eompbeg0(6,i)=0.
+        Eompbeg1(6,i)=0.
+        Eompend1(6,i)=200.
+        Eompend0(6,i)=300.
+  420 continue
+      Eompend1(6,2)=25.
+      Eompend0(6,2)=50.
       return
   300 write(*,'(" TALYS-error: Format error in ",a72)') optmodfile
       stop

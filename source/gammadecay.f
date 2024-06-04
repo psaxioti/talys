@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 11, 2009
+c | Date  : August 31, 2014
 c | Task  : Scheme for discrete gamma decay
 c +---------------------------------------------------------------------
 c
@@ -103,7 +103,7 @@ c
       write(1,'("# ",i3,a2," Discrete gamma decay")') A,nuc(Z)
       write(1,'("# ")')
       write(1,'("# ")')
-      write(1,'("# # levels   =",i3)') nlev(Zix,Nix)
+      write(1,'("# # levels   =",i4)') nlev(Zix,Nix)
       write(1,'("#   E        fraction              ")')
       do 110 i=1,nlev(Zix,Nix)
         write(1,'(2i4,f10.6)') i,Ngam(i),yieldg(i)
@@ -135,7 +135,7 @@ c
       write(1,'("# Discrete levels for Z=",i3," N=",i3,
      +  " (",i3,a2,")")')  Z,N,A,nuc(Z)
       write(1,'("# ")')
-      write(1,'("# Number of levels:",i3)') nlev(Zix,Nix)
+      write(1,'("# Number of levels:",i4)') nlev(Zix,Nix)
       write(1,'("# ")')
       write(1,'("# Number   Energy  Spin Parity  Branching  ",
      +  "Ratio (%) Lifetime(sec) Assignment        ENSDF")')

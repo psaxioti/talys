@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : December 13, 2013
+c | Date  : October 10, 2014
 c | Task  : Level density parameters
 c +---------------------------------------------------------------------
 c
@@ -42,22 +42,23 @@ c
 c
 c *********** Read values from level density parameter file ************
 c
-c denchar   : string for level density file
-c denfile   : level density parameter file
-c path      : directory containing structure files to be read
-c flagcol   : flag for collective enhancement of level density
-c ia        : mass number from level density table
-c Nlow0,..  : help variables
-c ldparexist: flag for existence of tabulated level density parameters
-c Nlow      : lowest discrete level for temperature matching
-c Ntop      : highest discrete level for temperature matching
-c flagasys  : flag for all level density parameters a from systematics
-c alev      : level density parameter
-c aadjust...: adjustable factors for level density parameters
-c             (default 1.)
-c Pshift    : adjustable pairing shift
-c ctable    : constant to adjust tabulated level densities
-c ptable    : constant to adjust tabulated level densities
+c denchar     : string for level density file
+c denfile     : level density parameter file
+c path        : directory containing structure files to be read
+c flagcol     : flag for collective enhancement of level density
+c ia          : mass number from level density table
+c Nlow0,..    : help variables
+c ldparexist  : flag for existence of tabulated level density parameters
+c Nlow        : lowest discrete level for temperature matching
+c Ntop        : highest discrete level for temperature matching
+c flagasys    : flag for all level density parameters a from systematics
+c alev        : level density parameter
+c aadjust...  : adjustable factors for level density parameters
+c               (default 1.)
+c Pshift      : adjustable pairing shift
+c Pshiftadjust: adjustable correction to pairing shift
+c ctable      : constant to adjust tabulated level densities
+c ptable      : constant to adjust tabulated level densities
 c
 c Level density parameters from the table can always be overruled
 c by values given in the input file. With flagasys, all experimental
@@ -97,7 +98,7 @@ c
           if (alev(Zix,Nix).eq.0.) alev(Zix,Nix)=aadjust(Zix,Nix)*ald0
           do 20 ibar=0,nfisbar(Zix,Nix)
             if (Pshift(Zix,Nix,ibar).eq.1.e-20)
-     +        Pshift(Zix,Nix,ibar)=pshift0
+     +        Pshift(Zix,Nix,ibar)=pshift0+Pshiftadjust(Zix,Nix,ibar)
    20     continue
         else
           if (ctable(Zix,Nix,0).eq.1.e-20) ctable(Zix,Nix,0)=ald0
@@ -202,6 +203,8 @@ c
         inpalev=.false.
       else
         inpalev=.true.
+        if (ldmod.eq.3.and.alimit(Zix,Nix).eq.0.) 
+     +    alimit(Zix,Nix)=alev(Zix,Nix)
       endif
       inpdeltaW=.true.
       if (deltaW(Zix,Nix,0).eq.0.) then
@@ -259,9 +262,48 @@ c
         endif
       endif
       do 70 ibar=0,nfisbar(Zix,Nix)
-        if (Pshift(Zix,Nix,ibar).eq.1.e-20)
-     +    Pshift(Zix,Nix,ibar)=Pshiftconstant(Zix,Nix)
+        if (Pshift(Zix,Nix,ibar).eq.1.e-20) Pshift(Zix,Nix,ibar)=
+     +    Pshiftconstant(Zix,Nix)+Pshiftadjust(Zix,Nix,ibar)
  70   continue
+c
+c ************************** Fission ***********************************
+c
+c Determine deltaW on the fission barrier.
+c Note that this overrules input parameters for deltaW.
+c
+c flagfission : flag for fission
+c flagcolldamp: flag for damping of collective effects in effective
+c               level density (without explicit collective enhancement)
+c               Only used for Bruyeres-le-Chatel (Pascal Romain) fission
+c               model
+c axtype      : type of axiality of barrier
+c                  1: axial symmetry
+c                  2: left-right asymmetry
+c                  3: triaxial and left-right symmetry
+c                  4: triaxial no left-right symmetry
+c                  5: no symmetry
+c
+      if (flagfission) then
+        do 80 ibar=1,nfisbar(Zix,Nix)
+          if (deltaW(Zix,Nix,ibar).eq.0.) then
+            if (flagcolldamp) then
+              deltaW(Zix,Nix,ibar)=abs(deltaW(Zix,Nix,0))*twothird
+            else
+              if (ibar.eq.1) then
+                if (axtype(Zix,Nix,1).eq.1) then
+                  deltaW(Zix,Nix,ibar)=1.5
+                else
+                  deltaW(Zix,Nix,ibar)=2.5
+                endif
+              else
+                deltaW(Zix,Nix,ibar)=0.6
+              endif
+            endif
+          endif
+   80   continue
+        if (nfisbar(Zix,Nix).eq.1.and.fbarrier(Zix,Nix,1).eq.0.)
+     +    deltaW(Zix,Nix,1)=deltaW(Zix,Nix,2)
+      endif
 c
 c Generalized superfluid model. The critical functions are
 c calculated here.
@@ -280,36 +322,40 @@ c
         Tcrit(Zix,Nix)=0.567*delta0(Zix,Nix)
         ald=alimit(Zix,Nix)
         difprev=0.
-   80   factor=(1.-exp(-gammald(Zix,Nix)*ald*Tcrit(Zix,Nix)**2))/
-     +    (ald*(Tcrit(Zix,Nix)**2))
-        aldcrit(Zix,Nix)=alimit(Zix,Nix)*(1.+deltaW(Zix,Nix,0)*factor)
-        if (abs(aldcrit(Zix,Nix)-ald).gt.0.001.and.
-     +    abs(aldcrit(Zix,Nix)-ald).ne.difprev) then
-          difprev=abs(aldcrit(Zix,Nix)-ald)
-          ald=aldcrit(Zix,Nix)
-          if (ald.gt.1.) goto 80
-        endif
-        if (aldcrit(Zix,Nix).lt.alimit(Zix,Nix)/3.) then
-          expo=min(-gammald(Zix,Nix)*S(Zix,Nix,1),80.)
-          fU=1.-exp(expo)
-          factor=1.+fU*deltaW(Zix,Nix,0)/S(Zix,Nix,1)
-          aldcrit(Zix,Nix)=max(alimit(Zix,Nix)*factor,1.)
-        endif
-        Econd(Zix,Nix)=1.5/pi2*aldcrit(Zix,Nix)*delta0(Zix,Nix)**2
-        Ucrit(Zix,Nix)=aldcrit(Zix,Nix)*Tcrit(Zix,Nix)**2+Econd(Zix,Nix)
-        Scrit(Zix,Nix)=2.*aldcrit(Zix,Nix)*Tcrit(Zix,Nix)
-        Dcrit(Zix,Nix)=144./pi*(aldcrit(Zix,Nix)**3)*(Tcrit(Zix,Nix)**5)
         do 90 ibar=0,nfisbar(Zix,Nix)
-          delta(Zix,Nix,ibar)=Econd(Zix,Nix)-pair(Zix,Nix)-
+  100     factor=(1.-exp(-gammald(Zix,Nix)*ald*Tcrit(Zix,Nix)**2))/
+     +      (ald*(Tcrit(Zix,Nix)**2))
+          aldcrit(Zix,Nix,ibar)=alimit(Zix,Nix)*
+     +      (1.+deltaW(Zix,Nix,ibar)*factor)
+          if (abs(aldcrit(Zix,Nix,ibar)-ald).gt.0.001.and.
+     +      abs(aldcrit(Zix,Nix,ibar)-ald).ne.difprev) then
+            difprev=abs(aldcrit(Zix,Nix,ibar)-ald)
+            ald=aldcrit(Zix,Nix,ibar)
+            if (ald.gt.1.) goto 100
+          endif
+          if (aldcrit(Zix,Nix,ibar).lt.alimit(Zix,Nix)/3.) then
+            expo=min(-gammald(Zix,Nix)*S(Zix,Nix,1),80.)
+            fU=1.-exp(expo)
+            factor=1.+fU*deltaW(Zix,Nix,ibar)/S(Zix,Nix,1)
+            aldcrit(Zix,Nix,ibar)=max(alimit(Zix,Nix)*factor,1.)
+          endif
+          Econd(Zix,Nix,ibar)=1.5/pi2*aldcrit(Zix,Nix,ibar)
+     +      *delta0(Zix,Nix)**2
+          Ucrit(Zix,Nix,ibar)=aldcrit(Zix,Nix,ibar)*Tcrit(Zix,Nix)**2+
+     +      Econd(Zix,Nix,ibar)
+          Scrit(Zix,Nix,ibar)=2.*aldcrit(Zix,Nix,ibar)*Tcrit(Zix,Nix)
+          Dcrit(Zix,Nix,ibar)=144./pi*(aldcrit(Zix,Nix,ibar)**3)*
+     +      (Tcrit(Zix,Nix)**5)
+          delta(Zix,Nix,ibar)=Econd(Zix,Nix,ibar)-pair(Zix,Nix)-
      +      Pshift(Zix,Nix,ibar)
   90    continue
       else
 c
 c Constant temperature and back-shifted Fermi gas model
 c
-        do 100 ibar=0,nfisbar(Zix,Nix)
+        do 110 ibar=0,nfisbar(Zix,Nix)
           delta(Zix,Nix,ibar)=pair(Zix,Nix)+Pshift(Zix,Nix,ibar)
- 100    continue
+ 110    continue
       endif
 c
 c 1. If no experimental level density parameter is available,
@@ -370,45 +416,6 @@ c
             endif
           endif
         endif
-      endif
-c
-c ************************** Fission ***********************************
-c
-c Determine deltaW on the fission barrier.
-c Note that this overrules input parameters for deltaW.
-c
-c flagfission : flag for fission
-c flagcolldamp: flag for damping of collective effects in effective
-c               level density (without explicit collective enhancement)
-c               Only used for Bruyeres-le-Chatel (Pascal Romain) fission
-c               model
-c axtype      : type of axiality of barrier
-c                  1: axial symmetry
-c                  2: left-right asymmetry
-c                  3: triaxial and left-right symmetry
-c                  4: triaxial no left-right symmetry
-c                  5: no symmetry
-c
-      if (flagfission) then
-        do 110 ibar=1,nfisbar(Zix,Nix)
-          if (deltaW(Zix,Nix,ibar).eq.0.) then
-            if (flagcolldamp) then
-              deltaW(Zix,Nix,ibar)=abs(deltaW(Zix,Nix,0))*twothird
-            else
-              if (ibar.eq.1) then
-                if (axtype(Zix,Nix,1).eq.1) then
-                  deltaW(Zix,Nix,ibar)=1.5
-                else
-                  deltaW(Zix,Nix,ibar)=2.5
-                endif
-              else
-                deltaW(Zix,Nix,ibar)=0.6
-              endif
-            endif
-          endif
-  110   continue
-        if (nfisbar(Zix,Nix).eq.1.and.fbarrier(Zix,Nix,1).eq.0.)
-     +    deltaW(Zix,Nix,1)=deltaW(Zix,Nix,2)
       endif
 c
 c ************** Single-particle level density parameter g *************

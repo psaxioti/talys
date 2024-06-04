@@ -1,8 +1,8 @@
-      double precision function superfluid(Zix,Nix,ald,Eex,P,ibar)
+      function superfluid(Zix,Nix,ald,Eex,P,ibar)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : June 22, 2007
+c | Date  : October 10, 2015
 c | Task  : Superfluid model level density formula
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       integer          Zix,Nix,ibar
       real             ald,Eex,P,U,phi2,Df,phi1,Tf,Sf,sigma,spincut
-      double precision fermi
+      double precision superfluid,fermi
 c
 c *********************** Level density formula ************************
 c
@@ -42,14 +42,14 @@ c Superfluid model
 c
       U=Eex+pair(Zix,Nix)+Pshift(Zix,Nix,ibar)
       if (U.gt.0.) then
-        if (U.gt.Ucrit(Zix,Nix)) then
+        if (U.gt.Ucrit(Zix,Nix,ibar)) then
           superfluid=fermi(Zix,Nix,ald,Eex,P,ibar)
         else
-          phi2=1.-U/Ucrit(Zix,Nix)
-          Df=Dcrit(Zix,Nix)*(1.-phi2)*(1.+phi2)*(1.+phi2)
+          phi2=1.-U/Ucrit(Zix,Nix,ibar)
+          Df=Dcrit(Zix,Nix,ibar)*(1.-phi2)*(1.+phi2)*(1.+phi2)
           phi1=sqrt(phi2)
           Tf=2.*Tcrit(Zix,Nix)*phi1/log((phi1+1.)/(1.-phi1))
-          Sf=Scrit(Zix,Nix)*Tcrit(Zix,Nix)/Tf*(1.-phi2)
+          Sf=Scrit(Zix,Nix,ibar)*Tcrit(Zix,Nix)/Tf*(1.-phi2)
           sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
           superfluid=exp(dble(Sf))/sqrt(Df)/sqrttwopi/sigma
         endif

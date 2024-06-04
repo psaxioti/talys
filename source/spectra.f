@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 5, 2011
+c | Date  : October 17, 2014
 c | Task  : Creation of spectra
 c +---------------------------------------------------------------------
 c
@@ -108,6 +108,9 @@ c
      +      convfac3*sqrt(egrid(nen))
           xsdiscout(type,nen)=xsgr(type,nen)
           xspreeqout(type,nen)=xspreeq(type,nen)
+          xspreeqpsout(type,nen)=xspreeqps(type,nen)
+          xspreeqkiout(type,nen)=xspreeqki(type,nen)
+          xspreeqbuout(type,nen)=xspreeqbu(type,nen)
           xsmpreeqout(type,nen)=xsmpreeq(type,nen)
           xscompout(type,nen)=xscomp(type,nen)
           if (flagddx) then
@@ -146,6 +149,12 @@ c
      +      factor*(xsgr(type,nen+1)-xsgr(type,nen))
           xspreeqout(type,nenout)=xspreeq(type,nen)+
      +      factor*(xspreeq(type,nen+1)-xspreeq(type,nen))
+          xspreeqpsout(type,nenout)=xspreeqps(type,nen)+
+     +      factor*(xspreeqps(type,nen+1)-xspreeqps(type,nen))
+          xspreeqkiout(type,nenout)=xspreeqki(type,nen)+
+     +      factor*(xspreeqki(type,nen+1)-xspreeqki(type,nen))
+          xspreeqbuout(type,nenout)=xspreeqbu(type,nen)+
+     +      factor*(xspreeqbu(type,nen+1)-xspreeqbu(type,nen))
           xsmpreeqout(type,nenout)=xsmpreeq(type,nen)+
      +      factor*(xsmpreeq(type,nen+1)-xsmpreeq(type,nen))
           xscompout(type,nenout)=xscomp(type,nen)+
@@ -190,6 +199,7 @@ c ************************ Create total spectra ************************
 c
 c xssumout  : cross section summed over mechanisms
 c preeqratio: pre-equilibrium ratio
+c buratio   : break-up ratio
 c xssumoutad: angular distribution summed over mechanisms
 c
   100   do 110 nen=ebegin(type),eendout(type)
@@ -198,8 +208,15 @@ c
           if (xssumout(type,nen).ne.0.) then
             preeqratio(type,nen)=(xspreeqout(type,nen)+
      +        xsmpreeqout(type,nen))/xssumout(type,nen)
+            if (k0.gt.2.or.type.gt.2) then
+              buratio(type,nen)=xspreeqbuout(type,nen)/
+     +          xssumout(type,nen)
+            else
+              buratio(type,nen)=0.
+            endif
           else
             preeqratio(type,nen)=0.
+            buratio(type,nen)=0.
           endif
           xssumout(type,nen)=xssumout(type,nen)+xsdiscout(type,nen)
           if (flagddx) then

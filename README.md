@@ -1,6 +1,6 @@
-     TALYS-1.6 (Version: December 23, 2013)
+     TALYS-1.8 (Version: December 30, 2015)
 
- Copyright (C) 2013  A.J. Koning, S. Hilaire and S. Goriely        
+ Copyright (C) 2015  A.J. Koning, S. Hilaire and S. Goriely        
                          NRG          CEA              ULB
 
 The TALYS package
@@ -14,7 +14,7 @@ contains the following directories and files:
 
 - talys.setup is a script that takes care of the installation.
 
-- source/ contains the source code of TALYS: 274 Fortran subroutines, and the 
+- source/ contains the source code of TALYS: 318 Fortran subroutines, and the 
   file talys.cmb, which contains all variable declarations and common blocks.
   This includes the file ecis06t.f. This is basically Jacques Raynal's code 
   ECIS-06, which we have transformed into a subroutine and slightly modified 

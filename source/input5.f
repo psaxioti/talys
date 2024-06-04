@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 11, 2013
+c | Date  : December 8, 2015
 c | Task  : Read input for fifth set of variables
 c +---------------------------------------------------------------------
 c
@@ -14,7 +14,7 @@ c
       character*80 word(40),key,value,cval
       integer      Zix,Nix,ibar,irad,Z,N,oddZ,oddN,lval,type,mt,is,igr,
      +             i,class,iz,ia,ival,type2,omptype,nr,k,l,iword,ilev0,
-     +             nbr,ilev1
+     +             nbr,ilev1,istat
       real         alphaldall,betaldall,gammashell1all,br,sum,val,
      +             Pshiftconstantall
 c
@@ -75,6 +75,7 @@ c pair          : total pairing correction
 c ibar          : fission barrier
 c numbar        : number of fission barriers
 c Pshift        : adjustable pairing shift
+c Pshiftadjust  : adjustable correction to pairing shift
 c deltaW        : shell correction in nuclear mass
 c Exmatch       : matching point for Ex
 c T             : nuclear temperature
@@ -136,12 +137,14 @@ c hbtransfile   : file with head band transition states
 c class2file    : file with class 2 transition states
 c levelfile     : discrete level file
 c deformfile    : deformation parameter file
+c E1file        : E1 strength function file
 c optmodfileN   : optical model parameter file for neutrons
 c optmodfileP   : optical model parameter file for protons
 c radialfile    : radial matter density file
 c ompenergyfile : file with energies for OMP calculation (ENDF files
 c                 only)
 c radialmodel   : model for radial matter densities (JLM OMP only)
+c breakupmodel  : model for break-up reaction: 1. Kalbach 2. Avrigeanu
 c massnucleus   : mass of nucleus in amu as read from user input file
 c massexcess    : mass excess in MeV as read from user input file
 c beta2         : deformation parameter
@@ -299,6 +302,7 @@ c
           pair(Zix,Nix)=1.e-20
           do 30 ibar=0,numbar
             Pshift(Zix,Nix,ibar)=1.e-20
+            Pshiftadjust(Zix,Nix,ibar)=0.
             deltaW(Zix,Nix,ibar)=0.
             Exmatch(Zix,Nix,ibar)=0.
             T(Zix,Nix,ibar)=0.
@@ -384,6 +388,7 @@ c
           Rtransmom(Zix,Nix,1)=0.6
           hbtransfile(Zix,Nix)='                                       '
           clas2file(Zix,Nix)='                                         '
+          E1file(Zix,Nix)='                                            '
    20   continue
         levelfile(Zix)='                                               '
         deformfile(Zix)='                                              '
@@ -393,6 +398,7 @@ c
    10 continue
       ompenergyfile='                                            '
       radialmodel=2
+      breakupmodel=1
       do 60 Zix=0,numZ+4
         do 60 Nix=0,numN+4
           massnucleus(Zix,Nix)=0.
@@ -496,7 +502,7 @@ c
    94 continue
       flagrescue=.false.
       do 100 mt=1,nummt
-        do 105 is=-1,1
+        do 105 is=-1,numisom
           rescuefile(mt,is)='                                          '
           grescue(mt,is)=1.
   105   continue
@@ -645,6 +651,13 @@ c
           call getvalues(class,word,Zix,Nix,type,
      +      ibar,irad,lval,igr,val,ival,cval,flagassign)
           if (flagassign) pshift(Zix,Nix,ibar)=val
+          goto 110
+        endif
+        if (key.eq.'pshiftadjust') then
+          class=3
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) pshiftadjust(Zix,Nix,ibar)=val
           goto 110
         endif
         if (key.eq.'deltaw') then
@@ -1050,15 +1063,22 @@ c
           if (flagassign) deformfile(Zix)=cval
           goto 110
         endif
+        if (key.eq.'e1file') then
+          class=11
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) E1file(Zix,Nix)=cval
+          goto 110
+        endif
         if (key.eq.'hbtransfile') then
-          class=10
+          class=11
           call getvalues(class,word,Zix,Nix,type,
      +      ibar,irad,lval,igr,val,ival,cval,flagassign)
           if (flagassign) hbtransfile(Zix,Nix)=cval
           goto 110
         endif
         if (key.eq.'class2file') then
-          class=10
+          class=11
           call getvalues(class,word,Zix,Nix,type,
      +      ibar,irad,lval,igr,val,ival,cval,flagassign)
           if (flagassign) clas2file(Zix,Nix)=cval
@@ -1508,7 +1528,9 @@ c
           read(word(4),*,end=1000,err=1000)
      +      ompadjustE2(type2,omptype,nr)
           read(word(5),*,end=1000,err=1000) ompadjustD(type2,omptype,nr)
-          read(word(6),*,end=110,err=1000) ompadjusts(type2,omptype,nr)
+          read(word(6),*,iostat=istat) ompadjusts(type2,omptype,nr)
+          if (istat.lt.0) goto 1000
+          if (istat.gt.0) goto 110
           goto 110
         endif
         if (key.eq.'rescuefile') then
@@ -1522,6 +1544,42 @@ c
             endif
             if (word(3)(k:k+1).eq.'_m') then
               is=1
+              goto 220
+            endif
+            if (word(3)(k:k+1).eq.'_n') then
+              is=2
+              goto 220
+            endif
+            if (word(3)(k:k+1).eq.'_o') then
+              is=3
+              goto 220
+            endif
+            if (word(3)(k:k+1).eq.'_p') then
+              is=4
+              goto 220
+            endif
+            if (word(3)(k:k+1).eq.'_q') then
+              is=5
+              goto 220
+            endif
+            if (word(3)(k:k+1).eq.'_r') then
+              is=6
+              goto 220
+            endif
+            if (word(3)(k:k+1).eq.'_s') then
+              is=7
+              goto 220
+            endif
+            if (word(3)(k:k+1).eq.'_t') then
+              is=8
+              goto 220
+            endif
+            if (word(3)(k:k+1).eq.'_u') then
+              is=9
+              goto 220
+            endif
+            if (word(3)(k:k+1).eq.'_v') then
+              is=10
               goto 220
             endif
   210     continue
@@ -1637,6 +1695,10 @@ c
         endif
         if (key.eq.'radialmodel') then
           read(value,*,end=1000,err=1000) radialmodel
+          goto 110
+        endif
+        if (key.eq.'breakupmodel') then
+          read(value,*,end=1000,err=1000) breakupmodel
           goto 110
         endif
         if (key.eq.'rspincut') then
@@ -1805,7 +1867,9 @@ c
           Tirrad(1)=0
           unitTirrad(1)=' '
           do 310 k=1,5
-            read(word(2*k),'(i9)',end=110,err=1000) Tirrad(k)
+            read(word(2*k),'(i9)',iostat=istat) Tirrad(k)
+            if (istat.lt.0) goto 1000
+            if (istat.gt.0) goto 110
             read(word(2*k+1),'(a1)',end=1000,err=1000) unitTirrad(k)
   310     continue
           goto 110
@@ -1818,7 +1882,9 @@ c
           Tcool(1)=0
           unitTcool(1)=' '
           do 320 k=1,5
-            read(word(2*k),*,end=110,err=1000) Tcool(k)
+            read(word(2*k),*,iostat=istat) Tcool(k)
+            if (istat.lt.0) goto 1000
+            if (istat.gt.0) goto 110
             read(word(2*k+1),*,end=1000,err=1000) unitTcool(k)
   320     continue
           goto 110
@@ -1888,6 +1954,7 @@ c
  1060 write(*,'(" TALYS-error: 0 <= level number <= ",i4,
      +  ", ilev0, ilev1 or nbr index out of range: ",a80)')
      +  numlev,inline(i)
+      stop
  1070 write(*,'(" TALYS-error: 0 <= branching ratio",
      +  ", br index out of range: ",a80)') inline(i)
       stop

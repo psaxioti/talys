@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 19, 2013
+c | Date  : August 8, 2014
 c | Task  : ECIS calculation for outgoing particles and energy grid
 c +---------------------------------------------------------------------
 c
@@ -81,8 +81,8 @@ c
         else
           angbeg=0.00001
         endif
-        if (jlmexist(Zix,Nix,type).and.(colltype(Zix,Nix).eq.'S'.
-     +    or..not.flagrot(type))) then
+        if (jlmexist(Zix,Nix,type).and.(colltype(Zix,Nix).eq.'S'
+     +    .or..not.flagrot(type))) then
           jlmloc=.true.
         else
           jlmloc=.false.
@@ -337,7 +337,10 @@ c
   110 continue
       flaginvecis=.false.
       if (.not.flageciscalc) return
-      if (.not.flagecisinp) return
+      if (.not.flagecisinp) then
+        close (unit=9)
+        return
+      endif
       write(9,'("fin")')
       close (unit=9)
 c
@@ -358,6 +361,7 @@ c
       endif
       call ecist('ecisinv.inp  ',outfile,csfile,
      +    'ecis.invin   ',transfile,'null         ','null         ')
+      invexist(Zcomp,Ncomp)=.true.
       open (unit=9,status='unknown',file='ecisinv.inp')
       close (unit=9,status=ecisstatus)
       return

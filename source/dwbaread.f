@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : December 22, 2011
+c | Date  : August 10, 2015
 c | Task  : Read ECIS results for DWBA for MSD
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer          nen1,nen2,J,nS,iang,k,itype
+      integer          nen1,nen2,J,nS,iang,k,itype,istat
       double precision xs
 c
 c ********************** Read DWBA cross sections **********************
@@ -36,11 +36,14 @@ c
             read(8,'()')
    30   continue
         do 40 J=0,maxJmsd
-          read(8,'(12x,i3)',err=40) nS
+          read(8,'(12x,i3)',iostat=istat) nS
+          if (istat.ne.0) goto 40
           do 50 iang=0,nanglecont
-            do 50 k=1,nS
-              read(8,'(i3,12x,e12.5)',err=50) itype,xs
+            do 60 k=1,nS
+              read(8,'(i3,12x,e12.5)',iostat=istat) itype,xs
+              if (istat.ne.0) goto 60
               if (itype.eq.0) xsdw(nen1,nen2,J,iang,0)=real(xs)
+   60       continue
    50     continue
    40   continue
       endif

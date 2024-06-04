@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 18, 2013
+c | Date  : August 10, 2015
 c | Task  : Output of final results
 c +---------------------------------------------------------------------
 c
@@ -66,7 +66,7 @@ c Cknock        : adjustable parameter for knockout reactions
 c Cbreak        : adjustable parameter for breakup reactions
 c flagjlm       : flag for using semi-microscopic JLM OMP
 c alphaomp      : alpha optical model (1=normal, 2= McFadden-Satchler,
-c                 3-5= folding potential)
+c                 3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)
 c aradialcor    : adjustable parameter for shape of DF alpha potential
 c adepthcor     : adjustable parameter for depth of DF alpha potential
 c v1adjust..    : adjustable factors for OMP (default 1.)
@@ -141,7 +141,7 @@ c
           write(11,'("lvsoadjust     ",f10.5)') lvsoadjust
           write(11,'("lwsoadjust     ",f10.5)') lwsoadjust
         endif
-        if (alphaomp.ge.3) then
+        if (alphaomp.ge.3.and.alphaomp.le.5) then
           write(11,'("aradialcor     ",f10.5)') aradialcor
           write(11,'("adepthcor      ",f10.5)') adepthcor
         endif
@@ -231,7 +231,8 @@ c
      +    "  Direct   Pre-equil."/)')
         read(1,'(////)')
         do 10 nen=1,numinc
-          read(1,'(a112)',end=10) stringtot
+          read(1,'(a112)',iostat=istat) stringtot
+          if (istat.ne.0) goto 10
           write(*,'(1x,a112)') stringtot
    10   continue
         close (unit=1)
@@ -245,7 +246,8 @@ c
      +    (parname(type),type=0,6)
         read(1,'(////)')
         do 20 nen=1,numinc
-          read(1,'(a112)',end=20) stringtot
+          read(1,'(a112)',iostat=istat) stringtot
+          if (istat.ne.0) goto 20
           write(*,'(1x,a112)') stringtot
    20   continue
         close (unit=1)
@@ -267,7 +269,8 @@ c
           write(*,'(" Energy   Cross section Multiplicity"/)')
           read(1,'(////)')
           do 120 nen=1,numinc
-            read(1,'(a80)',end=120) string
+            read(1,'(a80)',iostat=istat) string
+            if (istat.ne.0) goto 120
             write(*,'(1x,a80)') string
   120     continue
           close (unit=1)
@@ -281,7 +284,8 @@ c
           write(*,'(" Energy   Cross section "/)')
           read(1,'(////)')
           do 130 nen=1,numinc
-            read(1,'(a80)',end=130) string
+            read(1,'(a80)',iostat=istat) string
+            if (istat.ne.0) goto 130
             write(*,'(1x,a80)') string
   130     continue
           close (unit=1)
@@ -329,7 +333,8 @@ c
             write(*,'(" Energy   Cross section"/)')
             read(1,'(////)')
             do 220 nen=1,numinc
-              read(1,'(a80)',end=220) string
+              read(1,'(a80)',iostat=istat) string
+              if (istat.ne.0) goto 220
               write(*,'(1x,a80)') string
   220       continue
             close (unit=1)
@@ -350,7 +355,8 @@ c
               write(*,'(" Energy   Cross section Branching ratio"/)')
               read(1,'(////)')
               do 240 nen=1,numinc
-                read(1,'(a80)',end=240) string
+                read(1,'(a80)',iostat=istat) string
+                if (istat.ne.0) goto 240
                 write(*,'(1x,a80)') string
   240         continue
               close (unit=1)
@@ -381,7 +387,8 @@ c
               write(*,'("  Energy     Cross section"/)')
               read(1,'(////)')
               do 320 nen=1,numinc
-                read(1,'(a80)',end=320) string
+                read(1,'(a80)',iostat=istat) string
+                if (istat.ne.0) goto 320
                 write(*,'(1x,a80)') string
   320         continue
               close (unit=1)
@@ -433,7 +440,8 @@ c
      +          parsym(type)
               read(1,'(////)')
               do 430 nen=1,numinc
-                read(1,'(a80)',end=430) string
+                read(1,'(a80)',iostat=istat) string
+                if (istat.ne.0) goto 430
                 write(*,'(1x,a80)') string
   430         continue
               close (unit=1)
@@ -454,7 +462,8 @@ c
      +          "      Compound"/)')
               read(1,'(////)')
               do 450 nen=1,numinc
-                read(1,'(a80)',end=450) string
+                read(1,'(a80)',iostat=istat) string
+                if (istat.ne.0) goto 450
                 write(*,'(1x,a80)') string
   450         continue
               close (unit=1)
@@ -471,7 +480,8 @@ c
      +          ",g",a1,")"/)') parsym(k0),parsym(type)
               read(1,'(////)')
               do 460 nen=1,numinc
-                read(1,'(a80)',end=460) string
+                read(1,'(a80)',iostat=istat) string
+                if (istat.ne.0) goto 460
                 write(*,'(1x,a80)') string
   460         continue
               close (unit=1)
@@ -523,7 +533,8 @@ c
      +            "c.s./res.prod.cs"/)')
                 read(1,'(////)')
                 do 530 nen=1,numinc
-                  read(1,'(a100)',end=530) stringtot
+                  read(1,'(a100)',iostat=istat) stringtot
+                  if (istat.ne.0) goto 530
                   write(*,'(1x,a100)') stringtot
   530           continue
                 close (unit=1)
@@ -543,7 +554,8 @@ c
                   write(*,'(" Energy   Cross section  Branching"/)')
                   read(1,'(////)')
                   do 550 nen=1,numinc
-                    read(1,'(a80)',end=550) string
+                    read(1,'(a80)',iostat=istat) string
+                    if (istat.ne.0) goto 550
                     write(*,'(1x,a80)') string
   550             continue
                   close (unit=1)
@@ -583,7 +595,8 @@ c
                   write(*,'(" Energy   Cross section c.s./res.pr.cs"/)')
                   read(1,'(////)')
                   do 630 nen=1,numinc
-                    read(1,'(a80)',end=630) string
+                    read(1,'(a80)',iostat=istat) string
+                    if (istat.ne.0) goto 630
                     write(*,'(1x,a80)') string
   630             continue
                   close (unit=1)
@@ -627,7 +640,8 @@ c
                   write(*,'(" Energy   Cross section"/)')
                   read(1,'(////)')
                   do 730 nen=1,numinc
-                    read(1,'(a80)',end=730) string
+                    read(1,'(a80)',iostat=istat) string
+                    if (istat.ne.0) goto 730
                     write(*,'(1x,a80)') string
   730             continue
                   close (unit=1)

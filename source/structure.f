@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 2, 2011
+c | Date  : November 25, 2014
 c | Task  : Nuclear structure parameters
 c +---------------------------------------------------------------------
 c
@@ -29,7 +29,7 @@ c                 residual nuclides
 c omppar        : subroutine for optical model parameters
 c flagjlm       : flag for using semi-microscopic JLM OMP
 c alphaomp      : alpha optical model (1=normal, 2= McFadden-Satchler,
-c                 3-5= folding potential)
+c                 3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)
 c radialtable   : subroutine for tabulated radial matter densities
 c flagomponly   : flag to execute ONLY an optical model calculation
 c flagfission   : flag for fission
@@ -59,7 +59,8 @@ c
         call gammapar(Zix,Nix)
       endif
       if ((Zix.le.2.and.Nix.le.2).or.flagompall) call omppar(Zix,Nix)
-      if (flagjlm.or.alphaomp.ge.3) call radialtable(Zix,Nix)
+      if (flagjlm.or.alphaomp.ge.3.and.alphaomp.le.5) 
+     +  call radialtable(Zix,Nix)
       if (flagomponly.and..not.flagcomp) return
       if (flagfission) call fissionpar(Zix,Nix)
       call densitypar(Zix,Nix)

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire, Marieke Duijvestijn and Arjan Koning
-c | Date  : February 16, 2012
+c | Date  : August 10, 2015
 c | Task  : Fission parameters
 c +---------------------------------------------------------------------
 c
@@ -12,7 +12,7 @@ c
       logical      lexist
       character*4  fischar
       character*90 fisfile,hbsfile,c2file
-      integer      Zix,Nix,fislocal,Z,N,A,ia,i,j,il,modz,modn,nbar
+      integer      Zix,Nix,fislocal,Z,N,A,ia,i,j,il,modz,modn,nbar,istat
       real         bar1,bar2,hw1,hw2,egs,lbar0,esp,bb,vv
 c
 c ****************** Read fission barrier parameters *******************
@@ -231,8 +231,9 @@ c
       if (flaghbstate) then
         open (unit=2,status='old',file=hbsfile)
         do 410 i=1,nfisbar(Zix,Nix)
-          read(2,'(4x,i4,f8.3)',end=410,err=410)
+          read(2,'(4x,i4,f8.3)',iostat=istat)
      +      nfistrhb(Zix,Nix,i),fecont(Zix,Nix,i)
+          if (istat.ne.0) goto 410
           if (nfistrhb(Zix,Nix,i).gt.numlev) then
             write(*,'(" TALYS-error: there are more than",i3,
      +        " head band states in file ",a73)') numlev,hbsfile
@@ -240,9 +241,10 @@ c
             stop
           endif
           do 420 j=1,nfistrhb(Zix,Nix,i)
-            read(2,'(4x,f11.6,f6.1,i5)',end=410,err=410)
+            read(2,'(4x,f11.6,f6.1,i5)',iostat=istat)
      +        efistrhb(Zix,Nix,i,j),jfistrhb(Zix,Nix,i,j),
      +        pfistrhb(Zix,Nix,i,j)
+            if (istat.ne.0) goto 420
  420      continue
  410    continue
         close (unit=2)
@@ -261,7 +263,8 @@ c
         open (unit=2,status='old',file=c2file)
         nclass2(Zix,Nix)=nfisbar(Zix,Nix)-1
         do 430 i=1,nclass2(Zix,Nix)
-          read(2,'(4x,i4)',end=430,err=430) nfisc2hb(Zix,Nix,i)
+          read(2,'(4x,i4)',iostat=istat) nfisc2hb(Zix,Nix,i)
+          if (istat.ne.0) goto 430
           if (nfisc2hb(Zix,Nix,i).gt.numlev) then
             write(*,'(" TALYS-error: there are more than",i3,
      +        " class 2 states in file ",a73)') numlev,c2file
@@ -269,9 +272,10 @@ c
             stop
           endif
           do 440 j=1,nfisc2hb(Zix,Nix,i)
-            read(2,'(4x,f11.6,f6.1,i5)',end=430,err=430)
+            read(2,'(4x,f11.6,f6.1,i5)',iostat=istat)
      +        efisc2hb(Zix,Nix,i,j),jfisc2hb(Zix,Nix,i,j),
      +        pfisc2hb(Zix,Nix,i,j)
+            if (istat.ne.0) goto 440
   440     continue
   430   continue
         close (unit=2)

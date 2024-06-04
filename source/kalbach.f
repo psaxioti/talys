@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 8, 2007
+c | Date  : August 10, 2015
 c | Task  : Kalbach systematics
 c +---------------------------------------------------------------------
 c
@@ -32,9 +32,13 @@ c (xscompad) angular distribution in the output we only need to take
 c the forward peaked component of the Kalbach formula to calculate the
 c pre-equilibrium angular distribution.
 c
-      data Et1,Et3,C1,C2,C3 /130.,41.,0.04,1.8e-6,6.7e-7/
       data (Cmin(i),i=1,6) /1.,1.,1.,1.,1.,0./
       data (Cmout(i),i=1,6) /0.5,1.,1.,1.,1.,2./
+      Et1=130.
+      Et3=41.
+      C1=0.04
+      C2=1.8e-6
+      C3=6.7e-7
 c
 c Isotropic distribution for photons
 c

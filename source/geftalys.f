@@ -10,6 +10,7 @@ c
          real*4 JFraglight,JFragheavy,Irigidspher,IfragEff
          real*4 Irigid,Ieff,Jrms
          real*4 JFRAGpre(200,150,0:300)
+         real*4 Lymass
          real*8 WN(20:320),sq2pi,WNT(20:320),WN2P(30:320)
          real*8 WN0(20:320),WN1(20:320),WN2(20:320),WN3(20:320),
      ;          WN11(20:320),WN22(20:320)
@@ -356,7 +357,7 @@ c    /' Mode 0: liquid drop '/
        A1 = Z1 / ZCN * ACN
        A2 = ACN - A1
 
-      call BetaEqui(A1,A2,Z1,Z2,dneck,beta1prev,beta2prev,
+      call Beta_Equi(A1,A2,Z1,Z2,dneck,beta1prev,beta2prev,
      ;  beta1opt,beta2opt)
 
       If (Bsub) Then
@@ -374,7 +375,7 @@ c   /' "light" fragment '/
 c   /' "heavy" fragment '/
       beta1prev = beta1opt
       beta2prev = beta2opt
-      Edefo1 = aLymas(Z1,A1,beta1opt) - aLymas(Z1,A1,0.)
+      Edefo1 = LyMass(Z1,A1,beta1opt) - LyMass(Z1,A1,0.)
       Edefo(0,1,I) = Edefo1
 c   /' "light" fragment '/
       Edefo(0,2,I) = Edefo1
@@ -395,7 +396,7 @@ c    ' rbeta = 0.5 * (rbetald + rbetashell)
       rbeta = rbetashell
       Beta(1,1,I) = rbeta
 c  /' "light" fragment '/
-      Edefo1 = aLymas(Z1,A1,rbeta) - aLymas(Z1,A1,0.)
+      Edefo1 = LyMass(Z1,A1,rbeta) - LyMass(Z1,A1,0.)
       Edefo(1,1,I) = Edefo1
 c   /' "light" fragment '/
        End do
@@ -420,7 +421,7 @@ c    ' Betaoptlight(A1,A2,Z1,Z2,dneck,betaheavy(Z2),rbetald)
 c    ' rbeta = 0.5 * (rbetald + rbetashell)
       rbeta = rbetashell
       Beta(2,1,I) = rbeta
-      Edefo1 = aLymas(Z1,A1,rbeta) - aLymas(Z1,A1,0.)
+      Edefo1 = LyMass(Z1,A1,rbeta) - LyMass(Z1,A1,0.)
       Edefo(2,1,I) = Edefo1
       End do
 
@@ -430,7 +431,7 @@ c    ' rbeta = 0.5 * (rbetald + rbetashell)
       Z1 = I
       A1 = (Z1 + 0.5E0) / ZCN * ACN
 c   /' polarization rougly considered '/
-      Edefo1 = aLymas(Z1,A1,rbeta) - aLymas(Z1,A1,0.)
+      Edefo1 = LyMass(Z1,A1,rbeta) - LyMass(Z1,A1,0.)
       Edefo(2,2,I) = Edefo1
       End do
 
@@ -445,7 +446,7 @@ c  /' polarization roughly considered '/
 c  /'  rbeta = 0 '/
 c  /'  Call Betaoptlight(A1,A2,Z1,Z2,dneck,betaheavy(Z2),rbeta) '/
       Beta(3,1,I) = rbeta
-      Edefo1 = aLymas(Z1,A1,rbeta) - aLymas(Z1,A1,0.)
+      Edefo1 = LyMass(Z1,A1,rbeta) - LyMass(Z1,A1,0.)
       Edefo(3,1,I) = Edefo1
       End do
 
@@ -456,7 +457,7 @@ c   /' beta = 0.5 '/
       Z1 = I
       A1 = (Z1 + 0.5E0) / ZCN * ACN
 c  /' polarization rougly considered '/
-      Edefo1 = aLymas(Z1,A1,rbeta) - aLymas(Z1,A1,0.)
+      Edefo1 = LyMass(Z1,A1,rbeta) - LyMass(Z1,A1,0.)
       Edefo(3,2,I) = Edefo1
       End do
 
@@ -907,17 +908,17 @@ c    /' Stiffness in polarization '/
       RA = ACN * 0.5E0
       beta1 = Beta(0,1,nInt(RZ+0.5))
       beta2 = Beta(0,2,nInt(RZ+0.5))
-      RPolCurvS0 = ( aLyMas( RZ - 1.E0, RA, beta1 ) +
-     ;        aLyMas( RZ + 1.0E0, RA, beta2 ) +
-     ;        aLyMas( RZ + 1.0E0, RA, beta1 ) +
-     ;        aLyMas( RZ - 1.0E0, RA, beta2 ) +
+      RPolCurvS0 = ( Lymass( RZ - 1.E0, RA, beta1 ) +
+     ;        Lymass( RZ + 1.0E0, RA, beta2 ) +
+     ;        Lymass( RZ + 1.0E0, RA, beta1 ) +
+     ;        Lymass( RZ - 1.0E0, RA, beta2 ) +
      ;        ecoul( RZ - 1.0E0, RA, beta1,
      ;               RZ + 1.0E0, RA, beta2, dneck) +
      ;        ecoul( RZ + 1.0E0, RA, beta1,
      ;               RZ - 1.0E0, RA, beta2, dneck) -
      ;    2.0E0*ecoul( RZ, RA, beta1, RZ, RA, beta2, dneck) -
-     ;    2.0E0*aLyMas( RZ, RA, beta1 ) -
-     ;    2.0E0*aLyMas( RZ, RA, beta2) ) * 0.5E0
+     ;    2.0E0*Lymass( RZ, RA, beta1 ) -
+     ;    2.0E0*Lymass( RZ, RA, beta2) ) * 0.5E0
 
       PPolCurvS0 = RPolCurvS0
 
@@ -1515,7 +1516,7 @@ c           /' See also Tomar et al., Pramana 68 (2007) 111 '/
         End do
 
 
-       if(MODEC.eq.2) go to 1000
+       if(MODEC.eq.2) goto 1000
 
 c       write(*,*) ' PAWidth2=',PAWidthS2
 
@@ -1783,13 +1784,13 @@ c /' Only deformation energy '/
        Eexclightmean = Edefo(IMode,1,IZlight)
 c /' Only deformation energy '/
        ESIGDEFOheavy =
-     ;  ( ALymas(Float(IZheavy),Float(IAheavy),beta(IMode,2,IZheavy)
+     ;  ( LyMass(Float(IZheavy),Float(IAheavy),beta(IMode,2,IZheavy)
      ; + SIGDEFO)-
-     ;    ALymas(Float(IZheavy),Float(IAheavy),beta(IMode,2,IZheavy)))
+     ;    LyMass(Float(IZheavy),Float(IAheavy),beta(IMode,2,IZheavy)))
        ESIGDEFOlight =
-     ;  ( ALymas(Float(IZlight),Float(IAlight),beta(IMode,1,IZlight)
+     ;  ( LyMass(Float(IZlight),Float(IAlight),beta(IMode,1,IZlight)
      ; + SIGDEFO)-
-     ;   ALymas(Float(IZlight),Float(IAlight),beta(IMode,1,IZlight) ))
+     ;   LyMass(Float(IZlight),Float(IAlight),beta(IMode,1,IZlight) ))
 
 c ' If beta(IMOde,1,IZlight) > 0.68 Then
 c '   ESIGDEFOlight = 0.4*ESIGDEFOlight
@@ -1802,13 +1803,13 @@ c ' End If
         Eexclightmean = Edefo(1,2,IZlight)
 c /' Shell effect stored for "heavy" fragment '/
       ESIGDEFOheavy =
-     ;   ( ALymas(Float(IZheavy),Float(IAheavy),beta(1,2,IZheavy)
+     ;   ( LyMass(Float(IZheavy),Float(IAheavy),beta(1,2,IZheavy)
      ; + SIGDEFO) -
-     ;   ALymas(Float(IZheavy),Float(IAheavy),beta(1,2,IZheavy) ))
+     ;   LyMass(Float(IZheavy),Float(IAheavy),beta(1,2,IZheavy) ))
       ESIGDEFOlight =
-     ;   ( ALymas(Float(IZlight),Float(IAlight),beta(2,2,IZlight)
+     ;   ( LyMass(Float(IZlight),Float(IAlight),beta(2,2,IZlight)
      ; + SIGDEFO) -
-     ;   ALymas(Float(IZlight),Float(IAlight),beta(2,2,IZlight) ))
+     ;   LyMass(Float(IZlight),Float(IAlight),beta(2,2,IZlight) ))
        End If
        If (IMode .eq. 5) Then
       Eexcheavymean = Edefo(2,2,IZheavy)
@@ -1816,13 +1817,13 @@ c /' Shell effect stored for "heavy" fragment '/
 c /' Shell effect stored for "heavy" fragment '/
 
       ESIGDEFOheavy =
-     ;  ( ALymas(Float(IZheavy),Float(IAheavy),beta(2,2,IZheavy)
+     ;  ( LyMass(Float(IZheavy),Float(IAheavy),beta(2,2,IZheavy)
      ; + SIGDEFO) -
-     ;   ALymas(Float(IZheavy),Float(IAheavy),beta(2,2,IZheavy) ))
+     ;   LyMass(Float(IZheavy),Float(IAheavy),beta(2,2,IZheavy) ))
       ESIGDEFOlight =
-     ; ( ALymas(Float(IZlight),Float(IAlight),beta(2,2,IZlight)
+     ; ( LyMass(Float(IZlight),Float(IAlight),beta(2,2,IZlight)
      ; + SIGDEFO) -
-     ;   ALymas(Float(IZlight),Float(IAlight),beta(2,2,IZlight) ))
+     ;   LyMass(Float(IZlight),Float(IAlight),beta(2,2,IZlight) ))
       End If
       If (Eexcheavymean .lt. 0) Then
         Eexcheavymean = 0
@@ -1833,10 +1834,10 @@ c /' Shell effect stored for "heavy" fragment '/
 
 1010  continue
       Eexcheavy = PGAUSS(Eexcheavymean,ESIGDEFOheavy)
-      if (Eexcheavy .lt. 0) go to 1010
+      if (Eexcheavy .lt. 0) goto 1010
 1020  continue
       Eexclight = PGAUSS(Eexclightmean,ESIGDEFOlight)
-      if (Eexclight .lt. 0) go to 1020
+      if (Eexclight .lt. 0) goto 1020
 
 c    /' Assumption: width in TKE is the '/
 c    /' quadratic sum of widths in defo and coll. '/
@@ -1889,10 +1890,10 @@ c    /' Intrinsic excitation energies of fragments '/
 
 1030   continue
        Eintrlight=PGauss(Eintrlightmean,EexcSIGrel*Eintrlightmean+0.5)
-       if (Eintrlight .lt. 0) go to 1030
+       if (Eintrlight .lt. 0) goto 1030
 1040   continue
        Eintrheavy=PGauss(Eintrheavymean,EexcSIGrel*Eintrheavymean+0.5)
-       if (Eintrheavy .lt. 0) go to 1040
+       if (Eintrheavy .lt. 0) goto 1040
 
       Eintrlight = Eintrlight - Aypair(Float(IZlight),Float(IAlight))
       Eintrheavy = Eintrheavy - Aypair(Float(IZheavy),Float(IAheavy))
@@ -2362,169 +2363,6 @@ c	    write(*,*)'fsig(',nex,')=',fsig(nex)
            return
            end
 
-       Subroutine BetaEqui(A1,A2,Z1,Z2,d,beta1prev,beta2prev,
-     ;   beta1opt,beta2opt)
-c    /' Determines the minimum potential of the scission-point configuration
-c       represented by two deformed nuclei, divided by a tip distance d.
-c       A1, A2, Z1, Z2, d are fixed, beta1 and beta2 are searched for and returned on output '/
-
-       real*8 U,Uprev,Ulast,Ubest,Uopt
-       real*8 sbeta1,sbeta2,eps
-        Data eps /5.D-4/
-
-        beta1 = beta1prev
-        beta2 = beta2prev
-        sbeta1=0.
-        sbeta2=0.
-        Uprev = aLyMas(Z1,A1,beta1) +aLyMas(Z2,A2,beta2)
-     ;        + ECoul(Z1,A1,beta1,Z2,A2,beta2,d)
-        Uopt = Uprev
-
-c        if(Z1.eq.10.) write(*,*) ' Uprev=',Uprev
-
-c       /' Test slope of variation of U '/
-        beta1 = beta1prev + eps
-        U = 1.D30
-
-         beta2 = beta2prev
-       do while (beta2.gt.0.)
-         Ulast = U
-         U = aLyMas(Z1,A1,beta1) + aLyMas(Z2,A2,beta2)
-     ;     + ECoul(Z1,A1,beta1,Z2,A2,beta2,d)
-         If (U .gt. Ulast) Then
-           goto 10
-         Else
-           Ubest = U
-         EndIf
-         beta2 = beta2 - eps
-       end do
-10      continue
-
-
-       If (Ubest .lt. Uopt) Then
-         Uopt = Ubest
-         sbeta1 = eps
-         sbeta2 = -eps
-       EndIf
-
-c        if(Z1.eq.10.) write(*,*) ' Uopt=',Uopt
-
-       U = 1.D30
-         beta2 = beta2prev
-
-c        if(Z1.eq.10.) write(*,*) ' beta2=',beta2
-
-       do while (beta2.le.1.)
-         Ulast = U
-         U = aLyMas(Z1,A1,beta1) + aLyMas(Z2,A2,beta2)
-     ;     + ECoul(Z1,A1,beta1,Z2,A2,beta2,d)
-
-c        if(Z1.eq.10.) write(*,*) ' U,Ulast=',U,Ulast
-
-         If (U .gt. Ulast) Then
-           goto 20
-         Else
-           Ubest = U
-         EndIf
-         beta2 = beta2 + eps
-       end do
-20       continue
-
-       If (Ubest .lt. Uopt) Then
-         Uopt = Ubest
-         sbeta1 = eps
-         sbeta2 = eps
-       End If
-
-c       if(Z1.eq.10.) write(*,*) ' Uopt=',Uopt
-
-       beta1 = beta1prev - eps
-       U = 1.D30
-         beta2 = beta2prev
-       do while (beta2.gt.0.)
-         Ulast = U
-         U = aLyMas(Z1,A1,beta1) + aLyMas(Z2,A2,beta2)
-     ;     + ECoul(Z1,A1,beta1,Z2,A2,beta2,d)
-         If( U .gt. Ulast) Then
-           goto 30
-         Else
-            Ubest = U
-         EndIf
-         beta2 = beta2 - eps
-       end do
-  30     continue
-
-       If (Ubest .lt. Uopt) Then
-         Uopt = Ubest
-         sbeta1 = -eps
-         sbeta2 = -eps
-       EndIf
-
-c        if(Z1.eq.10.) write(*,*) ' Uopt=',Uopt
-
-       U = 1.D30
-         beta2 = beta2prev
-       do while (beta2.le.1.)
-         Ulast = U
-         U = aLyMas(Z1,A1,beta1) + aLyMas(Z2,A2,beta2)
-     ;     + ECoul(Z1,A1,beta1,Z2,A2,beta2,d)
-         If (U .gt. Ulast) Then
-          goto 40
-         Else
-           Ubest = U
-         EndIf
-         beta2 = beta2 + eps
-       end do
-40       continue
-
-       If (Ubest .lt. Uopt) Then
-         Uopt = Ubest
-         sbeta1 = -eps
-         sbeta2 = eps
-       EndIf
-
-c        if(Z1.eq.10.) write(*,*) ' Uopt=',Uopt
-
-
-      Ubest = aLymas(Z1,A1,beta1prev) + aLymas(Z2,A2,beta2prev)
-     ;        + ECoul(Z1,A1,beta1prev,Z2,A2,beta2prev,d)
-      U = aLymas(Z1,A1,real(beta1prev+sbeta1)) +
-     ;    aLymas(Z2,A2,real(beta2prev+sbeta2)) +
-     ; ECoul(Z1,A1,real(beta1prev+sbeta1),Z2,A2,
-     ; real(beta2prev+sbeta2),d)
-
-
-      do N = 1 , 1000
-
-      Nopt=0
-      do N1 = 1 , N
-           N2 = N-N1
-           beta1 = beta1prev + sbeta1*N1
-           beta2 = beta2prev + sbeta2*N2
-           U = aLyMas(Z1,A1,beta1) +
-     ;         aLyMas(Z2,A2,beta2) +
-     ;         ECoul(Z1,A1,beta1,Z2,A2,beta2,d)
-           If (U .lt. Ubest) Then
-             Ubest = U
-             beta1opt = beta1
-             beta2opt = beta2
-             Nopt = N
-           EndIf
-         end do
-         If (N-Nopt .gt. 2) Then
-          goto 60
-         end if
-       end do
- 60    continue
-
-
-       If (N .gt. 998) Then
-          write(*,*) 'BetaEqui not converged: ',Z1,N
-       end if
-
-       return
-       End
-
       Subroutine BetaEquiA(A1,A2,Z1,Z2,d,beta1prev,beta2prev,
      ;    beta1opt,beta2opt)
 c    /' Analytical approximation to the numerical calculations in BetaEqui '/
@@ -2743,6 +2581,7 @@ c              ANAL(ENM(I_MODE),E_kin); '/
 
             Function ALDMas(Z,A,beta)
       common /datain/beldm(203,136),ushel(203,136),RNucTab(3885,8)
+         real*4 Lymass
             AN = A - Z
             AN=max(AN,1.)
             BEtab = BELDM(nInt(AN),nInt(Z)) + 2 * 12 / sqrt(A)
@@ -2750,7 +2589,7 @@ c              ANAL(ENM(I_MODE),E_kin); '/
 c           ' The values in BEtab are the negative binding energies!
 c           ' Pairing in Thomas Fermi masses is zero for Z,N even !
          If (BEtab.eq.0) Then
-           BEtab = ALymas(Z,A,0.)
+           BEtab = LyMass(Z,A,0.)
 c         Print "Warning: Binding energy of Z=";Z;", A=";A;" not in mass table,";
 c                        " replaced by LYMASS"
          End If
@@ -2779,34 +2618,6 @@ c            ' This gives too many high-energetic prompt neutrons.
             return
             End
 
-       Function ECOUL(Z1,A1,beta1,Z2,A2,beta2,d)
-
-c      /' Coulomb potential between two nuclei                    '/
-c      /' surfaces are in a distance of d                         '/
-c      /' in a tip to tip configuration                           '/
-c
-c      /' approximate formulation                                 '/
-c      /' On input: Z1      nuclear charge of first nucleus       '/
-c      /'           A1      mass number of irst nucleus   '/
-c      /'           beta1   deformation of first nucleus          '/
-c      /'           Z2      nuclear charge of second nucleus      '/
-c      /'           A2      mass number of second nucleus  '/
-c      /'           beta2   deformation of second nucleus         '/
-c      /'           d       distance of surfaces of the nuclei    '/
-
-        Data r0/1.16/
-
-        aN1 = A1 - Z1
-        aN2 = A2 - Z2
-        dtot = r0 *( (Z1+aN1)**0.3333333E0 * (1.E0+0.6666667E0*beta1)
-     ;        + (Z2+aN2)**0.3333333E0 * (1.E0+0.6666667E0*beta2) )
-     ;        + d
-        REcoul = Z1 * Z2 * 1.44E0 / dtot
-
-        ECOUL = REcoul
-        return
-        END
-
         Function Zequi(ZCN,A1,A2,beta1,beta2,d,Imode)
 c    /' Determines the minimum potential of the scission-point configuration
 c       represented by two deformed nuclei divided by a tip distance d.
@@ -2819,6 +2630,7 @@ c       /' beta1: deformation of first fission fragment '/
 c       /' beta2: deformation of second fission fragment '/
 c       /' d: tip distance '/
 
+         real*4 Lymass
          common /comvar/ZUCD
         data POLARadd/0.3/,POLARfac/1./
 
@@ -2832,14 +2644,14 @@ c         write(*,*) ZCN,A1,A2,beta1,beta2,d,Imode
 c         ACN = A1 + A2
           Z1UCD = A1 / (A1 + A2) * ZCN
           Z2UCD = ZCN - Z1UCD
-          re1 = aLyMas( Z1UCD-1.E0, A1, beta1 ) +
-     ;          aLyMas( Z2UCD+1.E0, A2, beta2 ) +
+          re1 = Lymass( Z1UCD-1.E0, A1, beta1 ) +
+     ;          Lymass( Z2UCD+1.E0, A2, beta2 ) +
      ;          ECoul( Z1UCD-1.E0, A1, beta1,Z2UCD+1.E0, A2, beta2, d)
-          re2 = aLyMas( Z1UCD, A1, beta1) +
-     ;          aLyMas( Z2UCD, A2, beta2) +
+          re2 = Lymass( Z1UCD, A1, beta1) +
+     ;          Lymass( Z2UCD, A2, beta2) +
      ;          ECoul( Z1UCD, A1, beta1,Z2UCD, A2, beta2, d )
-          re3 = aLyMas( Z1UCD+1.E0, A1, beta1 ) +
-     ;          aLyMas( Z2UCD-1.E0, A2, beta2 ) +
+          re3 = Lymass( Z1UCD+1.E0, A1, beta1 ) +
+     ;          Lymass( Z2UCD-1.E0, A2, beta2 ) +
      ;           ECoul( Z1UCD+1.E0, A1, beta1,Z2UCD-1.E0, A2, beta2, d)
           eps2 = ( re1 - 2.E0*re2 + re3 ) / 2.E0
           eps1 = ( re3 - re1 ) / 2.E0
@@ -2878,84 +2690,6 @@ c      /' Z of fission fragment '/
         return
         End
 
-            Function FEDEFOLys(Z,A,beta)
-            FEDEFOLys = ALymas(Z,A,beta) - ALymas(Z,A,0.)
-            End
-
-            Function AlyMas(Z,A,beta)
-            data pi/3.14159/
-
-c     /' liquid-drop mass, Myers & Swiatecki, Lysekil, 1967  '/
-c     /' pure liquid drop, without pairing and shell effects '/
-c
-c     /' On input:    Z     nuclear charge of nucleus        '/
-c     /'              N     number of neutrons in nucleus    '/
-c     /'              beta  deformation of nucleus           '/
-c     /' On output:   binding energy of nucleus              '/
-
-
-c        AN = A - Z
-        alpha = sqrt(5.E0/(4.E0*pi)) * beta
-        XCOM = 1.E0 - 1.7826E0 * ((A - 2.E0*Z)/A)**2
-c            /' factor for asymmetry dependence of surface and volume term '/
-        XVS = - XCOM * (15.4941E0*A
-     ;             - 17.9439E0*A**(2.E0/3.E0)*(1.E0+0.4E0*Alpha**2))
-c            /' sum of volume and surface energy '/
-        XE = Z**2 * (0.7053E0/A**(1.E0/3.E0)*(1.E0-0.2E0*Alpha**2)
-     ;            - 1.1529E0/A)
-        EL = XVS + XE
-c  /'   EL = EL + LyPair(Z,A); '/
-        ALyMas = EL
-        return
-        END
-
-        Function BFTF(RZ,RA,ISwitch)
-c    /' Fission barriers from Myers and Swiatecki, Thomas-Fermi model '/
-c    /'  ISwitch: 0: liquid-drop, 1: with shells '/
-      DATA RX0/48.5428/,RX1/34.15/
-
-        RN = RA - RZ
-        RI = (RN-RZ) / RA
-        Rkappa = 1.9E0 + (RZ - 80.E0) / 75.E0
-        RS = RA**0.666667E0 * (1.E0 - Rkappa * RI**2)
-        RX = RZ**2 / (RA * (1.E0 - Rkappa * RI**2))
-        If(RX.lt.30) Then
-c   /' out of range '/
-        RF = 1.E10
-        End If
-        If(RX.gt. RX0) Then
-c   /' out of range '/
-        RF = 0
-        End If
-        If(RX.lt. RX1.And.RX .gt. 30) Then
-        RF = 0.595553E0 - 0.124136E0 * (RX - RX1)
-        End If
-        If(RX.ge.RX1.And.RX.le.RX0) Then
-        RF = 0.000199749 * (RX0 - RX)**3
-        End If
-        RB = RF * RS
-        If (ISwitch.eq.0) Then
-         BFTF = RB
-        Else
-         BFTF = RB - UShell(RZ,RA)
-        End If
-        return
-        End
-
-        Function BFTFB(RZ,RA,ISwitch)
-c       /' outer barrier height '/
-        Data coeff/0.5/
-        BF0 = BFTF(RZ,RA,ISwitch)
-        ZsqA = RZ**2 / RA
-        If(ZsqA .lt. 91.E0**2 / 231.E0) Then
-         RB = BF0
-        Else
-         RB = BF0 - coeff * (ZsqA - 91.E0**2 / 231.E0)
-        End If
-        BFTFB = RB
-        return
-        End
-
         Function AMasscurv(Z,A,RI)
         Data kappa/0/
 c     /'  Fit to  Data of Fig. 7 of                                             '/
@@ -2977,24 +2711,6 @@ c      write(*,*) result1,result2
       return
       End
 
-      Function F1(ZSA)
-c      /' Fit to the lower part of the data '/
-      Result = exp(-9.05E0 + 4.58E0 * aLog(ZSA/2.3E0))
-      F1 = Result
-      return
-      End
-
-      Function F2(ZSA)
-c      /' Fit to the upper part of the data (not used) '/
-      Data RShiftMassCurv/30/
-c    /' effectively switched off '/
-      ZSAmod = ZSA - RShiftMassCurv
-      ZSAmod = max(ZSAmod,1.)
-      Result = exp(12.08E0 - 3.27E0 * aLog(ZSAmod/2.3E0))
-      F2 = Result
-      return
-      End
-
       Function DeSaddleScission(ZsquareoverAthird)
 c    /' Energy release between saddle and scission '/
 c    /' M. Asghar, R. W. Hasse, J. Physique C 6 (1984) 455 '/
@@ -3005,51 +2721,6 @@ c    /' M. Asghar, R. W. Hasse, J. Physique C 6 (1984) 455 '/
       DeSaddleScission = Result
       return
       End
-
-      Function TEgidy(A,DU,Fred)
-c    /' Temperature parameter of the constant-temperature formula for the
-c       nuclear level density.
-c       Input parameters: A = Mass number of nucleus
-c                         DU = Shell effect (corrected for pairing:P=0 for odd-A nuclei)
-c       From "Correlations between the nuclear level density parameters"
-c         Dorel Bucurescu, Till von Egidy
-c         Phys. Rev. C 72 (2005) 067304    and
-c            "Systematics of nuclear level density parameters"
-c         Dorel Bucurescu, Till von Egidy
-c         J. Phys. G: Nucl. Part. Phys. 31 (2005) S1675 and
-c            "Systematics of nuclear level density parameters"
-c         Till von Egidy, Dorel Bucurescu
-c         Phys. Rev. C 72 (2005) 044311 '/
-        Tempsmooth = 17.45E0 / (A**0.666667E0)
-c  ' Temp = (17.45E0 - 0.51E0 * DU + 0.051 * DU^2) / (A^0.666667E0)
-        Temp = 1 / ( (0.0570 + 0.00193*DU) * A**0.6666667)
-c  ' from  PRC 80 (2009) 054310
-c       TFac = Temp / Tempsmooth
-        Temp = Temp * Fred
-c    /' (For influence of deformation) '/
-        TEgidy = Temp
-        return
-        End
-
-        Function Getyield(Erel,Eref,Tlow,Thigh)
-c         /' Erel: Energy relative to the barrier '/
-c         /' Tlow: Effective temperature below barrier '/
-c         /' Thigh: Effective temperature above barrier '/
-
-        Exp1 = Erel/Tlow - Eref/0.4
-        expo1=Erel / Thigh - Eref/0.4
-        expo2=-Erel/ (Thigh*Tlow/(Thigh-Tlow) )
-c   ' energy far below barrier
-       If(Exp1.lt.-50..or.expo1.gt.80..or.expo2.gt.80.) Then
-        Yield = 0.
-       Else
-        Yield = Exp(expo1) * 1.E0 /
-     ;     (1.E0 + exp(expo2) )
-        End If
-c       write(*,*)  Erel,Thigh,Tlow,Eref,Yield
-       Getyield = Yield
-       return
-       End
 
         Function TRusanovf(E, A)
 c     /' Fermi-gas level density, parameterisation of Rusanov et al. '/
@@ -3121,13 +2792,6 @@ c  /' odd before modification '/
        return
        End
 
-       Function Gaussintegral(Rx,Rsigma)
-c     /' Smoothed step function. Grows from 0 to 1 around Rx
-c        with a Gauss-integral function with given sigma'/
-       external Erf
-       Rret = 0.5E0 + 0.5E0 * Erf(Rx / Rsigma)
-       Gaussintegral = Rret
-       End
        Function Erf(x)
 c   /' Sergei Winitzki, 2008: relative accuracy < 1.4E-4 '/
 c   '  Dim As Single a = 0.147

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 13, 2013
+c | Date  : December 8, 2015
 c | Task  : Initialization of arrays for various structure parameters
 c +---------------------------------------------------------------------
 c
@@ -86,14 +86,10 @@ c
    40 continue
       lmaxinc=0
 c
-c If no nuclear reaction calculation is requested, we skip a large
-c part of this subroutine to speed up the calculation.
-c
-      if (.not.flagreaction) goto 600
-c
 c Level and deformation parameters
 c
 c flaginvecis: logical for calculating inverse channel OMP
+c Ltarget    : excited level of target
 c numlev2    : maximum number of levels
 c jassign    : flag for assignment of spin
 c passign    : flag for assignment of parity
@@ -126,6 +122,7 @@ c numrotcc   : number of rotational deformation parameters
 c rotpar     : deformation parameters for rotational nucleus
 c
       flaginvecis=.true.
+      Ltarget0=Ltarget
       do 110 i=0,numlev2
         do 110 Nix=0,numN
           do 110 Zix=0,numZ
@@ -134,6 +131,7 @@ c
             parlev(Zix,Nix,i)=1
             edis(Zix,Nix,i)=0.
             jdis(Zix,Nix,i)=0.
+            tau(Zix,Nix,i)=0.
             leveltype(Zix,Nix,i)='D'
             indexlevel(Zix,Nix,i)=0
             indexcc(Zix,Nix,i)=0
@@ -144,11 +142,6 @@ c
             deform(Zix,Nix,i)=0.
             defpar(Zix,Nix,i)=0.
   110 continue
-      do 120 i=0,numlev
-        do 120 Nix=0,numN
-          do 120 Zix=0,numZ
-            tau(Zix,Nix,i)=0.
-  120 continue
       do 130 k=0,numlev
         do 130 i=0,numlev
           do 130 Nix=0,numN
@@ -182,6 +175,26 @@ c
             rotpar(Zix,Nix,i)=0.
   150 continue
 c
+c Resonance parameters
+c
+c gamgamth: theoretical total radiative width
+c swaveth : theoretical strength function for s-wave
+c dD0     : uncertainty in D0
+c dgamgam : uncertainty in gamgam
+c
+      do 210 Nix=0,numN
+        do 210 Zix=0,numZ
+          gamgamth(Zix,Nix)=0.
+          swaveth(Zix,Nix)=0.
+          dD0(Zix,Nix)=0.
+          dgamgam(Zix,Nix)=0.
+  210 continue
+c
+c If no nuclear reaction calculation is requested, we skip a large
+c part of this subroutine to speed up the calculation.
+c
+      if (.not.flagreaction) goto 600
+c
 c Decay data parameters
 c
 c lambda: decay rate per isotope
@@ -202,21 +215,6 @@ c
   180       continue
   170     continue
   160 continue
-c
-c Resonance parameters
-c
-c gamgamth: theoretical total radiative width
-c swaveth : theoretical strength function for s-wave
-c dD0     : uncertainty in D0
-c dgamgam : uncertainty in gamgam
-c
-      do 210 Nix=0,numN
-        do 210 Zix=0,numZ
-          gamgamth(Zix,Nix)=0.
-          swaveth(Zix,Nix)=0.
-          dD0(Zix,Nix)=0.
-          dgamgam(Zix,Nix)=0.
-  210 continue
 c
 c Gamma parameters
 c
@@ -277,7 +275,7 @@ c              the volume
 c flagjlm    : flag for using semi-microscopic JLM OMP
 c flagracap  : flag for radiative capture model
 c alphaomp   : alpha optical model (1=normal, 2= McFadden-Satchler,
-c              3-5= folding potential)
+c              3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)
 c rhojlmn    : density for neutrons
 c rhojlmp    : density for protons
 c potjlm     : JLM potential depth values
@@ -287,6 +285,8 @@ c xseladjust : elastic cross section adjustment
 c xsnonadjust: nonelastic cross section adjustment
 c threshnorm : normalization factor at trheshold
 c Rprime     : potential scattering radius
+c Emaxtalys  : maximum acceptable energy for TALYS
+c nubarexist : flag for existence of nubar file
 c
       do 410 k=1,numpar
         do 410 Nix=0,numN
@@ -332,7 +332,8 @@ c
         do 430 nen=-200,10*numen
           wvol(type,nen)=0.
   430 continue
-      if (flagjlm.or.flagracap.or.alphaomp.ge.3) then
+      if (flagjlm.or.flagracap.or.(alphaomp.ge.3.and.alphaomp.le.5)) 
+     +  then
         do 440 k=1,6
           do 440 nen=1,numjlm
             do 440 Nix=0,numN
@@ -356,6 +357,14 @@ c
         threshnorm(type)=1.
   470 continue
       Rprime=0.
+      do 480 type=1,numpar
+        do 490 i=1,10
+          Eompbeg0(type,i)=0.
+          Eompbeg1(type,i)=0.
+          Eompend1(type,i)=Emaxtalys
+          Eompend0(type,i)=Emaxtalys
+  490   continue
+  480 continue
 c
 c Fission parameters
 c
@@ -383,7 +392,6 @@ c jfistrrot  : spin of rotational transition states
 c pfisc2rot  : parity of rotational class2 states
 c efisc2rot  : energy of rotational class2 states
 c jfisc2rot  : spin of rotational class2 states
-c nubarexist : flag for existence of nubar file
 c
       do 510 Nix=0,numN
         do 510 Zix=0,numZ
@@ -444,7 +452,6 @@ c
         Vheight(k)=0.
         Vwidth(k)=0.
   590 continue
-      nubarexist=.false.
 c
 c Level density parameters
 c
@@ -471,19 +478,10 @@ c ldtottableP: total level density per parity from table
 c ldtottable : total level density from table
 c rhogrid    : integrated level density
 c
-  600 do 610 i=0,numbar
-        do 610 Nix=0,numN
-          do 610 Zix=0,numZ
-            Nlast(Zix,Nix,i)=0.
-            Ediscrete(Zix,Nix,i)=0.
-            scutoffdisc(Zix,Nix,i)=1.
-            delta(Zix,Nix,i)=0.
-            ldexist(Zix,Nix,i)=.false.
-  610 continue
 c
 c Set energy grid for tabulated level densities
 c
-      edens(0)=0.
+  600 edens(0)=0.
       do 620 nex=1,20
         edens(nex)=0.25*nex
   620 continue
@@ -518,16 +516,27 @@ c
             Edensmax(Zix,Nix)=200.
           endif
   670 continue
+      do 680 i=0,numbar
+        do 680 Nix=0,numN
+          do 680 Zix=0,numZ
+            Nlast(Zix,Nix,i)=0.
+            Ediscrete(Zix,Nix,i)=0.
+            scutoffdisc(Zix,Nix,i)=1.
+            delta(Zix,Nix,i)=0.
+            ldexist(Zix,Nix,i)=.false.
+  680 continue
       if (.not.flagreaction) return
       do 710 Nix=0,numN
         do 710 Zix=0,numZ
           D0theo(Zix,Nix)=0.
           if (ldmodel(Zix,Nix).eq.3) then
-            Ucrit(Zix,Nix)=0.
             Tcrit(Zix,Nix)=0.
-            Econd(Zix,Nix)=0.
-            Scrit(Zix,Nix)=0.
-            aldcrit(Zix,Nix)=0.
+            do 715 i=0,numbar
+              Ucrit(Zix,Nix,i)=0.
+              Econd(Zix,Nix,i)=0.
+              Scrit(Zix,Nix,i)=0.
+              aldcrit(Zix,Nix,i)=0.
+  715       continue
           endif
   710 continue
       do 720 Nix=0,numN
@@ -606,7 +615,7 @@ c
           Nphconf2=72
           Nphconf1=14
           open (unit=2,status='old',file=denfile)
-          read(2,'(/////,10x,72(a4,5x),1x,14(a2,7x))')
+          read(2,'(/////,9x,72(a4,5x),1x,14(a2,7x))')
      +      (phstring2(i),i=1,72),(phstring1(k),k=1,14)
           do 770 i=1,Nphconf2
             read(phstring2(i),'(4i1)') ppitable(i),hpitable(i),
@@ -707,10 +716,18 @@ c
                     chanisoexist(in,ip,id,it,ih,ia,nex)=.false.
  1050             continue
  1040 continue
-      do 1060 i=1,numelem
-        do 1060 j=1,nummass
-          fpexist(i,j)=.false.
- 1060 continue
+      if (nin0.eq.0) then
+        do 1060 i=1,numelem
+          do 1060 j=1,numneu
+            fpexist(i,j)=.false.
+ 1060   continue
+        do 1065 j=1,nummass
+          fpaexist(j)=.false.
+ 1065   continue
+        do 1068 type=0,numpar
+          nubarexist(type)=.false.
+ 1068   continue
+      endif
       lminU=numl
       lmaxU=0
       flagurrendf=.false.
@@ -722,7 +739,7 @@ c
  1080   continue
  1070 continue
       do 1090 i=1,nummt
-        do 1100 is=-1,1
+        do 1100 is=-1,numisom
           Nrescue(i,is)=0
  1100   continue
  1090 continue
