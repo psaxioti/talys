@@ -57,16 +57,16 @@ c Ground state
 c
         if (ibar.eq.0) then
           if (ldmod.eq.4) then
-            denfile=
-     +       trim(path)//'density/ground/goriely/'//denchar//'.tab'
+            denfile=trim(path)//'density/ground/goriely/'//
+     +        trim(denchar)//'.tab'
           endif
           if (ldmod.eq.5) then
-            denfile=
-     +       trim(path)//'density/ground/hilaire/'//denchar//'.tab'
+            denfile=trim(path)//'density/ground/hilaire/'//
+     +        trim(denchar)//'.tab'
           endif
           if (ldmod.eq.6) then
             denfile=trim(path)//'density/ground/hilaireD1M/'//
-     +        denchar//'.tab'
+     +        trim(denchar)//'.tab'
           endif
         endif
 c
@@ -75,10 +75,10 @@ c
         if (ibar.eq.1) then
           if (ldmod.eq.4) then
             denfile=trim(path)//'density/fission/goriely/inner/'
-     +        //denchar//'.ld'
+     +        //trim(denchar)//'.ld'
           else
             denfile=trim(path)//'density/fission/hilaire/Max1/'
-     +        //denchar//'.ld'
+     +        //trim(denchar)//'.ld'
           endif
         endif
 c
@@ -87,10 +87,10 @@ c
         if (ibar.eq.2) then
           if (ldmod.eq.4) then
             denfile=trim(path)//'density/fission/goriely/outer/'
-     +        //denchar//'.ld'
+     +        //trim(denchar)//'.ld'
           else
             denfile=trim(path)//'density/fission/hilaire/Max2/'
-     +        //denchar//'.ld'
+     +        //trim(denchar)//'.ld'
           endif
         endif
 c
@@ -99,7 +99,7 @@ c
         if (ibar.eq.3) then
           if (ldmod.eq.5) then
             denfile=trim(path)//'density/fission/hilaire/Max3/'
-     +        //denchar//'.ld'
+     +        //trim(denchar)//'.ld'
           else
             goto 10
           endif
