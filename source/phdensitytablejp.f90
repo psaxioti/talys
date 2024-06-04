@@ -1,105 +1,119 @@
-      subroutine phdensitytablejp(Zix,Nix)
-c
-c +---------------------------------------------------------------------
-c | Author: Stephane Goriely & Arjan Koning
-c | Date  : December 12, 2016
-c | Task  : Tabulated spin- and parity-dependent particle-hole level
-c |         densities
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      logical          lexist
-      character*5      denchar
-      character*6      phdir
-      character*132    denfile
-      integer          Zix,Nix,Z,A,ia,parity,nex,J,istat
-      real             ephjpgrid
-      double precision ldtot,ld2j1(0:numJ)
-c
-c *********** Tabulated level densities from Goriely *******************
-c
-c Zix          : charge number index for residual nucleus
-c Nix          : neutron number index for residual nucleus
-c phdir        : directory for particle-hole density
-c ZZ,Z         : charge number of residual nucleus
-c AA,A,ia      : mass number of residual nucleus
-c ldmodelracap : level density model for direct radiative captures
-c nenphdens    : number of energies for level density grid
-c denfile      : level density parameter file
-c parity       : parity
-c edensphjp    : energy grid of ph spin- and parity-dependent level density from table
-c phdensjp     : ph spin- and parity-dependent level density from table
-c phdenstot    : total ph level density from table
-c
-      if (ldmodelracap.ne.1) return
-      Z=ZZ(Zix,Nix,0)
-      A=AA(Zix,Nix,0)
-      if (k0.eq.1) then
-        phdir='ph0011'
-      else
-        ldmodelracap=2
-        return
-      endif
-ctest if (k0.eq.2) phdir='ph1100'
-ctest if (k0.eq.3) phdir='ph1111'
-ctest if (k0.eq.4) phdir='ph1122'
-ctest if (k0.eq.5) phdir='ph2211'
-ctest if (k0.eq.6) phdir='ph2222'
-      denchar=trim(nuc(Z))//'.ph'
-      denfile=trim(path)//'density/phjp/'//phdir//'/'//denchar
-c
-c Check existence of file and read data from the tables.
-c
-c ephjpgrid: energy for level density grid
-c ldtot : total level density
-c ld2j1  : spin dependent level density
-c
-      inquire (file=denfile,exist=lexist)
-      if (lexist) then
-        open (unit=2,status='old',file=denfile)
-        do 10 parity=1,-1,-2
-   20     read(2,'(/31x,i3//)',iostat=istat) ia
-          if (istat.ne.0) goto 10
-          if (A.ne.ia) then
-            do 30 nex=1,nenphdens+1
-              read(2,'()')
-   30       continue
-            goto 20
-          else
-            do 40 nex=1,nenphdens
-              read(2,'(1x,f6.2,17x,e9.2,9x,30e9.2)',err=100)
-     +          ephjpgrid,ldtot,(ld2j1(J),J=0,29)
-c
-c Determination of the mass-asymmetric enhancement factor for fission
-c barrier
-c
-              phdenstot(Zix,Nix,nex)=phdenstot(Zix,Nix,nex)+ldtot
-              edensphjp(Zix,Nix,nex)=ephjpgrid
-              do 50 J=0,29
-                phdensjp(Zix,Nix,nex,J,parity)=ld2j1(J)
-   50         continue
-   40       continue
-            read(2,'()')
-          endif
-   10   continue
-        close (unit=2)
-        if (A.ne.ia) then
-          write(*,'("Input ph file not available:",a)') trim(denfile)
-          write(*,'(" For A=",i3," --> Change of ldmodelracap=1",
-     +      " to ldmodelracap=2")') A
-          ldmodelracap=2
+subroutine phdensitytablejp(Zix, Nix)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Tabulated spin- and parity-dependent particle-hole level
+!
+! Author    : Stephane Goriely and Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+  use A1_error_handling_mod
+!
+! Definition of single and double precision variables
+!   sgl             ! single precision kind
+!   dbl             ! double precision kind
+! All global variables
+!   numJ            ! maximum J - value
+! Variables for gamma rays
+!   ldmodelracap    ! level density model for direct radiative capture
+! Variables for main input
+!   k0              ! index of incident particle
+! Variables for nuclides
+!   AA              ! mass number of residual nucleus
+!   ZZ              ! charge number of residual nucleus
+! Constants
+!   nuc             ! symbol of nucleus
+! Variables for files
+!   path            ! directory containing files to be read
+! Variables for particle-hole state densities
+!   nenphdens       ! number of energies for p - h stat
+! Variables for direct capture initialization
+!   edensphjp       ! energy grid of ph spin - and parity - depe
+!   phdensjp        ! ph spin - and parity - dependent level den
+!   phdenstot       ! total ph level density from table
+! Error handling
+!   read_error ! Message for file reading error
+!
+! *** Declaration of local data
+!
+  implicit none
+  logical           :: lexist           ! logical to determine existence
+  character(len=5)  :: denchar          ! string for level density file
+  character(len=6)  :: phdir            ! directory for particle-hole density
+  character(len=132):: denfile          ! level density parameter file
+  integer           :: A                ! mass number of target nucleus
+  integer           :: ia               ! mass number from abundance table
+  integer           :: istat            ! logical for file access
+  integer           :: J                ! spin of level
+  integer           :: nex              ! excitation energy bin of compound nucleus
+  integer           :: Nix              ! neutron number index for residual nucleus
+  integer           :: parity           ! parity
+  integer           :: Z                ! charge number of target nucleus
+  integer           :: Zix              ! charge number index for residual nucleus
+  real(sgl)         :: ephjpgrid        ! energy for level density grid
+  real(dbl)         :: ld2j1(0:numJ)    ! spin dependent level density
+  real(dbl)         :: ldtot            ! total level density
+!
+! *********** Tabulated level densities from Goriely *******************
+!
+  if (ldmodelracap /= 1) return
+  Z = ZZ(Zix, Nix, 0)
+  A = AA(Zix, Nix, 0)
+  if (k0 == 1) then
+    phdir = 'ph0011'
+  else
+    ldmodelracap = 2
+    return
+  endif
+  denchar = trim(nuc(Z))//'.ph'
+  denfile = trim(path)//'density/phjp/'//phdir//'/'//denchar
+!
+! Check existence of file and read data from the tables.
+!
+  inquire (file = denfile, exist = lexist)
+  if (lexist) then
+    open (unit = 2, status = 'old', file = denfile)
+    do parity = 1, - 1, - 2
+      do
+        read(2, '(/31x, i3//)', iostat = istat) ia
+        if (istat /= 0) exit
+        if (A == ia) then
+          do nex = 1, nenphdens
+            read(2, '(1x, f6.2, 17x, e9.2, 9x, 30e9.2)', iostat = istat) ephjpgrid, ldtot, (ld2j1(J), J = 0, 29)
+            if (istat /= 0) call read_error(denfile, istat, ival = Z, xval = ephjpgrid)
+!
+! Determination of the mass-asymmetric enhancement factor for fission barrier
+!
+            phdenstot(Zix, Nix, nex) = phdenstot(Zix, Nix, nex) + ldtot
+            edensphjp(Zix, Nix, nex) = ephjpgrid
+            do J = 0, 29
+              phdensjp(Zix, Nix, nex, J, parity) = ld2j1(J)
+            enddo
+          enddo
+          read(2, '()')
+          exit
+        else
+          do nex = 1, nenphdens + 1
+            read(2, '()')
+          enddo
         endif
-      else
-        write(*,'("Input ph file not available:",a)') trim(denfile)
-        write(*,'("  Change of ldmodelracap=1 to ldmodelracap=2")')
-        ldmodelracap=2
-      endif
-c
-      return
-  100 write(*,'(" TALYS-error: Wrong ph level density table for",
-     +  " Z=",i3," A=",i3)') Z,A
-      stop
-      end
-Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely
+      enddo
+    enddo
+    close (unit = 2)
+    if (A /= ia) then
+      write(*, '("Input ph file not available:", a)') trim(denfile)
+      write(*, '(" For A=", i3, " --> Change of ldmodelracap=1 to ldmodelracap=2")') A
+      ldmodelracap = 2
+    endif
+  else
+    write(*, '("Input ph file not available:", a)') trim(denfile)
+    write(*, '("  Change of ldmodelracap=1 to ldmodelracap=2")')
+    ldmodelracap = 2
+  endif
+  return
+end subroutine phdensitytablejp
+! Copyright A.J. Koning 2021

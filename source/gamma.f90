@@ -1,26 +1,33 @@
-      subroutine gamma(Zcomp,Ncomp)
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : April 4, 2022
-c | Task  : Gamma cross section and transmission coefficients
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer Zcomp,Ncomp
-c
-c ********** Gamma cross section and transmission coefficients *********
-c
-c Zcomp    : charge number index for compound nucleus
-c Ncomp    : neutron number index for compound nucleus
-c tgamma   : subroutine for photon transmission coefficients
-c gammaout : subroutine for output of gamma-ray strength functions,
-c            transmission coefficients and cross sections
-c
-      call tgamma(Zcomp,Ncomp)
-      if (flaggamma) call gammaout(Zcomp,Ncomp)
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+subroutine gamma(Zcomp, Ncomp)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Gamma cross section and transmission coefficients
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for gamma rays
+!   flaggamma    ! flag for output of gamma - ray information
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer :: Ncomp ! neutron number index for compound nucleus
+  integer :: Zcomp ! proton number index for compound nucleus
+!
+! ********** Gamma cross section and transmission coefficients *********
+!
+! tgamma   : subroutine for photon transmission coefficients
+! gammaout : subroutine for output of gamma-ray strength functions, transmission coefficients and cross sections
+!
+  call tgamma(Zcomp, Ncomp)
+  if (flaggamma) call gammaout(Zcomp, Ncomp)
+  return
+end subroutine gamma
+! Copyright A.J. Koning 2022

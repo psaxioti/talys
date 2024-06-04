@@ -1,240 +1,278 @@
-      subroutine discreteout
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : August 31, 2014
-c | Task  : Output of cross sections for discrete states
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      character*6  discfile,contfile,totfile
-      character*9  reactionstring(0:6)
-      integer      type,Zcomp,Ncomp,Zix,Nix,nex,nen,NL
-c
-c ************************* Make reaction string ***********************
-c
-c reactionstring: reaction string
-c k0            : index of incident particle
-c parsym        : symbol of particle
-c
-      do 10 type=0,6
-        if (type.eq.k0) then
-          reactionstring(type)='Inelastic'
+subroutine discreteout
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Output of cross sections for discrete states
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for energies
+!   Ninclow        ! number of incident energies below Elow
+! Variables for output
+!   filechannels     ! flag for exclusive channel cross sections on separate file
+!   filediscrete     ! flag for discrete level cross sections on separate file
+! Variables for basic reaction
+!   flagchannels     ! flag for exclusive channels calculation
+! Variables for input energies
+!   eninc            ! incident energy in MeV
+!   nin              ! counter for incident energy
+!   Ninc           ! number of incident energies
+! Variables for main input
+!   Atarget          ! mass number of target nucleus
+!   k0               ! index of incident particle
+!   Ltarget          ! excited level of target
+! Variables for total cross sections
+!   xsexclcont       ! exclusive single channel cross section for continuum
+!   xsexclusive      ! exclusive single channel cross section
+! Variables for energy grid
+!   Einc             ! incident energy in MeV
+! Variables for energies
+!   eoutdis          ! outgoing energy of discrete state reaction
+!   Ethresh          ! threshold incident energy for residual nucleus
+!   Qres             ! Q - value for residual nucleus
+! Variables for multiple emission
+!   xsngn            ! total (projectile, gamma - ejectile) cross section
+! Variables for binary reactions
+!   xscompdisc       ! compound cross section for discrete state
+!   xscompdisctot    ! compound cross section summed over discrete states
+!   xscompound       ! total compound cross section
+!   xsconttot        ! total cross section for continuum
+!   xsdircont        ! direct cross section for continuum
+!   xsdirect         ! total direct cross section
+!   xsdisc           ! total cross section for discrete state
+!   xsdisctot        ! total cross section summed over discrete states
+! Variables for incident channel
+!   dorigin          ! origin of direct cross section (Direct or Preeq)
+!   xsbinary         ! cross section from initial compound to residual nucleus
+!   xscompcont       ! compound cross section for continuum
+!   xsdirdisc        ! direct cross section for discrete state direct cross section
+!   xsdirdisctot     ! direct cross section summed over discrete states
+! Variables for nuclides
+!   Nindex           ! neutron number index for residual nucleus
+!   parskip          ! logical to skip outgoing particle
+!   Zindex           ! charge number index for residual nucleus
+! Constants
+!   cparity          ! parity (character)
+!   parsym           ! symbol of particle
+! Variables for levels
+!   edis             ! energy of level
+!   jdis             ! spin of level
+!   parlev           ! parity of level
+! Variables for level density
+!   Nlast            ! last discrete level
+! Variables for thermal cross sections
+!   fxscompdisc      ! compound cross section for discrete state
+!   fxsdirdisc       ! direct cross section for discrete state
+!   fxsdisc          ! total cross section for discrete state
+!   fxsdisctot       ! total cross section summed over discrete states
+!   fxsexclcont      ! exclusive single channel cross section for contin
+!   fxsexclusive     ! exclusive single channel cross section
+!   fxsngn           ! total (projectile, gamma - ejectile) cross section
+!
+! *** Declaration of local data
+!
+  implicit none
+  character(len=2) :: levelstring             
+  character(len=6) :: discfile                ! file with elastic scattering angular distribution
+  character(len=6) :: contfile                ! file for continuum
+  character(len=6) :: totfile                 ! file with total cross sections
+  character(len=9) :: reactstring(0:6)        ! reaction string
+  character(len=18) :: reaction   ! reaction
+  character(len=132) :: topline    ! topline
+  character(len=15) :: col(5)     ! header
+  character(len=15) :: un(5)     ! header
+  character(len=80) :: quantity   ! quantity
+  integer           :: MF
+  integer           :: MT
+  integer           :: MT0(0:6)
+  integer          :: Ncomp                   ! neutron number index for compound nucleus
+  integer          :: nen                     ! energy counter
+  integer          :: Ncol                    ! number of columns
+  integer          :: nex                     ! excitation energy bin of compound nucleus
+  integer          :: Nix                     ! neutron number index for residual nucleus
+  integer          :: NL                      ! last discrete level
+  integer          :: type                    ! particle type
+  integer          :: Zcomp                   ! proton number index for compound nucleus
+  integer          :: Zix                     ! charge number index for residual nucleus
+!
+! ************************* Make reaction string ***********************
+!
+  MT0(0) = 101
+  MT0(1) = 50
+  MT0(2) = 600
+  MT0(3) = 650
+  MT0(4) = 700
+  MT0(5) = 750
+  MT0(6) = 800
+  MF = 3
+  un = 'mb'
+  col(1)='E'
+  un(1)='MeV'
+  col(2)='xs'
+  Ncol=2
+  col(3)='Direct'
+  col(4)='Compound'
+  quantity='cross section'
+  do type = 0, 6
+    if (type == k0) then
+      reactstring(type) = 'Inelastic'
+    else
+      reactstring(type) = '  ( , )  '
+      write(reactstring(type)(4:4), '(a1)') parsym(k0)
+      write(reactstring(type)(6:6), '(a1)') parsym(type)
+    endif
+  enddo
+!
+! ****************** Cross sections for discrete states ****************
+!
+  Zcomp = 0
+  Ncomp = 0
+  write(*, '(/" 5. Binary reactions to discrete levels", " and continuum")')
+  do type = 0, 6
+    if (parskip(type)) cycle
+    if (xsbinary(type) == 0.) cycle
+    Zix = Zindex(Zcomp, Ncomp, type)
+    Nix = Nindex(Zcomp, Ncomp, type)
+    write(*, '(/1x, a9, " cross sections:"/)') reactstring(type)
+    write(*, '(" Inclusive:"/)')
+    write(*, '(" Level Energy    E-out     J/P       Direct    ", "Compound      Total     Origin"/)')
+    do nex = 0, Nlast(Zix, Nix, 0)
+      if (type == k0 .and. nex == Ltarget) cycle
+      write(*, '(1x, i2, 2f10.5, f7.1, a1, 3f12.5, 4x, a6)') nex, edis(Zix, Nix, nex), eoutdis(type, nex), jdis(Zix, Nix, nex), &
+ &      cparity(parlev(Zix, Nix, nex)), xsdirdisc(type, nex), xscompdisc(type, nex), xsdisc(type, nex), dorigin(type, nex)
+    enddo
+    write(*, '(31x, 3("   ---------"))')
+    write(*, '(" Discrete  ", a9, ":", 10x, 3f12.5)') reactstring(type), xsdirdisctot(type), xscompdisctot(type), xsdisctot(type)
+    write(*, '(" Continuum ", a9, ":", 10x, 3f12.5)') reactstring(type), xsdircont(type), xscompcont(type), xsconttot(type)
+    write(*, '(31x, 3("   ---------"))')
+    write(*, '(" Total     ", a9, ":", 10x, 3f12.5/)') reactstring(type), xsdirect(type), xscompound(type), xsbinary(type)
+    if (type /= 0) write(*, '(" (", a1, ",g", a1, ") cross section:", f12.5)') parsym(k0), parsym(type), xsngn(type)
+    if (flagchannels) then
+      write(*, '(/" Exclusive"/)')
+      write(*, '(" Discrete  ", a9, ":", f12.5)') reactstring(type), xsdisctot(type)
+      write(*, '(" Continuum ", a9, ":", f12.5)') reactstring(type), xsexclcont(type)
+      write(*, '(" Total     ", a9, ":", f12.5)') reactstring(type), xsexclusive(type)
+    endif
+  enddo
+!
+! Write results to separate file
+!
+  do type = 0, 6
+    if (parskip(type)) cycle
+    Zix = Zindex(Zcomp, Ncomp, type)
+    Nix = Nindex(Zcomp, Ncomp, type)
+    do nex = 0, Nlast(Zix, Nix, 0)
+      if (type == k0 .and. nex == Ltarget) cycle
+      if (filediscrete(nex)) then
+        discfile = '  .L00'
+        write(discfile(1:2), '(2a1)') parsym(k0), parsym(type)
+        write(discfile(5:6), '(i2.2)') nex
+        if (nin == Ninclow + 1) then
+          open (unit = 1, file = discfile, status = 'replace')
+          levelstring='  '
+          write(levelstring,'(i2)') nex
+          reaction='('//parsym(k0)//','//parsym(type)//'_'//trim(adjustl(levelstring))//')'
+          topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)
+          Ncol=4
+          MT =  MT0(type) + nex
+          call write_header(topline,source,user,date,oformat)
+          call write_target
+          call write_reaction(reaction,Qres(Zix, Nix, nex),Ethresh(Zix, Nix, nex),MF,MT)
+          call write_level(2,-1,nex,edis(Zix, Nix, nex),jdis(Zix, Nix, nex),parlev(Zix, Nix, nex),0.)
+          call write_datablock(quantity,Ncol,Ninc,col,un)
+          do nen = 1, Ninclow
+            write(1, '(4es15.6)') eninc(nen), fxsdisc(nen, type, nex), fxsdirdisc(nen, type, nex), fxscompdisc(nen, type, nex)
+          enddo
         else
-          reactionstring(type)='  ( , )  '
-          write(reactionstring(type)(4:4),'(a1)') parsym(k0)
-          write(reactionstring(type)(6:6),'(a1)') parsym(type)
+          open (unit = 1, file = discfile, status = 'old', position = 'append')
         endif
-   10 continue
-c
-c ****************** Cross sections for discrete states ****************
-c
-c Zcomp        : charge number index for compound nucleus
-c Ncomp        : neutron number index for compound nucleus
-c parskip      : logical to skip outgoing particle
-c xsdisctot    : total cross section summed over discrete states
-c Zindex,Zix   : charge number index for residual nucleus
-c Nindex,Nix   : neutron number index for residual nucleus
-c Nlast        : last discrete level
-c Ltarget      : excited level of target
-c edis         : energy of level
-c eoutdis      : outgoing energy of discrete state reaction
-c jdis         : spin of level
-c cparity      : parity of level (character)
-c parlev       : parity of level
-c xsdirdisc    : direct cross section for discrete state
-c xscompdisc   : compound cross section for discrete state
-c xsdisc       : total cross section for discrete state
-c dorigin      : origin of direct cross section (Direct or Preeq)
-c xsdirdisctot : direct cross section summed over discrete states
-c xscompdisctot: compound cross section summed over discrete states
-c xsdircont    : direct cross section for continuum
-c xscompcont   : compound cross section for continuum
-c xsconttot    : total cross section for continuum
-c xsdirect     : total direct cross section
-c xscompound   : total compound cross section
-c xsbinary     : cross section from initial compound to residual nucleus
-c xsngn        : total (projectile,gamma-ejectile) cross section
-c flagchannels : flag for exclusive channels calculation
-c xsexclcont   : exclusive single channel cross section for continuum
-c xsexclusive  : exclusive single channel cross section
-c
-      Zcomp=0
-      Ncomp=0
-      write(*,'(/" 5. Binary reactions to discrete levels",
-     +  " and continuum")')
-      do 110 type=0,6
-        if (parskip(type)) goto 110
-        if (xsbinary(type).eq.0.) goto 110
-        Zix=Zindex(Zcomp,Ncomp,type)
-        Nix=Nindex(Zcomp,Ncomp,type)
-        write(*,'(/1x,a9," cross sections:"/)') reactionstring(type)
-        write(*,'(" Inclusive:"/)')
-        write(*,'(" Level Energy    E-out     J/P       Direct    ",
-     +    "Compound      Total     Origin"/)')
-        do 120 nex=0,Nlast(Zix,Nix,0)
-          if (type.eq.k0.and.nex.eq.Ltarget) goto 120
-          write(*,'(1x,i2,2f10.5,f7.1,a1,3f12.5,4x,a6)') nex,
-     +      edis(Zix,Nix,nex),eoutdis(type,nex),jdis(Zix,Nix,nex),
-     +      cparity(parlev(Zix,Nix,nex)),xsdirdisc(type,nex),
-     +      xscompdisc(type,nex),xsdisc(type,nex),dorigin(type,nex)
-  120   continue
-        write(*,'(31x,3("   ---------"))')
-        write(*,'(" Discrete  ",a9,":",10x,3f12.5)')
-     +    reactionstring(type),xsdirdisctot(type),xscompdisctot(type),
-     +    xsdisctot(type)
-        write(*,'(" Continuum ",a9,":",10x,3f12.5)')
-     +    reactionstring(type),xsdircont(type),xscompcont(type),
-     +    xsconttot(type)
-        write(*,'(31x,3("   ---------"))')
-        write(*,'(" Total     ",a9,":",10x,3f12.5/)')
-     +    reactionstring(type),xsdirect(type),xscompound(type),
-     +    xsbinary(type)
-        if (type.ne.0)
-     +    write(*,'(" (",a1,",g",a1,") cross section:",f12.5)')
-     +      parsym(k0),parsym(type),xsngn(type)
-        if (flagchannels) then
-          write(*,'(/" Exclusive"/)')
-          write(*,'(" Discrete  ",a9,":",f12.5)') reactionstring(type),
-     +      xsdisctot(type)
-          write(*,'(" Continuum ",a9,":",f12.5)') reactionstring(type),
-     +      xsexclcont(type)
-          write(*,'(" Total     ",a9,":",f12.5)') reactionstring(type),
-     +      xsexclusive(type)
+        write(1, '(4es15.6)') Einc, xsdisc(type, nex), xsdirdisc(type, nex), xscompdisc(type, nex)
+        close (unit = 1)
+      endif
+    enddo
+  enddo
+!
+! Write continuum cross sections to separate file
+!
+  if (filechannels) then
+    do type = 0, 6
+      if (parskip(type)) cycle
+      Zix = Zindex(Zcomp, Ncomp, type)
+      Nix = Nindex(Zcomp, Ncomp, type)
+!     if (type == k0) then
+!       NL = 0
+!     else
+        NL = Nlast(Zix, Nix, 0)
+!     endif
+      contfile = '  .con'
+      write(contfile(1:2), '(2a1)') parsym(k0), parsym(type)
+      reaction='('//parsym(k0)//','//parsym(type)//'_con)'
+      if (nin == Ninclow + 1) then
+        open (unit = 1, file = contfile, status = 'replace')
+        topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)
+        Ncol=4
+        if (type == 1) then
+          MT= 91
+        else
+          MT= MT0(type) + 49
         endif
-  110 continue
-c
-c Write results to separate file
-c
-c filediscrete: flag for discrete level cross sections on separate file
-c numinclow   : number of incident energies below Elow
-c Atarget     : mass number of target nucleus
-c Ztarget     : charge number of target nucleus
-c Qres        : Q-value for residual nucleus
-c Ethresh     : threshold incident energy for residual nucleus
-c numinc      : number of incident energies
-c eninc,Einc  : incident energy in MeV
-c
-      do 130 type=0,6
-        if (parskip(type)) goto 130
-        Zix=Zindex(Zcomp,Ncomp,type)
-        Nix=Nindex(Zcomp,Ncomp,type)
-        do 140 nex=0,Nlast(Zix,Nix,0)
-          if (type.eq.k0.and.nex.eq.Ltarget) goto 140
-          if (filediscrete(nex)) then
-            discfile='  .L00'
-            write(discfile(1:2),'(2a1)') parsym(k0),parsym(type)
-            write(discfile(5:6),'(i2.2)') nex
-            if (nin.eq.numinclow+1) then
-              open (unit=1,file=discfile,status='replace')
-              write(1,'("# ",a1," + ",a,": Discrete ",a9,
-     +          " cross section - Level",i3)') parsym(k0),
-     +          trim(targetnuclide),reactionstring(type),nex
-              write(1,'("# Q-value    =",es12.5," Spin=",f5.1,
-     +          " Parity= ",a1)') Qres(Zix,Nix,nex),jdis(Zix,Nix,nex),
-     +          cparity(parlev(Zix,Nix,nex))
-              write(1,'("# E-threshold=",es12.5)')
-     +          Ethresh(Zix,Nix,nex)
-              write(1,'("# # energies =",i6)') numinc
-              write(1,'("#     E          xs        Direct",
-     +          "     Compound")')
-              do 150 nen=1,numinclow
-                write(1,'(4es12.5)') eninc(nen),
-     +            fxsdisc(nen,type,nex),fxsdirdisc(nen,type,nex),
-     +            fxscompdisc(nen,type,nex)
-  150         continue
-            else
-              open (unit=1,file=discfile,status='old')
-              do 160 nen=1,nin+4
-                read(1,*)
-  160         continue
-            endif
-            write(1,'(4es12.5)') Einc,xsdisc(type,nex),
-     +        xsdirdisc(type,nex),xscompdisc(type,nex)
-            close (unit=1)
-          endif
-  140   continue
-  130 continue
-c
-c Write continuum cross sections to separate file
-c
-c filechannels: flag for exclusive channel cross sections on
-c               separate file
-c
-      if (filechannels) then
-        do 210 type=0,6
-          if (parskip(type)) goto 210
-          Zix=Zindex(Zcomp,Ncomp,type)
-          Nix=Nindex(Zcomp,Ncomp,type)
-          if (type.eq.k0) then
-            NL=0
-          else
-            NL=Nlast(Zix,Nix,0)
-          endif
-          contfile='  .con'
-          write(contfile(1:2),'(2a1)') parsym(k0),parsym(type)
-          if (nin.eq.numinclow+1) then
-            open (unit=1,file=contfile,status='replace')
-            write(1,'("# ",a1," + ",a,": Continuum ",a9,
-     +        " cross section")') parsym(k0),trim(targetnuclide),
-     +        reactionstring(type)
-            write(1,'("# Q-value    =",es12.5)') Qres(Zix,Nix,NL)
-            write(1,'("# E-threshold=",es12.5)') Ethresh(Zix,Nix,NL)
-            write(1,'("# # energies =",i6)') numinc
-            write(1,'("#     E          xs       Continuum      (",a1,
-     +        ",g",a1,")")') parsym(k0),parsym(type)
-            do 220 nen=1,numinclow
-              write(1,'(4es12.5)') eninc(nen),
-     +          fxsexclcont(nen,type)+fxsngn(nen,type),
-     +          fxsexclcont(nen,type),fxsngn(nen,type)
-  220       continue
-          else
-            open (unit=1,file=contfile,status='old')
-            do 230 nen=1,nin+4
-              read(1,*)
-  230       continue
-          endif
-          write(1,'(4es12.5)') Einc,
-     +      xsexclcont(type)+xsngn(type),xsexclcont(type),xsngn(type)
-          close (unit=1)
-  210   continue
+        if (type == 0) MT = 0
+        col(3)='Continuum'
+        col(4)='('//parsym(k0)//',g'//parsym(type)//')'
+        call write_header(topline,source,user,date,oformat)
+        call write_target
+        call write_reaction(reaction,Qres(Zix, Nix, NL),Ethresh(Zix, Nix, NL),MF,MT)
+        call write_level(2,-1,NL,edis(Zcomp, Ncomp, NL),jdis(Zix, Nix, NL),parlev(Zix, Nix, NL),0.)
+        call write_datablock(quantity,Ncol,Ninc,col,un)
+        do nen = 1, Ninclow
+          write(1, '(4es15.6)') eninc(nen), fxsexclcont(nen, type) + fxsngn(nen, type), fxsexclcont(nen, type), fxsngn(nen, type)
+        enddo
+      else
+        open (unit = 1, file = contfile, status = 'old', position = 'append')
       endif
-c
-c Write cumulated binary cross sections to separate file
-c
-      if (filechannels) then
-        do 310 type=0,6
-          if (parskip(type)) goto 310
-          totfile='  .tot'
-          write(totfile(1:2),'(2a1)') parsym(k0),parsym(type)
-          if (nin.eq.numinclow+1) then
-            open (unit=1,file=totfile,status='replace')
-            write(1,'("# ",a1," + ",a,": Total exclusive ",a9,
-     +        " cross section")') parsym(k0),trim(targetnuclide),
-     +        reactionstring(type)
-            write(1,'("#         ")')
-            write(1,'("#         ")')
-            write(1,'("# # energies =",i6)') numinc
-            write(1,'("#    E       Total     Discrete     ",
-     +        "  Continuum  (",a1,",g",a1,")")') parsym(k0),parsym(type)
-            do 320 nen=1,numinclow
-              write(1,'(5es12.5)') eninc(nen),
-     +          fxsexclusive(nen,type),fxsdisctot(nen,type),
-     +          fxsexclcont(nen,type),fxsngn(nen,type)
-  320       continue
-          else
-            open (unit=1,file=totfile,status='old')
-            do 330 nen=1,nin+4
-              read(1,*)
-  330       continue
-          endif
-          write(1,'(5es12.5)') Einc,xsexclusive(type),
-     +      xsdisctot(type),xsexclcont(type),xsngn(type)
-          close (unit=1)
-  310   continue
+      write(1, '(4es15.6)') Einc, xsexclcont(type) + xsngn(type), xsexclcont(type), xsngn(type)
+      close (unit = 1)
+    enddo
+  endif
+!
+! Write cumulated binary cross sections to separate file
+!
+  if (filechannels) then
+    do type = 0, 6
+      if (parskip(type)) cycle
+      Zix = Zindex(Zcomp, Ncomp, type)
+      Nix = Nindex(Zcomp, Ncomp, type)
+      totfile = '  .tot'
+      write(totfile(1:2), '(2a1)') parsym(k0), parsym(type)
+      reaction='('//parsym(k0)//','//parsym(type)//')'
+      if (nin == Ninclow + 1) then
+        open (unit = 1, file = totfile, status = 'replace')
+        topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)
+        Ncol=5
+        col(3)='Discrete'
+        col(4)='Continuum'
+        col(5)='('//parsym(k0)//',g'//parsym(type)//')'
+        call write_header(topline,source,user,date,oformat)
+        call write_target
+        call write_reaction(reaction,Qres(Zix, Nix, 0),Ethresh(Zix, Nix, 0),0,0)
+        call write_datablock(quantity,Ncol,Ninc,col,un)
+        do nen = 1, Ninclow
+          write(1, '(5es15.6)') eninc(nen), fxsexclusive(nen, type), fxsdisctot(nen, type), fxsexclcont(nen, type), &
+ &          fxsngn(nen, type)
+        enddo
+      else
+        open (unit = 1, file = totfile, status = 'old', position = 'append')
       endif
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+      write(1, '(5es15.6)') Einc, xsexclusive(type), xsdisctot(type), xsexclcont(type), xsngn(type)
+      close (unit = 1)
+    enddo
+  endif
+  return
+end subroutine discreteout
+! Copyright A.J. Koning 2021

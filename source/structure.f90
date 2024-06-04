@@ -1,77 +1,93 @@
-      subroutine structure(Zix,Nix)
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : October 20, 2022
-c | Task  : Nuclear structure parameters
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer Zix,Nix
-c
-c ********** Calculate and read various nuclear parameters *************
-c
-c Zix           : charge number index for residual nucleus
-c Nix           : neutron number index for residual nucleus
-c levels        : subroutine for discrete levels
-c flagendf      : flag for information for ENDF-6 file
-c primary       : flag to designate primary (binary) reaction
-c gammadecay    : subroutine for scheme for discrete gamma decay
-c deformpar     : subroutine for deformation parameters
-c parinclude    : logical to include outgoing particle
-c flagcomp      : flag for compound nucleus calculation
-c resonancepar  : subroutine for s-wave resonance parameters
-c gammapar      : subroutine for gamma ray parameters
-c flagompall    : flag for new optical model calculation for all
-c                 residual nuclides
-c omppar        : subroutine for optical model parameters
-c flagjlm       : flag for using semi-microscopic JLM OMP
-c alphaomp      : alpha optical model (1=normal, 2= McFadden-Satchler,
-c                 3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)
-c radialtable   : subroutine for tabulated radial matter densities
-c flagomponly   : flag to execute ONLY an optical model calculation
-c flagfission   : flag for fission
-c fissionpar    : subroutine for fission parameters
-c densitypar    : subroutine for level density parameters
-c ldmodel       : level density model
-c densitytable  : subroutine for tabulated level densities
-c densitymatch  : subroutine for level density matching solution
-c phmodel       : particle-hole state density model
-c phdensitytable: subroutine for tabulated particle-hole state densities
-c k0            : index of incident particle
-c parZ          : charge number of particle
-c parN          : neutron number of particle
-c thermalxs     : subroutine for cross sections at thermal energies
-c flagpartable  : flag for output of model parameters on separate file
-c partable      : subroutine to write model parameters per nucleus to
-c                 separate file
-c
-c All the nuclear structure info is read and/or calculated for the
-c nucleus under consideration.
-c
-      call levels(Zix,Nix)
-      if (flagendf.and.primary) call gammadecay(Zix,Nix)
-      call deformpar(Zix,Nix)
-      if (flagfit.and.Zix.eq.0.and.Nix.eq.0) call xsfit(Ztarget,Atarget)
-      if (parinclude(0).or.flagcomp) then
-        call resonancepar(Zix,Nix)
-        call gammapar(Zix,Nix)
-      endif
-      if ((Zix.le.2.and.Nix.le.2).or.flagompall) call omppar(Zix,Nix)
-      if (flagjlm.or.alphaomp.ge.3.and.alphaomp.le.5)
-     +  call radialtable(Zix,Nix)
-      if (flagomponly.and..not.flagcomp) return
-      if (flagfission) call fissionpar(Zix,Nix)
-      call densitypar(Zix,Nix)
-      if (ldmodel(Zix,Nix).ge.4) call densitytable(Zix,Nix)
-      call densitymatch(Zix,Nix)
-      if (phmodel.eq.2.and.Zix.le.numZph.and.Nix.le.numNph)
-     +  call phdensitytable(Zix,Nix)
-      if (k0.eq.1.and.Zix.eq.parZ(k0).and.Nix.eq.parN(k0))
-     + call thermalxs
-      if (flagpartable) call partable(Zix,Nix)
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+subroutine structure(Zix, Nix)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Nuclear structure parameters
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+! 2022-02-15: Added flagnffit keyword
+! 2022-04-18: Added flagngfit keyword
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! All global variables
+!   numNph          ! maximum number of neutrons away from the initial compound nucleus
+!   numZph          ! maximum number of protons away from the initial compound nucleus
+! Variables for basic reaction
+!   flagendf        ! flag for information for ENDF - 6 file
+!   flagfit         ! flag for using fitted nuclear model parameters
+!   flagpartable    ! flag for output of model parameters on separate file
+! Variables for compound reactions
+!   flagcomp        ! flag for compound angular distribution calculation
+! Variables for preequilibrium
+!   phmodel         ! particle - hole state density model
+! Variables for main input
+!   Atarget         ! mass number of target nucleus
+!   k0              ! index of incident particle
+!   Ztarget         ! charge number of target nucleus
+! Variables for fission
+!   flagfission     ! flag for fission
+! Variables for level density
+!   ldmodel         ! level density model
+! Variables for OMP
+!   alphaomp        ! alpha optical model
+!   flagomponly     ! flag to execute ONLY an optical model calculation
+!   flagjlm         ! flag for using semi - microscopic JLM OMP
+!   flagompall      ! flag for new optical model calculation for all residual
+! Variables for nuclides
+!   parinclude      ! logical to include outgoing particle
+!   primary         ! flag to designate primary (binary) reaction
+! Constants
+!   parN            ! neutron number of particle
+!   parZ            ! charge number of particle
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer :: Nix              ! neutron number index for residual nucleus
+  integer :: Zix              ! charge number index for residual nucleus
+!
+! ********** Calculate and read various nuclear parameters *************
+!
+! levels        : subroutine for discrete levels
+! gammadecay    : subroutine for scheme for discrete gamma decay
+! deformpar     : subroutine for deformation parameters
+! resonancepar  : subroutine for s-wave resonance parameters
+! gammapar      : subroutine for gamma ray parameters residual nuclides
+! omppar        : subroutine for optical model parameters
+! radialtable   : subroutine for tabulated radial matter densities
+! fissionpar    : subroutine for fission parameters
+! densitypar    : subroutine for level density parameters
+! densitytable  : subroutine for tabulated level densities
+! densitymatch  : subroutine for level density matching solution
+! phdensitytable: subroutine for tabulated particle-hole state densities
+! thermalxs     : subroutine for cross sections at thermal energies
+! partable      : subroutine to write model parameters per nucleus to separate file
+!
+! All the nuclear structure info is read and/or calculated for the nucleus under consideration.
+!
+  call levels(Zix, Nix)
+  if (flagendf .and. primary) call gammadecay(Zix, Nix)
+  call deformpar(Zix, Nix)
+  if (flagfit .and. Zix == 0 .and. Nix == 0) call xsfit(Ztarget, Atarget)
+  if (parinclude(0) .or. flagcomp) then
+    call resonancepar(Zix, Nix)
+    call gammapar(Zix, Nix)
+  endif
+  if ((Zix <= 2 .and. Nix <= 2) .or. flagompall) call omppar(Zix, Nix)
+  if (flagjlm .or. alphaomp >= 3 .and. alphaomp <= 5) call radialtable(Zix, Nix)
+  if (flagomponly .and. .not. flagcomp) return
+  if (flagfission) call fissionpar(Zix, Nix)
+  call densitypar(Zix, Nix)
+  if (ldmodel(Zix, Nix) >= 4) call densitytable(Zix, Nix)
+  call densitymatch(Zix, Nix)
+  if (phmodel == 2 .and. Zix <= numZph .and. Nix <= numNph) call phdensitytable(Zix, Nix)
+  if (k0 == 1 .and. Zix == parZ(k0) .and. Nix == parN(k0)) call thermalxs
+  if (flagpartable) call partable(Zix, Nix)
+  return
+end subroutine structure
+! Copyright A.J. Koning 2021

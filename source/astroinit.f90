@@ -1,49 +1,49 @@
-      subroutine astroinit
-c
-c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire and Stephane Goriely
-c | Date  : January 24, 2023
-c | Task  : Initialization of astrophysics quantities
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-c
-c **** Initialization of arrays of astrophysics interest ***************
-c
-c maxNastro   : maximal number of neutrons away from the initial
-c               compound nucleus for astrophysical calculations
-c maxZastro   : maximal number of protons away from the initial
-c               compound nucleus for astrophysical calculations
-c numT        : number of temperatures
-c numinc      : number of incident energies
-c xsastro     : cross section for astrophysical calculation
-c xsastroex   : cross section for astrophysical calculation to a given excited state
-c rateastro   : thermonuclear reaction rate factor
-c rateastroex : thermonuclear reaction rate factor to a given excited state
-c macsastro   : Maxwellian-averaged thermonuclear reaction cross section
-c partf       : integrated partition function
-c rateastrofis: thermonuclear reaction rate factor for fission
-c macsastro   : thermonuclear reaction cross section
-c macsastroex : thermonuclear reaction cross section to a given excited state
-c macsastrofis: thermonuclear reaction cross section for fission
-c xsastrofis  : astrophysical fission cross section
-c
-      maxZastro=numZastro
-      maxNastro=numNastro
-      xsastro=0.
-      xsastroex=0.
-      rateastro=0.
-      macsastro=0.
-      rateastroex=0.
-      macsastroex=0.
-      partf=0.
-      rateastrofis=0.
-      rateastroracap=0.
-      macsastrofis=0.
-      macsastroracap=0.
-      xsastrofis=0.
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+subroutine astroinit
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Initialization of arrays for astro calculations
+!
+! Author    : Stephane Hilaire and Stephane Goriely
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+! Variables for astro initialization
+!   xsastro           ! cross section for astrophysical calculatio
+!   xsastroex         !  cross section for astrophysical calculati
+!   xsastrofis        ! astrophysical fission cross section
+! Variables for astro initialization
+!   macsastro         ! Maxwellian-averaged thermonuclear reaction
+!   macsastroex       ! thermonuclear reaction cross section to a
+!   macsastrofis      ! thermonuclear reaction cross section for f
+!   macsastroracap    ! Maxwellian-averaged thermonuc. reac. c.s.
+!   maxNastro         ! maximal number of neutrons away from initi
+!   maxZastro         ! maximal number of protons away from initia
+!   partf             ! integrated partition function
+!   rateastro         ! thermonuclear reaction rate
+!   rateastroex       ! thermonuclear reaction rate to a given exc
+!   rateastrofis      ! thermonuclear reaction rate factor for fis
+!   rateastroracap    ! thermonuclear reaction rate for direct cap
+!
+! *** Initialization
+!
+  maxZastro = numZastro
+  maxNastro = numNastro
+  rateastro = 0.
+  macsastro = 0.
+  rateastroex = 0.
+  macsastroex = 0.
+  partf = 0.
+  rateastrofis = 0.
+  rateastroracap = 0.
+  macsastrofis = 0.
+  macsastroracap = 0.
+  xsastro = 0.
+  xsastroex = 0.
+  xsastrofis = 0.
+  return
+end subroutine astroinit
+! Copyright A.J. Koning 2021

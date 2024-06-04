@@ -1,272 +1,375 @@
-      subroutine urrout
-c
-c +---------------------------------------------------------------------
-c | Author: Gilles Noguere and Arjan Koning
-c | Date  : June 8, 2019
-c | Task  : Output of unresolved resonance parameters in separate files
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      character*3  lstring
-      character*20 urrfile
-      character*35 ufor2
-      character*51 ufor1
-      integer      odd,l,J,type,k,nen
-      real         x(0:numl,0:numJ),y(0:numl,0:numJ),xx(4)
-c
-c General output file
-c
-c numinclow  : number of incident energies below Elow
-c flagurrendf: flag for URR info for ENDF
-c nin        : counter for incident energy
-c Ztarget    : charge number of target nucleus
-c Atarget    : mass number of target nucleus
-c Ltarget    : excited level of target
-c jdis       : spin of level
-c xscaptherm : thermal capture cross section
-c S          : neutron separation energy
-c Rprime     : potential scattering radius
-c eninc,Einc : incident energy in MeV
-c odd        : odd (1) or even (0) nucleus
-c lurr       : maximal orbital angular momentum for URR calculation
-c lminU,lmaxU: minimal and maximal orbital angular momentum
-c JminU,JmaxU: minimal and maximal total angular momentum
-c Dlj        : mean resonance spacing per J,l value
-c Dl         : mean resonance spacing per l value
-c Purrlj     : (l,j) parity for URR calculation
-c strengthlj : (l,j) neutron strength function
-c strengthl  : l neutron strength function
-c urrwidth   : channel width in URR
-c numinc     : number of incident energies
-c
-      if (nin.eq.numinclow+1) then
-        flagurrendf=.true.
-        open (unit=21,file='urr.dat',status='unknown')
-        write(21,'("#")')
-        write(21,'("# Resonance parameters for Z=",i4," A=",i4," (",
-     +    a,") Target spin=",f4.1)') Ztarget,Atarget,
-     +    trim(targetnuclide),jdis(0,1,Ltarget)
-        write(21,'("# Thermal capture cross section=",es12.5," mb",
-     +    "   Sn=",es12.5," MeV")') xscaptherm(-1),S(0,0,1)
-        write(21,'("#")')
+subroutine urrout
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Output of unresolved resonance parameters in separate files
+!
+! Author    : Gilles Noguere and Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   sgl            ! single precision kind
+! All global variables
+!   numJ           ! maximum J - value
+!   numl           ! number of l values
+! Variables for energies
+!   Ninclow      ! number of incident energies below Elow
+! Variables for compound reactions
+!   flagurrnjoy    ! normalization of URR parameters with NJOY method
+!   lurr           ! maximal orbital angular momentum for URR
+!   xscaptherm     ! thermal capture cross section
+! Variables for input energies
+!   eninc          ! incident energy in MeV
+!   nin            ! counter for incident energy
+!   Ninc           ! number of incident energies
+! Variables for main input
+!   Atarget        ! mass number of target nucleus
+!   k0             ! index of incident particle
+!   Ltarget        ! excited level of target
+!   Ztarget        ! charge number of target nucleus
+! Variables for OMP
+!   Rprime         ! potential scattering radius
+! Variables for OMP
+!   RprimeU        ! potential scattering radius
+! Variables for energy grid
+!   Einc           ! incident energy in MeV
+! Variables for compound nucleus from target
+!   JmaxU          ! maximal total angular momentum
+!   JminU          ! minimal total angular momentum
+!   lmaxU          ! maximal orbital angular momentum
+!   lminU          ! minimal orbital angular momentum
+!   nulj           ! (l, j) number of degrees of freedom for URR calculation
+!   Purrlj         ! (l, j) parity for URR calculation
+! Variables for nuclides
+!   Q              ! Q - value
+! Constants
+!   cparity        ! parity (character)
+!   parsym         ! symbol of particle
+! Variables for levels
+!   jdis           ! spin of level
+! Variables for resonance parameters
+!   Dl             ! mean resonance spacing per l value
+!   Dlj            ! mean resonance spacing per J, l value
+! Variables for masses
+!   S              ! separation energy
+! Variables for URR
+!   flagurrendf    ! flag for URR info to ENDF
+!   strengthl      ! l neutron strength function
+!   strengthlj     ! (l, j) neutron strength function
+!   urrwidth       ! channel width in URR
+!   xsurrN         ! URR cross section
+!   xsurrT         ! URR cross section
+! Variables for existence libraries
+!   urrexist       ! flag for existence of URR
+!
+! *** Declaration of local data
+!
+  implicit none
+  character(len=3)  :: lstring              ! string for l value
+  character(len=13) :: Estr
+  character(len=20) :: urrfile              ! file with URR parameters
+  character(len=250) :: urrline(1000)
+  character(len=18) :: reaction   ! reaction
+  character(len=15) :: col(100)    ! header
+  character(len=15) :: un(100)    ! header
+  character(len=80) :: quantity   ! quantity
+  character(len=80) :: extension
+  character(len=132) :: topline    ! topline
+  integer           :: J                    ! spin of level
+  integer           :: istat
+  integer           :: i
+  integer           :: k
+  integer           :: Ne
+  integer           :: Nurr
+  integer           :: Ncol
+  integer           :: l                    ! multipolarity
+  integer           :: nen                  ! energy counter
+  integer           :: odd                  ! odd (1) or even (0) nucleus
+  integer           :: type                 ! particle type
+  real(sgl)         :: x(0:numl, 0:numJ)    ! help variable
+  real(sgl)         :: xx(4)                ! x value
+  real(sgl)         :: y(0:numl, 0:numJ)    ! coordinates of the point to test
+!
+! General output file
+!
+  urrline = ''
+  reaction = '('//parsym(k0)//',urr)'
+  quantity='URR parameter'
+  un = ''
+  col = ''
+  col(1)='l'
+  col(2)='J'
+  col(3)='P'
+  col(4)='D(l)'
+  un(4)='eV'
+  col(5)='D(l,J)'
+  un(5)='eV'
+  col(6)='S(l)'
+  col(7)='S(l,J)'
+  col(8)='Gx(l,J)'
+  un(8)='eV'
+  col(9)='Gn(l,J)'
+  un(9)='eV'
+  col(10)='Gg(l,J)'
+  un(10)='eV'
+  col(11)='Gf(l,J)'
+  un(11)='eV'
+  col(12)='Gp(l,J)'
+  un(12)='eV'
+  col(13)='Ga(l,J)'
+  un(13)='eV'
+  Ncol=13
+  if (nin == Ninclow+1) then
+    flagurrendf = .true.
+    open (unit = 21, file = 'urr.dat', status = 'unknown')
+  endif
+  Estr=''
+  write(Estr,'(es13.6)') Einc
+  topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' at '//Estr//' MeV'
+  open (unit = 1, file = 'urr.tmp', status = 'unknown')
+  call write_header(topline,source,user,date,oformat)
+  call write_target
+  call write_reaction(reaction,0.d0,0.d0,0,0)
+  call write_real(2,'E-incident [MeV]',Einc)
+  write(1,'("# parameters:")')
+  call write_real(2,'neutron separation energy [MeV]',S(0, 0, 1))
+  write(1,'("# observables:")')
+  call write_real(2,'thermal capture cross section [mb]',xscaptherm(-1))
+  call write_real(2,'potential scattering radius [fm]',Rprime)
+  Ne = 0
+  do l = 0, lurr
+    do J = JminU(l), JmaxU(l)
+      Ne = Ne + 1
+    enddo
+  enddo
+  call write_datablock(quantity,Ncol,Ne,col,un)
+  odd = mod(Atarget + 1, 2)
+  do l = 0, lurr
+    do J = JminU(l), JmaxU(l)
+      write(1, '(i6,9x,es15.6,i6,9x,10es15.6)') l, J+0.5*odd, Purrlj(l, J), Dl(l), Dlj(l, J), strengthl(l), &
+ &      strengthlj(l, J), urrwidth(1, l, J), urrwidth(3, l, J), &
+ &      urrwidth(0, l, J), urrwidth( - 1, l, J), urrwidth(2, l, J), urrwidth(6, l, J)
+    enddo
+  enddo
+  close (unit = 1)
+  open (unit = 1, file = 'urr.tmp', status = 'unknown')
+  k = 0
+  do
+    k = k + 1
+    read(1,'(a)', iostat = istat) urrline(k)
+    if (istat == -1) exit
+  enddo
+  Nurr = k - 1
+  close (unit = 1, status = 'delete')
+  do k = 1, Nurr
+    write(21,'(a)') trim(urrline(k))
+  enddo
+  if (nin == Ninc) close (unit = 21)
+!
+! Output of (l,J) dependent widths, spacings and strength functions in separate files
+!
+  do type = - 1, 6
+    if (type == 5 .and. Q(2) <= 0.) cycle
+    if (type == 6 .and. Q(6) <= 0.) cycle
+    do l = 0, lurr
+      do J = 0, numJ
+        x(l, J) = 0.
+        y(l, J) = urrwidth(type, l, J)
+        if (type ==  - 1 .or. type == 1) x(l, J) = nulj(type, l, J)
+        if (type == 2) y(l, J) = Dlj(l, J)
+        if (type == 3) x(l, J) = nulj(0, l, J)
+        if (type == 4) y(l, J) = strengthlj(l, J)
+        if (type == 5) then
+          x(l, J) = nulj(2, l, J)
+          y(l, J) = urrwidth(2, l, J)
+        endif
+        if (type == 6) x(l, J) = nulj(6, l, J)
+      enddo
+    enddo
+    do l = lminU, min(lmaxU, lurr)
+      urrfile = '                    '
+      lstring = 'l00'
+      write(lstring(2:3), '(i2.2)') l
+      extension =''
+      if (type == -1) then
+        urrfile = 'urrfiswidth.'//lstring
+        extension='average fission width'
       endif
-      write(21,'("#  Einc[MeV]=",es12.5)') Einc
-      write(21,'("# Rprime[fm]=",es12.5)') Rprime
-      write(21,'("# l   J  P   D(l)[eV]   D(l,J)[eV]    S(l)        ",
-     +  "S(l,J)   Gx(l,J)[eV] Gn(l,J)[eV] Gg(l,J)[eV] Gf(l,J)[eV]",
-     +  " Gp(l,J)[eV] Ga(l,J)[eV]")')
-      odd=mod(Atarget+1,2)
-      do 10 l=0,lurr
-        do 20 J=JminU(l),JmaxU(l)
-          write(21,'(i3,f5.1,1x,a1,10es12.5)') l,J+0.5*odd,
-     +      cparity(Purrlj(l,J)),Dl(l),Dlj(l,J),strengthl(l),
-     +      strengthlj(l,J),urrwidth(1,l,J),urrwidth(3,l,J),
-     +      urrwidth(0,l,J),urrwidth(-1,l,J),urrwidth(2,l,J),
-     +      urrwidth(6,l,J)
-   20   continue
-   10 continue
-      write(21,'("#")')
-      if (nin.eq.numinc) close (unit=21)
-c
-c Output of (l,J) dependent widths, spacings and strength functions
-c in separate files
-c
-c urrfile: file with URR parameters
-c numl   : maximal number of l-values
-c nulj   : (l,j) degree of freedom
-c x,y    : help variables
-c Q      : Q-value
-c lstring: string for l value
-c ufor1  : format
-c ufor2  : format
-c
-      do 110 type=-1,6
-        if (type.eq.5.and.Q(2).le.0.) goto 110
-        if (type.eq.6.and.Q(6).le.0.) goto 110
-        do 120 l=0,lurr
-          do 130 J=0,numJ
-            x(l,J)=0.
-            y(l,J)=urrwidth(type,l,J)
-            if (type.eq.-1.or.type.eq.1) x(l,J)=nulj(type,l,J)
-            if (type.eq.2) y(l,J)=Dlj(l,J)
-            if (type.eq.3) x(l,J)=nulj(0,l,J)
-            if (type.eq.4) y(l,J)=strengthlj(l,J)
-            if (type.eq.5) then
-              x(l,J)=nulj(2,l,J)
-              y(l,J)=urrwidth(2,l,J)
-            endif
-            if (type.eq.6) x(l,J)=nulj(6,l,J)
-  130     continue
-  120   continue
-        do 140 l=lminU,min(lmaxU,lurr)
-          urrfile='                    '
-          lstring='l00'
-          write(lstring(2:3),'(i2.2)') l
-          if (type.eq.-1) urrfile='urrfiswidth.'//lstring
-          if (type.eq.0) urrfile='urrgamwidth.'//lstring
-          if (type.eq.1) urrfile='urrcomwidth.'//lstring
-          if (type.eq.2) urrfile='urrspacinglj.'//lstring
-          if (type.eq.3) urrfile='urrneuwidth.'//lstring
-          if (type.eq.4) urrfile='urrneustrengthlj.'//lstring
-          if (type.eq.5) urrfile='urrprowidth.'//lstring
-          if (type.eq.6) urrfile='urralpwidth.'//lstring
-          k=1+JmaxU(l)-JminU(l)
-          ufor1='("# E [MeV]   ",nn(" J      nu        width     "))'
-          write(ufor1(17:18),'(i2)') k
-          ufor2='(es11.3,nn(f4.1,2es12.5))'
-          write(ufor2(9:10),'(i2)') k
-          if (.not.urrexist(type,l)) then
-            urrexist(type,l)=.true.
-            open (unit=1,file=urrfile,status='replace')
-            write(1,'("# ",a1," + ",a," l-value:",i2)')
-     +        parsym(k0),trim(targetnuclide),l
-            write(1,'("# URR parameters for ENDF-6 format")')
-            if (type.eq.-1) write(1,'("# Average fission width")')
-            if (type.eq.0) write(1,'("# Average radiation width")')
-            if (type.eq.1) write(1,'("# Average competitive width")')
-            if (type.eq.2) write(1,'("# Mean level spacing per l,J")')
-            if (type.eq.3) write(1,'("# Reduced neutron width")')
-            if (type.eq.4) write(1,'("# Neutron strength function")')
-            if (type.eq.5) write(1,'("# Average proton width")')
-            if (type.eq.6) write(1,'("# Average alpha width")')
-            write(1,'("# # energies =",i6)') numinc
-            if (type.eq.2) write(ufor1(38:44),'("spacing")')
-            if (type.eq.4) write(ufor1(38:45),'("strength")')
-            write(1,fmt=ufor1)
-            do 150 nen=1,numinclow
-              write(1,fmt=ufor2) eninc(nen),
-     +          (J+0.5*odd,x(l,J),y(l,J),J=JminU(l),JmaxU(l))
-  150       continue
-            do 160 nen=numinclow+1,nin-1
-              write(1,'(es11.3," !!! not calculated")') eninc(nen)
-  160       continue
-          else
-            open (unit=1,file=urrfile,status='old')
-            do 170 nen=1,nin+4
-              read(1,*,end=200,err=200)
-  170       continue
-          endif
-          write(1,fmt=ufor2) Einc,
-     +      (J+0.5*odd,x(l,J),y(l,J),J=JminU(l),JmaxU(l))
-  200     close (unit=1)
-  140   continue
-  110 continue
-c
-c Output of l-dependent mean level spacing and neutron strength
-c function in separate file
-c
-      do 210 type=7,8
-        do 220 l=lminU,min(lmaxU,lurr)
-          urrfile='                    '
-          lstring='l00'
-          write(lstring(2:3),'(i2.2)') l
-          if (type.eq.7) then
-            urrfile='urrspacingl.'//lstring
-            xx(1)=Dl(l)
-          else
-            urrfile='urrneustrengthl.'//lstring
-            xx(1)=strengthl(l)
-          endif
-          if (.not.urrexist(type,l)) then
-            urrexist(type,l)=.true.
-            open (unit=1,file=urrfile,status='replace')
-            write(1,'("# ",a1," + ",a," l-value:",i2)')
-     +        parsym(k0),trim(targetnuclide),l
-            write(1,'("# URR parameters for ENDF-6 format")')
-            if (type.eq.7) then
-              write(1,'("# Mean level spacing per l")')
-            else
-              write(1,'("# Neutron strength function per l")')
-            endif
-            write(1,'("# # energies =",i6)') numinc
-            if (type.eq.7) then
-              write(1,'("# E [MeV]     spacing")')
-            else
-              write(1,'("# E [MeV]     strength")')
-            endif
-            do 230 nen=1,numinclow
-              write(1,'(es11.3,es12.5)') eninc(nen),xx(1)
-  230       continue
-            do 240 nen=numinclow+1,nin-1
-              write(1,'(es11.3," !!! not calculated")') eninc(nen)
-  240       continue
-          else
-            open (unit=1,file=urrfile,status='old')
-            do 250 nen=1,nin+4
-              read(1,*,end=300,err=300)
-  250       continue
-          endif
-          write(1,'(es11.3,es12.5)') Einc,xx(1)
-  300     close (unit=1)
-  220   continue
-  210 continue
-c
-c Output of URR cross section from NJOY method and TALYS
-c
-c flagurrnjoy : normalization of URR parameters with NJOY method
-c RprimeU     : potential scattering radius
-c
-      do 310 type=9,11
-        if (type.ne.10.and..not.flagurrnjoy) goto 310
-        if (type.eq.9) then
-          urrfile='urrnjoy.tot         '
-          do 320 j=1,4
-            xx(j)=xsurrN(j)
-  320     continue
-        endif
-        if (type.eq.10) then
-          urrfile='urrtalys.tot        '
-          do 330 j=1,4
-            xx(j)=xsurrT(j)
-  330     continue
-        endif
-        if (type.eq.11) then
-          urrfile='urrratio.tot        '
-          do 340 j=1,4
-            if (xsurrN(j).gt.0.) then
-              xx(j)=xsurrT(j)/xsurrN(j)
-            else
-              xx(j)=1.
-            endif
-  340     continue
-        endif
-        if (.not.urrexist(type,0)) then
-          urrexist(type,0)=.true.
-          open (unit=1,file=urrfile,status='replace')
-          write(1,'("# ",a1," + ",a)') parsym(k0),trim(targetnuclide)
-          if (type.eq.9) then
-            write(1,'("# URR cross section with formalism from NJOY")')
-            write(1,'("# Rprime[fm] = ",es12.5)') RprimeU
-          endif
-          if (type.eq.10) then
-            write(1,'("# URR cross section with formalism from TALYS")')
-            write(1,'("# Rprime[fm] = ",es12.5)') Rprime
-          endif
-          if (type.eq.11) then
-            write(1,'("# URR cross section ratio TALYS:NJOY")')
-            write(1,'("# R ratio    = ",es12.5)') Rprime/RprimeU
-          endif
-          write(1,'("# energies   = ",i6)') numinc
-          write(1,'("# E [MeV]   total       elastic    ",
-     +      " capture     fission")')
-          do 350 nen=1,numinclow
-            write(1,'(es11.3,4es12.5)') eninc(nen),xx(1),xx(2),xx(4),
-     +        xx(3)
-  350     continue
-          do 360 nen=numinclow+1,nin-1
-            write(1,'(es11.3," !!! not calculated")') eninc(nen)
-  360     continue
+      if (type == 0) then
+        urrfile = 'urrgamwidth.'//lstring
+        extension='average radiation width'
+      endif
+      if (type == 1) then
+        urrfile = 'urrcomwidth.'//lstring
+        extension='average competitive width'
+      endif
+      if (type == 2) then
+        urrfile = 'urrspacinglj.'//lstring
+        extension='mean level spacing per l,J'
+      endif
+      if (type == 3) then
+        urrfile = 'urrneuwidth.'//lstring
+        extension='reduced neutron width'
+      endif
+      if (type == 4) then
+        urrfile = 'urrneustrengthlj.'//lstring
+        extension='neutron strength function'
+      endif
+      if (type == 5) then
+        urrfile = 'urrprowidth.'//lstring
+        extension='average proton width'
+      endif
+      if (type == 6) then
+        urrfile = 'urralpwidth.'//lstring
+        extension='average alpha width'
+      endif
+      k = 1 + JmaxU(l) - JminU(l)
+      un = ''
+      col(1)='E'
+      un(1)='MeV'
+      do i=1,k
+        col(3*(i-1)+2)='J'
+        col(3*(i-1)+3)='nu'
+        col(3*(i-1)+4)='width'
+        if (type == 2) col(3*(i-1)+4)='spacing'
+        if (type == 4) col(3*(i-1)+4)='strength'
+      enddo
+      Ncol=1+3*k
+      if ( .not. urrexist(type, l)) then
+        urrexist(type, l) = .true.
+        topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' - '//extension
+        open (unit = 1, file = urrfile, status = 'replace')
+        call write_header(topline,source,user,date,oformat)
+        call write_target
+        call write_reaction(reaction,0.d0,0.d0,0,0)
+        call write_integer(2,'l-value',l)
+        call write_datablock(quantity,Ncol,Ninc,col,un)
+        do nen = 1, Ninclow
+          write(1, '(100es15.6)') eninc(nen), (J + 0.5 * odd, x(l, J), y(l, J), J = JminU(l), JmaxU(l))
+        enddo
+        do nen = Ninclow + 1, nin - 1
+          write(1, '(es15.6, " !!! not calculated")') eninc(nen)
+        enddo
+      else
+        open (unit = 1, file = urrfile, status = 'old', position = 'append')
+      endif
+      write(1, '(100es15.6)') Einc, (J + 0.5 * odd, x(l, J), y(l, J), J = JminU(l), JmaxU(l))
+      close (unit = 1)
+    enddo
+  enddo
+!
+! Output of l-dependent mean level spacing and neutron strength function in separate file
+!
+  do type = 7, 8
+    do l = lminU, min(lmaxU, lurr)
+      urrfile = '                    '
+      lstring = 'l00'
+      write(lstring(2:3), '(i2.2)') l
+      col(1)='E'
+      un(1)='MeV'
+      un(2)=''
+      Ncol=2
+      if (type == 7) then
+        urrfile = 'urrspacingl.'//lstring
+        xx(1) = Dl(l)
+        extension='mean level spacing per l'
+        col(2)='spacing'
+      else
+        urrfile = 'urrneustrengthl.'//lstring
+        xx(1) = strengthl(l)
+        extension='neutron strength function per l'
+        col(2)='strength'
+      endif
+      if ( .not. urrexist(type, l)) then
+        urrexist(type, l) = .true.
+        topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' - '//extension
+        open (unit = 1, file = urrfile, status = 'replace')
+        call write_header(topline,source,user,date,oformat)
+        call write_target
+        call write_reaction(reaction,0.d0,0.d0,0,0)
+        call write_integer(2,'l-value',l)
+        call write_datablock(quantity,Ncol,Ninc,col,un)
+        do nen = 1, Ninclow
+          write(1, '(2es15.6)') eninc(nen), xx(1)
+        enddo
+        do nen = Ninclow + 1, nin - 1
+          write(1, '(es15.6, " !!! not calculated")') eninc(nen)
+        enddo
+      else
+        open (unit = 1, file = urrfile, status = 'old', position = 'append')
+      endif
+      write(1, '(2es15.6)') Einc, xx(1)
+      close (unit = 1)
+    enddo
+  enddo
+!
+! Output of URR cross section from NJOY method and TALYS
+!
+  un = 'mb'
+  col(1)='E'
+  un(1)='MeV'
+  col(2)='xs'
+  col(3)='elastic'
+  col(4)='capture'
+  col(5)='fission'
+  Ncol=5
+  do type = 9, 11
+    if (type /= 10 .and. .not. flagurrnjoy) cycle
+    quantity='cross section'
+    if (type == 9) then
+      topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' with formalism from NJOY'
+      urrfile = 'urrnjoy.tot         '
+      do j = 1, 4
+        xx(j) = xsurrN(j)
+      enddo
+    endif
+    if (type == 10) then
+      topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' with formalism from TALYS'
+      urrfile = 'urrtalys.tot        '
+      do j = 1, 4
+        xx(j) = xsurrT(j)
+      enddo
+    endif
+    if (type == 11) then
+      quantity='cross section ratio'
+      topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' TALYS:NJOY'
+      urrfile = 'urrratio.tot        '
+      do j = 1, 4
+        if (xsurrN(j) > 0.) then
+          xx(j) = xsurrT(j) / xsurrN(j)
         else
-          open (unit=1,file=urrfile,status='old')
-          do 370 nen=1,nin+4
-            read(1,*,end=400,err=400)
-  370     continue
+          xx(j) = 1.
         endif
-        write(1,'(es11.3,4es12.5)') Einc,xx(1),xx(2),xx(4),xx(3)
-  400   close (unit=1)
-  310 continue
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+      enddo
+    endif
+    if ( .not. urrexist(type, 0)) then
+      urrexist(type, 0) = .true.
+      open (unit = 1, file = urrfile, status = 'replace')
+      call write_header(topline,source,user,date,oformat)
+      call write_target
+      call write_reaction(reaction,0.d0,0.d0,0,0)
+      write(1,'("# observables:")')
+      if (type == 9) call write_real(2,'potential scattering radius [fm]',RprimeU)
+      if (type == 10) call write_real(2,'potential scattering radius [fm]',Rprime)
+      if (type == 11) call write_real(2,'ratio of potential scattering radius ',Rprime/RprimeU)
+      call write_datablock(quantity,Ncol,Ninc,col,un)
+      do nen = 1, Ninclow
+        write(1, '(5es15.6)') eninc(nen), xx(1), xx(2), xx(4), xx(3)
+      enddo
+      do nen = Ninclow + 1, nin - 1
+        write(1, '(es15.6, " !!! not calculated")') eninc(nen)
+      enddo
+    else
+      open (unit = 1, file = urrfile, status = 'old', position = 'append')
+    endif
+    write(1, '(5es15.6)') Einc, xx(1), xx(2), xx(4), xx(3)
+    close (unit = 1)
+  enddo
+  return
+end subroutine urrout
+! Copyright A.J. Koning 2023

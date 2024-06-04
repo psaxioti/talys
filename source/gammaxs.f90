@@ -1,45 +1,62 @@
-      function gammaxs(Zcomp,Ncomp,Egamma)
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : August 15, 2018
-c | Task  : Gamma ray cross sections
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer Zcomp,Ncomp,irad,l
-      real    gammaxs,Egamma,xsgdr,fstrength,xsqd,quasideuteron
-c
-c ************** Calculate photo-absorption cross section **************
-c
-c Zcomp        : charge number index for compound nucleus
-c Ncomp        : neutron number index for compound nucleus
-c Einc         : incident energy in MeV
-c Egamma       : gamma energy
-c xsgdr        : photo-absorption cross section from GDR part
-c fstrength    : gamma ray strength function
-c kgr          : constant for gamma-ray strength function
-c xsqd         : photo-absorption cross section from QD part
-c quasideuteron: function for quasi-deuteron cross section
-c
-c 1. GDR part
-c
-      xsgdr=0.
-      do 10 irad=0,1
-        do 10 l=1,gammax
-          xsgdr=xsgdr+fstrength(Zcomp,Ncomp,Einc,Egamma,irad,l)/
-     +      kgr(l)*Egamma
-   10 continue
-c
-c 2. QD part
-c
-      xsqd=quasideuteron(Egamma)
-c
-c Total absorption cross section
-c
-      gammaxs=xsgdr+xsqd
-      return
-      end
-Copyright (C)  2017 A.J. Koning, S. Hilaire and S. Goriely
+function gammaxs(Zcomp, Ncomp, Egamma)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Gamma ray cross sections
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   sgl         ! single precision kind
+! Variables for gamma rays
+!   gammax      ! number of l - values for gamma multipolarity
+! Variables for energy grid
+!   Einc        ! incident energy in MeV
+!  Variables for gamma-ray strength functions
+!   kgr         ! constant for gamma - ray strength functio
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer   :: irad          ! variable to indicate M(=0) or E(=1) radiation
+  integer   :: l             ! multipolarity
+  integer   :: Ncomp         ! neutron number index for compound nucleus
+  integer   :: Zcomp         ! proton number index for compound nucleus
+  real(sgl) :: Egamma        ! gamma energy
+  real(sgl) :: fstrength     ! gamma ray strength function
+  real(sgl) :: gammaxs       ! function for gamma ray cross sections
+  real(sgl) :: quasideuteron ! Quasi-deuteron function of Chadwick and Oblozinsky
+  real(sgl) :: xsgdr         ! photo-absorption cross section from GDR part
+  real(sgl) :: xsqd          ! photo-absorption cross section from QD part
+!
+! ************** Calculate photo-absorption cross section **************
+!
+! fstrength    : gamma ray strength function
+! kgr          : constant for gamma-ray strength function
+! quasideuteron: function for quasi-deuteron cross section
+!
+! 1. GDR part
+!
+  xsgdr = 0.
+  do irad = 0, 1
+    do l = 1, gammax
+      xsgdr = xsgdr + fstrength(Zcomp, Ncomp, Einc, Egamma, irad, l) / kgr(l) * Egamma
+    enddo
+  enddo
+!
+! 2. QD part
+!
+  xsqd = quasideuteron(Egamma)
+!
+! Total absorption cross section
+!
+  gammaxs = xsgdr + xsqd
+  return
+end function gammaxs
+! Copyright A.J. Koning 2021

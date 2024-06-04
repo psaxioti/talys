@@ -1,34 +1,38 @@
-      subroutine endf
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : August 19, 2013
-c | Task  : Cross sections and information for ENDF-6 file
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-c
-c ************************** ECIS calculation **************************
-c
-c numinc      : number of incident energies
-c endfinfo    : subroutine for info for ENDF-6 file
-c endfenergies: subroutine for energy grid for ENDF-6 file
-c k0          : index for incident particle
-c endfecis    : subroutine for ECIS calculation for incident particle on
-c               ENDF-6 energy grid
-c flagecisinp : flag for existence of ecis input file
-c endfread    : subroutine to read ECIS results for incident particle on
-c               ENDF-6 energy grid
-c
-      if (numinc.eq.1) return
-      call endfinfo
-      call endfenergies
-      if (k0.ne.0) then
-        call endfecis
-        if (flagecisinp) call endfread
-      endif
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+subroutine endf
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Cross sections and information for ENDF-6 file
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for input energies
+!   Ninc         ! number of incident energies
+! Variables for main input
+!   k0             ! index of incident particle
+! Variables for ECIS
+!   flagecisinp    ! flag for existence of ecis input file
+!
+! ************************** ECIS calculation **************************
+!
+! endfinfo    : subroutine for info for ENDF-6 file
+! endfenergies: subroutine for energy grid for ENDF-6 file
+! endfecis    : subroutine for ECIS calculation for incident particle on ENDF-6 energy grid
+! endfread    : subroutine to read ECIS results for incident particle on ENDF-6 energy grid
+!
+  if (Ninc == 1) return
+  call endfinfo
+  call endfenergies
+  if (k0 /= 0) then
+    call endfecis
+    if (flagecisinp) call endfread
+  endif
+  return
+end subroutine endf
+! Copyright A.J. Koning 2021

@@ -1,32 +1,47 @@
-      subroutine talysinput
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : January 29, 2023
-c | Task  : User input and defaults
-c +---------------------------------------------------------------------
-c
-c ******************** Set defaults and read input *********************
-c
-c readinput   : subroutine to read input
-c input1      : subroutine to read input for first set of variables
-c input2      : subroutine to read input for second set of variables
-c input3      : subroutine to read input for third set of variables
-c input4      : subroutine to read input for fourth set of variables
-c input5      : subroutine to read input for fifth set of variables
-c input6      : subroutine to read input for sixth set of variables
-c checkkeyword: subroutine to check for errors in keywords
-c checkvalue  : subroutine to check for errors in values
-c
-      call readinput
-      call input1
-      call input2
-      call input3
-      call input4
-      call input5
-      call input6
-      call checkkeyword
-      call checkvalue
-      return
-      end
-Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely
+subroutine talysinput
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : User input, defaults and setting variables
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! ******************** Set defaults and read input *********************
+!
+  call readinput
+  call input_path
+  call input_main
+  call input_best
+  call input_basicreac
+  call read_energies
+  call initial_best
+  call input_basicpar
+  call initial_adjust
+  call input_astro
+  call input_numerics
+  call input_mass
+  call input_levels
+  call input_densitymodel
+  call input_densitypar
+  call input_gammamodel
+  call input_gammapar
+  call input_ompmodel
+  call input_omppar
+  call input_compoundmodel
+  call input_compoundpar
+  call input_directmodel
+  call input_directpar
+  call input_fissionmodel
+  call input_fissionpar
+  call input_preeqmodel
+  call input_preeqpar
+  call input_medical
+  call input_output
+  call input_outfiles
+  call checkkeyword
+  call checkvalue
+  return
+end subroutine talysinput
+! Copyright A.J. Koning 2021

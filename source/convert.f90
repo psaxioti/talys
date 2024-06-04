@@ -1,112 +1,51 @@
-      subroutine convert(i)
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : February 5, 2020
-c | Task  : Convert input line from upper case to lowercase
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      character*132 str
-      integer       i,k
-c
-c ************** Convert uppercase to lowercase characters *************
-c
-c inline,str: input line
-c
-c For easy handling of all the input parameters, the whole input is
-c converted to lowercase characters, with the exception of filenames or
-c other character strings.
-c
-      str(1:80)=inline(i)(1:80)
-      do 10 k=1,80
-        if (inline(i)(k:k).ge.'A'.and.inline(i)(k:k).le.'Z')
-     +    inline(i)(k:k)=achar(iachar(inline(i)(k:k))+32)
-  10  continue
-      do 20 k=0,60
-        if (inline(i)(k+1:k+6).eq.'e1file') then
-          inline(i)(k+7:80)=str(k+7:80)
-          return
-        endif
-        if (inline(i)(k+1:k+6).eq.'m1file') then
-          inline(i)(k+7:80)=str(k+7:80)
-          return
-        endif
-        if (inline(i)(k+1:k+7).eq.'energy ') then
-          inline(i)(k+8:80)=str(k+8:80)
-          return
-        endif
-        if (inline(i)(k+1:k+7).eq.'optmod ') then
-          inline(i)(k+8:80)=str(k+8:80)
-          return
-        endif
-        if (inline(i)(k+1:k+7).eq.'nulldev') then
-          inline(i)(k+8:80)=str(k+8:80)
-          return
-        endif
-        if (inline(i)(k+1:k+8).eq.'bestpath') then
-          inline(i)(k+9:80)=str(k+9:80)
-          return
-        endif
-        if (inline(i)(k+1:k+8).eq.'integral') then
-          inline(i)(k+9:80)=str(k+9:80)
-          return
-        endif
-        if (inline(i)(k+1:k+9).eq.'abundance') then
-          inline(i)(k+10:80)=str(k+10:80)
-          return
-        endif
-        if (inline(i)(k+1:k+9).eq.'levelfile') then
-          inline(i)(k+10:80)=str(k+10:80)
-          return
-        endif
-        if (inline(i)(k+1:k+9).eq.'strucpath') then
-          inline(i)(k+10:80)=str(k+10:80)
-          return
-        endif
-        if (inline(i)(k+1:k+10).eq.'class2file') then
-          inline(i)(k+11:80)=str(k+11:80)
-          return
-        endif
-        if (inline(i)(k+1:k+10).eq.'deformfile') then
-          inline(i)(k+11:80)=str(k+11:80)
-          return
-        endif
-        if (inline(i)(k+1:k+10).eq.'radialfile') then
-          inline(i)(k+11:80)=str(k+11:80)
-          return
-        endif
-        if (inline(i)(k+1:k+10).eq.'rescuefile') then
-          inline(i)(k+11:80)=str(k+11:80)
-          return
-        endif
-        if (inline(i)(k+1:k+8).eq.'tjadjust') then
-          inline(i)(k+9:80)=str(k+9:80)
-          return
-        endif
-        if (inline(i)(k+1:k+11).eq.'hbtransfile') then
-          inline(i)(k+12:80)=str(k+12:80)
-          return
-        endif
-        if (inline(i)(k+1:k+11).eq.'optmodfilen') then
-          inline(i)(k+12:80)=str(k+12:80)
-          return
-        endif
-        if (inline(i)(k+1:k+11).eq.'optmodfilep') then
-          inline(i)(k+12:80)=str(k+12:80)
-          return
-        endif
-        if (inline(i)(k+1:k+13).eq.'ompenergyfile') then
-          inline(i)(k+14:80)=str(k+14:80)
-          return
-        endif
-        if (inline(i)(k+1:k+9).eq.'yieldfile') then
-          inline(i)(k+10:80)=str(k+10:80)
-          return
-        endif
-   20 continue
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+subroutine convert(i)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Convert input line from upper case to lowercase
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for reading input lines
+!   inline           ! input line
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer, parameter :: numkey=20       ! number of keywords
+  character(len=132) :: keyword(numkey) ! keyword
+  character(len=132) :: str             ! input line
+  integer            :: i               ! counter
+  integer            :: k               ! counter
+  integer            :: lkey            ! length of keyword
+  integer            :: m               ! counter
+!
+! ************** Convert uppercase to lowercase characters *************
+!
+! For easy handling of all the input parameters, the whole input, both keywords and values, is converted to lowercase characters,
+! with the exception of filenames or other character strings.
+!
+  data (keyword(m), m = 1, numkey) / 'abundance', 'bestpath', 'class2file', 'deformfile', 'e1file', 'hbtransfile', &
+    'm1file', 'energy', 'integral', 'levelfile', 'nulldev', 'ompenergyfile', 'optmod', 'optmodfilen', 'optmodfilep', &
+    'radialfile', 'rescuefile', 'strucpath', 'tjadjust', 'yieldfile' /
+  str = inline(i)
+  do k = 1, 132
+    if (inline(i)(k:k) >= 'A' .and. inline(i)(k:k) <= 'Z') inline(i)(k:k) = achar(iachar(inline(i)(k:k)) + 32)
+  enddo
+  do k = 0, 110
+    do m = numkey, 1, -1
+      lkey = len_trim(keyword(m))
+      if (inline(i)(k+1:k+lkey) == trim(keyword(m))) then
+        inline(i)(k + lkey + 1:132) = str(k + lkey + 1:132)
+        return
+      endif
+    enddo
+  enddo
+end subroutine convert
+! Copyright A.J. Koning 2021

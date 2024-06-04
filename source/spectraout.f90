@@ -1,193 +1,240 @@
-      subroutine spectraout
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : December 21, 2020
-c | Task  : Output of particle spectra
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      character*10 Efile
-      character*21 specfile
-      integer      type,nen
-c
-c ***************************** Spectra ********************************
-c
-c parskip    : logical to skip outgoing particle
-c xsparticle : total particle production cross section
-c parname    : name of particle
-c ebegin     : first energy point of energy grid
-c eend       : last energy point of energy grid
-c espec      : outgoing energy grid
-c xssumout   : cross section summed over mechanisms
-c xsdiscout  : total smoothed cross section for discrete state
-c xspreeqout : preequilibrium cross section per particle type and
-c              outgoing energy
-c xsmpreeqout: multiple pre-equilibrium emission spectrum
-c xscompout  : compound emission cross section
-c flagrecoil : flag for calculation of recoils
-c flaglabddx : flag for calculation of DDX in LAB system
-c iejlab     : number of ejectile lab bins
-c Eejlab     : center of ejectile lab bin
-c xsejlab    : LAB ejectile spectrum
-c xsejlabint : LAB energy-integrated spectrum
-c
-      write(*,'(/" 7. Composite particle spectra")')
-      do 10 type=0,6
-        if (parskip(type)) goto 10
-        if (xsparticle(type).eq.0.) goto 10
-        write(*,'(/" Spectra for outgoing ",a8/)') parname(type)
-        if (k0.le.2.and.type.le.2) then
-          write(*,'("  Energy   Total       Direct    Pre-equil.",
-     +      "  Mult. preeq  Compound"/)')
-          do 20 nen=ebegin(type),eendout(type)
-            write(*,'(f8.3,5es12.5)') espec(type,nen),
-     +        xssumout(type,nen),xsdiscout(type,nen),
-     +        xspreeqout(type,nen),xsmpreeqout(type,nen),
-     +        xscompout(type,nen)
-   20     continue
+subroutine spectraout
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Output of particle spectra
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for output
+!   filespectrum    ! designator for spectrum on separate file
+!   flagblock       ! flag to block spectra, angle and gamma files
+! Variables for existence libraries
+!   spexist1        ! flag for existence of spectra
+!   spexist2        ! flag for existence of spectra
+! Variables for basic reaction
+!   flaglabddx      ! flag for calculation of DDX in LAB system
+!   flagrecoil      ! flag for calculation of recoils
+! Variables for main input
+!   Atarget         ! mass number of target nucleus
+!   k0              ! index of incident particle
+! Variables for incident channel
+!   xsparticle      ! total particle production cross section
+! Variables for energies
+!   Ninclow        ! number of incident energies below Elow
+! Variables for energy grid
+!   ebegin          ! first energy point of energy grid
+!   Einc            ! incident energy in MeV
+! Variables for input energies
+!   eninc            ! incident energy in MeV
+!   nin              ! counter for incident energy
+!   Ninc             ! number of incident energies
+! Variables for spectra
+!   buratio         ! break - up ratio
+!   Eaverage        ! average outgoing energy
+!   eendout         ! last energy point of energy grid
+!   espec           ! outgoing energy grid
+!   preeqratio      ! pre - equilibrium ratio
+!   xscompout       ! compound emission angular distribution
+!   xsdiscout       ! smoothed angular distribution for discrete state
+!   xsmpreeqout     ! multiple preequilibrium angular distribution
+!   xspreeqbuout    ! preequilibrium cross section for breakup
+!   xspreeqkiout    ! preequilibrium cross section for knockout and inelastic
+!   xspreeqout      ! preequilibrium angular distribution per particle type an
+!   xspreeqpsout    ! preequilibrium cross section for pickup and stripping
+!   xssumout        ! cross section summed over mechanisms
+! Variables for nuclides
+!   parskip         ! logical to skip outgoing particle
+!   Q               ! Q - value
+! Constants
+!   iso             ! counter for isotope
+!   natstring       ! string extension for file names
+!   parname         ! name of particle
+!   parsym          ! symbol of particle
+! Variables for recoil
+!   Eejlab          ! center of ejectile lab bin
+!   iejlab          ! number of ejectile lab bins
+!   xsejlab         ! LAB ejectile spectrum
+!   xsejlabint      ! LAB energy - integrated spectrum
+!
+! *** Declaration of local data
+!
+  implicit none
+  character(len=10) :: Efile       ! file with average energies
+  character(len=21) :: specfile    ! file with composite particle spectra
+  character(len=13) :: Estr
+  character(len=18) :: reaction   ! reaction
+  character(len=132) :: topline    ! topline
+  character(len=15) :: col(11)     ! header
+  character(len=15) :: un(11)     ! header
+  character(len=80) :: quantity   ! quantity
+  integer           :: MF
+  integer           :: MT
+  integer           :: nen         ! energy counter
+  integer           :: type        ! particle type
+  integer           :: Ncol        ! number of columns
+!
+! ***************************** Spectra ********************************
+!
+  MF = 6
+  MT = 5
+  Estr=''
+  write(Estr,'(es13.6)') Einc
+  un = 'mb/MeV'
+  col(1)='E-out'
+  un(1)='MeV'
+  col(2)='xs'
+  col(3)='Direct'
+  col(4)='Preequilibrium'
+  col(5)='Multiple preeq'
+  col(6)='Compound'
+  col(7)='Preeq ratio'
+  un(7)=''
+  col(8)='Break-up ratio'
+  un(8)=''
+  col(9)='Stripping'
+  col(10)='Knock-out'
+  col(11)='Break-up'
+  Ncol=7
+  quantity='emission spectrum'
+  write(*, '(/" 7. Composite particle spectra")')
+  do type = 0, 6
+    if (parskip(type)) cycle
+    if (xsparticle(type) == 0.) cycle
+    write(*, '(/" Spectra for outgoing ", a8/)') parname(type)
+    if (k0 <= 2 .and. type <= 2) then
+      write(*, '("  Energy   Total       Direct    Pre-equil.  Mult. preeq  Compound"/)')
+      do nen = ebegin(type), eendout(type)
+        write(*, '(f8.3, 5es12.5)') espec(type, nen), xssumout(type, nen), xsdiscout(type, nen), &
+ &        xspreeqout(type, nen), xsmpreeqout(type, nen), xscompout(type, nen)
+      enddo
+    else
+      write(*, '("  Energy   Total       Direct    Pre-equil.  Mult. preeq  Compound    Stripping   Knock-out   Break-up"/)')
+      do nen = ebegin(type), eendout(type)
+        write(*, '(f8.3, 8es12.5)') espec(type, nen), xssumout(type, nen), xsdiscout(type, nen), &
+ &        xspreeqout(type, nen), xsmpreeqout(type, nen), xscompout(type, nen), xspreeqpsout(type, nen), &
+ &        xspreeqkiout(type, nen), xspreeqbuout(type, nen)
+      enddo
+    endif
+    if (flagrecoil .and. flaglabddx) then
+      write(*, '(/" LAB spectra for outgoing ", a8/)') parname(type)
+      write(*, '("  Energy   Cross section"/)')
+      do nen = 1, iejlab(type)
+        write(*, '(f8.3, es12.5)') Eejlab(type, nen), xsejlab(type, nen)
+      enddo
+      write(*, '(/" Energy-integrated cross section:", es12.5/)') xsejlabint(type)
+    endif
+!
+! Write results to separate file
+!
+    if (filespectrum(type)) then
+      if (flagblock) then
+        specfile = ' spec.tot'//natstring(iso)
+        write(specfile(1:1), '(a1)') parsym(type)
+        if (.not. spexist1(type)) then
+          spexist1(type) = .true.
+          open (unit=1, file=specfile, status='unknown')
         else
-          write(*,'("  Energy   Total       Direct    Pre-equil.",
-     +      "  Mult. preeq  Compound    Stripping   Knock-out",
-     +      "   Break-up"/)')
-          do 25 nen=ebegin(type),eendout(type)
-            write(*,'(f8.3,8es12.5)') espec(type,nen),
-     +        xssumout(type,nen),xsdiscout(type,nen),
-     +        xspreeqout(type,nen),xsmpreeqout(type,nen),
-     +        xscompout(type,nen),xspreeqpsout(type,nen),
-     +        xspreeqkiout(type,nen),xspreeqbuout(type,nen)
-   25     continue
+          open (unit=1, file=specfile, status='unknown', position='append')
         endif
-        if (flagrecoil.and.flaglabddx) then
-          write(*,'(/" LAB spectra for outgoing ",a8/)') parname(type)
-          write(*,'("  Energy   Cross section"/)')
-          do 30 nen=1,iejlab(type)
-            write(*,'(f8.3,es12.5)') Eejlab(type,nen),
-     +        xsejlab(type,nen)
-   30     continue
-          write(*,'(/" Energy-integrated cross section:",es12.5/)')
-     +      xsejlabint(type)
-        endif
-c
-c Write results to separate file
-c
-c filespectrum: designator for spectrum on separate file
-c natstring   : string extension for file names
-c iso         : counter for isotope
-c Einc        : incident energy in MeV
-c specfile    : file with spectrum
-c parsym      : symbol of particle
-c preeqratio  : pre-equilibrium ratio
-c
-        if (filespectrum(type)) then
-          if (flagblock) then
-            specfile=' spec.tot'//natstring(iso)
-            write(specfile(1:1),'(a1)') parsym(type)
-            if (.not.spexist1(type)) then
-              spexist1(type)=.true.
-              open (unit=1,file=specfile,status='unknown')
-            else
-              open (unit=1,file=specfile,status='unknown',
-     +          position='append')
-            endif
+      else
+        specfile=' spec0000.000.tot'//natstring(iso)
+        write(specfile(1:1), '(a1)') parsym(type)
+        write(specfile(6:13), '(f8.3)') Einc
+        write(specfile(6:9), '(i4.4)') int(Einc)
+        open (unit=1, file=specfile, status='unknown')
+      endif
+      reaction='('//parsym(k0)//',x'//parsym(type)//')'
+      topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' at '//Estr//' MeV'
+      call write_header(topline,source,user,date,oformat)
+      call write_target
+      call write_reaction(reaction,0.D0,0.D0,MF,MT)
+      call write_real(2,'E-incident [MeV]',Einc)
+      call write_real(2,'E-average [MeV]',Eaverage(type))
+      if (k0 <= 2 .and. type <= 2) then
+        Ncol=7
+        call write_datablock(quantity,Ncol,eendout(type)-ebegin(type)+1,col,un)
+        do nen = ebegin(type), eendout(type)
+          write(1, '(7es15.6)') espec(type, nen), xssumout(type, nen), xsdiscout(type, nen), &
+ &          xspreeqout(type, nen), xsmpreeqout(type, nen), xscompout(type, nen), preeqratio(type, nen)
+        enddo
+      else
+        Ncol=11
+        call write_datablock(quantity,Ncol,eendout(type)-ebegin(type)+1,col,un)
+        do nen = ebegin(type), eendout(type)
+          write(1, '(11es15.6)') espec(type, nen), xssumout(type, nen), xsdiscout(type, nen), &
+ &          xspreeqout(type, nen), xsmpreeqout(type, nen), xscompout(type, nen), preeqratio(type, nen), &
+ &          buratio(type, nen), xspreeqpsout(type, nen), xspreeqkiout(type, nen), xspreeqbuout(type, nen)
+        enddo
+      endif
+      close (unit = 1)
+      if (flagrecoil .and. flaglabddx) then
+        if (flagblock) then
+          specfile = ' spec.lab'//natstring(iso)
+          write(specfile(1:1), '(a1)') parsym(type)
+          if (.not. spexist2(type)) then
+            spexist2(type) = .true.
+            open (unit=1, file=specfile, status='unknown')
           else
-            specfile=' spec0000.000.tot'//natstring(iso)
-            write(specfile(1:1),'(a1)') parsym(type)
-            write(specfile(6:13),'(f8.3)') Einc
-            write(specfile(6:9),'(i4.4)') int(Einc)
-            open (unit=1,file=specfile,status='unknown')
+            open (unit=1, file=specfile, status='unknown', position='append')
           endif
-          write(1,'("# ",a1," + ",a,": ",a8," spectrum")')
-     +      parsym(k0),trim(targetnuclide),parname(type)
-          write(1,'("# E-incident = ",f10.5)') Einc
-          write(1,'("# E-average  = ",f8.3)') Eaverage(type)
-          write(1,'("# # energies =",i6)') eendout(type)-ebegin(type)+1
-          if (k0.le.2.and.type.le.2) then
-            write(1,'("# E-out    Total       Direct    Pre-equil.",
-     +        "  Mult. preeq  Compound   PE ratio   ")')
-            do 40 nen=ebegin(type),eendout(type)
-              write(1,'(f8.3,6es12.5)')
-     +          espec(type,nen),xssumout(type,nen),xsdiscout(type,nen),
-     +          xspreeqout(type,nen),xsmpreeqout(type,nen),
-     +          xscompout(type,nen),preeqratio(type,nen)
-   40       continue
-          else
-            write(1,'("# E-out    Total       Direct    Pre-equil.",
-     +        "  Mult. preeq  Compound    PE ratio   BU ratio   ",
-     +        " Stripping   Knock-out   Break-up")')
-            do 45 nen=ebegin(type),eendout(type)
-              write(1,'(f8.3,10es12.5)')
-     +          espec(type,nen),xssumout(type,nen),xsdiscout(type,nen),
-     +          xspreeqout(type,nen),xsmpreeqout(type,nen),
-     +          xscompout(type,nen),preeqratio(type,nen),
-     +          buratio(type,nen),xspreeqpsout(type,nen),
-     +          xspreeqkiout(type,nen),xspreeqbuout(type,nen)
-   45       continue
-          endif
-          close (unit=1)
-          if (flagrecoil.and.flaglabddx) then
-            if (flagblock) then
-              specfile=' spec.lab'//natstring(iso)
-              write(specfile(1:1),'(a1)') parsym(type)
-              if (.not.spexist2(type)) then
-                spexist2(type)=.true.
-                open (unit=1,file=specfile,status='unknown')
-              else
-                open (unit=1,file=specfile,status='unknown',
-     +            position='append')
-              endif
-            else
-              specfile=' spec0000.000.lab'//natstring(iso)
-              write(specfile(1:1),'(a1)') parsym(type)
-              write(specfile(6:13),'(f8.3)') Einc
-              write(specfile(6:9),'(i4.4)') int(Einc)
-              open (unit=1,file=specfile,status='unknown')
-            endif
-            write(1,'("# ",a1," + ",a,": ",a8,
-     +        " spectrum in LAB frame")') parsym(k0),
-     +        trim(targetnuclide),parname(type)
-            write(1,'("# E-incident = ",f10.5)') Einc
-            write(1,'("# ")')
-            write(1,'("# # energies =",i6)') iejlab(type)
-            write(1,'("# E-out    Total")')
-            do 50 nen=1,iejlab(type)
-              write(1,'(f8.3,es12.5)') Eejlab(type,nen),
-     +          xsejlab(type,nen)
-   50       continue
-            close (unit=1)
-          endif
+        else
+          specfile=' spec0000.000.lab'//natstring(iso)
+          write(specfile(1:1), '(a1)') parsym(type)
+          write(specfile(6:13), '(f8.3)') Einc
+          write(specfile(6:9), '(i4.4)') int(Einc)
+          open (unit=1, file=specfile, status='unknown')
         endif
-   10 continue
-      write(*,'(/" Average emission energies"/)')
-      do 110 type=0,6
-        if (parskip(type)) goto 110
-        write(*,'(1x,a8,4x,f8.3)') parname(type),Eaverage(type)
-        if (filespectrum(type)) then
-          Efile='Eaverage.'//parsym(type)
-          if (nin.eq.numinclow+1) then
-            open (unit=1,file=Efile,status='replace')
-            write(1,'("# ",a1," + ",a," Average ",a8,
-     +        " emission energy")') parsym(k0),trim(targetnuclide),
-     +        parname(type)
-            write(1,'("# Q-value    =",es12.5)') Q(type)
-            write(1,'("# ")')
-            write(1,'("# # energies =",i6)') numinc
-            write(1,'("#    E       E-average")')
-            do 210 nen=1,numinclow
-              write(1,'(3es12.5)') eninc(nen),0.,0.
-  210       continue
-          else
-            open (unit=1,file=Efile,status='old')
-            do 230 nen=1,nin+4
-              read(1,*,end=240,err=240)
-  230       continue
-          endif
-          write(1,'(2es12.5)') Einc,Eaverage(type)
-  240     close (unit=1)
-        endif
-  110 continue
-      return
-      end
-Copyright (C)  2019 A.J. Koning, S. Hilaire and S. Goriely
+        quantity='emission spectrum in LAB frame'
+        topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' at '//Estr//' MeV'
+        Ncol=2
+        call write_header(topline,source,user,date,oformat)
+        call write_target
+        call write_reaction(reaction,0.D0,0.D0,MF,MT)
+        call write_real(2,'E-incident [MeV]',Einc)
+        call write_datablock(quantity,Ncol,iejlab(type),col,un)
+        do nen = 1, iejlab(type)
+          write(1, '(2es15.6)') Eejlab(type, nen), xsejlab(type, nen)
+        enddo
+        close (unit = 1)
+      endif
+    endif
+  enddo
+  write(*, '(/" Average emission energies"/)')
+  do type = 0, 6
+    if (parskip(type)) cycle
+    write(*, '(1x, a8, 4x, f8.3)') parname(type), Eaverage(type)
+    if (filespectrum(type)) then
+      Efile = 'Eaverage.'//parsym(type)
+      if (nin == Ninclow + 1) then
+        open (unit = 1, file = Efile, status = 'replace')
+        quantity='average emission energy'
+        reaction='('//parsym(k0)//',x'//parsym(type)//')'
+        topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)
+        Ncol=2
+        col(1)='E'
+        col(2)='E-average'
+        un(2)='MeV'
+        call write_header(topline,source,user,date,oformat)
+        call write_target
+        call write_reaction(reaction,0.D0,0.D0,0,0)
+        call write_datablock(quantity,Ncol,Ninclow,col,un)
+        do nen = 1, Ninclow
+          write(1, '(2es15.6)') eninc(nen), 0.
+        enddo
+      else
+        open (unit = 1, file = Efile, status = 'old', position = 'append')
+      endif
+      write(1, '(2es15.6)') Einc, Eaverage(type)
+      close (unit = 1)
+    endif
+  enddo
+  return
+end subroutine spectraout
+! Copyright A.J. Koning 2021

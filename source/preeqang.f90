@@ -1,91 +1,107 @@
-      subroutine preeqang
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : January 6, 2017
-c | Task  : Pre-equilibrium angular distribution
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer type,nen,iang,NL,i
-      real    Eout,xspe,xsbu,ang,kalbach,kalbachBU,xs
-c
-c ************** Kalbach angular distribution for exciton model ********
-c
-c parskip   : logical to skip outgoing particle
-c preeqmode : designator for pre-equilibrium model
-c xspreeqtot: preequilibrium cross section per particle type
-c ebegin    : first energy point of energy grid
-c eend      : last energy point of energy grid
-c xspreeq   : preequilibrium cross section per particle type
-c             and outgoing energy
-c egrid,Eout: outgoing energy grid
-c nanglecont: number of angles for continuum
-c ang       : angle
-c anglecont : angle in degrees for continuum
-c deg2rad   : conversion factor for degrees to radians
-c xspreeqad : preequilibrium angular distribution per particle type
-c kalbach   : Kalbach function
-c xspe      : help variable
-c xsbu      : help variable
-c xspreeqbu : preequilibrium cross section per particle type and
-c             outgoing energy for breakup
-c kalbachBU : Kalbach function for break-up
-c Einc      : incident energy in MeV
-c
-      do 10 type=0,6
-        if (parskip(type)) goto 10
-        if (preeqmode.eq.4.and.(type.eq.1.or.type.eq.2)) goto 10
-        if (xspreeqtot(type).eq.0.) goto 10
-        do 20 nen=ebegin(type),eend(type)
-          if (xspreeq(type,nen).eq.0.) goto 20
-          Eout=egrid(nen)
-          xspe=xspreeq(type,nen)-xspreeqbu(type,nen)
-          xsbu=xspreeqbu(type,nen)
-          do 30 iang=0,nanglecont
-            ang=anglecont(iang)*deg2rad
-            xspreeqad(type,nen,iang)=xspe*kalbach(type,Einc,Eout,ang)
-            if (xsbu.gt.0.) xspreeqad(type,nen,iang)=
-     +        xspreeqad(type,nen,iang)+xsbu*kalbachBU(type,Einc,ang)
-   30     continue
-   20   continue
-   10 continue
-c
-c ************ Pre-equilibrium cross sections for direct states ********
-c
-c Correction of pre-equilibrium cross sections for direct discrete
-c cross sections. If the cross sections for discrete states have NOT
-c been calculated  by a direct reaction model, we collapse the
-c continuum pre-equilibrium cross sections in the high energy region
-c on the associated discrete states.
-c
-c Nlast,NL   : last discrete level
-c parZ       : charge number of particle
-c parN       : neutron number of particle
-c xs         : help variable
-c xspreeqdisc: preequilibrium cross section for discrete state
-c eoutdis    : outgoing energy of discrete state reaction
-c nangle     : number of angles
-c angle      : angle in degrees
-c deg2rad    : conversion factor for degrees to radians
-c directad   : direct angular distribution
-
-      do 110 type=0,6
-        if (parskip(type)) goto 110
-        NL=Nlast(parZ(type),parN(type),0)
-        do 120 i=0,NL
-          xs=xspreeqdisc(type,i)
-          if (xs.eq.0.) goto 120
-          Eout=eoutdis(type,NL)
-          do 130 iang=0,nangle
-            ang=angle(iang)*deg2rad
-            directad(type,i,iang)=directad(type,i,iang)+
-     +        xs*kalbach(type,Einc,Eout,ang)
-  130     continue
-  120   continue
-  110 continue
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+subroutine preeqang
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Pre-equilibrium angular distribution
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   sgl            ! single precision kind
+! Variables for numerics
+!   nangle         ! number of angles
+!   nanglecont     ! number of angles for continuum
+! Variables for preequilibrium
+!   preeqmode      ! designator for pre - equilibrium model
+! Variables for energy grid
+!   angle          ! angle in degrees
+!   anglecont      ! angle in degrees for continuum
+!   ebegin         ! first energy point of energy grid
+!   egrid          ! outgoing energy grid
+!   Einc           ! incident energy in MeV
+! Variables for energies
+!   eend           ! last energy point of energy grid
+!   eoutdis        ! outgoing energy of discrete state reaction
+! Variables for incident channel
+!   directad       ! direct angular distribution
+!   xspreeq        ! preeq. cross section per particle type and outgoing energy
+!   xspreeqtot     ! preequilibrium cross section per particle type
+! Variables for nuclides
+!   parskip        ! logical to skip outgoing particle
+! Constants
+!   deg2rad        ! conversion factor for degrees to radians
+!   parN           ! neutron number of particle
+!   parZ           ! charge number of particle
+! Variables for level density
+!   Nlast          ! last discrete level
+! Variables for preequilibrium
+!   xspreeqad      ! preequilibrium angular distribution per particle type and outgoing energy
+!   xspreeqbu      ! preequilibrium cross section per particle type and outgoing energy for break-up
+!   xspreeqdisc    ! preequilibrium cross section for discrete state
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer   :: i         ! counter
+  integer   :: iang      ! running variable for angle
+  integer   :: nen       ! energy counter
+  integer   :: NL        ! last discrete level
+  integer   :: type      ! particle type
+  real(sgl) :: ang       ! angle
+  real(sgl) :: Eout      ! outgoing energy
+  real(sgl) :: kalbach   ! Kalbach function
+  real(sgl) :: kalbachBU ! Kalbach function for break-up
+  real(sgl) :: xs        ! help variable
+  real(sgl) :: xsbu      ! help variable
+  real(sgl) :: xspe      ! help variable
+!
+! ************** Kalbach angular distribution for exciton model ********
+!
+! kalbach   : Kalbach function
+! kalbachBU : Kalbach function for break-up
+!
+  do type = 0, 6
+    if (parskip(type)) cycle
+    if (preeqmode == 4 .and. (type == 1 .or. type == 2)) cycle
+    if (xspreeqtot(type) == 0.) cycle
+    do nen = ebegin(type), eend(type)
+      if (xspreeq(type, nen) == 0.) cycle
+      Eout = egrid(nen)
+      xspe = xspreeq(type, nen) - xspreeqbu(type, nen)
+      xsbu = xspreeqbu(type, nen)
+      do iang = 0, nanglecont
+        ang = anglecont(iang) * deg2rad
+        xspreeqad(type, nen, iang) = xspe * kalbach(type, Einc, Eout, ang)
+        if (xsbu > 0.) xspreeqad(type, nen, iang) = xspreeqad(type, nen, iang) + xsbu * kalbachBU(type, Einc, ang)
+      enddo
+    enddo
+  enddo
+!
+! ************ Pre-equilibrium cross sections for direct states ********
+!
+! Correction of pre-equilibrium cross sections for direct discrete cross sections.
+! If the cross sections for discrete states have NOT been calculated by a direct reaction model, we collapse the
+! continuum pre-equilibrium cross sections in the high energy region on the associated discrete states.
+!
+  do type = 0, 6
+    if (parskip(type)) cycle
+    NL = Nlast(parZ(type), parN(type), 0)
+    do i = 0, NL
+      xs = xspreeqdisc(type, i)
+      if (xs == 0.) cycle
+      Eout = eoutdis(type, NL)
+      do iang = 0, nangle
+        ang = angle(iang) * deg2rad
+        directad(type, i, iang) = directad(type, i, iang) + xs * kalbach(type, Einc, Eout, ang)
+      enddo
+    enddo
+  enddo
+  return
+end subroutine preeqang
+! Copyright A.J. Koning 2021

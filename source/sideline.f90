@@ -1,64 +1,68 @@
-      function sideline(x,y,xs,ys,xe,ye)
-c
-c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire
-c | Date  : September 9, 2004
-c | Task  : Indicate if (x,y) is on one side (sideline>0.) of the
-c |         segment (xe,ye) <--> (xs,ys) or on the other side
-c |         (sideline<0.) or on the segment (sideline=0.)
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-c x,y  : coordinates of the point to test
-c sideline: function to indicate if (x,y) is on one side of the segment
-c xs,ys: coordinates of the 1st point of the segment
-c xe,ye: coordinates of the 2nd point of the segment
-c xdlim: tolerance
-c ydlim: tolerance
-c a    : help variable
-c b    : help variable
-c
-      implicit none
-      real sideline,x,y,xs,ys,xe,ye,xdlim,ydlim,a,b
-c
-c ************************** Initialisation ****************************
-c
-      xdlim=min(abs(xs),abs(xe))/1.e14
-      ydlim=min(abs(ys),abs(ye))/1.e14
-c
-c segment // y-axis2
-c
-      if (abs(xs-xe).le.xdlim) then
-        sideline=x-xs
-        if (abs(sideline).le.xdlim) sideline=0.
-        return
-      endif
-c
-c segment // x-axis
-c
-      if (abs(ys-ye).le.ydlim) then
-        sideline=y-ys
-        if (abs(sideline).le.ydlim) sideline=0.
-        return
-      endif
-c
-c normal segment
-c
-      a=(ys-ye)/(xs-xe)
-      b=ys-a*xs
-      sideline=y-(a*x+b)
-      if (abs(sideline).le.1.e-12) then
-        sideline=0.
-        return
-      endif
-      if (sideline.lt.0.) then
-        sideline=-1.
-        return
-      endif
-      if (sideline.gt.0.) then
-        sideline=1.
-        return
-      endif
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+function sideline(x, y, xs, ys, xe, ye)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Indicate if (x,y) is on one side (sideline>0.) of the
+!
+! Author    : Stephane Hilaire
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+  use A0_kinds_mod, only: & ! Definition of single and double precision variables
+               sgl      ! single precision kind
+!
+! *** Declaration of local data
+!
+  implicit none
+  real(sgl) :: a        ! fit variables
+  real(sgl) :: b        ! parameter for slope
+  real(sgl) :: sideline ! function to indicate if (x,y) is on one side of the segment
+  real(sgl) :: x        ! help variable
+  real(sgl) :: xdlim    ! tolerance
+  real(sgl) :: xe       ! coordinates of the segment second point
+  real(sgl) :: xs       ! help variable
+  real(sgl) :: y        ! coordinates of the point to test
+  real(sgl) :: ydlim    ! tolerance
+  real(sgl) :: ye       ! coordinates of the segment second point
+  real(sgl) :: ys       ! coordinates of the segment first point
+!
+! ************************** Initialisation ****************************
+!
+  xdlim = min(abs(xs), abs(xe))/1.e14
+  ydlim = min(abs(ys), abs(ye)) / 1.e14
+!
+! segment // y-axis2
+!
+  if (abs(xs - xe) <= xdlim) then
+    sideline = x - xs
+    if (abs(sideline) <= xdlim) sideline = 0.
+    return
+  endif
+!
+! segment // x-axis
+!
+  if (abs(ys - ye) <= ydlim) then
+    sideline = y - ys
+    if (abs(sideline) <= ydlim) sideline = 0.
+    return
+  endif
+!
+! normal segment
+!
+  a = (ys - ye) / (xs - xe)
+  b = ys - a * xs
+  sideline = y - (a * x + b)
+  if (abs(sideline) <= 1.e-12) then
+    sideline = 0.
+    return
+  endif
+  if (sideline < 0.) then
+    sideline = - 1.
+    return
+  endif
+  if (sideline > 0.) then
+    sideline = 1.
+    return
+  endif
+end function sideline
+! Copyright A.J. Koning 2021

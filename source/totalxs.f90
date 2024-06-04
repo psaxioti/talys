@@ -1,101 +1,126 @@
-      subroutine totalxs
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : September 12, 2021
-c | Task  : Total cross sections
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer type,ident,idc,Zcomp,Ncomp
-      real    nubarWahl
-c
-c *********************** Specific cross sections **********************
-c
-c flagchannels: flag for exclusive channels calculation
-c parskip     : logical to skip outgoing particle
-c xsexclusive : exclusive single channel cross section
-c xschannel   : channel cross section
-c idnum       : counter for exclusive channel
-c idchannel   : identifier for exclusive channel
-c xsexclcont  : exclusive single channel cross section for continuum
-c xsdisctot   : total cross section summed over discrete states
-c
-      if (flagchannels) then
-        do 10 type=0,6
-          if (parskip(type)) goto 10
-          if (type.eq.0) then
-            xsexclusive(0)=xschannel(0)
-          else
-            ident=10**(6-type)
-            do 20 idc=0,idnum
-              if (idchannel(idc).eq.ident) then
-                xsexclusive(type)=xschannel(idc)
-                goto 30
-              endif
-   20       continue
+subroutine totalxs
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Total cross sections
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for basic reaction
+!   flagffruns      ! flag to designate subsequent evaporation of fission products
+! Variables for basic reaction
+!   flagastro       ! flag for calculation of astrophysics reaction rate
+!   flagmassdis     ! flag for calculation of fission fragment mass yields
+!   flagchannels    ! flag for exclusive channels calculation
+! Variables for numerics
+!   maxN            ! maximal number of neutrons away from initial compound nucleus
+!   maxZ            ! maximal number of protons away from initial compound nucleus
+! Variables for input energies
+!   flaginitpop     ! flag for initial population distribution
+!   nin             ! counter for incident energy
+! Variables for energy grid
+!   Einc     ! incident energy in MeV
+! Variables for fission
+!   flagfission     ! flag for fission
+!   fymodel         ! fission yield model, 1: Brosa 2: GEF 3: GEF + TALYS
+! Variables for total cross sections
+!   xsexclcont      ! exclusive single channel cross section for continuum
+!   xsexclusive     ! exclusive single channel cross section
+!   xsfistot        ! total fission cross section
+!   xsfistot0       ! total fission cross section
+! Variables for incident channel
+!   multiplicity    ! particle multiplicity
+!   xsparticle      ! total particle production cross section
+! Variables for energies
+!   idchannel       ! identifier for exclusive channel
+! Variables for exclusive channels
+!   idnum           ! counter for exclusive channel
+!   xschannel       ! channel cross section
+! Variables for multiple emission
+!   xsinitpop       ! initial population cross section
+!   xsfeed          ! cross section from compound to residual nucleus
+! Variables for binary reactions
+!   xsconttot       ! total cross section for continuum
+!   xsdisctot       ! total cross section summed over discrete states
+!   xsnonel         ! non - elastic cross
+! Variables for nuclides
+!   parskip         ! logical to skip outgoing particle
+! Variables for mass distribution
+!   nubar          ! average nu
+! Variables for astro
+!   xsastrofis      ! astrophysical fission cross section
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer :: idc       ! help variable
+  integer :: ident     ! exclusive channel identifier
+  integer :: Ncomp     ! neutron number index for compound nucleus
+  integer :: type      ! particle type
+  integer :: Zcomp     ! proton number index for compound nucleus
+  real    :: nubarWahl
+!
+! *********************** Specific cross sections **********************
+!
+  if (flagchannels) then
+    do type = 0, 6
+      if (parskip(type)) cycle
+      if (type == 0) then
+        xsexclusive(0) = xschannel(0)
+      else
+        ident = 10 **(6 - type)
+        do idc = 0, idnum
+          if (idchannel(idc) == ident) then
+            xsexclusive(type) = xschannel(idc)
+            exit
           endif
-   30     xsdisctot(type)=min(xsexclusive(type),xsdisctot(type))
-          if (xsconttot(type).eq.0.) then
-            xsexclcont(type)=0.
-          else
-            xsexclcont(type)=max(xsexclusive(type)-xsdisctot(type),0.)
-          endif
-   10   continue
+        enddo
       endif
-c
-c *************** Total particle production cross sections *************
-c
-c xsparticle  : total particle production cross section
-c Zcomp       : charge number index for compound nucleus
-c maxZ        : maximal number of protons away from the initial
-c               compound nucleus
-c Ncomp       : neutron number index for compound nucleus
-c maxN        : maximal number of neutrons away from the initial
-c               compound nucleus
-c xsfeed      : cross section from compound to residual nucleus
-c flaginitpop : flag for initial population distribution
-c xsinitpop   : initial population cross section
-c multiplicity: particle multiplicity
-c xsnonel     : non-elastic cross section
-c
-      do 110 type=0,6
-        if (parskip(type)) goto 110
-        xsparticle(type)=0.
-        do 120 Zcomp=0,maxZ
-          do 120 Ncomp=0,maxN
-            xsparticle(type)=xsparticle(type)+xsfeed(Zcomp,Ncomp,type)
-  120   continue
-        if (flaginitpop) then
-          if (xsinitpop.ne.0.)
-     +      multiplicity(type)=xsparticle(type)/xsinitpop
-        else
-          if (xsnonel.ne.0.)
-     +      multiplicity(type)=xsparticle(type)/xsnonel
-        endif
-  110 continue
-c
-c ******************* Total fission cross sections ********************
-c
-c flagfission: flag for fission
-c xsfistot   : total fission cross section
-c xsfeed     : cross section from compound to residual nucleus
-c flagastro  : flag for calculation of astrophysics reaction rate
-c xsastrofis : astrophysical fission cross section
-c
-      if (flagfission) then
-        xsfistot=0.
-        do 210 Zcomp=0,maxZ
-          do 210 Ncomp=0,maxN
-          xsfistot=xsfistot+xsfeed(Zcomp,Ncomp,-1)
-  210   continue
-        if (.not.flagffruns) xsfistot0=xsfistot
-        if (flagastro) xsastrofis(nin)=xsfistot
-        if (.not.(flagmassdis.and.fymodel.ge.3)) 
-     +    nubar(1)=nubarWahl(Einc)
+      xsdisctot(type) = min(xsexclusive(type), xsdisctot(type))
+      if (xsconttot(type) == 0.) then
+        xsexclcont(type) = 0.
+      else
+        xsexclcont(type) = max(xsexclusive(type) - xsdisctot(type), 0.)
       endif
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+    enddo
+  endif
+!
+! *************** Total particle production cross sections *************
+!
+  do type = 0, 6
+    if (parskip(type)) cycle
+    xsparticle(type) = 0.
+    do Zcomp = 0, maxZ
+      do Ncomp = 0, maxN
+        xsparticle(type) = xsparticle(type) + xsfeed(Zcomp, Ncomp, type)
+      enddo
+    enddo
+    if (flaginitpop) then
+      if (xsinitpop /= 0.) multiplicity(type) = xsparticle(type) / xsinitpop
+    else
+      if (xsnonel /= 0.) multiplicity(type) = xsparticle(type) / xsnonel
+    endif
+  enddo
+!
+! ******************* Total fission cross sections ********************
+!
+  xsfistot = 0.
+  if (flagfission) then
+    do Zcomp = 0, maxZ
+      do Ncomp = 0, maxN
+        xsfistot = xsfistot + xsfeed(Zcomp, Ncomp, - 1)
+      enddo
+    enddo
+    if ( .not. flagffruns) xsfistot0 = xsfistot
+    if (flagastro) xsastrofis(nin) = xsfistot
+    if (.not. (flagmassdis .and. fymodel >= 3)) nubar(1) = nubarWahl(Einc)
+  endif
+  return
+end subroutine totalxs
+! Copyright A.J. Koning 2021

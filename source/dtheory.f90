@@ -1,108 +1,122 @@
-      subroutine dtheory(Zix,Nix,E)
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : December 15, 2016
-c | Task  : Theoretical calculation of average neutron spacings
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer          Zix,Nix,l,J,Nres,L0,tspin2,tpar,parspin2i,J2b,
-     +                 J2e,parity,J2,jj2beg,jj2end,jj2,l2beg,l2end,l2,
-     +                 lmaxdth
-      real             E,tspin
-      double precision rho(0:numl,0:numJ),rhosum,density
-c
-c ********************** Level density parameters **********************
-c
-c Zix      : charge number index for residual nucleus
-c Nix      : neutron number index for residual nucleus
-c E        : incident energy
-c l        : orbital angular momentum
-c Dl       : theoretical resonance spacing per l value
-c Dlj      : mean resonance spacing per J,l value
-c Nres     : maximal neutron number index for residual nucleus
-c numN     : maximal number of neutrons away from the initial compound
-c            nucleus
-c levels   : subroutine for discrete levels
-c tspin    : target spin
-c jdis     : spin of level
-c tspin2   : 2 * target spin
-c tpar     : target parity
-c L0       : excited level of target
-c parlev   : parity of level
-c parspin2i: 2 * particle spin for incident channel
-c parspin  : spin of incident particle
-c k0       : index of incident particle
-c J2b      : 2 * start of J summation
-c J2e      : 2 * end of J summation
-c lmaxdth  : maximal l-value for transmission coefficients for
-c            incident channel
-c lmaxinc  : maximal l-value for transmission coefficients for
-c            incident channel
-c parity   : parity
-c pardif   : difference between target and compound nucleus parity
-c jj2beg   : 2 * start of j summation
-c jj2end   : 2 * end of j summation
-c J        : J-value
-c l2beg    : 2 * start of l summation
-c l2end    : 2 * end of l summation
-c sgn      : +1 for even argument, -1 for odd argument
-c density  : level density
-c S        : separation energy per particle
-c ldmodel  : level density model
-c rhosum   : help variable
-c
-      do 10 l=0,numl
-        Dl(l)=0.
-        do 10 J=0,numJ
-          Dlj(l,J)=0.
-          rho(l,J)=0.
-   10 continue
-      Nres=min(numN,Nix+1)
-      call levels(Zix,Nres)
-      if (Zix.eq.0.and.Nix.eq.0) then
-        L0=Ltarget
-      else
-        L0=0
-      endif
-      tspin=jdis(Zix,Nres,L0)
-      tspin2=int(2.*jdis(Zix,Nres,L0))
-      tpar=parlev(Zix,Nres,L0)
-      parspin2i=1
-      lmaxdth=max(lmaxinc,5)
-      J2b=mod(int(2.*(tspin+0.5)),2)
-      J2e=int(2*(lmaxdth+0.5+tspin))
-      J2e=min(J2e,2*numJ)
-      do 110 parity=-1,1,2
-        pardif=abs(tpar-parity)/2
-        do 120 J2=J2b,J2e,2
-          J=J2/2
-          jj2beg=abs(J2-tspin2)
-          jj2end=J2+tspin2
-          do 130 jj2=jj2beg,jj2end,2
-            l2beg=abs(jj2-parspin2i)
-            l2end=jj2+parspin2i
-            l2end=min(l2end,2*lmaxdth)
-            do 140 l2=l2beg,l2end,2
-              l=l2/2
-              if (mod(l,2).ne.pardif) goto 140
-              rho(l,J)=density(Zix,Nix,max(0.,S(Zix,Nix,1)+E),0.5*J2,
-     +          parity,0,ldmodel(Zix,Nix))
-              Dlj(l,J)=real(1.e6/rho(l,J))
-  140       continue
-  130     continue
-  120   continue
-  110 continue
-      do 150 l=0,numl
-        rhosum=0.
-        do 160 J=0,numJ
-          rhosum=rhosum+rho(l,J)
-  160   continue
-        if (rhosum.ge.1.e-10) Dl(l)=real(1.e6/rhosum)
-  150 continue
-      return
-      end
-Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely
+subroutine dtheory(Zix, Nix, E)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Theoretical calculation of average neutron spacings
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   sgl        ! single precision kind
+!   dbl        ! double precision kind
+! All global variables
+!   numJ       ! maximum J - value
+!   numl       ! number of l values
+!   numN       ! maximum number of neutrons from initial compound nucleus
+! Variables for main
+!   Ltarget    ! excited level of target
+! Variables for level density
+!   ldmodel    ! level density model
+! Variables for incident channel
+!   lmaxinc    ! maximal l - value for transm. coeff. for incident channel
+! Variables to normalize compound nucleus cross section
+!   pardif     ! difference between target and compound nucleus parity
+! Variables for resonance  parameters
+!   Dl         ! mean resonance spacing per l value
+!   Dlj        ! mean resonance spacing per J, l value
+! Variables for levels
+!   jdis       ! spin of level
+!   parlev     ! parity of level
+! Variables for masses
+!   S          ! separation energy
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer   :: J                    ! spin of level
+  integer   :: J2                   ! 2 * J
+  integer   :: J2b                  ! 2 * start of J summation
+  integer   :: J2e                  ! 2 * end of J summation
+  integer   :: jj2                  ! 2 * j
+  integer   :: jj2beg               ! 2 * start of j summation
+  integer   :: jj2end               ! 2 * end of j summation
+  integer   :: l                    ! multipolarity
+  integer   :: L0                   ! excited level of target
+  integer   :: l2                   ! 2 * l
+  integer   :: l2beg                ! 2 * start of l summation
+  integer   :: l2end                ! 2 * end of l summation
+  integer   :: lmaxdth              ! maximal l-value for transmission coefficients for  incident channel
+  integer   :: Nix                  ! neutron number index for residual nucleus
+  integer   :: Nres                 ! maximal neutron number index for residual nucleus
+  integer   :: parity               ! parity
+  integer   :: parspin2i            ! 2 * particle spin for incident channel
+  integer   :: tpar                 ! target parity
+  integer   :: tspin2               ! 2 * target spin
+  integer   :: Zix                  ! charge number index for residual nucleus
+  real(sgl) :: E                    ! incident energy
+  real(sgl) :: tspin                ! target spin
+  real(dbl) :: density              ! level density
+  real(dbl) :: rho(0:numl, 0:numJ)  ! integrated level density
+  real(dbl) :: rhosum               ! help variable
+!
+! ********************** Level density parameters **********************
+!
+! levels   : subroutine for discrete levels
+!
+  do l = 0, numl
+    Dl(l) = 0.
+    do J = 0, numJ
+      Dlj(l, J) = 0.
+      rho(l, J) = 0.
+    enddo
+  enddo
+  Nres = min(numN, Nix + 1)
+  call levels(Zix, Nres)
+  if (Zix == 0 .and. Nix == 0) then
+    L0 = Ltarget
+  else
+    L0 = 0
+  endif
+  tspin = jdis(Zix, Nres, L0)
+  tspin2 = int(2. * jdis(Zix, Nres, L0))
+  tpar = parlev(Zix, Nres, L0)
+  parspin2i = 1
+  lmaxdth = max(lmaxinc, 5)
+  J2b = mod(int(2. * (tspin + 0.5)), 2)
+  J2e = int(2 * (lmaxdth + 0.5 + tspin))
+  J2e = min(J2e, 2 * numJ)
+  do parity = - 1, 1, 2
+    pardif = abs(tpar - parity) / 2
+    do J2 = J2b, J2e, 2
+      J = J2 / 2
+      jj2beg = abs(J2 - tspin2)
+      jj2end = J2 + tspin2
+      do jj2 = jj2beg, jj2end, 2
+        l2beg = abs(jj2 - parspin2i)
+        l2end = jj2 + parspin2i
+        l2end = min(l2end, 2 * lmaxdth)
+        do l2 = l2beg, l2end, 2
+          l = l2 / 2
+          if (mod(l, 2) /= pardif) cycle
+          rho(l, J) = density(Zix, Nix, max(0., S(Zix, Nix, 1) + E), 0.5 * J2, parity, 0, ldmodel(Zix, Nix))
+          Dlj(l, J) = real(1.e6 / rho(l, J))
+        enddo
+      enddo
+    enddo
+  enddo
+  do l = 0, numl
+    rhosum = 0.
+    do J = 0, numJ
+      rhosum = rhosum + rho(l, J)
+    enddo
+    if (rhosum >= 1.e-10) Dl(l) = real(1.e6 / rhosum)
+  enddo
+  return
+end subroutine dtheory
+! Copyright A.J. Koning 2021

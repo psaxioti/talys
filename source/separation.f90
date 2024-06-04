@@ -1,58 +1,62 @@
-      subroutine separation
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : January 29, 2023
-c | Task  : Separation energies
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer Zix,Nix,type,Zr,Nr
-c
-c Zix,Zr : charge number index for residual nucleus
-c maxZ   : maximal number of protons away from initial compound nucleus
-c Nix,Nr : neutron number index for residual nucleus
-c maxN   : maximal number of neutrons away from initial compound nucleus
-c parZ   : charge number of particle
-c parN   : neutron number of particle
-c expmexc: experimental mass excess
-c S      : separation energy per particle
-c excmass: mass excess of particle in a.m.u.
-c amu    : atomic mass unit in MeV
-c thmexc : theoretical mass excess
-c dumexc : theoretical mass excess from Duflo-Zuker formula
-c
-c For consistency, separation energies are always calculated using two
-c nuclear masses of the same type, i.e. both experimental or both
-c theoretical. Hence if (Zix,Nix) is in the AME2020 table but
-c (Zr,Nr) is not, for both nuclides the theoretical masses are used.
-c For the calculation of separation energies, Zix and Nix act as
-c compound nucleus indices.
-c Since the input for masses is very flexible, we have to build in an extra 
-c check for the separation energy to avoid numerical problems.
-c
-      do Zix=0,maxZ+2
-        do Nix=0,maxN+2
-          do type=1,6
-            Zr=Zix+parZ(type)
-            Nr=Nix+parN(type)
-            if (expmexc(Zix,Nix).ne.0..and.expmexc(Zr,Nr).ne.0.) then
-              S(Zix,Nix,type)=real(expmexc(Zr,Nr)-expmexc(Zix,Nix)+
-     +          excmass(type)*amu)
-              cycle
-            endif
-            if (thmexc(Zix,Nix).ne.0..and.thmexc(Zr,Nr).ne.0.) then
-              S(Zix,Nix,type)=real(thmexc(Zr,Nr)-thmexc(Zix,Nix)+
-     +          excmass(type)*amu)
-            else
-              S(Zix,Nix,type)=real(dumexc(Zr,Nr)-dumexc(Zix,Nix)+
-     +          excmass(type)*amu)
-            endif
-          enddo
-        enddo
+subroutine separation
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Separation energies
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for numerics
+!   maxN       ! maximal number of neutrons away from initial compound nucleus
+!   maxZ       ! maximal number of protons away from initial compound nucleus
+! Constants
+!   amu        ! atomic mass unit in MeV
+!   excmass    ! mass excess of particle in a.m.u.
+!   parN       ! neutron number of particle
+!   parZ       ! charge number of particle
+! Variables for masses
+!   dumexc     ! theoretical mass excess from Duflo - Zuker formula
+!   expmexc    ! experimental mass excess
+!   S          ! separation energy
+!   thmexc     ! theoretical mass excess
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer :: Nix               ! neutron number index for residual nucleus
+  integer :: Nr                ! neutron number index for residual nucleus
+  integer :: type              ! particle type
+  integer :: Zix               ! charge number index for residual nucleus
+  integer :: Zr                ! charge number index for residual nucleus
+!
+! For consistency, separation energies are always calculated using two nuclear masses of the same type,
+! i.e. both experimental or both theoretical.
+! Hence if (Zix,Nix) is in the AME2020 table but (Zr,Nr) is not, for both nuclides the theoretical masses are used.
+! For the calculation of separation energies, Zix and Nix act as compound nucleus indices.
+!
+  do Zix = 0, maxZ+2
+    do Nix = 0, maxN + 2
+      do type = 1, 6
+        Zr = Zix + parZ(type)
+        Nr = Nix + parN(type)
+        if (expmexc(Zix, Nix) /= 0. .and. expmexc(Zr, Nr) /= 0.) then
+          S(Zix, Nix, type) = real(expmexc(Zr, Nr) - expmexc(Zix, Nix) + excmass(type) * amu)
+          cycle
+        endif
+        if (thmexc(Zix, Nix) /= 0. .and. thmexc(Zr, Nr) /= 0.) then
+          S(Zix, Nix, type) = real(thmexc(Zr, Nr) - thmexc(Zix, Nix) + excmass(type) * amu)
+        else
+          S(Zix, Nix, type) = real(dumexc(Zr, Nr) - dumexc(Zix, Nix) + excmass(type) * amu)
+        endif
       enddo
-      return
-      end
-Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely
+    enddo
+  enddo
+  return
+end subroutine separation
+! Copyright A.J. Koning 2021

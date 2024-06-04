@@ -1,34 +1,41 @@
-      subroutine direct
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : August 14, 2008
-c | Task  : Calculation of direct inelastic cross sections
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-c
-c ****************** Direct cross section calculation ******************
-c
-c k0         : index for incident particle
-c Ltarget    : excited level of target
-c flagomponly: flag to execute ONLY an optical model calculation
-c directecis : subroutine for ECIS calculation of direct cross section
-c directread : subroutine to read ECIS results for direct cross section
-c flaggiant  : flag for collective contribution from giant resonances
-c giant      : subroutine for giant resonance contribution
-c flagdirect : flag for output of direct reaction results
-c directout  : subroutine for output of direct reaction cross sections
-c
-      if (k0.eq.0) return
-      if (Ltarget.ne.0) return
-      if (flagomponly) return
-      call directecis
-      call directread
-      if (flaggiant) call giant
-      if (flagdirect) call directout
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+subroutine direct
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Calculation of direct inelastic cross sections
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for direct reactions
+!   flagdirect     ! flag for output of direct reaction results
+! Variables for OMP
+!   flagomponly    ! flag to execute ONLY an optical model calculation
+! Variables for main input
+!   k0             ! index of incident particle
+!   Ltarget        ! excited level of target
+! Variables for energies
+!   flaggiant      ! flag for collective contribution from giant resonances
+!
+! ****************** Direct cross section calculation ******************
+!
+! directecis : subroutine for ECIS calculation of direct cross section
+! directread : subroutine to read ECIS results for direct cross section
+! giant      : subroutine for giant resonance contribution
+! directout  : subroutine for output of direct reaction cross sections
+!
+  if (k0 == 0) return
+  if (Ltarget /= 0) return
+  if (flagomponly) return
+  call directecis
+  call directread
+  if (flaggiant) call giant
+  if (flagdirect) call directout
+  return
+end subroutine direct
+! Copyright A.J. Koning 2021

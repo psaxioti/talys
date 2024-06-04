@@ -1,93 +1,116 @@
-      subroutine binaryout
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : August 31, 2014
-c | Task  : Output of binary cross sections
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      character*10 binfile
-      integer      type,nen
-      real         xsrac,xsc
-c
-c ******************* Binary non-elastic channels **********************
-c
-c flagcompo   : flag for output of cross section components
-c parskip     : logical to skip outgoing particle
-c parname     : name of particle
-c xsrac       : direct radiative capture cross section
-c xsracape    : direct radiative capture cross section
-c xsbinary    : cross section from initial compound to residual nucleus
-c xsdirdisctot: direct cross section summed over discrete states
-c xspreeqtot  : preequilibrium cross section per particle type
-c xsgrtot     : total smoothed giant resonance cross section
-c               incident channel
-c xscomp      : compound cross section per particle type
-c
-      write(*,'(/" 2. Binary non-elastic cross sections ",
-     +  "(non-exclusive)")')
-      if (flagcompo) then
-        write(*,'(36x," Direct  Preequilibrium Compound  Dir. Capt.")')
-      else
-        write(*,'()')
-      endif
-      do 10 type=-1,6
-        if (parskip(type)) goto 10
-        if (type.eq.0) then
-          xsrac=xsracape
-        else
-          xsrac=0.
-        endif
-        if (flagcompo.and.type.ge.0) then
-          xsc=max(xsbinary(type)-xsdirdisctot(type)-xspreeqtot(type)-
-     +      xsgrtot(type)-xsrac,0.)
-          write(*,'(1x,a8,"=",es12.5,12x,4es12.5)') parname(type),
-     +      xsbinary(type),xsdirdisctot(type),
-     +      xspreeqtot(type)+xsgrtot(type),xsc,xsrac
-        else
-          write(*,'(1x,a8,"=",es12.5)') parname(type),xsbinary(type)
-        endif
-   10 continue
-c
-c Write results to separate file
-c
-c filetotal : flag for total cross sections on separate file
-c binfile   : file for binary output
-c numinclow : number of incident energies below Elow
-c eninc,Einc: incident energy in MeV
-c parsym    : symbol of particle
-c k0        : index of incident particle
-c Atarget   : mass number of target nucleus
-c Ztarget   : charge number of target nucleus
-c numinc    : number of incident energies
-c
-      if (filetotal) then
-        binfile='binary.tot'
-        if (nin.eq.numinclow+1) then
-          open (unit=1,file=binfile,status='replace')
-          write(1,'("# ",a1," + ",a," Binary cross sections")')
-     +      parsym(k0),trim(targetnuclide)
-          write(1,'("# ")')
-          write(1,'("# ")')
-          write(1,'("# # energies =",i6)') numinc
-          write(1,'("#    E       ",7(3x,a8,1x))')
-     +      (parname(type),type=0,6)
-          do 20 nen=1,numinclow
-            write(1,'(8es12.5)') eninc(nen),
-     +        (fxsbinary(nen,type),type=0,6)
-  20     continue
-        else
-          open (unit=1,file=binfile,status='old')
-          do 30 nen=1,nin+4
-            read(1,*,end=40,err=40)
-  30     continue
-        endif
-        write(1,'(8es12.5)') Einc,(xsbinary(type),type=0,6)
-  40    close (unit=1)
-      endif
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+subroutine binaryout
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Output of binary cross sections
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   sgl             ! single precision kind
+! Variables for energies
+!   Ninclow       ! number of incident energies below Elow
+! Variables for output
+!   filetotal       ! flag for total cross sections on separate file
+!   flagcompo       ! flag for output of cross section components
+! Variables for input energies
+!   eninc           ! incident energy in MeV
+!   nin             ! counter for incident energy
+!   Ninc          ! number of incident energies
+! Variables for main input
+!   Atarget         ! mass number of target nucleus
+!   k0              ! index of incident particle
+! Variables for energy grid
+!   Einc            ! incident energy in MeV
+! Variables for incident channel
+!   xsbinary        ! cross section from initial compound to residual nucleus
+!   xsdirdisctot    ! direct cross section summed over discrete states
+!   xsgrtot         ! total smoothed giant resonance cross section
+!   xspreeqtot      ! preequilibrium cross section per particle type
+! Variables for nuclides
+!   parskip         ! logical to skip outgoing particle
+! Constants
+!   parname         ! name of particle
+!   parsym          ! symbol of particle
+! Variables for direct capture
+!   xsracape        ! direct radiative capture cross section
+! Variables for thermal cross sections
+!   fxsbinary       ! cross section from initial compound to residual n
+!
+! *** Declaration of local data
+!
+  implicit none
+  character(len=10) :: binfile    ! file for binary output
+  character(len=18) :: reaction   ! reaction
+  character(len=132) :: topline    ! topline
+  character(len=15) :: col(8)     ! header
+  character(len=15) :: un(8)     ! units
+  character(len=80) :: quantity   ! quantity
+  integer           :: Ncol       ! number of columns
+  integer           :: nen        ! energy counter
+  integer           :: type       ! particle type
+  real(sgl)         :: xsc        ! interpolated cross section
+  real(sgl)         :: xsrac      ! direct radiative capture cross section
+!
+! ******************* Binary non-elastic channels **********************
+!
+  quantity='cross section'
+  write(*, '(/" 2. Binary non-elastic cross sections ", "(non-exclusive)")')
+  if (flagcompo) then
+    write(*, '(36x, " Direct  Preequilibrium Compound  Dir. Capt.")')
+  else
+    write(*, '()')
+  endif
+  do type = - 1, 6
+    if (parskip(type)) cycle
+    if (type == 0) then
+      xsrac = xsracape
+    else
+      xsrac = 0.
+    endif
+    if (flagcompo .and. type >= 0) then
+      xsc = max(xsbinary(type) - xsdirdisctot(type) - xspreeqtot(type) - xsgrtot(type) - xsrac, 0.)
+      write(*, '(1x, a8, "=", es12.5, 12x, 4es12.5)') parname(type), xsbinary(type), xsdirdisctot(type), &
+ &      xspreeqtot(type) + xsgrtot(type), xsc, xsrac
+    else
+      write(*, '(1x, a8, "=", es12.5)') parname(type), xsbinary(type)
+    endif
+  enddo
+!
+! Write results to separate file
+!
+  if (filetotal) then
+    binfile = 'binary.tot'
+    if (nin == Ninclow + 1) then
+      open (unit = 1, file = binfile, status = 'replace')
+      reaction='('//parsym(k0)//',bin)'
+      topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' - binary'
+      col(1)='E'
+      un(1)='MeV'
+      do type=0,6
+        col(2+type)=parname(type)
+        un(2+type)= 'mb'
+      enddo
+      Ncol=8
+      call write_header(topline,source,user,date,oformat)
+      call write_target
+      call write_reaction(reaction,0.D0,0.D0,0,0)
+      call write_datablock(quantity,Ncol,Ninc,col,un)
+      do nen = 1, Ninclow
+        write(1, '(8es15.6)') eninc(nen), (fxsbinary(nen, type), type = 0, 6)
+      enddo
+    else
+      open (unit = 1, file = binfile, status = 'old', position = 'append')
+    endif
+    write(1, '(8es15.6)') Einc, (xsbinary(type), type = 0, 6)
+    close (unit = 1)
+  endif
+  return
+end subroutine binaryout
+! Copyright A.J. Koning 2021

@@ -1,227 +1,232 @@
-      subroutine talysreaction
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : August 23, 2021
-c | Task  : Reaction models
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-c
-c ************************* Reaction calculation ***********************
-c
-c Basic cross sections (optical model) and initialisation
-c
-c flagreaction: flag for calculation of nuclear reactions
-c flagompall  : flag for new optical model calculation for all residual
-c               nuclei
-c basicxs     : subroutine for basic cross sections and transmission
-c               coefficients
-c parinclude  : logical to include outgoing particle
-c gamma       : subroutine for gamma cross section and transmission
-c               coefficients
-c enincmax    : maximum incident energy
-c epreeq      : on-set incident energy for preequilibrium calculation
-c flagracap   : flag for radiative capture model
-c preeqinit   : subroutine for initialization of general
-c               pre-equilibrium parameters
-c excitoninit : subroutine for initialization of exciton model
-c               parameters
-c racapinit   : subroutine for initialization of radiative capture model
-c flagcomp    : flag for compound nucleus calculation
-c compoundinit: subroutine for initialization of compound model
-c               parameters
-c flagastro   : flag for calculation of astrophysics reaction rate
-c astroinit   : subroutine for initialization of astrophysics quantities
-c
-      if (.not.flagreaction) goto 100
-      if (.not.flagompall) call basicxs(0,0)
-      if (parinclude(0)) call gamma(0,0)
-      if (enincmax.ge.epreeq.or.flagracap) then
-        call preeqinit
-        call excitoninit
-      endif
-      if (flagracap) call racapinit
-      if (flagcomp) call compoundinit
-      if (flagastro) call astroinit
-c
-c Loop over incident energies
-c
-c Initialisation
-c
-c nin        : counter for incident energies
-c numinc     : number of incident energies
-c eninc,Einc : incident energy in MeV
-c energies   : subroutine for energies
-c reacinitial: subroutine for initialization of arrays for various
-c              cross sections
-c eninclow   : minimal incident energy for nuclear model calculations
-c
-      do 10 nin=1,numinc
-        if (flagompall) call basicxs(0,0)
-        Einc=eninc(nin)
-        call energies
-        call reacinitial
-        if (Einc.lt.eninclow) goto 10
-c
-c Optical model
-c
-c incident   : subroutine for main settings and basic cross sections for
-c              incident energy
-c exgrid     : subroutine to set excitation energy grid
-c flagrecoil : flag for calculation of recoils
-c recoilinit : subroutine for calculation of initial recoil velocity
-c              and direction
-c lmaxinc    : maximal l-value for transmission coefficients
-c xsreacinc  : reaction cross section for incident channel
-c xseps      : limit for cross sections
-c flaginitpop: flag for initial population distribution
-c
-        call incident
-        call exgrid(0,0)
-        if (flagrecoil) call recoilinit
-c
-c In certain cases, there will be no nuclear reaction calculation
-c
-        if ((lmaxinc.eq.-1.or.xsreacinc.lt.xseps).and..not.flaginitpop)
-     +    goto 20
-c
-c Direct reactions
-c
-c direct   : subroutine for calculation of direct inelastic cross
-c            sections
-c flagracap: flag for radiative capture model
-c racap    : subroutine for radiative capture model
-c
+subroutine talysreaction
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Reaction models
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for numerics
+!   xseps           ! limit for cross sections
+! Variables for main input
+!   k0            ! index of incident particle
+! Variables for output
+!   flagddx         ! flag for output of double - differential cross sections
+!   flagintegral    ! flag for calculation of effective cross section using integral spectrum
+!   flagmain        ! flag for main output
+!   flagsacs        ! flag for statistical analysis of cross sections
+!   flagspec        ! flag for output of spectra
+! Variables for basic reaction
+!   flagang         ! flag for output of angular distributions
+!   flagastro       ! flag for calculation of astrophysics reaction rate
+!   flagchannels    ! flag for exclusive channels calculation
+!   flagendf        ! flag for information for ENDF - 6 file
+!   flagmassdis     ! flag for calculation of fission fragment mass yields
+!   flagreaction    ! flag for calculation of nuclear reactions
+!   flagrecoil      ! flag for calculation of recoils
+!   flagrpevap      ! flag for evaporation of residual products at high inccident energies
+! Variables for best files
+!   flagrescue      ! flag for final rescue: normalization to data
+! Variables for basic parameters
+!   eninclow        ! minimal incident energy for nuclear model calculations
+! Variables for input energies
+!   eninc           ! incident energy in MeV
+!   enincmax        ! maximum incident energy
+!   flaginitpop     ! flag for initial population distribution
+!   nin             ! counter for incident energy
+!   Ninc          ! number of incident energies
+! Variables for compound reactions
+!   flagcomp        ! flag for compound angular distribution calculation
+!   flagres         ! flag for output of low energy resonance cross sections
+!   flagurr         ! flag for output of unresolved resonance parameters
+! Variables for preequilibrium
+!   breakupmodel    ! model for break-up reaction: 1. Kalbach 2. Avrigeanu
+!   epreeq          ! on - set incident energy for preequilibrium calculation
+! Variables for medical isotope production
+!   flagprod        ! flag for isotope production
+! Variables for fission
+!   flagfission     ! flag for fission
+!   fymodel         ! fission yield model, 1: Brosa 2: GEF
+! Variables for gamma rays
+!   flagracap       ! flag for radiative capture model
+! Variables for OMP
+!   flagompall      ! flag for new optical model calculation for all residual
+! Variables for energy grid
+!   Einc            ! incident energy in MeV
+! Variables for energies
+!   flagpreeq       ! flag for pre - equilibrium calculation
+!   Ninclow       ! number of incident energies below Elow
+! Variables for incident channel
+!   lmaxinc         ! maximal l - value for transm. coeff. for incident channel
+!   xsreacinc       ! reaction cross section for incident channel
+! Variables for nuclides
+!   parinclude      ! logical to include outgoing particle
+!
+! *** Declaration of local data
+!
+  implicit none
+!
+! ************************* Reaction calculation ***********************
+!
+! Basic cross sections (optical model) and initialisation
+!
+! basicxs     : subroutine for basic cross sections and transmission coefficients
+! gamma       : subroutine for gamma cross section and transmission coefficients
+! preeqinit   : subroutine for initialization of general pre-equilibrium parameters
+! excitoninit : subroutine for initialization of exciton model parameters
+! racapinit   : subroutine for initialization of radiative capture model
+! compoundinit: subroutine for initialization of compound model parameters
+! astroinit   : subroutine for initialization of astrophysics quantities
+!
+  if (flagreaction) then
+    if (.not. flagompall) call basicxs(0, 0)
+    if (parinclude(0)) call gamma(0, 0)
+    if (enincmax >= epreeq .or. flagracap) call preeqinit
+    if (flagracap) call racapinit
+    if (flagcomp) call compoundinit
+    if (flagastro) call astroinit
+!
+! Loop over incident energies
+!
+! Initialisation
+!
+! energies   : subroutine for energies
+! reacinitial: subroutine for initialization of arrays for various cross sections
+!
+    do nin = 1, Ninc
+      if (flagompall) call basicxs(0, 0)
+      Einc = eninc(nin)
+      call energies
+      call reacinitial
+      if (Einc < eninclow) cycle
+!
+! Optical model
+!
+! incident   : subroutine for main settings and basic cross sections for incident energy
+! exgrid     : subroutine to set excitation energy grid
+! recoilinit : subroutine for calculation of initial recoil velocity and direction
+!
+      call incident
+      call exgrid(0, 0)
+      if (flagrecoil) call recoilinit
+!
+! In certain cases, there will be no nuclear reaction calculation
+!
+      if ((lmaxinc /=  - 1 .and. xsreacinc > xseps) .or. flaginitpop) then
+!
+! Direct reactions
+!
+! direct   : subroutine for calculation of direct inelastic cross sections
+! racap    : subroutine for radiative capture model
+!
         call direct
         if (flagracap) call racap
-c
-c Pre-equilibrium reactions
-c
-c preeqspindis: subroutine for preequilibrium spin distribution
-c flagpreeq : flag for pre-equilibrium calculation
-c preeq     : subroutine for preequilibrium reactions
-c population: subroutine for processing of pre-equilibrium spectra
-c             into population bins
-c
+!
+! Pre-equilibrium reactions
+!
+! preeqspindis: subroutine for preequilibrium spin distribution
+! preeq       : subroutine for preequilibrium reactions
+! population  : subroutine for processing of pre-equilibrium spectra into population bins
+!
         if (flagpreeq) then
           call preeqspindis
           call preeq
           call population
         endif
-c
-c Binary compound reactions
-c
-c compnorm  : subroutine for normalization of compound nucleus
-c             cross section
-c comptarget: subroutine for compound reaction for initial compound
-c             nucleus
-c
+!
+! Binary compound reactions
+!
+! compnorm  : subroutine for normalization of compound nucleus cross section
+! comptarget: subroutine for compound reaction for initial compound nucleus
+!
         if (flagcomp) then
           call compnorm
           call comptarget
         endif
-c
-c Collecting binary reaction results
-c
-c binary : subroutine for binary reaction results
-c flagang: flag for output of angular distributions
-c flagddx: flag for output of double-differential cross sections
-c angdis : subroutine for calculation of angular distributions for
-c          discrete states
-c
+!
+! Collecting binary reaction results
+!
+! binary : subroutine for binary reaction results
+! angdis : subroutine for calculation of angular distributions for discrete states
+!
         call binary
-        if (flagang.or.flagddx.or.flagrecoil) call angdis
-c
-c Multiple emission
-c
-c multiple: subroutine for multiple emission
-c
+        if (flagang .or. flagddx .or. flagrecoil) call angdis
+!
+! Multiple emission
+!
+! multiple:preeesubroutine for multiple emission
+!
         call multiple
-c
-c Exclusive channels
-c
-c flagchannels: flag for exclusive channels calculation
-c channels    : subroutine for exclusive reaction channels
-c
+!
+! Exclusive channels
+!
+! channels    : subroutine for exclusive reaction channels
+!
         if (flagchannels) call channels
-c
-c Collecting total cross sections, spectra, angular distributions, etc.
-c
-c totalxs      : subroutine for total cross sections
-c flagspec     : flag for output of spectra
-c spectra      : subroutine for creation of particle spectra
-c flagfission  : flag for fission
-c flagmassdis  : flag for calculation of fission fragment mass yields
-c massdis      : subroutine for fission fragment yields
-c massdisout   : subroutine for output of fission fragment yields
-c fymodel      : fission yield model, 1: Brosa 2: GEF
-c nubarout     : subroutine for output of av number of fission neutrons
-c nudisout     : subroutine for output of number of fission neutrons
-c                and spectra
-c residual     : subroutine for residual production cross sections
-c totalrecoil  : subroutine for recoil results
-c flagrescue   : flag for final rescue: normalization to data
-c normalization: subroutine to normalize cross sections to experimental
-c                or evaluated data
-c numinclow    : number of incident energies below Elow
-c thermal      : subroutine for estimate of thermal cross sections
-c flagurr      : flag for output of unresolved resonance parameters
-c urr          : subroutine for unresolved resonance range parameters
-c output       : subroutine for output
-c
+!
+! Collecting total cross sections, spectra, angular distributions, etc.
+!
+! totalxs      : subroutine for total cross sections
+! spectra      : subroutine for creation of particle spectra
+! massdis      : subroutine for fission fragment yields
+! massdisout   : subroutine for output of fission fragment yields
+! nubarout     : subroutine for output of number of fission neutrons and spectra
+! residual     : subroutine for residual production cross sections
+! totalrecoil  : subroutine for recoil results
+! normalization: subroutine to normalize cross sections to experimental or evaluated data
+! thermal      : subroutine for estimate of thermal cross sections
+! urr          : subroutine for unresolved resonance range parameters
+! output       : subroutine for output
+!
         call totalxs
-        if (flagspec.or.flagddx) call spectra
-        if (flagfission.and.flagmassdis) then
+        if (flagspec .or. flagddx) call spectra
+        if (flagfission .and. flagmassdis) then
           call massdis
-          if (fymodel.le.2) call massdisout
-          if (fymodel.eq.2) then
+          if (fymodel <= 2) call massdisout
+          if (fymodel == 2) then
             call nubarout
             call nudisout
           endif
         endif
-        if (breakupmodel.eq.2.and.k0.eq.3) call residualBU
+        if (breakupmodel == 2 .and. k0 == 3) call residualBU
         call residual
         if (flagrecoil) call totalrecoil
         if (flagrescue) call normalization
-        if (nin.eq.numinclow+1.and.numinclow.gt.0) call thermal
-   20   if (flagurr) call urr
-        if (.not.flagastro) call output
-        if (flagfission.and.flagmassdis.and.fymodel.ge.3) call ffevap
-        if (flagrpevap) call rpevap
-   10 continue
-c
-c Final output
-c
-c astro       : subroutine for astrophysical reaction rates
-c finalout    : subroutine for output of final results
-c flagres     : flag for output of low energy resonance cross sections
-c flagintegral: flag for calculation of effective cross section using
-c               integral spectrum
-c integral    : subroutine to calculate effective cross section for
-c               integral spectrum
-c flagsacs    : flag for statistical analysis of cross sections
-c flagendf    : flag for information for ENDF-6 file
-c endf        : subroutine for cross sections and information for
-c               ENDF-6 file
-c flagprod    : flag for isotope production
-c isoprod     : subroutine for isotope production
-c flagmain    : flag for main output
-c timer       : subroutine for output of execution time
-c
-      if (flagastro) then
-        call astro
-      else
-        call finalout
+        if (nin == Ninclow + 1 .and. Ninclow > 0) call thermal
       endif
-      if (flagres) call resonance
-      if (flagintegral) call integral
-      if (flagsacs) call sacs
-      if (flagendf) call endf
-  100 if (flagprod) call isoprod
-      if (flagmain) call timer
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+      if (flagurr) call urr
+      if ( .not. flagastro) call output
+      if (flagfission .and. flagmassdis .and. fymodel >= 3) call ffevap
+      if (flagrpevap) call rpevap
+    enddo
+!
+! Final output
+!
+! astro       : subroutine for astrophysical reaction rates
+! finalout    : subroutine for output of final results integral spectrum
+! integral    : subroutine to calculate effective cross section for integral spectrum
+! endf        : subroutine for cross sections and information for ENDF-6 file
+! isoprod     : subroutine for isotope production
+! timer       : subroutine for output of execution time
+!
+    if (flagastro) then
+      call astro
+    else
+      call finalout
+    endif
+    if (flagres) call resonance
+    if (flagintegral) call integral
+    if (flagsacs) call sacs
+    if (flagendf) call endf
+  endif
+  if (flagprod) call isoprod
+  if (flagmain) call timer
+  return
+end subroutine talysreaction
+! Copyright A.J. Koning 2021

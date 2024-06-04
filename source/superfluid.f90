@@ -1,61 +1,74 @@
-      function superfluid(Zix,Nix,ald,Eex,P,ibar)
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : October 10, 2015
-c | Task  : Superfluid model level density formula
-c +---------------------------------------------------------------------
-c
-c ******************* Declarations and common blocks *******************
-c
-      include "talys.cmb"
-      integer          Zix,Nix,ibar
-      real             ald,Eex,P,U,phi2,Df,phi1,Tf,Sf,sigma,spincut
-      double precision superfluid,fermi
-c
-c *********************** Level density formula ************************
-c
-c superfluid: level density
-c Zix       : charge number index for residual nucleus
-c Nix       : neutron number index for residual nucleus
-c ald       : level density parameter
-c Eex       : excitation energy
-c P         : pairing energy
-c ibar      : fission barrier number, zero for states on ground state
-c U         : effective excitation energy
-c pair      : total pairing correction
-c Pshift    : adjustable pairing shift
-c Ucrit     : critical U
-c fermi     : function for Fermi gas level density formula
-c phi2      : help variable
-c Df        : determinant
-c Dcrit     : critical determinant
-c phi1      : phi function of superfluid model
-c Tf        : temperature
-c Tcrit     : critical temperature
-c Sf        : entropy
-c Scrit     : critical entropy
-c sigma     : spin cutoff factor
-c spincut   : spin cutoff factor
-c
-c Superfluid model
-c
-      U=Eex+pair(Zix,Nix)+Pshift(Zix,Nix,ibar)
-      if (U.gt.0.) then
-        if (U.gt.Ucrit(Zix,Nix,ibar)) then
-          superfluid=fermi(Zix,Nix,ald,Eex,P,ibar)
-        else
-          phi2=1.-U/Ucrit(Zix,Nix,ibar)
-          Df=Dcrit(Zix,Nix,ibar)*(1.-phi2)*(1.+phi2)*(1.+phi2)
-          phi1=sqrt(phi2)
-          Tf=2.*Tcrit(Zix,Nix)*phi1/log((phi1+1.)/(1.-phi1))
-          Sf=Scrit(Zix,Nix,ibar)*Tcrit(Zix,Nix)/Tf*(1.-phi2)
-          sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar,0))
-          superfluid=exp(dble(Sf))/sqrt(Df)/sqrttwopi/sigma
-        endif
-      else
-        superfluid=1.
-      endif
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+function superfluid(Zix, Nix, ald, Eex, P, ibar)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Superfluid model level density formula
+!
+! Author    : Arjan Koning and Stephane Hilaire
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   sgl          ! single precision kind
+!   dbl          ! double precision kind
+! Variables for level density
+!   pair         ! pairing energy
+!   Pshift       ! adjustable pairing shift
+! Constants
+!   sqrttwopi    ! sqrt(2. * pi)
+! Variables for level density
+!   Dcrit        ! critical determinant
+!   Scrit        ! critical entropy
+!   Tcrit        ! critical temperature
+!   Ucrit        ! critical U
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer   :: ibar       ! fission barrier
+  integer   :: Nix        ! neutron number index for residual nucleus
+  integer   :: Zix        ! charge number index for residual nucleus
+  real(sgl) :: ald        ! level density parameter
+  real(sgl) :: Df         ! determinant
+  real(sgl) :: Eex        ! excitation energy
+  real(sgl) :: P          ! pairing energy
+  real(sgl) :: phi1       ! phi function of superfluid model
+  real(sgl) :: phi2       ! help variable
+  real(sgl) :: Sf         ! entropy
+  real(sgl) :: sigma      ! help variable
+  real(sgl) :: spincut    ! spin cutoff factor
+  real(sgl) :: Tf         ! temperature
+  real(sgl) :: U          ! excitation energy minus pairing energy
+  real(dbl) :: fermi      ! function for Fermi gas level density formula
+  real(dbl) :: superfluid ! Superfluid model level density formula
+!
+! *********************** Level density formula ************************
+!
+! fermi     : function for Fermi gas level density formula
+! phi1      : phi function of superfluid model
+!
+! Superfluid model
+!
+  U = Eex + pair(Zix, Nix) + Pshift(Zix, Nix, ibar)
+  if (U > 0.) then
+    if (U > Ucrit(Zix, Nix, ibar)) then
+      superfluid = fermi(Zix, Nix, ald, Eex, P, ibar)
+    else
+      phi2 = 1. - U / Ucrit(Zix, Nix, ibar)
+      Df = Dcrit(Zix, Nix, ibar) * (1. - phi2) * (1. + phi2) * (1. + phi2)
+      phi1 = sqrt(phi2)
+      Tf = 2. * Tcrit(Zix, Nix) * phi1 / log((phi1 + 1.) / (1. - phi1))
+      Sf = Scrit(Zix, Nix, ibar) * Tcrit(Zix, Nix) / Tf * (1. - phi2)
+      sigma = sqrt(spincut(Zix, Nix, ald, Eex, ibar, 0))
+      superfluid = exp(dble(Sf)) / sqrt(Df) / sqrttwopi / sigma
+    endif
+  else
+    superfluid = 1.
+  endif
+  return
+end function superfluid
+! Copyright A.J. Koning 2021

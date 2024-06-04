@@ -1,76 +1,92 @@
-      subroutine onecontinuumB
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : August 11, 2004
-c | Task  : One-step direct cross sections for MSD
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer itype,type,Zix,Nix,nen1,nen2,iang
-      real    cmsd
-c
-c ************* Calculate continuum one-step cross sections ************
-c
-c parskip   : logical to skip outgoing particle
-c Zindex,Zix: charge number index for residual nucleus
-c Nindex,Nix: neutron number index for residual nucleus
-c msdbins2  : number of energy points for MSD calculation
-c Emsdin    : incident MSD energy
-c specmass  : specific mass for target nucleus and all particles
-c Emsd      : MSD energy grid
-c xscont    : continuum one-step direct cross section for MSD
-c cmsd      : normalization factor for MSD
-c xscont1   : continuum one-step direct cross section for MSD
-c             (unnormalized)
-c flagddx   : flag for output of double-differential cross sections
-c nanglecont: number of angles for continuum
-c xscontad  : continuum one-step direct angular distribution for MSD
-c xscontad1 : continuum one-step direct angular distribution for MSD
-c             (unnormalized)
-c
-      do 10 itype=1,2
-        if (parskip(itype)) goto 10
-        do 20 type=1,2
-          if (parskip(type)) goto 20
-          Zix=Zindex(0,0,type)
-          Nix=Nindex(0,0,type)
-          do 30 nen1=0,msdbins2
-            Emsdin=real(specmass(Zix,Nix,itype)*Emsd(nen1))
-            do 40 nen2=nen1,msdbins2
-              xscont(itype,type,nen1,nen2)=cmsd(Emsdin)*
-     +          xscont1(itype,type,nen1,nen2)
-              if (flagddx) then
-                do 50 iang=0,nanglecont
-                  xscontad(itype,type,nen1,nen2,iang)=cmsd(Emsdin)*
-     +              xscontad1(itype,type,nen1,nen2,iang)
-   50           continue
-              endif
-   40       continue
-   30     continue
-   20   continue
-   10 continue
-c
-c ******************* First-step cross sections for MSD ****************
-c
-c msdstep0  : n-step cross section for MSD
-c k0        : index of incident particle
-c msdstepad0: n-step angular distribution for MSD
-c
-      do 110 type=1,2
-        if (parskip(type)) goto 110
-        do 120 nen2=0,msdbins2
-          msdstep0(type,1,nen2)=xscont(k0,type,0,nen2)
+subroutine onecontinuumB
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : One-step direct cross sections for MSD
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   sgl           ! single precision kind
+! Variables for output
+!   flagddx       ! flag for output of double - differential cross sections
+! Variables for numerics
+!   nanglecont    ! number of angles for continuum
+! Variables for main input
+!   k0            ! index of incident particle
+! Variables for nuclides
+!   Nindex        ! neutron number index for residual nucleus
+!   parskip       ! logical to skip outgoing particle
+!   Zindex        ! charge number index for residual nucleus
+! Variables for masses
+!   specmass      ! specific mass for residual nucleus
+! Variables for MSD
+!   Emsd          ! minimal outgoing energy for MSD calculation
+!   Emsdin        ! incident MSD energy
+!   msdbins2      ! number of energy points for MSD calculation
+!   msdstep0      ! n - step cross section for MSD
+!   msdstepad0    ! n - step angular distribution for MSD
+!   xscont        ! continuum one - step direct cross section
+!   xscont1       ! continuum one - step direct cross section (unnormalized)
+!   xscontad      ! continuum one - step direct angular distribution for MSD
+!   xscontad1     ! continuum one - step direct angular distribution for MSD (unnormalized)
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer   :: iang  ! running variable for angle
+  integer   :: itype ! help variable
+  integer   :: nen1  ! energy counter
+  integer   :: nen2  ! energy counter
+  integer   :: Nix   ! neutron number index for residual nucleus
+  integer   :: type  ! particle type
+  integer   :: Zix   ! charge number index for residual nucleus
+  real(sgl) :: cmsd  ! normalization factor for MSD
+!
+! ************* Calculate continuum one-step cross sections ************
+!
+!   (unnormalized)
+!   (unnormalized)
+!
+  do itype = 1, 2
+    if (parskip(itype)) cycle
+    do type = 1, 2
+      if (parskip(type)) cycle
+      Zix = Zindex(0, 0, type)
+      Nix = Nindex(0, 0, type)
+      do nen1 = 0, msdbins2
+        Emsdin = real(specmass(Zix, Nix, itype) * Emsd(nen1))
+        do nen2 = nen1, msdbins2
+          xscont(itype, type, nen1, nen2) = cmsd(Emsdin) * xscont1(itype, type, nen1, nen2)
           if (flagddx) then
-            do 140 iang=0,nanglecont
-              msdstepad0(type,1,nen2,iang)=
-     +          xscontad(k0,type,0,nen2,iang)
-  140       continue
+            do iang = 0, nanglecont
+              xscontad(itype, type, nen1, nen2, iang) = cmsd(Emsdin) * xscontad1(itype, type, nen1, nen2, iang)
+            enddo
           endif
-  120   continue
-  110 continue
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+        enddo
+      enddo
+    enddo
+  enddo
+!
+! ******************* First-step cross sections for MSD ****************
+!
+  do type = 1, 2
+    if (parskip(type)) cycle
+    do nen2 = 0, msdbins2
+      msdstep0(type, 1, nen2) = xscont(k0, type, 0, nen2)
+      if (flagddx) then
+        do iang = 0, nanglecont
+          msdstepad0(type, 1, nen2, iang) = xscontad(k0, type, 0, nen2, iang)
+        enddo
+      endif
+    enddo
+  enddo
+  return
+end subroutine onecontinuumB
+! Copyright A.J. Koning 2021

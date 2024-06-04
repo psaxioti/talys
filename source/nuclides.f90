@@ -1,248 +1,254 @@
-      subroutine nuclides
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : April 3, 2023
-c | Task  : Properties of nuclides
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      character*3 massstring
-      integer     Zcomp,Ncomp,type,Zix,Nix,A,odd,NL
-c
-c ************************ Properties of nuclides **********************
-c
-c Assignment of Z and N of all possible residual nuclei. The initial
-c compound nucleus (created by projectile + target) has the indices
-c (0,0). The first index represents the number of protons and
-c the second index the number of neutrons away from the initial
-c compound nucleus. Example: For the reaction p + 208Pb, the set
-c (0,0) represents 209Bi and the set (1,2) represents 206Pb. Many arrays
-c have Zindex and Nindex as their first two indices. At any point
-c in the reaction calculation, given Zcomp, Ncomp and the particle type,
-c these variables are directly known through the arrays we initialize
-c here. ZZ is the charge number of the nucleus that is reached through
-c emission of ejectile type from nucleus (Zcomp,Ncomp).
-c Note that ZZ, NN, AA, Zinit and Ninit represent true values of the
-c charge and neutron number and that Zindex, Nindex, Zcomp and Ncomp are
-c indices relative to the initial compound nucleus.
-c Example: 56Fe(n,p)56Mn reaction:
-c
-c Zcomp=0 (primary compound nucleus)
-c Ncomp=0 (primary compound nucleus)
-c Zindex=1
-c Nindex=0
-c Zinit=26
-c Ninit=31
-c ZZ=25
-c NN=31
-c
-c Zcomp    : charge number index for compound nucleus
-c maxZ,numZ: maximal number of protons away from initial compound
-c            nucleus
-c Ncomp    : neutron number index for compound nucleus
-c maxN,numN: maximal number of neutrons away from initial compound
-c            nucleus
-c Zinit    : charge number of initial compound nucleus
-c Ninit    : neutron number of initial compound nucleus
-c Zindex   : charge number index for residual nucleus
-c parZ     : charge number of particle
-c Nindex   : neutron number index for residual nucleus
-c parN     : neutron number of particle
-c ZZ       : charge number of residual nucleus
-c NN       : neutron number of residual nucleus
-c AA       : mass number of residual nucleus
-c
-      do Zcomp=0,numZ
-        do Ncomp=0,numN
-          do type=0,6
-            Zindex(Zcomp,Ncomp,type)=Zcomp+parZ(type)
-            Nindex(Zcomp,Ncomp,type)=Ncomp+parN(type)
-            ZZ(Zcomp,Ncomp,type)=Zinit-Zindex(Zcomp,Ncomp,type)
-            NN(Zcomp,Ncomp,type)=Ninit-Nindex(Zcomp,Ncomp,type)
-            AA(Zcomp,Ncomp,type)=ZZ(Zcomp,Ncomp,type)+
-     +        NN(Zcomp,Ncomp,type)
-          enddo
-        enddo
+subroutine nuclides
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Properties of nuclides
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! All global variables
+!   numN            ! maximum number of neutrons from initial compound nucleus
+!   numZ            ! maximum number of protons from initial compound nucleus
+! Variables for compound reactions
+!   eurr            ! off - set incident energy for URR calculation
+!   ewfc            ! off - set incident energy for width fluctuation
+!   flagcomp        ! flag for compound angular distribution calculation
+! Variables for direct reactions
+!   flaggiant0      ! flag for collective contribution from giant resonances
+! Variables for basic reaction
+!   flagastro       ! flag for calculation of astrophysics reaction rate
+!   flagpartable    ! flag for output of model parameters on separate file
+! Variables for medical isotope production
+!   flagprod        ! flag for isotope production
+! Variables for numerics
+!   maxN            ! maximal number of neutrons away from initial compound nucleus
+!   maxZ            ! maximal number of protons away from initial compound nucleus
+! Variables for input energies
+!   enincmin        ! minimum incident energy
+! Variables for main input
+!   Atarget         ! mass number of target nucleus
+!   k0              ! index of incident particle
+!   Ltarget         ! excited level of target
+!   Ninit           ! neutron number of initial compound nucleus
+!   Zinit           ! charge number of initial compound nucleus
+!   Ztarget         ! charge number of target nucleus
+! Variables for preequilibrium
+!   epreeq          ! on - set incident energy for preequilibrium calculation
+! Variables for discrete levels
+!   flagbestbr      ! flag to use only best set of branching ratios
+!   nlev            ! number of levels for nucleus
+!   nlevbin         ! number of excited levels for binary nucleus
+!   nlevmax         ! maximum number of included discrete levels for target
+!   nlevmaxres      ! maximum number of included discrete levels for residual nuclides
+! Variables for energy grid
+!   Einc            ! incident energy in MeV
+! Variables for compound reactions
+!   flagurr        ! flag for output of unresolved resonance parameters
+! Variables for nuclides
+!   AA              ! mass number of residual nucleus
+!   coulbar         ! Coulomb barrier
+!   invexist        ! logical to state necessity of new inverse cross section calc.
+!   Nindex          ! neutron number index for residual nucleus
+!   NN              ! neutron number of residual nucleus
+!   parinclude      ! logical to include outgoing particle
+!   parskip         ! logical to skip outgoing particle
+!   primary         ! flag to designate primary (binary) reaction
+!   Q               ! Q - value
+!   strucexist      ! flag to state whether structure info for this nucleus exists
+!   strucwrite      ! flag for output of nuclear structure info
+!   targetE         ! excitation energy of target
+!   targetP         ! parity of target
+!   targetspin      ! spin of target
+!   targetspin2     ! 2 * target spin
+!   tarmass         ! mass of target nucleus
+!   Zindex          ! charge number index for residual nucleus
+!   ZZ              ! charge number of residual nucleus
+! Constants
+!   e2              ! square of elementary charge in MeV.fm
+!   onethird        ! 1 / 3
+!   parN            ! neutron number of particle
+!   parZ            ! charge number of particle
+! Variables for levels
+!   edis            ! energy of level
+!   jdis            ! spin of level
+!   parlev          ! parity of level
+! Variables for resonance parameters
+!   Eavres        ! number of resonances
+! Variables for level density
+!   Nlast           ! last discrete level
+! Variables for masses
+!   nucmass         ! mass of nucleus
+!   S               ! separation energy
+!
+! *** Declaration of local data
+!
+  implicit none
+  character(len=3) :: massstring ! mass string
+  integer          :: A          ! mass number of target nucleus
+  integer          :: Ncomp      ! neutron number index for compound nucleus
+  integer          :: Nix        ! neutron number index for residual nucleus
+  integer          :: NL         ! last discrete level
+  integer          :: odd        ! odd (1) or even (0) nucleus
+  integer          :: type       ! particle type
+  integer          :: Zcomp      ! proton number index for compound nucleus
+  integer          :: Zix        ! charge number index for residual nucleus
+!
+! ************************ Properties of nuclides **********************
+!
+! Assignment of Z and N of all possible residual nuclei.
+! The initial compound nucleus (created by projectile + target) has the indices (0,0).
+! The first index represents the number of protons and the second index the number of neutrons away from the initial compound
+! nucleus.
+! Example: For the reaction p + 208Pb, the set (0,0) represents 209Bi and the set (1,2) represents 206Pb.
+! Many arrays have Zindex and Nindex as their first two indices.
+! At any point in the reaction calculation, given Zcomp, Ncomp and the particle type, these variables are directly known
+! through the arrays we initialize here.
+! ZZ is the charge number of the nucleus that is reached through emission of ejectile type from nucleus (Zcomp,Ncomp).
+! Note that ZZ, NN, AA, Zinit and Ninit represent true values of the charge and neutron number and that Zindex, Nindex, Zcomp and
+! Ncomp are indices relative to the initial compound nucleus.
+!
+! Zcomp=0 (primary compound nucleus)
+! Ncomp=0 (primary compound nucleus)
+! Zindex=1
+! Nindex=0
+! Zinit=26
+! Ninit=31
+! ZZ=25
+! NN=31
+!
+  do Zcomp = 0, numZ
+    do Ncomp = 0, numN
+      do type = 0, 6
+        Zindex(Zcomp, Ncomp, type) = Zcomp + parZ(type)
+        Nindex(Zcomp, Ncomp, type) = Ncomp + parN(type)
+        ZZ(Zcomp, Ncomp, type) = Zinit - Zindex(Zcomp, Ncomp, type)
+        NN(Zcomp, Ncomp, type) = Ninit - Nindex(Zcomp, Ncomp, type)
+        AA(Zcomp, Ncomp, type) = ZZ(Zcomp, Ncomp, type) + NN(Zcomp, Ncomp, type)
       enddo
-c
-c We make sure the lightest possible residual nucleus is heavier than
-c an alpha particle. Also, we set that at the beginning no structure
-c information is available at all .
-c
-c strucexist: flag to determine whether structure info for this nucleus
-c             already exists
-c strucwrite: flag for output of nuclear structure info
-c invexist  : logical to determine necessity of new inverse cross
-c             section and transmission coefficients calculation
-c
-      maxZ=min(maxZ,Zinit-3)
-      maxN=min(maxN,Ninit-3)
-      do Zix=0,numZ
-        do Nix=0,numN
-          strucexist(Zix,Nix)=.false.
-          strucwrite(Zix,Nix)=.false.
-          invexist(Zix,Nix)=.false.
-        enddo
-      enddo
-c
-c Set the maximum number of discrete levels for each residual nucleus
-c
-c nlev      : number of excited levels for nucleus
-c nlevbin   : number of excited levels for binary nucleus
-c k0        : index of incident particle
-c nlevmaxres: maximum number of included discrete levels for residual
-c             nucleus
-c nlevmax   : maximum number of included discrete levels for target
-c
-c Note the order of priority: nlevmax (keyword: maxlevels) overrules
-c the value set for nlevbin (keyword: maxlevelsbin) for the inelastic
-c channel. nlevbin overrules nlevmaxres (keyword: maxlevelsres) for
-c particular binary channels.
-c
-      Zcomp=0
-      Ncomp=0
-      do type=0,6
-        Zix=Zindex(Zcomp,Ncomp,type)
-        Nix=Nindex(Zcomp,Ncomp,type)
-        if (nlev(Zix,Nix).eq.0) nlev(Zix,Nix)=nlevbin(type)
-      enddo
-      do Zix=0,numZ
-        do Nix=0,numN
-          if (Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) cycle
-          if (nlev(Zix,Nix).eq.0) nlev(Zix,Nix)=nlevmaxres
-        enddo
-      enddo
-      nlev(parZ(k0),parN(k0))=nlevmax
-c
-c ************ Nuclear structure for first set of nuclides *************
-c
-c strucinitial: subroutine for initialization of arrays for various
-c               structure parameters
-c masses      : subroutine for nuclear masses
-c separation  : subroutine for separation energies and reduced and
-c               specific masses
-c primary     : flag to designate primary (binary) reaction
-c flagpartable: flag for output of model parameters on separate file
-c flagbestbr  : flag to use best set of branching ratios
-c branching   : subroutine for best set of branching ratios
-c Einc        : incident energy
-c enincmin    : minimum incident energy
-c parskip     : logical to skip outgoing particle
-c structure   : subroutine for nuclear structure parameters
-c odd         : odd (1) or even (0) nucleus
-c weakcoupling: subroutine for weak coupling model
-c flagcomp    : flag for compound nucleus calculation
-c parinclude  : logical to include outgoing particle
-c radwidtheory: subroutine for theoretical calculation of total
-c               radiative width
-c flaggiant0  : flag for collective contribution from giant resonances
-c sumrules    : subroutine for giant resonance sum rules
-c targetspin  : spin of target
-c jdis        : spin of level
-c Ltarget     : excited level of target
-c targetspin2 : 2 * spin of target
-c targetP     : parity of target
-c parlev      : parity of level
-c targetE     : energy of target
-c edis        : energy of level
-c Eavres      : average resonance energy
-c
-c The nuclear masses and separation energies are read/calculated first,
-c for all nuclides that can possibly be formed in multiple reactions.
-c For all nuclides that can be formed by the first binary reaction, we
-c determine the nuclear structure information (discrete levels,
-c parameters for resonances, photons, fission and level densities). The
-c logical strucexist ensures that we only need to do this once for each
-c nucleus. (i.e., we do not waste time if the same nucleus is
-c encountered later in the reaction chain).
-c All parameters for each nucleus are written to file 'parameters.dat'.
-c
-      call strucinitial
-      call masses
-      call separation
-      primary=.true.
-      if (flagpartable) open (unit=51,file='parameters.dat',
-     +  status='unknown')
-      if (flagbestbr) call branching
-      massstring='   '
-      write(massstring,'(i3)') Atarget
-      targetnuclide=trim(Starget)//adjustl(massstring)
-      targetnuclide0=targetnuclide
-      Einc=enincmin
-      do type=0,6
-        if (parskip(type).and.type.ne.0) cycle
-        Zix=Zindex(Zcomp,Ncomp,type)
-        Nix=Nindex(Zcomp,Ncomp,type)
-        call structure(Zix,Nix)
-        strucexist(Zix,Nix)=.true.
-        A=AA(Zcomp,Ncomp,type)
-        odd=mod(A,2)
-        if (type.eq.k0.and.odd.eq.1) call weakcoupling(Zix,Nix,type)
-      enddo
-      if (parinclude(0).or.flagcomp) 
-     +  call radwidtheory(Zcomp,Ncomp,Eavres)
-      if (flaggiant0) call sumrules
-      targetspin=jdis(parZ(k0),parN(k0),Ltarget)
-      targetspin2=int(2.*targetspin)
-      targetP=parlev(parZ(k0),parN(k0),Ltarget)
-      targetE=edis(parZ(k0),parN(k0),Ltarget)
-c
-c ******************* Q-values and Coulomb barriers ********************
-c
-c tarmass : mass of target nucleus
-c nucmass : mass of nucleus
-c Q       : Q-value for target nucleus
-c S       : separation energy per particle
-c coulbar : Coulomb barrier
-c Ztarget : charge number of target nucleus
-c e2      : square of elementary charge in MeV.fm
-c Atarget : mass number of target nucleus
-c onethird: 1/3
-c
-      tarmass=nucmass(parZ(k0),parN(k0))
-      do type=0,6
-        if (parskip(type)) cycle
-        Q(type)=S(0,0,k0)-S(0,0,type)
-        coulbar(type)=Ztarget*parZ(type)*e2/(1.25*Atarget**onethird)
-      enddo
-c
-c * Off- and on-set energies for preequilibrium and width fluctuations *
-c
-c ewfc   : off-set incident energy for width fluctuation calculation
-c eurr   : off-set incident energy for URR calculation
-c flagurr: flag for output of unresolved resonance parameters
-c
-c Assignment of default values: Width fluctuation corrections and URR
-c are included for incident energies up to the separation energy.
-c
-      if (k0.ge.1.and.ewfc.eq.-1.) ewfc=S(parZ(k0),parN(k0),k0)
-      if (k0.eq.1.and.eurr.eq.-1..and.flagurr)
-     +  eurr=S(parZ(k0),parN(k0),k0)
-c
-c Pre-equilibrium reactions are included for incident energies
-c above the last discrete level.
-c
-c NLast     : last discrete level
-c epreeq    : on-set incident energy for preequilibrium calculation
-c kalbachsep: subroutine for separation energy for Kalbach systematics
-c
-      NL=Nlast(parZ(k0),parN(k0),0)
-      if (epreeq.eq.-1.) epreeq=max(edis(parZ(k0),parN(k0),NL),1.)
-      call kalbachsep
-c
-c For astrophysical calculations, the incident energy grid is determined
-c
-c flagastro : flag for calculation of astrophysics reaction rate
-c egridastro: subroutine to calculate default incident energy grid
-c             for astrophysical rate
-c flagprod  : flag for isotope production
-c decaydata : subroutine for decay data
-c
-      if (flagastro) call egridastro
-      if (flagprod) call decaydata
-      return
-      end
-Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely
+    enddo
+  enddo
+!
+! We make sure the lightest possible residual nucleus is heavier than an alpha particle.
+! Also, we set that at the beginning no structure information is available at all .
+!
+  maxZ = min(maxZ, Zinit - 3)
+  maxN = min(maxN, Ninit - 3)
+  do Zix = 0, numZ
+    do Nix = 0, numN
+      strucexist(Zix, Nix) = .false.
+      strucwrite(Zix, Nix) = .false.
+      invexist(Zix, Nix) = .false.
+    enddo
+  enddo
+!
+! Set the maximum number of discrete levels for each residual nucleus
+!
+! Note the order of priority: nlevmax (keyword: maxlevels) overrules the value set for nlevbin (keyword: maxlevelsbin)
+! for the inelastic channel.
+! nlevbin overrules nlevmaxres (keyword: maxlevelsres) for particular binary channels.
+!
+  Zcomp = 0
+  Ncomp = 0
+  do type = 0, 6
+    Zix = Zindex(Zcomp, Ncomp, type)
+    Nix = Nindex(Zcomp, Ncomp, type)
+    if (nlev(Zix, Nix) == 0) nlev(Zix, Nix) = nlevbin(type)
+  enddo
+  do Zix = 0, numZ
+    do Nix = 0, numN
+      if (Zix == parZ(k0) .and. Nix == parN(k0)) cycle
+      if (nlev(Zix, Nix) == 0) nlev(Zix, Nix) = nlevmaxres
+    enddo
+  enddo
+  nlev(parZ(k0), parN(k0)) = nlevmax
+!
+! ************ Nuclear structure for first set of nuclides *************
+!
+! strucinitial: subroutine for initialization of arrays for various structure parameters
+! masses      : subroutine for nuclear masses
+! separation  : subroutine for separation energies and reduced and specific masses
+! branching   : subroutine for best set of branching ratios
+! structure   : subroutine for nuclear structure parameters
+! weakcoupling: subroutine for weak coupling model
+! radwidtheory: subroutine for theoretical calculation of total radiative width
+! sumrules    : subroutine for giant resonance sum rules
+!
+! The nuclear masses and separation energies are read/calculated first, for all nuclides that can possibly be formed in
+! multiple reactions.
+! For all nuclides that can be formed by the first binary reaction, we determine the nuclear structure information (discrete levels,
+! parameters for resonances, photons, fission and level densities).
+! The logical strucexist ensures that we only need to do this once for each nucleus.
+! (i.e., we do not waste time if the same nucleus is encountered later in the reaction chain).
+! All parameters for each nucleus are written to file 'parameters.dat'.
+!
+  call strucinitial
+  call masses
+  call separation
+  primary = .true.
+  if (flagpartable) open (unit = 51, file = 'parameters.dat', status = 'unknown')
+  if (flagbestbr) call branching
+  massstring = '   '
+  write(massstring,'(i3)') Atarget
+  targetnuclide = trim(Starget) // adjustl(massstring)
+  targetnuclide0 = targetnuclide
+  Einc = enincmin
+  do type = 0, 6
+    if (parskip(type) .and. type /= 0) cycle
+    Zix = Zindex(Zcomp, Ncomp, type)
+    Nix = Nindex(Zcomp, Ncomp, type)
+    call structure(Zix, Nix)
+    strucexist(Zix, Nix) = .true.
+    A = AA(Zcomp, Ncomp, type)
+    odd = mod(A, 2)
+    if (type == k0 .and. odd == 1) call weakcoupling(Zix, Nix, type)
+  enddo
+  if (parinclude(0) .or. flagcomp) call radwidtheory(Zcomp, Ncomp, Eavres)
+  if (flaggiant0) call sumrules
+  targetspin = jdis(parZ(k0), parN(k0), Ltarget)
+  targetspin2 = int(2. * targetspin)
+  targetP = parlev(parZ(k0), parN(k0), Ltarget)
+  targetE = edis(parZ(k0), parN(k0), Ltarget)
+!
+! ******************* Q-values and Coulomb barriers ********************
+!
+  tarmass = nucmass(parZ(k0), parN(k0))
+  Q = 0.
+  do type = 0, 6
+    if (parskip(type)) cycle
+    Q(type) = S(0, 0, k0) - S(0, 0, type)
+    coulbar(type) = Ztarget * parZ(type) * e2 / (1.25 * Atarget **onethird)
+  enddo
+!
+! * Off- and on-set energies for preequilibrium and width fluctuations *
+!
+! Assignment of default values: Width fluctuation corrections and URR are included for incident energies
+! up to the separation energy.
+!
+  if (k0 >= 1 .and. ewfc ==  -1.) ewfc = S(parZ(k0), parN(k0), k0)
+  if (k0 == 1 .and. eurr ==  -1. .and. flagurr) eurr = S(parZ(k0), parN(k0), k0)
+!
+! Pre-equilibrium reactions are included for incident energies above the last discrete level.
+!
+! kalbachsep: subroutine for separation energy for Kalbach systematics
+!
+  NL = Nlast(parZ(k0), parN(k0), 0)
+  if (epreeq ==  - 1.) epreeq = max(edis(parZ(k0), parN(k0), NL), 1.)
+  call kalbachsep
+!
+! For astrophysical calculations, the incident energy grid is determined
+! egridastro: subroutine to calculate default incident energy grid for astrophysical rate
+!
+  if (flagastro) call egridastro
+!
+! decaydata : subroutine for decay data
+!
+  if (flagprod) call decaydata
+  return
+end subroutine nuclides
+! Copyright A.J. Koning 2021

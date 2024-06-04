@@ -1,209 +1,232 @@
-      subroutine endfenergies
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : September 5, 2014
-c | Task  : Energy grid for ENDF-6 file
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer          nen,i,k,n,nensub,nenint,type,Zix,Nix,nex,idc,
-     +                 nen2,nen0
-      double precision Ein,degrid,Eeps,ratio,emax,ee,e6tmp
-c
-c ************************ Basic ENDF-6 energy grid ********************
-c
-c ompenergyfile: file with energies for OMP calculation (ENDF files
-c                only)
-c eninclow     : minimal incident energy for nuclear model calculations
-c Ein,e6,Eeps  : energies of ENDF-6 energy grid in MeV
-c eninclow     : minimal incident energy for nuclear model calculations
-c degrid       : energy increment
-c enincmax     : maximum incident energy
-c Emaxtalys    : maximum acceptable energy for TALYS
-c
-c The basic ENDF-6 energy grid we use is:
-c
-c         0.001 -   0.01 MeV  : dE= 0.001 MeV
-c         0.01  -   0.1 MeV   : dE= 0.01 MeV
-c         0.1   -   1 MeV     : dE= 0.05 MeV
-c         1     -   4 MeV     : dE= 0.1 MeV
-c         4     -   7 MeV     : dE= 0.2 MeV
-c         7     -  20 MeV     : dE= 0.5 MeV
-c        20     - 100 MeV     : dE= 1.0 MeV
-c       100     - 200 MeV     : dE= 2.0 MeV
-c       200     - 300 MeV     : dE= 5.0 MeV
-c           above 300 MeV     : dE=10.0 MeV
-c
-c This grid ensures that the total, elastic and reaction cross section
-c are calculated on a sufficiently precise energy grid.
-c However, this grid can be overwritten using the 'ompenergyfile'.
-c
-      e6(1)=eninclow
-      nen=1
-      if (ompenergyfile(1:1).ne.' ') then
-        open (unit=2,file=ompenergyfile,status='old')
-  10    read(2,*,end=20,err=510) Ein
-        if (Ein.le.eninclow) goto 10
-        nen=nen+1
-        if (nen.gt.numen6) goto 520
-        e6(nen)=Ein
-        goto 10
-  20    close (unit=2)
-c
-c Sort incident energies in ascending order and remove double points
-c
-c e6tmp: help variable
-c Eeps: help variable
-c
-        do 30 i=1,nen
-          do 40 k=1,i
-            if (e6(i).ge.e6(k)) goto 40
-            e6tmp=e6(i)
-            e6(i)=e6(k)
-            e6(k)=e6tmp
-   40     continue
-   30   continue
-        n=nen
-        do 50 i=1,nen-1
-          if (e6(i).eq.e6(i+1)) then
-            do 60 k=i+1,nen
-              e6(k)=e6(k+1)
-   60       continue
-            n=n-1
-          endif
-   50   continue
-        nen=n
-        goto 100
-      else
-        Ein=0.
-        degrid=0.001
-   70   Ein=Ein+degrid
-        if (Ein.gt.e6(1)) then
-          nen=nen+1
-          e6(nen)=Ein
-        endif
-        Eeps=Ein+1.e-4
-        if (Eeps.gt.enincmax) goto 100
-        if (Eeps.gt.0.01) degrid=0.01
-        if (Eeps.gt.0.1) degrid=0.05
-        if (Eeps.gt.1.) degrid=0.1
-        if (Eeps.gt.4.) degrid=0.2
-        if (Eeps.gt.8.) degrid=0.5
-        if (Eeps.gt.20.) degrid=1.
-        if (Eeps.gt.100.) degrid=2.
-        if (Eeps.gt.200.) degrid=5.
-        if (Eeps.gt.300.) degrid=10.
-        if (Eeps.gt.Emaxtalys) goto 100
-        goto 70
+subroutine endfenergies
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Energy grid for ENDF-6 file
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+  use A1_error_handling_mod
+!
+! Definition of single and double precision variables
+!   dbl              ! double precision kind
+! All global variables
+!   numen6           ! number of energies for ENDF6 energy grid
+! Variables for basic parameters
+!   eninclow         ! minimal incident energy for nuclear model calculations
+! Variables for input energies
+!   eninc            ! incident energy in MeV
+!   enincmax         ! maximum incident energy
+!   Estop            ! incident energy above which TALYS stops
+!   Ninc           ! number of incident energies
+! Variables for main input
+!   k0               ! index of incident particle
+!   Ltarget          ! excited level of target
+! Variables for basic reaction
+!   ompenergyfile    ! file with energies for OMP calculation (ENDF files)
+! Variables for energies
+!   Ethrexcl         ! threshold incident energy for exclusive channel
+!   Ethresh          ! threshold incident energy for residual nucleus
+!   idchannel        ! identifier for exclusive channel
+! Variables for exclusive channels
+!   idnum            ! counter for exclusive channel
+! Variables for nuclides
+!   Nindex           ! neutron number index for residual nucleus
+!   Zindex           ! charge number index for residual nucleus
+! Constants
+!   Emaxtalys        ! maximum acceptable energy for TALYS
+! Variables for level density
+!   Nlast            ! last discrete level
+! Variables for ENDF data
+!   e6               ! energies of ENDF - 6 energy grid in MeV
+!   nen6             ! total number of energies
+! Error handling
+!   range_integer_error     ! Test if integer variable is out of range
+!   read_error ! Message for file reading error
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer   :: i      ! counter
+  integer   :: idc    ! help variable
+  integer   :: istat  ! logical for file access
+  integer   :: k      ! designator for particle
+  integer   :: n      ! exciton number
+  integer   :: nen    ! energy counter
+  integer   :: nen0   ! energy counter
+  integer   :: nen2   ! energy counter
+  integer   :: nenint ! energy index
+  integer   :: nensub ! intermediate number of incident energies
+  integer   :: nex    ! excitation energy bin of compound nucleus
+  integer   :: Nix    ! neutron number index for residual nucleus
+  integer   :: type   ! particle type
+  integer   :: Zix    ! charge number index for residual nucleus
+  real(dbl) :: degrid ! energy increment
+  real(dbl) :: e6tmp  ! help variable
+  real(dbl) :: ee     ! energy
+  real(dbl) :: Eeps   ! help variable
+  real(dbl) :: Ein    ! incident energy
+  real(dbl) :: emax   ! maximal emission energy within bin decay
+  real(dbl) :: ratio  ! if 0<ratio<1 then x is between xl1 and xl2
+!
+! ************************ Basic ENDF-6 energy grid ********************
+!
+! The basic ENDF-6 energy grid we use is:
+!
+!   0.001 -   0.01 MeV  : dE= 0.001 MeV
+!   0.01  -   0.1 MeV   : dE= 0.01 MeV
+!   0.1   -   1 MeV     : dE= 0.05 MeV
+!   1     -   4 MeV     : dE= 0.1 MeV
+!   4     -   7 MeV     : dE= 0.2 MeV
+!   7     -  20 MeV     : dE= 0.5 MeV
+!   20     - 100 MeV    : dE= 1.0 MeV
+!   100     - 200 MeV   : dE= 2.0 MeV
+!   200     - 300 MeV   : dE= 5.0 MeV
+!   above 300 MeV       : dE=10.0 MeV
+!
+! This grid ensures that the total, elastic and reaction cross section are calculated on a sufficiently precise energy grid.
+! However, this grid can be overwritten using the 'ompenergyfile'.
+!
+  e6(1) = eninclow
+  nen = 1
+  if (ompenergyfile(1:1) /= ' ') then
+    open (unit = 2, file = ompenergyfile, status = 'old')
+    do
+      read(2, * , iostat = istat) Ein
+      if (istat == -1) exit
+      if (istat /= 0) call read_error(ompenergyfile, istat)
+      if (Ein <= eninclow) cycle
+      nen = nen + 1
+      call range_integer_error(ompenergyfile, nen, 1, numen6)
+      e6(nen) = Ein
+    enddo
+    close (unit = 2)
+!
+! Sort incident energies in ascending order and remove double points
+!
+    do i = 1, nen
+      do k = 1, i
+        if (e6(i) >= e6(k)) cycle
+        e6tmp = e6(i)
+        e6(i) = e6(k)
+        e6(k) = e6tmp
+      enddo
+    enddo
+    n = nen
+    do i = 1, nen - 1
+      if (e6(i) == e6(i + 1)) then
+        do k = i + 1, nen
+          e6(k) = e6(k + 1)
+        enddo
+        n = n - 1
       endif
-c
-c Add possible denser energy point from original energy grid
-c
-c nensub: intermediate number of incident energies
-c numinc: number of incident energies
-c nenint: energy index
-c
-  100 nensub=nen
-      if (k0.eq.1) then
-        do 110 nen0=1,numinc-1
-          do 120 nen=1,nensub
-            ratio=e6(nen)/eninc(nen0)
-            if (ratio.ge.0.999.and.ratio.le.1.001) goto 110
-  120     continue
-          do 130 nen=1,nensub
-            if (eninc(nen0).gt.e6(nen).and.eninc(nen0).le.e6(nen+1)) 
-     +          then
-              nenint=nen+1
-              goto 140
-            endif
-  130     continue
-          goto 110
-  140     nensub=nensub+1
-          if (nensub.gt.numen6) goto 520
-          do 150 nen=nensub,nenint+1,-1
-            e6(nen)=e6(nen-1)
-  150     continue
-          e6(nenint)=eninc(nen0)
-  110   continue
-        nen=nensub
-c
-c *************** Add partial thresholds to energy grid ****************
-c
-c k0        : index of incident particle
-c emax      : help variable
-c Zindex,Zix: charge number index for residual nucleus
-c Nindex,Nix: neutron number index for residual nucleus
-c Nlast     : last discrete level
-c Ltarget   : excited level of target
-c Ethresh   : threshold incident energy for residual nucleus
-c idnum     : counter for exclusive channel
-c idchannel : identifier for exclusive channel
-c Ethrexcl  : threshold incident energy for exclusive channel
-c nen6      : total number of energies
-c
-        emax=min(enincmax,20.)
-        do 210 type=1,6
-          Zix=Zindex(0,0,type)
-          Nix=Nindex(0,0,type)
-          do 220 nex=0,Nlast(Zix,Nix,0)
-            if (type.eq.k0.and.nex.eq.Ltarget) goto 220
-            ee=Ethresh(Zix,Nix,nex)
-            if (ee.gt.eninclow.and.ee.le.emax) then
-              nen=nen+1
-              if (nen.gt.numen6) goto 520
-              e6(nen)=ee
-            endif
-  220     continue
-  210   continue
-        do 230 idc=0,idnum
-          if (idchannel(idc).eq.100000) goto 230
-          if (idchannel(idc).eq.10000) goto 230
-          if (idchannel(idc).eq.1000) goto 230
-          if (idchannel(idc).eq.100) goto 230
-          if (idchannel(idc).eq.10) goto 230
-          if (idchannel(idc).eq.1) goto 230
-          ee=Ethrexcl(idc,0)
-          if (ee.gt.eninclow.and.ee.le.emax) then
-            nen=nen+1
-            if (nen.gt.numen6) goto 520
-            e6(nen)=ee
-          endif
-  230   continue
+    enddo
+    nen = n
+  else
+    Ein = 0.
+    degrid = 0.001
+    do
+      Ein = Ein + degrid
+      if (Ein > e6(1)) then
+        nen = nen + 1
+        e6(nen) = Ein
       endif
-      nen6=nen
-c
-c *************************** Sort energies ****************************
-c
-      do 310 nen=1,nen6
-        do 320 nen2=nen,nen6
-          if (e6(nen).le.e6(nen2)) goto 320
-          e6tmp=e6(nen)
-          e6(nen)=e6(nen2)
-          e6(nen2)=e6tmp
-  320   continue
-  310 continue
-c
-c Remove incident energies above energy given by Estop
-c
-c Estop: incident energy above which TALYS stops
-c
-      do 330 i=1,nen
-        if (e6(i).gt.Estop) then
-          nen6=i-1
-          goto 400
+      Eeps = Ein + 1.e-4
+      if (Eeps > enincmax) exit
+      if (Eeps > 0.01) degrid = 0.01
+      if (Eeps > 0.1) degrid = 0.05
+      if (Eeps > 1.) degrid = 0.1
+      if (Eeps > 4.) degrid = 0.2
+      if (Eeps > 8.) degrid = 0.5
+      if (Eeps > 20.) degrid = 1.
+      if (Eeps > 100.) degrid = 2.
+      if (Eeps > 200.) degrid = 5.
+      if (Eeps > 300.) degrid = 10.
+      if (Eeps > Emaxtalys) exit
+    enddo
+  endif
+!
+! Add possible denser energy point from original energy grid
+!
+  nensub = nen
+  if (k0 == 1) then
+Loop1:    do nen0 = 1, Ninc - 1
+      do nen = 1, nensub
+        ratio = e6(nen) / eninc(nen0)
+        if (ratio >= 0.999 .and. ratio <= 1.001) cycle Loop1
+      enddo
+      do nen = 1, nensub
+        if (eninc(nen0) > e6(nen) .and. eninc(nen0) <= e6(nen + 1)) then
+          nenint = nen + 1
+          nensub = nensub + 1
+          call range_integer_error(ompenergyfile, nensub, 1, numen6)
+          do nen2 = nensub, nenint + 1, - 1
+            e6(nen2) = e6(nen2 - 1)
+          enddo
+          e6(nenint) = eninc(nen0)
+          exit
         endif
-  330 continue
-  400 return
-  510 write(*,'(" TALYS-error: Problem in file ",a)') 
-     +  trim(ompenergyfile)
-      write(*,'(" after E= ",es12.5)') Ein
-      stop
-  520 write(*,'(" TALYS-error: there are more than",i6,
-     +  " incident energies in file ",a)') numen6,trim(ompenergyfile)
-      write(*,'(" numen6 in talys.cmb should be increased")')
-      stop
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+      enddo
+    enddo Loop1
+    nen = nensub
+!
+! *************** Add partial thresholds to energy grid ****************
+!
+    emax = min(enincmax, 20.)
+    do type = 1, 6
+      Zix = Zindex(0, 0, type)
+      Nix = Nindex(0, 0, type)
+      do nex = 0, Nlast(Zix, Nix, 0)
+        if (type == k0 .and. nex == Ltarget) cycle
+        ee = Ethresh(Zix, Nix, nex)
+        if (ee > eninclow .and. ee <= emax) then
+          nen = nen + 1
+          call range_integer_error(ompenergyfile, nen, 1, numen6)
+          e6(nen) = ee
+        endif
+      enddo
+    enddo
+    do idc = 0, idnum
+      if (idchannel(idc) == 100000) cycle
+      if (idchannel(idc) == 10000) cycle
+      if (idchannel(idc) == 1000) cycle
+      if (idchannel(idc) == 100) cycle
+      if (idchannel(idc) == 10) cycle
+      if (idchannel(idc) == 1) cycle
+      ee = Ethrexcl(idc, 0)
+      if (ee > eninclow .and. ee <= emax) then
+        nen = nen + 1
+        call range_integer_error(ompenergyfile, nen, 1, numen6)
+        e6(nen) = ee
+      endif
+    enddo
+  endif
+  nen6 = nen
+!
+! *************************** Sort energies ****************************
+!
+  do nen = 1, nen6
+    do nen2 = nen, nen6
+      if (e6(nen) <= e6(nen2)) cycle
+      e6tmp = e6(nen)
+      e6(nen) = e6(nen2)
+      e6(nen2) = e6tmp
+    enddo
+  enddo
+!
+! Remove incident energies above energy given by Estop
+!
+  do i = 1, nen
+    if (e6(i) > Estop) then
+      nen6 = i - 1
+      exit
+    endif
+  enddo
+  return
+end subroutine endfenergies
+! Copyright A.J. Koning 2021

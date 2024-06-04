@@ -1,71 +1,83 @@
-      function kalbach(type,Ein,Eout,ang)
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : August 10, 2015
-c | Task  : Kalbach systematics
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer type,i
-      real    kalbach,Ein,Eout,ang,Et1,Et3,C1,C2,C3,Cmin(numpar),
-     +        Cmout(numpar),ea,Ek1,Ek3,eb,X1,X3,akal
-c
-c ************************ Kalbach systematics *************************
-c
-c kalbach   : Kalbach function
-c Ein       : incident energy
-c Eout      : outgoing energy
-c ang       : angle
-c Et1       : constant of Kalbach systematics
-c Et3       : constant of Kalbach systematics
-c Cmin      : constant of Kalbach systematics
-c Cmout     : constant of Kalbach systematics
-c C1        : constant
-c C2        : constant
-c X1        : energy
-c X3        : energy
-c Ek1       : energy
-c Ek3       : energy
-c C3        : constant
-c Smyers    : Myers-Swiatecki separation energy
-c k0        : index of incident particle
-c akal      : Kalbach 'a' parameter
-c fourpi    : 4.*pi
-c
-c  Systematics of Kalbach: Phys. Rev. C37, 2350, (1987)
-c
-c Since we separate the pre-equilibrium (xspreeqad) and compound
-c (xscompad) angular distribution in the output we only need to take
-c the forward peaked component of the Kalbach formula to calculate the
-c pre-equilibrium angular distribution.
-c
-      data (Cmin(i),i=1,6) /1.,1.,1.,1.,1.,0./
-      data (Cmout(i),i=1,6) /0.5,1.,1.,1.,1.,2./
-      Et1=130.
-      Et3=41.
-      C1=0.04
-      C2=1.8e-6
-      C3=6.7e-7
-c
-c Isotropic distribution for photons
-c
-      if (k0.eq.0.or.type.eq.0) then
-        kalbach=1./fourpi
-      else
-        ea=Ein+Smyers(k0)
-        Ek1=min(ea,Et1)
-        Ek3=min(ea,Et3)
-        eb=Eout+Smyers(type)
-        X1=Ek1*eb/ea
-        X3=Ek3*eb/ea
-        akal=C1*X1+C2*(X1**3)+C3*Cmin(k0)*Cmout(type)*(X3**4)
-        kalbach=0.
-        if (abs(akal).le.80.) kalbach=1./fourpi*akal/sinh(akal)*
-     +    exp(akal*cos(ang))
-      endif
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+function kalbach(type, Ein, Eout, ang)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Kalbach systematics
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   sgl         ! single precision kind
+! All global variables
+!   numpar      ! number of particles
+! Variables for main input
+!   k0          ! index of incident particle
+! Variables for nuclides
+!   Smyers      ! Myers - Swiatecki separation energy
+! Constants
+!   fourpi      ! 4. * pi
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer   :: type          ! particle type
+  real(sgl) :: akal          ! Kalbach 'a' parameter
+  real(sgl) :: ang           ! angle
+  real(sgl) :: C1            ! constant
+  real(sgl) :: C2            ! constant
+  real(sgl) :: C3            ! constant
+  real(sgl) :: Cmin(numpar)  ! constant of Kalbach systematics
+  real(sgl) :: Cmout(numpar) ! constant of Kalbach systematics
+  real(sgl) :: ea            ! help variable
+  real(sgl) :: eb            ! help variable
+  real(sgl) :: Ein           ! incident energy
+  real(sgl) :: Ek1           ! energy
+  real(sgl) :: Ek3           ! energy
+  real(sgl) :: Eout          ! outgoing energy
+  real(sgl) :: Et1           ! constant of Kalbach systematics
+  real(sgl) :: Et3           ! constant of Kalbach systematics
+  real(sgl) :: kalbach       ! Kalbach function
+  real(sgl) :: X1            ! energy
+  real(sgl) :: X3            ! energy
+!
+! ************************ Kalbach systematics *************************
+!
+! kalbach   : Kalbach function
+!
+! Systematics of Kalbach: Phys. Rev. C37, 2350, (1987)
+!
+! Since we separate the pre-equilibrium (xspreeqad) and compound (xscompad) angular distribution in the output we only need to take
+! the forward peaked component of the Kalbach formula to calculate the pre-equilibrium angular distribution.
+!
+  Cmin = (/ 1., 1., 1., 1., 1., 0. /)
+  Cmout = (/ 0.5, 1., 1., 1., 1., 2. /)
+  Et1 = 130.
+  Et3 = 41.
+  C1 = 0.04
+  C2 = 1.8e-6
+  C3 = 6.7e-7
+!
+! Isotropic distribution for photons
+!
+  if (k0 == 0 .or. type == 0) then
+    kalbach = 1. / fourpi
+  else
+    ea = Ein + Smyers(k0)
+    Ek1 = min(ea, Et1)
+    Ek3 = min(ea, Et3)
+    eb = Eout + Smyers(type)
+    X1 = Ek1 * eb / ea
+    X3 = Ek3 * eb / ea
+    akal = C1 * X1 + C2 * (X1 **3) + C3 * Cmin(k0) * Cmout(type) * (X3 **4)
+    kalbach = 0.
+    if (abs(akal) <= 80.) kalbach = 1. / fourpi * akal / sinh(akal) * exp(akal * cos(ang))
+  endif
+  return
+end function kalbach
+! Copyright A.J. Koning 2021

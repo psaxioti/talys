@@ -1,85 +1,92 @@
-      subroutine msdtotal
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : September 10, 2004
-c | Task  : Total multi-step direct cross sections
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer type,nen,ns,iang
-c
-c ************** Angle-integrated multi-step cross sections ************
-c
-c msdall    : total multi-step direct cross section
-c msdsum    : multi-step direct cross section summed over steps and
-c             integrated over energy
-c ebegin    : first energy point of energy grid
-c eend      : last energy point of energy grid
-c msdtot    : multi-step direct cross section summed over steps
-c maxmsd    : number of MSD steps
-c msdstepint: n-step direct cross section integrated over energy
-c msdstep   : continuum n-step direct cross section
-c deltaE    : energy bin around outgoing energies
-c flagddx   : flag for output of double-differential cross sections
-c
-      msdall=0.
-      do 10 type=1,2
-        msdsum(type)=0.
-        do 20 nen=ebegin(type),eend(type)
-          msdtot(type,nen)=0.
-   20   continue
-        do 30 ns=1,maxmsd
-          msdstepint(type,ns)=0.
-          do 40 nen=ebegin(type),eend(type)
-            msdtot(type,nen)=msdtot(type,nen)+msdstep(type,ns,nen)
-            msdstepint(type,ns)=msdstepint(type,ns)+
-     +        msdstep(type,ns,nen)*deltaE(nen)
-   40     continue
-          msdsum(type)=msdsum(type)+msdstepint(type,ns)
-   30   continue
-        msdall=msdall+msdsum(type)
-   10 continue
-      if (.not.flagddx) return
-c
-c ******************* Multi-step angular distributions *****************
-c
-c nanglecont  : number of angles for continuum
-c msdtotintad : multi-step direct angular distribution summed over steps
-c               and integrated over energy
-c msdtotad    : multi-step direct angular distribution summed over steps
-c msdstepintad: n-step direct angular distribution integrated over
-c               energy
-c msdstepad   : continuum n-step direct angular distribution
-c
-c Total multi-step angular distributions
-c
-      do 110 type=1,2
-        do 120 iang=0,nanglecont
-          msdtotintad(type,iang)=0.
-  120   continue
-        do 130 nen=ebegin(type),eend(type)
-          do 130 iang=0,nanglecont
-            msdtotad(type,nen,iang)=0.
-  130   continue
-        do 140 ns=1,maxmsd
-          do 150 iang=0,nanglecont
-            msdstepintad(type,ns,iang)=0.
-  150     continue
-          do 160 iang=0,nanglecont
-            do 170 nen=ebegin(type),eend(type)
-              msdtotad(type,nen,iang)=msdtotad(type,nen,iang)+
-     +          msdstepad(type,ns,nen,iang)
-              msdstepintad(type,ns,iang)=msdstepintad(type,ns,iang)+
-     +          msdstepad(type,ns,nen,iang)*deltaE(nen)
-  170       continue
-            msdtotintad(type,iang)=msdtotintad(type,iang)+
-     +        msdstepintad(type,ns,iang)
-  160     continue
-  140   continue
-  110 continue
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+subroutine msdtotal
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Total multi-step direct cross sections
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for output
+!   flagddx         ! flag for output of double - differential cross sections
+! Variables for numerics
+!   nanglecont      ! number of angles for continuum
+! Variables for energy grid
+!   deltaE          ! energy bin around outgoing energies
+!   ebegin          ! first energy point of energy grid
+! Variables for energies
+!   eend            ! last energy point of energy grid
+! Variables for MSD
+!   maxmsd          ! number of MSD steps
+!   msdall          ! total multi - step direct cross section
+!   msdstep         ! continuum n - step direct cross section
+!   msdstepad       ! continuum n - step direct angular distribution
+!   msdstepint      ! n - step direct cross section integrated over energy
+!   msdstepintad    ! n - step direct angular distribution integrated over energy
+!   msdsum          ! multi - step direct cross section summed over steps and integrated over energy
+!   msdtot          ! multi - step direct cross section summed over steps
+!   msdtotad        ! multi - step direct angular distribution summed over steps
+!   msdtotintad     ! multi - step direct angular distribution summed over steps and integrated over energy
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer :: ns   ! counter
+  integer :: iang ! running variable for angle
+  integer :: nen  ! energy counter
+  integer :: type ! particle type
+!
+! ************** Angle-integrated multi-step cross sections ************
+!
+  msdall = 0.
+  do type = 1, 2
+    msdsum(type) = 0.
+    do nen = ebegin(type), eend(type)
+      msdtot(type, nen) = 0.
+    enddo
+    do ns = 1, maxmsd
+      msdstepint(type, ns) = 0.
+      do nen = ebegin(type), eend(type)
+        msdtot(type, nen) = msdtot(type, nen) + msdstep(type, ns, nen)
+        msdstepint(type, ns) = msdstepint(type, ns) + msdstep(type, ns, nen) * deltaE(nen)
+      enddo
+      msdsum(type) = msdsum(type) + msdstepint(type, ns)
+    enddo
+    msdall = msdall + msdsum(type)
+  enddo
+  if ( .not. flagddx) return
+!
+! ******************* Multi-step angular distributions *****************
+!
+! Total multi-step angular distributions
+!
+  do type = 1, 2
+    do iang = 0, nanglecont
+      msdtotintad(type, iang) = 0.
+    enddo
+    do nen = ebegin(type), eend(type)
+      do iang = 0, nanglecont
+        msdtotad(type, nen, iang) = 0.
+    enddo
+  enddo
+    do ns = 1, maxmsd
+      do iang = 0, nanglecont
+        msdstepintad(type, ns, iang) = 0.
+      enddo
+      do iang = 0, nanglecont
+        do nen = ebegin(type), eend(type)
+          msdtotad(type, nen, iang) = msdtotad(type, nen, iang) + msdstepad(type, ns, nen, iang)
+          msdstepintad(type, ns, iang) = msdstepintad(type, ns, iang) + msdstepad(type, ns, nen, iang) * deltaE(nen)
+        enddo
+        msdtotintad(type, iang) = msdtotintad(type, iang) + msdstepintad(type, ns, iang)
+      enddo
+    enddo
+  enddo
+  return
+end subroutine msdtotal
+! Copyright A.J. Koning 2021

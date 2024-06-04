@@ -31,8 +31,8 @@ git clone https://github.com/arjankoning1/talys.git
 ```
 The TALYS structure database and sample cases do not fall under the git repository. Hence, to get a  working system you need to download
 ```
-https://nds.iaea.org/talys/structure.tar
-https://nds.iaea.org/talys/talys_samples.tar
+https://nds.iaea.org/talys/misc/structure.tar
+https://nds.iaea.org/talys/samples/talys_samples.tar
 ```
 and after
 ```
@@ -72,7 +72,7 @@ The *talys/* directory contains the following directories and files:
 + `source/` the Fortran source code of TALYS and the Makefile
 + `bin/` the *talys* executable after successful installation
 + `structure/` the nuclear structure and reaction database in various subdirectories
-+ `misc/` miscellaneous files such as a gnuplot script to plot results versus EXFOR
++ `misc/` miscellaneous files such as a gnuplot script to plot TALYS results versus EXFOR data
 + `doc/` the tutorial in pdf format
 + `samples/` the input and output files of the sample cases, and the *verify* script to run the sample cases
 

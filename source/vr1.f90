@@ -1,25 +1,35 @@
-      function vr1(z)
-c
-c +---------------------------------------------------------------------
-c | Author: Marieke Duijvestijn
-c | Date  : September 9, 2004
-c | Task  : Volume of the projectile-like section.
-c +---------------------------------------------------------------------
-c
-c *************************** Comments *********************************
-c
-c This function is based on the function vr1 originally developed by
-c U. Brosa.
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      real vr1,z
-c
-c **********************************************************************
-c
-c vr1: function for volume of the projectile-like section
-c
-      vr1=pi*((2.*r1**3-z**3)/3.+r1**2*z)
-      return
-      end
+function vr1(z)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Volume of the projectile-like section.
+!
+! Author    : Marieke Duijvestijn
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   sgl    ! single precision kind
+! Constants
+!   pi     ! pi
+! Variables for Brosa model
+!   r1     ! parameter for neck rupture
+!
+! *** Declaration of local data
+!
+  implicit none
+  real(sgl) :: vr1  ! function for volume of the projectile-like section
+  real(sgl) :: z    ! charge number
+!
+! **********************************************************************
+!
+! vr1: function for volume of the projectile-like section
+!
+  vr1 = pi*((2.*r1**3-z**3)/3.+r1**2*z)
+  return
+end function vr1
+! Copyright A.J. Koning 2021

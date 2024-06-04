@@ -1,227 +1,242 @@
-      subroutine energies
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : July 17, 2014
-c | Task  : Energies
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer          type,nen,i,Zix,Nix,NL,minbins,maxbins
-      real             Elast,b
-      double precision ma1,ma2,ma,eps
-c
-c ****************************** Energies ******************************
-c
-c Center-of-mass energy and wave number
-c
-c 1. Relativistic case: Ecm = sqrt[ (m+M)**2 + 2ME ] -(m+M)
-c                           = 2ME / { sqrt [ (m+M)**2 + 2ME ] + (m+M) }
-c
-c For incident photons, we always take the relativistic case.
-c
-c flagrel: flag for relativistic kinematics
-c k0     : index of incident particle
-c ma1,ma2: help variables
-c ma,eps : help variables
-c parmass: mass of particle in a.m.u.
-c tarmass: mass of target nucleus
-c Einc   : incident energy in MeV
-c amu    : atomic mass unit in MeV
-c eninccm: center-of-mass incident energy in MeV
-c wavenum: wave number
-c
-      if (flagrel.or.k0.eq.0) then
-        ma1=parmass(k0)
-        ma2=tarmass
-        ma=ma1+ma2
-        eps=2.*ma2*Einc/amu
-        eninccm=real(amu*eps/(sqrt(ma**2+eps)+ma))
-        wavenum=real(amu*ma2/hbarc*sqrt(Einc/amu*(Einc/amu+2.*ma1)/
-     +    ((ma1+ma2)**2+2.*ma2*Einc/amu)))
-      else
-c
-c 2. Non-relativistic case: Ecm = E*M/(m+M)
-c
-c specmass: specific mass for target nucleus and all particles
-c parZ    : charge number of particle
-c parN    : neutron number of particle
-c redumass: reduced mass
-c hbarc   : hbar.c in MeV.fm
-c Etotal  : total energy of compound system (target + projectile)
-c S       : separation energy per particle
-c targetE : energy of target
-c
-        eninccm=real(Einc*specmass(parZ(k0),parN(k0),k0))
-        wavenum=sqrt(real(2.*amu*redumass(parZ(k0),parN(k0),k0)*
-     +    eninccm))/hbarc
+subroutine energies
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Energies
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   sgl            ! single precision kind
+!   dbl            ! double precision kind
+! All global variables
+!   numbins        ! maximum number of continuum excitation energy bins
+!   numlev2        ! maximum number of levels
+!   numN           ! maximum number of neutrons from initial compound nucleus
+!   numZ           ! maximum number of protons from initial compound nucleus
+! Variables for numerics
+!   nbins0         ! number of continuum excitation energy bins
+!   xseps          ! limit for cross sections
+! Variables for basic reaction
+!   flagang        ! flag for output of angular distributions
+!   flagrel        ! flag for relativistic kinematics
+! Variables for main input
+!   k0             ! index of incident particle
+! Variables for compound reactions
+!   eurr           ! off - set incident energy for URR calculation
+!   ewfc           ! off - set incident energy for width fluctuation
+!   flagurr        ! flag for output of unresolved resonance parameters
+! Variables for direct reactions
+!   eadd           ! on - set incident energy for addition of discrete states
+!   eaddel         ! on - set incident energy for addition of elastic peak
+!   flagcpang      ! flag for compound angular distribution calculation for
+!   flaggiant0     ! flag for collective contribution from giant resonances
+! Variables for preequilibrium
+!   emulpre        ! on - set incident energy for multiple preequilibrium
+!   epreeq         ! on - set incident energy for preequilibrium calculation
+! Variables for energy grid
+!   Einc           ! incident energy in MeV
+! Variables for energy grid
+!   ebegin         ! first energy point of energy grid
+!   Ebottom        ! bottom of outgoing energy bin
+!   egrid          ! outgoing energy grid
+!   maxen          ! total number of energies
+! Variables for energies
+!   eend           ! last energy point of energy grid
+!   eendhigh       ! last energy point for energy grid for any particle
+!   eninccm        ! center - of - mass incident energy in MeV
+!   eoutdis        ! outgoing energy of discrete state reaction
+!   Etotal         ! total energy of compound system (target + projectile)
+!   flagadd        ! flag for addition of discrete states to spectra flag
+!   flagaddel      ! flag for addition of elastic peak to spectra
+!   flagcompang    ! flag for compound angular distribution calculation
+!   flaggiant      ! flag for collective contribution from giant resonances
+!   flagmulpre     ! flag for multiple pre - equilibrium calculation
+!   flagpreeq      ! flag for pre - equilibrium calculation
+!   flagwidth      ! flag for width fluctuation calculation
+!   mulpreZN       ! logical for multiple pre - equilibrium per nucleus
+!   nendisc        ! last discrete bin
+!   nbins          ! number of continuum excitation energy bins
+!   speceps        ! limit for cross section spectra
+!   wavenum        ! wave number
+! Variables for nuclides
+!   Nindex         ! neutron number index for residual nucleus
+!   parskip        ! logical to skip outgoing particle
+!   targetE        ! excitation energy of target
+!   tarmass        ! mass of target nucleus
+!   Zindex         ! charge number index for residual nucleus
+! Constants
+!   amu            ! atomic mass unit in MeV
+!   hbarc          ! hbar.c in MeV.fm
+!   parmass        ! mass of particle in a.m.u.
+!   parN           ! neutron number of particle
+!   parZ           ! charge number of particle
+! Variables for levels
+!   edis           ! energy of level
+! Variables for level density
+!   Nlast          ! last discrete level
+! Variables for masses
+!   redumass       ! reduced mass
+!   S              ! separation energy
+!   specmass       ! specific mass for residual nucleus
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer   :: i       ! counter
+  integer   :: maxbins ! maximum number of bins
+  integer   :: minbins ! minimum number of bins
+  integer   :: nen     ! energy counter
+  integer   :: Nix     ! neutron number index for residual nucleus
+  integer   :: NL      ! last discrete level
+  integer   :: type    ! particle type
+  integer   :: Zix     ! charge number index for residual nucleus
+  real(sgl) :: b       ! parameter for slope
+  real(sgl) :: Elast   ! help variable
+  real(dbl) :: eps     ! help variable
+  real(dbl) :: ma      ! help variable
+  real(dbl) :: ma1     ! help variable
+  real(dbl) :: ma2     ! help variable
+!
+! ****************************** Energies ******************************
+!
+! Center-of-mass energy and wave number
+!
+! 1. Relativistic case: Ecm = sqrt[ (m+M)**2 + 2ME ] -(m+M)
+!   = 2ME / { sqrt [ (m+M)**2 + 2ME ] + (m+M) }
+!
+! For incident photons, we always take the relativistic case.
+!
+  if (flagrel .or. k0 == 0) then
+    ma1 = parmass(k0)
+    ma2 = tarmass
+    ma = ma1 + ma2
+    eps = 2. * ma2 * Einc / amu
+    eninccm = real(amu * eps / (sqrt(ma **2 + eps) + ma))
+    wavenum = real(amu * ma2 / hbarc * sqrt(Einc / amu * (Einc / amu + 2. * ma1) / ((ma1 + ma2) **2 + 2. * ma2 * Einc / amu)))
+  else
+!
+! 2. Non-relativistic case: Ecm = E*M/(m+M)
+!
+    eninccm = real(Einc * specmass(parZ(k0), parN(k0), k0))
+    wavenum = sqrt(real(2. * amu * redumass(parZ(k0), parN(k0), k0) * eninccm)) / hbarc
+  endif
+  if (flaginitpop) eninccm = Einc
+  Etotal = eninccm + S(0, 0, k0) + targetE
+!
+! ***************** Set upper limit for energy grid ********************
+!
+  eendhigh = 0
+  do type = 0, 6
+    eend(type) = maxen - 1
+    if (parskip(type)) cycle
+    do nen = 0, maxen
+      if (egrid(nen) > Etotal - S(0, 0, type)) then
+        eend(type) = nen
+        exit
       endif
-      if (flaginitpop) eninccm=Einc
-      Etotal=eninccm+S(0,0,k0)+targetE
-c
-c ***************** Set upper limit for energy grid ********************
-c
-c eendhigh: last energy point for energy grid for any particle
-c eend    : last energy point for energy grid of each particle
-c maxen   : total number of energies
-c parskip : logical to skip outgoing particle
-c egrid   : energies of basic energy grid in MeV
-c ebegin  : first energy point of energy grid
-c
-      eendhigh=0
-      do 10 type=0,6
-        eend(type)=maxen-1
-        if (parskip(type)) goto 10
-        do 20 nen=0,maxen
-          if (egrid(nen).gt.Etotal-S(0,0,type)) then
-            eend(type)=nen
-            goto 30
-          endif
-   20   continue
-   30   if (eend(type).gt.ebegin(type))
-     +    eend(type)=max(eend(type),ebegin(type)+3)
-        eendhigh=max(eendhigh,eend(type))
-   10 continue
-c
-c **** Set limit for cross section spectra ******
-c
-c speceps: limit for cross section spectra
-c xseps  : limit for cross sections
-c
-      speceps=xseps/eninccm
-c
-c ********* Set outgoing energies for discrete level scattering ********
-c
-c nendisc: last discrete bin
-c Zindex : charge number index for residual nucleus
-c Nindex : neutron number index for residual nucleus
-c Nlast  : last discrete level
-c numlev2: maximum number of levels
-c edis   : energy of level
-c Elast  : help variable
-c eoutdis: outgoing energy of discrete state reaction
-c locate : subroutine to find value in ordered table
-c Ebottom: bottom of outgoing energy bin
-c
-c The variable nendisc is used to determine the last discrete level
-c of the population of a residual nucleus. This will be needed for
-c the calculation of boundary effects in spectra.
-c
-      do 110 type=0,6
-        nendisc(type)=1
-        if (parskip(type)) goto 110
-        Zix=Zindex(0,0,type)
-        Nix=Nindex(0,0,type)
-        NL=Nlast(Zix,Nix,0)
-        do 120 i=0,numlev2
-          eoutdis(type,i)=Etotal-S(0,0,type)-edis(Zix,Nix,i)
-  120   continue
-        if (ebegin(type).ge.eend(type)) goto 110
-        Elast=eoutdis(type,NL)
-        if (Elast.gt.0.) then
-          call locate(Ebottom,1,eend(type),Elast,nen)
-          nendisc(type)=nen
-        endif
-  110 continue
-c
-c ************ Set pre-equilibrium and compound nucleus flags **********
-c
-c ewfc       : off-set incident energy for width fluctuation calculation
-c flagwidth  : flag for width fluctuation calculation
-c eurr       : off-set incident energy for URR calculation
-c flagurr    : flag for output of unresolved resonance parameters
-c flagang    : flag for output of angular distributions
-c flagcompang: flag for compound angular distribution calculation
-c flagcpang  : flag for compound angular distribution calculation for
-c              incident charged particles
-c epreeq     : on-set incident energy for preequilibrium calculation
-c flagpreeq  : flag for pre-equilibrium calculation
-c flaggiant  : flag for collective contribution from giant resonances
-c flaggiant0 : flag for collective contribution from giant resonances
-c emulpre    : on-set incident energy for multiple preequilibrium
-c flagmulpre : flag for multiple pre-equilibrium calculation
-c flagendf   : flag for information for ENDF-6 file
-c eadd       : on-set incident energy for addition of discrete states
-c              to spectra
-c eaddel     : on-set incident energy for addition of elastic peak
-c              to spectra
-c flagadd    : flag for addition of discrete states to spectra
-c flagaddel  : flag for addition of elastic peak to spectra
-c flagffruns : flag to denote that run is for fission fragment
-c numZ       : maximal number of protons away from initial compound
-c              nucleus
-c numN       : maximal number of neutrons away from initial compound
-c              nucleus
-c mulpreZN   : logical for multiple pre-equilibrium per nucleus
-c
-      if (Einc.le.ewfc)  then
-        flagwidth=.true.
-      else
-        flagwidth=.false.
-      endif
-      if (Einc.le.eurr)  then
-        flagurr=.true.
-      else
-        flagurr=.false.
-      endif
-      if ((k0.eq.1.or.flagcpang).and.flagang.and.Einc.le.50.)  then
-        flagcompang=.true.
-      else
-        flagcompang=.false.
-      endif
-      if (Einc.lt.epreeq) then
-        flagpreeq=.false.
-        flaggiant=.false.
-      else
-        flagpreeq=.true.
-        if (flaggiant0) then
-          flaggiant=.true.
-        else
-          flaggiant=.false.
-        endif
-      endif
-      if (Einc.lt.emulpre) then
-        flagmulpre=.false.
-      else
-        flagmulpre=.true.
-      endif
-      if (Einc.lt.eadd) then
-        flagadd=.false.
-      else
-        flagadd=.true.
-      endif
-      if (Einc.lt.eaddel) then
-        flagaddel=.false.
-      else
-        flagaddel=.true.
-      endif
-      if (flagffruns.or.flaginitpop) then
-        flagaddel=.false.
-        flagadd=.false.
-      endif
-      do 210 Zix=0,numZ
-        do 210 Nix=0,numN
-          mulpreZN(Zix,Nix)=.false.
-  210 continue
-c
-c Progressive bin width for excitation energy bins
-c
-c minbins: minimum number of bins
-c maxbins: maximum number of bins
-c b      : parameter for slope
-c nbins0 : number of continuum excitation energy bins
-c nbins  : number of continuum excitation energy bins
-c
-      if (nbins0.eq.0) then
-        minbins=30
-        maxbins=numbins
-        b=60.
-        nbins=minbins+int((maxbins-minbins)*Einc*Einc/(Einc*Einc+b*b))
-      else
-        nbins=nbins0
-      endif
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+    enddo
+    if (eend(type) > ebegin(type)) eend(type) = max(eend(type), ebegin(type) + 3)
+    eendhigh = max(eendhigh, eend(type))
+  enddo
+!
+! **** Set limit for cross section spectra ******
+!
+  speceps = xseps / eninccm
+!
+! ********* Set outgoing energies for discrete level scattering ********
+!
+! locate : subroutine to find value in ordered table
+!
+! The variable nendisc is used to determine the last discrete level of the population of a residual nucleus.
+! This will be needed for the calculation of boundary effects in spectra.
+!
+  do type = 0, 6
+    nendisc(type) = 1
+    if (parskip(type)) cycle
+    Zix = Zindex(0, 0, type)
+    Nix = Nindex(0, 0, type)
+    NL = Nlast(Zix, Nix, 0)
+    do i = 0, numlev2
+      eoutdis(type, i) = Etotal - S(0, 0, type) - edis(Zix, Nix, i)
+    enddo
+    if (ebegin(type) >= eend(type)) cycle
+    Elast = eoutdis(type, NL)
+    if (Elast > 0.) then
+      call locate(Ebottom, 1, eend(type), Elast, nen)
+      nendisc(type) = nen
+    endif
+  enddo
+!
+! ************ Set pre-equilibrium and compound nucleus flags **********
+!
+  if (Einc <= ewfc)  then
+    flagwidth = .true.
+  else
+    flagwidth = .false.
+  endif
+  if (Einc <= eurr)  then
+    flagurr = .true.
+  else
+    flagurr = .false.
+  endif
+  if ((k0 == 1 .or. flagcpang) .and. flagang .and. Einc <= 50.)  then
+    flagcompang = .true.
+  else
+    flagcompang = .false.
+  endif
+  if (Einc < epreeq) then
+    flagpreeq = .false.
+    flaggiant = .false.
+  else
+    flagpreeq = .true.
+    if (flaggiant0) then
+      flaggiant = .true.
+    else
+      flaggiant = .false.
+    endif
+  endif
+  if (Einc < emulpre) then
+    flagmulpre = .false.
+  else
+    flagmulpre = .true.
+  endif
+  if (Einc < eadd) then
+    flagadd = .false.
+  else
+    flagadd = .true.
+  endif
+  if (Einc < eaddel) then
+    flagaddel = .false.
+  else
+    flagaddel = .true.
+  endif
+  if (flagffruns.or.flaginitpop) then
+    flagaddel = .false.
+    flagadd = .false.
+  endif
+  do Zix = 0, numZ
+    do Nix = 0, numN
+      mulpreZN(Zix, Nix) = .false.
+    enddo
+  enddo
+!
+! Progressive bin width for excitation energy bins
+!
+  if (nbins0 == 0) then
+    minbins = 30
+    maxbins = numbins
+    b = 60.
+    nbins = minbins + int((maxbins - minbins) * Einc * Einc / (Einc * Einc + b * b))
+  else
+    nbins = nbins0
+  endif
+  return
+end subroutine energies
+! Copyright A.J. Koning 2021

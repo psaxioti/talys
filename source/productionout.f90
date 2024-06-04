@@ -1,105 +1,135 @@
-      subroutine productionout
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : August 31, 2014
-c | Task  : Output of particle production cross sections
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      character*13 totfile
-      character*15 fisfile
-      integer      type,nen
-c
-c ************** Total particle production cross sections **************
-c
-c parskip     : logical to skip outgoing particle
-c parname     : name of particle
-c xsparticle  : total particle production cross section
-c multiplicity: particle multiplicity
-c
-      write(*,'(/" 3. Total particle production cross sections"/)')
-      do 10 type=0,6
-        if (parskip(type)) goto 10
-        write(*,'(1x,a8,"=",es12.5,"    Multiplicity=",es12.5)')
-     +    parname(type),xsparticle(type),multiplicity(type)
-c
-c Write results to separate file
-c
-c filetotal : flag for total cross sections on separate file
-c natstring : string extension for file names
-c iso       : counter for isotope
-c numinclow : number of incident energies below Elow
-c parsym    : symbol of particle
-c k0        : index of incident particle
-c Atarget   : mass number of target nucleus
-c Ztarget   : charge number of target nucleus
-c numinc    : number of incident energies
-c eninc,Einc: incident energy in MeV
-c
-        if (filetotal) then
-          totfile=' prod.tot'//natstring(iso)
-          write(totfile(1:1),'(a1)') parsym(type)
-          if (nin.eq.numinclow+1) then
-            open (unit=1,file=totfile,status='replace')
-            write(1,'("# ",a1," + ",a," Total ",a8," production")')
-     +        parsym(k0),trim(targetnuclide),parname(type)
-            write(1,'("# Q-value    =",es12.5)') Q(type)
-            write(1,'("# ")')
-            write(1,'("# # energies =",i6)') numinc
-            write(1,'("#    E         xs         Yield")')
-            do 20 nen=1,numinclow
-              write(1,'(3es12.5)') eninc(nen),0.,0.
-   20       continue
-          else
-            open (unit=1,file=totfile,status='old')
-            do 30 nen=1,nin+4
-              read(1,*,end=40,err=40)
-   30       continue
-          endif
-          write(1,'(3es12.5)') Einc,xsparticle(type),
-     +      multiplicity(type)
-   40     close (unit=1)
-        endif
-   10 continue
-c
-c Total fission cross section
-c
-c flagfission : flag for fission
-c xsfistot    : total fission cross section
-c
-      if (flagfission) then
-        write(*,'(" fission =",es12.5)') xsfistot
-c
-c Write results to separate file
-c
-c filefission: flag for fission cross sections on separate file
-c
-        if (filefission) then
-          fisfile='fission.tot'//natstring(iso)
-          if (nin.eq.numinclow+1) then
-            open (unit=1,file=fisfile,status='replace')
-            write(1,'("# ",a1," + ",a,"   : (",a1,",f)        ",
-     +        "  Total")') parsym(k0),trim(targetnuclide),parsym(k0)
-            write(1,'("# ")')
-            write(1,'("# ")')
-            write(1,'("# # energies =",i6)') numinc
-            write(1,'("#    E         xs")')
-            do 110 nen=1,numinclow
-              write(1,'(2es12.5)') eninc(nen),0.
-  110       continue
-          else
-            open (unit=1,file=fisfile,status='old')
-            do 120 nen=1,nin+4
-              read(1,*,end=130,err=130)
-  120       continue
-          endif
-          write(1,'(2es12.5)') Einc,xsfistot
-  130     close (unit=1)
-        endif
+subroutine productionout
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Output of particle production cross sections
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for output
+!   filefission     ! flag for fission cross sections on separate file
+!   filetotal       ! flag for total cross sections on separate file
+! Variables for fission
+!   flagfission     ! flag for fission
+! Variables for input energies
+!   eninc           ! incident energy in MeV
+!   nin             ! counter for incident energy
+!   Ninc          ! number of incident energies
+! Variables for main input
+!   Atarget         ! mass number of target nucleus
+!   k0              ! index of incident particle
+! Variables for energies
+!   Ninclow       ! number of incident energies below Elow
+! Variables for total cross sections
+!   xsfistot        ! total fission cross section
+! Variables for incident channel
+!   multiplicity    ! particle multiplicity
+!   xsparticle      ! total particle production cross section
+! Variables for energy grid
+!   Einc            ! incident energy in MeV
+! Variables for nuclides
+!   parskip         ! logical to skip outgoing particle
+!   Q               ! Q - value
+! Constants
+!   iso             ! counter for isotope
+!   natstring       ! string extension for file names
+!   parname         ! name of particle
+!   parsym          ! symbol of particle
+!
+! *** Declaration of local data
+!
+  implicit none
+  character(len=13) :: totfile    ! file with total cross sections
+  character(len=15) :: fisfile    ! fission file
+  character(len=18) :: reaction   ! reaction
+  character(len=15) :: col(3)    ! header
+  character(len=15) :: un(3)    ! header
+  character(len=80) :: quantity   ! quantity
+  character(len=132) :: topline    ! topline
+  integer           :: MF
+  integer           :: MT
+  integer           :: Ncol       ! counter
+  integer           :: nen        ! energy counter
+  integer           :: type       ! particle type
+!
+! ************** Total particle production cross sections **************
+!
+  MF = 3
+  quantity='cross section'
+  col(1)='E'
+  un(1)='MeV'
+  col(2)='xs'
+  un(2)='mb'
+  col(3)='Multiplicity'
+  un(3)=''
+  Ncol=3
+  write(*, '(/" 3. Total particle production cross sections"/)')
+  do type = 0, 6
+    if (parskip(type)) cycle
+    write(*, '(1x, a8, "=", es12.5, "    Multiplicity=", es12.5)') parname(type), xsparticle(type), multiplicity(type)
+!
+! Write results to separate file
+!
+    if (filetotal) then
+      totfile = ' prod.tot'//natstring(iso)
+      write(totfile(1:1), '(a1)') parsym(type)
+      reaction='('//parsym(k0)//',x'//parsym(type)//')'
+      if (nin == Ninclow + 1) then
+        open (unit = 1, file = totfile, status = 'replace')
+        topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)
+        if (type == 0) MT = 202
+        if (type == 1) MT = 201
+        if (type > 1) MT = 201 + type
+        call write_header(topline,source,user,date,oformat)
+        call write_target
+        call write_reaction(reaction,0.d0,0.d0,MF,MT)
+        call write_datablock(quantity,Ncol,Ninc,col,un)
+        do nen = 1, Ninclow
+          write(1, '(3es15.6)') eninc(nen), 0., 0.
+        enddo
+      else
+        open (unit = 1, file = totfile, status = 'old', position = 'append')
       endif
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+      write(1, '(3es15.6)') Einc, xsparticle(type), multiplicity(type)
+      close (unit = 1)
+    endif
+  enddo
+!
+! Total fission cross section
+!
+  if (flagfission) then
+    write(*, '(" fission =", es12.5)') xsfistot
+!
+! Write results to separate file
+!
+    if (filefission) then
+      fisfile = 'fission.tot'//natstring(iso)
+      reaction='('//parsym(k0)//',f)'
+      Ncol=2
+      if (nin == Ninclow + 1) then
+        open (unit = 1, file = fisfile, status = 'replace')
+        topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)
+        MT = 18
+        call write_header(topline,source,user,date,oformat)
+        call write_target
+        call write_reaction(reaction,0.d0,0.d0,MF,MT)
+        call write_datablock(quantity,Ncol,Ninc,col,un)
+        do nen = 1, Ninclow
+          write(1, '(2es15.6)') eninc(nen), 0.
+        enddo
+      else
+        open (unit = 1, file = fisfile, status = 'old', position = 'append')
+      endif
+      write(1, '(2es15.6)') Einc, xsfistot
+      close (unit = 1)
+    endif
+  endif
+  return
+end subroutine productionout
+! Copyright A.J. Koning 2021

@@ -1,115 +1,140 @@
-      subroutine fissionout
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : November 3, 2021
-c | Task  : Output of fission cross sections
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      character*12 rpfile
-      integer      Acomp,Zcomp,Ncomp,Z,A,nen
-      real         x1(numpfns),x2(numpfns),x3(numpfns)
-c
-c *********************** Fission cross sections ***********************
-c
-c Acomp    : mass number index for compound nucleus
-c maxA     : maximal number of nucleons away from the initial compound
-c            nucleus
-c Zcomp    : charge number index for compound nucleus
-c maxZ     : maximal number of protons away from the initial compound
-c            nucleus
-c Ncomp    : neutron number index for compound nucleus
-c maxN     : maximal number of neutrons away from the initial compound
-c            nucleus
-c nin      : counter for incident energy
-c numinclow: number of incident energies below Elow
-c xsfeed   : cross section from compound to residual nucleus
-c ZZ,Z     : charge number of residual nucleus
-c AA,A     : mass number of residual nucleus
-c nuc      : symbol of nucleus
-c
-      write(*,'(/" 4b. Fission cross section per fissioning",
-     +  " nuclide"/)')
-      do 10 Acomp=0,maxA
-        do 20 Zcomp=0,maxZ
-          Ncomp=Acomp-Zcomp
-          if (Ncomp.lt.0.or.Ncomp.gt.maxN) goto 20
-          if (xsfeed(Zcomp,Ncomp,-1).ne.0.) then
-            Z=ZZ(Zcomp,Ncomp,0)
-            A=AA(Zcomp,Ncomp,0)
-            write(*,'(1x,2i4," (",i3,a2,")",es12.5)') Z,A,A,
-     +        nuc(Z),xsfeed(Zcomp,Ncomp,-1)
-          endif
-   20   continue
-   10 continue
-c
-c Write results to separate file
-c
-c filefission: flag for fission cross sections on separate file
-c fisexist   : flag for existence of fission cross section
-c parsym     : symbol of particle
-c k0         : index of incident particle
-c Atarget    : mass number of target nucleus
-c Ztarget    : charge number of target nucleus
-c numinc     : number of incident energies
-c eninc,Einc : incident energy in MeV
-c
-      if (filefission) then
-        do 110 Acomp=0,maxA
-          do 120 Zcomp=0,maxZ
-            Ncomp=Acomp-Zcomp
-            if (Ncomp.lt.0.or.Ncomp.gt.maxN) goto 120
-            if (xsfeed(Zcomp,Ncomp,-1).eq.0..and.
-     +        .not.fisexist(Zcomp,Ncomp)) goto 120
-            rpfile='rp000000.fis'
-            Z=ZZ(Zcomp,Ncomp,0)
-            A=AA(Zcomp,Ncomp,0)
-            write(rpfile(3:8),'(2i3.3)') Z,A
-            if (.not.fisexist(Zcomp,Ncomp)) then
-              fisexist(Zcomp,Ncomp)=.true.
-              open (unit=1,file=rpfile,status='replace')
-              write(1,'("# ",a1," + ",a,": Fission of ",i3,a2)')
-     +          parsym(k0),trim(targetnuclide),A,nuc(Z)
-              write(1,'("#                 ")')
-              write(1,'("#                 ")')
-              write(1,'("# # energies =",i6)') numinc
-              write(1,'("#    E         xs ")')
-              do 130 nen=1,numinclow
-                write(1,'(2es12.5)') eninc(nen),0.
-  130         continue
-              do 140 nen=numinclow+1,nin-1
-                write(1,'(2es12.5)') eninc(nen),0.
-  140         continue
-            else
-              open (unit=1,file=rpfile,status='old')
-              do 150 nen=1,nin+4
-                read(1,*)
-  150         continue
-            endif
-            write(1,'(2es12.5)') Einc,xsfeed(Zcomp,Ncomp,-1)
-            close (unit=1)
-  120     continue
-  110   continue
+subroutine fissionout
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Output of fission cross sections
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for fission
+!   filefission    ! flag for fission cross sections on separate file
+! Variables for existence libraries
+!   fisexist       ! flag for existence of fission cross section
+! Variables for numerics
+!   maxN           ! maximal number of neutrons away from initial compound nucleus
+!   maxZ           ! maximal number of protons away from initial compound nucleus
+! Variables for input energies
+!   eninc          ! incident energy in MeV
+!   nin            ! counter for incident energy
+!   Ninc         ! number of incident energies
+! Variables for main input
+!   Atarget        ! mass number of target nucleus
+!   k0             ! index of incident particle
+! Variables for energies
+!   Ninclow      ! number of incident energies below Elow
+! Variables for incident channel
+!   maxA           ! maximal number of nucleons away from initial compound nucleus
+! Variables for energy grid
+!   Einc           ! incident energy in MeV
+! Variables for multiple emission
+!   xsfeed         ! cross section from compound to residual nucleus
+! Variables for nuclides
+!   AA             ! mass number of residual nucleus
+!   ZZ             ! charge number of residual nucleus
+! Constants
+!   nuc            ! symbol of nucleus
+!   parsym         ! symbol of particle
+!
+! *** Declaration of local data
+!
+  implicit none
+  character(len=3)  :: massstring !
+  character(len=6)  :: finalnuclide !
+  character(len=18) :: reaction   ! reaction
+  character(len=132) :: topline    ! topline
+  character(len=15) :: col(2)     ! header
+  character(len=15) :: un(2)     ! header
+  character(len=80) :: quantity   ! quantity
+  character(len=12) :: rpfile      ! file with residual production cross sections
+  integer           :: A           ! mass number of target nucleus
+  integer           :: Acomp       ! mass number index for compound nucleus
+  integer           :: Ncol        ! number of columns
+  integer           :: Ncomp       ! neutron number index for compound nucleus
+  integer           :: nen         ! energy counter
+  integer           :: Z           ! charge number of target nucleus
+  integer           :: Zcomp       ! proton number index for compound nucleus
+  real(sgl)         :: x1(numpfns) ! help variable
+  real(sgl)         :: x2(numpfns) ! help variable
+  real(sgl)         :: x3(numpfns) ! help variable
+!
+! *********************** Fission cross sections ***********************
+!
+  write(*, '(/" 4b. Fission cross section per fissioning", " nuclide"/)')
+  do Acomp = 0, maxA
+    do Zcomp = 0, maxZ
+      Ncomp = Acomp - Zcomp
+      if (Ncomp < 0 .or. Ncomp > maxN) cycle
+      if (xsfeed(Zcomp, Ncomp, - 1) /= 0.) then
+        Z = ZZ(Zcomp, Ncomp, 0)
+        A = AA(Zcomp, Ncomp, 0)
+        write(*, '(1x, 2i4, " (", i3, a2, ")", es12.5)') Z, A, A, nuc(Z), xsfeed(Zcomp, Ncomp, - 1)
       endif
-c
-c Phenomenological PFNS (Iwamoto model)
-c
-c Tmadjust      : adjustable parameter for PFNS temperature
-c Fsadjust      : adjustable parameter for PFNS scission fraction
-c
-      if (pfnsmodel.eq.1) then
-        call iwamoto(Zinit, Ainit, S(0,0,1), Einc, Tmadjust, Fsadjust, 
-     +    Epfns, NEpfns, x1, x2, x3, Eavpfns(1))
-        do nen=1,NEpfns
-          pfns(1,nen)=x1(nen)
-          maxpfns(1,nen)=x2(nen)
-          pfnscm(1,nen)=x3(nen)
-        enddo
-        call pfnsout
-      endif
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+    enddo
+  enddo
+!
+! Write results to separate file
+!
+  if (filefission) then
+    do Acomp = 0, maxA
+      do Zcomp = 0, maxZ
+        Ncomp = Acomp - Zcomp
+        if (Ncomp < 0 .or. Ncomp > maxN) cycle
+        if (xsfeed(Zcomp, Ncomp, - 1) == 0..and. .not. fisexist(Zcomp, Ncomp)) cycle
+        rpfile = 'rp000000.fis'
+        Z = ZZ(Zcomp, Ncomp, 0)
+        A = AA(Zcomp, Ncomp, 0)
+        write(rpfile(3:8), '(2i3.3)') Z, A
+        massstring='   '
+        write(massstring,'(i3)') A
+        finalnuclide=trim(nuc(Z))//adjustl(massstring)
+        if ( .not. fisexist(Zcomp, Ncomp)) then
+          fisexist(Zcomp, Ncomp) = .true.
+          open (unit = 1, file = rpfile, status = 'replace')
+          quantity='cross section'
+          reaction='('//parsym(k0)//',f)'
+          topline=trim(targetnuclide)//trim(reaction)//trim(finalnuclide)//' '//trim(quantity)//' per fissioning nuclide'
+          col(1)='E'
+          un(1)='MeV'
+          col(2)='xs'
+          un(2)='mb'
+          Ncol=2
+          call write_header(topline,source,user,date,oformat)
+          call write_target
+          call write_reaction(reaction,0.D0,0.D0,0,0)
+          call write_residual(Z,A,finalnuclide)
+          call write_datablock(quantity,Ncol,Ninc,col,un)
+          do nen = 1, Ninclow
+            write(1, '(2es15.6)') eninc(nen), 0.
+          enddo
+          do nen = Ninclow + 1, nin - 1
+            write(1, '(2es15.6)') eninc(nen), 0.
+          enddo
+        else
+          open (unit = 1, file = rpfile, status = 'old', position = 'append')
+        endif
+        write(1, '(2es15.6)') Einc, xsfeed(Zcomp, Ncomp, -1)
+        close (unit = 1)
+      enddo
+    enddo
+  endif
+!
+! Phenomenological PFNS (Iwamoto model)
+!
+  if (pfnsmodel == 1) then
+    call iwamoto(Zinit, Ainit, S(0,0,1), Einc, Tmadjust, Fsadjust, Epfns, NEpfns, x1, x2, x3, Eavpfns(1))
+    do nen = 1, NEpfns
+      pfns(1,nen) = x1(nen)
+      maxpfns(1,nen) = x2(nen)
+      pfnscm(1,nen) = x3(nen)
+    enddo
+    call pfnsout
+  endif
+  return
+end subroutine fissionout
+! Copyright A.J. Koning 2021

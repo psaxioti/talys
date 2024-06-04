@@ -1,52 +1,68 @@
-      subroutine dwbaread(nen1,nen2)
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning and Eric Bauge
-c | Date  : August 10, 2015
-c | Task  : Read ECIS results for DWBA for MSD
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer          nen1,nen2,J,nS,iang,k,itype,istat
-      double precision xs
-c
-c ********************** Read DWBA cross sections **********************
-c
-c maxJmsd   : maximal spin for MSD calculation
-c xsdwin    : DWBA cross section as a function of incident energy,
-c             outgoing energy and angular momentum
-c flagddx   : flag for output of double-differential cross sections
-c nanglecont: number of angles for continuum
-c xsdw      : DWBA angular distribution as a function of incident
-c             energy, outgoing energy, angular momentum and angle
-c nS        : counter
-c
-      read(10,'()')
-      do 10 J=0,maxJmsd
-        read(10,*) xs
-        xsdwin(nen1,nen2,J,0)=real(xs)
-   10 continue
-      if (flagddx) then
-        read(8,'()')
-        read(8,'(12x,i3)') nS
-        do 30 iang=0,nanglecont
-          do 30 k=1,nS
-            read(8,'()')
-   30   continue
-        do 40 J=0,maxJmsd
-          read(8,'(12x,i3)',iostat=istat) nS
-          if (istat.ne.0) goto 40
-          do 50 iang=0,nanglecont
-            do 60 k=1,nS
-              read(8,'(i3,12x,e12.5)',iostat=istat) itype,xs
-              if (istat.ne.0) goto 60
-              if (itype.eq.0) xsdw(nen1,nen2,J,iang,0)=real(xs)
-   60       continue
-   50     continue
-   40   continue
-      endif
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+subroutine dwbaread(nen1, nen2)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Read ECIS results for DWBA for MSD
+!
+! Author    : Arjan Koning and Eric Bauge
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   dbl           ! double precision kind
+! Variables for output
+!   flagddx       ! flag for output of double - differential cross sections
+! Variables for numerics
+!   nanglecont    ! number of angles for continuum
+! Variables for MSD
+!   maxJmsd       ! maximal spin for MSD calculation
+!   xsdw          ! DWBA angular distribution as a function of incident energy, outgoing energy, ang. mom. and angle
+!   xsdwin        ! DWBA cross section as a function of incident energy, outgoing energy and angular momentum
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer   :: iang  ! running variable for angle
+  integer   :: istat ! logical for file access
+  integer   :: itype ! help variable
+  integer   :: J     ! spin of level
+  integer   :: k     ! designator for particle
+  integer   :: nen1  ! energy counter
+  integer   :: nen2  ! energy counter
+  integer   :: nS    ! number of states
+  real(dbl) :: xs    ! help variable
+!
+! ********************** Read DWBA cross sections **********************
+!
+  read(10, '()')
+  do J = 0, maxJmsd
+    read(10, * ) xs
+    xsdwin(nen1, nen2, J, 0) = real(xs)
+  enddo
+  if (flagddx) then
+    read(8, '()')
+    read(8, '(12x, i3)') nS
+    do iang = 0, nanglecont
+      do k = 1, nS
+        read(8, '()')
+    enddo
+  enddo
+    do J = 0, maxJmsd
+      read(8, '(12x, i3)', iostat = istat) nS
+      if (istat /= 0) cycle
+      do iang = 0, nanglecont
+        do k = 1, nS
+          read(8, '(i3, 12x, e12.5)', iostat = istat) itype, xs
+          if (istat /= 0) cycle
+          if (itype == 0) xsdw(nen1, nen2, J, iang, 0) = real(xs)
+        enddo
+      enddo
+    enddo
+  endif
+  return
+end subroutine dwbaread
+! Copyright A.J. Koning 2021

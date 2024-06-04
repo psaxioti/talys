@@ -1,200 +1,336 @@
-      subroutine massdisout
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : October 30, 2020
-c | Task  : Output of fission fragment yields
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      character*12  isostring(0:1)
-      character*132 fpyieldfile,fpfile
-      integer       iz,ia,in,nen,nex
-c
-c ****************** Output of fission yields **************************
-c
-      isostring(0)='ground state'
-      isostring(1)='isomer      '
-      write(*,'(/" ++++++++++ FISSION YIELDS ++++++++++"/)')
-c
-c Write results to separate files
-c
-c yieldfile : file with fission yields
-c natstring : string extension for file names
-c iso       : counter for isotope
-c Einc0     : incident energy in MeV
-c parsym    : symbol of particle
-c k0        : index of incident particle
-c Atarget   : mass number of target nucleus
-c Ztarget   : charge number of target nucleus
-c yieldApre : pre-neutron emission mass yield
-c yieldApost: post-neutron emission corrected mass yield
-c
-      fpyieldfile='yieldA0000.000.fis'//natstring(iso)
-      if (Einc0.lt.0.001) then
-        write(fpyieldfile(7:14),'(es8.2)') Einc0
-      else
-        write(fpyieldfile(7:14),'(f8.3)') Einc0
-        write(fpyieldfile(7:10),'(i4.4)') int(Einc0)
-      endif
-      open (unit=1,file=fpyieldfile,status='replace')
-      write(1,'("# ",a1," + ",a,": Fission yields")')
-     +  parsym(k0),trim(targetnuclide)
-      write(1,'("# E-incident = ",es12.5)') Einc0
-      write(1,'("# Number of nuclides: ",i3)') Atarget
-      write(1,'("# ")')
-      write(*,'(" Fission yields as function of A"/)')
-      write(*,'("   A       FP yield       FF yield ",
-     +  "         FP xs          FF xs")')
-      write(1,'("#  A       FP yield       FF yield ",
-     +  "         FP xs          FF xs")')
-      do 10 ia=1,Atarget
-        write(*,'(i4,4es15.4)') ia,yieldApost(ia),yieldApre(ia),
-     +    xsApost(ia),xsApre(ia)
-        write(1,'(i4,4es15.4)') ia,yieldApost(ia),yieldApre(ia),
-     +    xsApost(ia),xsApre(ia)
-  10  continue
-      write(*,'(/" Tot",4es15.4)') yieldtotpost,yieldtotpre,
-     +  xstotpost,xstotpre
-      write(1,'(/"#Tot",4es15.4)') yieldtotpost,yieldtotpre,
-     +  xstotpost,xstotpre
-      close (unit=1)
-c
-c Write ff/fp production
-c
-c fpexist    : flag for existence of fission product
-c fpfile     : file with fission product
-c yieldZApre : pre-neutron emission isotopic yield
-c yieldZApost: post-neutron emission corrected isotopic yield
-c
-      write(*,'(/" Fission yields as function of Z, A"/)')
-      write(*,'("    Z    A iso     FP yield       FF yield",
-     +  "         FP xs          FF xs    Isom. Ratio")')
-      fpyieldfile='yieldZA0000.000.fis'//natstring(iso)
-      if (Einc0.lt.0.001) then
-        write(fpyieldfile(8:15),'(es8.2)') Einc0
-      else
-        write(fpyieldfile(8:15),'(f8.3)') Einc0
-        write(fpyieldfile(8:11),'(i4.4)') int(Einc0)
-      endif
-      open (unit=2,file=fpyieldfile,status='replace')
-      write(2,'("# ",a1," + ",a,": Z, A Fission yields")')
-     +  parsym(k0),trim(targetnuclide)
-      write(2,'("# E-incident = ",es12.5)') Einc0
-      write(2,'("# ")')
-      write(2,'("# ")')
-      write(2,'("#   Z    A iso      FP yield       FF yield",
-     +  "         FP xs          FF xs    Isom. Ratio")')
-      do 210 ia=1,Atarget
-        do 220 iz=1,Ztarget
-          in=ia-iz
-          if (in.lt.1.or.in.gt.Ninit) goto 220
-          if (xsZApre(iz,in).le.fpeps.and.
-     +      xsZApost(iz,in).le.fpeps.and..not.fpexist(iz,in,-1))
-     +      goto 220
-          fpfile='fp000000.tot'//natstring(iso)
-          write(fpfile(3:8),'(2i3.3)') iz,ia
-          if (.not.fpexist(iz,in,-1)) then
-            open (unit=1,file=fpfile,status='replace')
-            write(1,'("# ",a1," + ",a,": Fission product yield of ",
-     +        i3,a2)') parsym(k0),trim(targetnuclide),ia,nuc(iz)
-            write(1,'("# ")')
-            write(1,'("# # energies =",i6)') numinc
-            write(1,'("# ")')
-            write(1,'("# E-incident    FP yield    FF yield ",
-     +        "     FP xs       FF xs")')
-            do 230 nen=1,nin0-1
-              write(1,'(5es12.5)') eninc(nen),0.,0.,0.,0.
-  230       continue
+subroutine massdisout
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Output of fission fragment yields
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! Variables for input energies
+!   eninc           ! incident energy in MeV
+!   nin0            ! counter for incident energy
+!   Ninc          ! number of incident energies
+! Variables for main input
+!   Atarget         ! mass number of target nucleus
+!   k0              ! index of incident particle
+!   Ninit           ! neutron number of initial compound nucleus
+!   Ztarget         ! charge number of target nucleus
+! Variables for energies
+!   Einc0           ! incident energy in MeV
+! Constants
+!   iso             ! counter for isotope
+!   natstring       ! string extension for file names
+!   nuc             ! symbol of nucleus
+!   parsym          ! symbol of particle
+! Variables for existence libraries
+!   fpaexist        ! flag for existence of fission product per mass unit
+!   fpexist         ! flag for existence of fission product
+! Variables for mass distribution
+!   fpeps           ! ratio for limit for fission product cross section
+!   fpratio         ! fission product isomeric ratio
+!   xsApost         ! post - neutron emission corrected cross section
+!   xsApre          ! pre - neutron emission cross section
+!   xsfpex          ! excitation energy spectrum per fission fragment
+!   xstotpost       ! post - neutron emission fission product cross section
+!   xstotpre        ! pre - neutron emission fission product cross section
+!   xsZApost        ! post - neutron emission corrected isotopic cross section
+!   xsZApre         ! pre - neutron emission isotopic cross section
+!   yieldApost      ! post - neutron emission corrected fission yield
+!   yieldApre       ! pre - neutron emission fission yield
+!   yieldfpex       ! fission yield per isomer
+!   yieldtotpost    ! post - neutron emission fission product yield
+!   yieldtotpre     ! pre - neutron emission fission product yield
+!   yieldZApost     ! post - neutron emission corrected isotopic yield
+!   yieldZApre      ! pre - neutron emission isotopic yield
+!
+! *** Declaration of local data
+!
+  implicit none
+  character(len=3) :: massstring
+  character(len=6) :: finalnuclide
+  character(len=12) :: isostring(0:1)    ! string to designate target isomer
+  character(len=13) :: Estr
+  character(len=132):: fpfile            ! file with fission product
+  character(len=132):: fpyieldfile       ! file with fission yields
+  character(len=18) :: reaction   ! reaction
+  character(len=132) :: topline    ! topline
+  character(len=15) :: col(8)     ! header
+  character(len=15) :: un(8)     ! header
+  character(len=80) :: quantity   ! quantity
+  integer           :: MF
+  integer           :: MT
+  integer           :: i
+  integer           :: ia                ! mass number from abundance table
+  integer           :: in                ! counter for neutrons
+  integer           :: iz                ! charge number of residual nucleus
+  integer           :: Ncol              ! number of columns
+  integer           :: Nfy               ! number of fission yields
+  integer           :: nen               ! energy counter
+  integer           :: nex               ! excitation energy bin of compound nucleus
+!
+! ****************** Output of fission yields **************************
+!
+  MF = 8
+  MT = 454
+  Estr=''
+  write(Estr,'(es13.6)') Einc0
+  un = ''
+  col(1)='A'
+  col(2)='FP yield'
+  col(3)='FF yield'
+  col(4)='FP xs'
+  un(4)='mb'
+  col(5)='FF xs'
+  un(5)='mb'
+  Ncol=5
+  isostring(0) = 'ground state'
+  isostring(1) = 'isomer      '
+  write(*, '(/" ++++++++++ FISSION YIELDS ++++++++++"/)')
+!
+! Write results to separate files
+!
+  fpyieldfile = 'yieldA0000.000.fis'//natstring(iso)
+  if (Einc0 < 0.001) then
+    write(fpyieldfile(7:14), '(es8.2)') Einc0
+  else
+    write(fpyieldfile(7:14), '(f8.3)') Einc0
+    write(fpyieldfile(7:10), '(i4.4)') int(Einc0)
+  endif
+  open (unit = 1, file = fpyieldfile, status = 'replace')
+  quantity='fission yield'
+  reaction='('//parsym(k0)//',f)'
+  topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' per A'//' at '//Estr//' MeV'
+  call write_header(topline,source,user,date,oformat)
+  call write_target
+  call write_reaction(reaction,0.D0,0.D0,MF,MT)
+  call write_real(2,'E-incident [MeV]',Einc0)
+  call write_datablock(quantity,Ncol,Atarget,col,un)
+  write(*, '(" Fission yields as function of A"/)')
+  write(*, '("   A       FP yield       FF yield ", "         FP xs          FF xs")')
+  do ia = 1, Atarget
+    write(*, '(i4, 4es15.6)') ia, yieldApost(ia), yieldApre(ia), xsApost(ia), xsApre(ia)
+    write(1, '(i6, 9x, 4es15.6)') ia, yieldApost(ia), yieldApre(ia), xsApost(ia), xsApre(ia)
+  enddo
+  write(*, '(/" Tot", 4es15.6)') yieldtotpost, yieldtotpre, xstotpost, xstotpre
+  write(1, '(/"#Tot           ", 4es15.6)') yieldtotpost, yieldtotpre, xstotpost, xstotpre
+  close (unit = 1)
+!
+! Write ff/fp production
+!
+  write(*, '(/" Fission yields as function of Z, A"/)')
+  write(*, '("    Z    A iso     FP yield       FF yield", "         FP xs          FF xs    Isom. Ratio")')
+  Nfy=0
+  do ia = 1, Atarget
+    do iz = 1, Ztarget
+      in = ia - iz
+      if (in < 1 .or. in > Ninit) cycle
+      if (xsZApre(iz, in) <= fpeps .and. xsZApost(iz, in) <= fpeps .and. .not. fpexist(1, iz, in, -1)) cycle
+      do i = 1,2
+        fpfile = 'fp000000.tot'//natstring(iso)
+        if (i == 2) fpfile(1:1)='r'
+        write(fpfile(3:8), '(2i3.3)') iz, ia
+        massstring='   '
+        write(massstring,'(i3)') ia
+        finalnuclide=trim(nuc(iz))//trim(adjustl(massstring))
+        if ( .not. fpexist(i, iz, in, -1)) then
+          open (unit = 1, file = fpfile, status = 'replace')
+          quantity='fission yield'
+          if (i == 2) quantity='cross section'
+          topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' for '//finalnuclide
+          col(1)='E'
+          un(1)='MeV'
+          if (i == 1) then
+            col(2)='FP yield'
+            col(3)='FF yield'
+            col(4)='FP xs'
+            col(5)='FF xs'
+            Ncol=5
           else
-            open (unit=1,file=fpfile,status='old')
-            do 240 nen=1,nin0+4
-              read(1,*,end=250,err=250)
-  240       continue
+            col(2)='FP xs'
+            un(2)='mb'
+            Ncol=2
           endif
-          if (xsZApre(iz,in).ge.fpeps.and.xsZApost(iz,in).ge.fpeps) then
-            write(*,'(2i5,i3,4es15.4)') iz,ia,-1,yieldZApost(iz,in),
-     +        yieldZApre(iz,in),xsZApost(iz,in),xsZApre(iz,in)
-            write(2,'(2i5,i3,4es15.4)') iz,ia,-1,yieldZApost(iz,in),
-     +        yieldZApre(iz,in),xsZApost(iz,in),xsZApre(iz,in)
+          call write_header(topline,source,user,date,oformat)
+          call write_target
+          if (i == 1) then
+            call write_reaction(reaction,0.D0,0.D0,MF,MT)
+          else
+            call write_reaction(reaction,0.D0,0.D0,6,5)
           endif
-          write(1,'(5es12.5)') Einc0,yieldZApost(iz,in),
-     +      yieldZApre(iz,in),xsZApost(iz,in),xsZApre(iz,in)
-  250     close (unit=1)
-          if (xsfpex(iz,in,1).gt.0.) then
-            do 260 nex=0,1
-              write(fpfile(10:12),'("i",i2.2)') nex
-              if (.not.fpexist(iz,in,nex)) then
-                open (unit=1,file=fpfile,status='replace')
-                write(1,'("# ",a1," + ",a,": Fission product yield",
-     +            " of ",i3,a2,1x,a12)') parsym(k0),
-     +            trim(targetnuclide),ia,nuc(iz),isostring(nex)
-                write(1,'("# ")')
-                write(1,'("# # energies =",i6)') numinc
-                write(1,'("# ")')
-                write(1,'("# E-incident     FP yield      FP xs ",
-     +            "  Ratio ")')
-                do 270 nen=1,nin0-1
-                  write(1,'(5es12.5)') eninc(nen),0.,0.,0.,0.
-  270           continue
-                fpexist( iz, in, nex) = .true.
-              else
-                open (unit=1,file=fpfile,status='old')
-                do 280 nen=1,nin0+4
-                  read(1,*,end=290,err=290)
-  280           continue
-              endif
-              if (xsZApre(iz,in).ge.fpeps.and.xsZApost(iz,in).ge.fpeps)
-     +          then
-                write(*,'(2i5,i3,2(es15.4,15x),es15.4)') iz,ia,nex,
-     +            yieldfpex(iz,in,nex),xsfpex(iz,in,nex),
-     +            fpratio(iz,in,nex)
-                write(2,'(2i5,i3,2(es15.4,15x),es15.4)') iz,ia,nex,
-     +            yieldfpex(iz,in,nex),xsfpex(iz,in,nex),
-     +            fpratio(iz,in,nex)
-              endif
-              write(1,'(4es12.5)') Einc0,yieldfpex(iz,in,nex),
-     +          xsfpex(iz,in,nex),fpratio(iz,in,nex)
-  290         close (unit=1)
-  260       continue
+          call write_residual(iz,ia,finalnuclide)
+          call write_datablock(quantity,Ncol,Ninc,col,un)
+          if (i == 1) then
+            do nen = 1, nin0 - 1
+              write(1, '(5es15.6)') eninc(nen), 0., 0., 0., 0.
+            enddo
+          else
+            do nen = 1, nin0 - 1
+              write(1, '(2es15.6)') eninc(nen), 0.
+            enddo
           endif
-          if (.not.fpexist(iz,in,-1)) fpexist(iz,in,-1)=.true.
-  220   continue
-c
-c Write cumulative ff/fp production
-c
-        if (xsApre(ia).lt.fpeps.and.
-     +    xsApost(ia).lt.fpeps.and..not.fpaexist(ia)) goto 210
-        fpfile='fp000000.tot'//natstring(iso)
-        write(fpfile(6:8),'(i3.3)') ia
-        if (.not.fpaexist(ia)) then
-          fpaexist(ia)=.true.
-          open (unit=1,file=fpfile,status='replace')
-          write(1,'("# ",a1," + ",a,": Fission product yield of A=",
-     +      i3)') parsym(k0),trim(targetnuclide),ia
-          write(1,'("# ")')
-          write(1,'("# # energies =",i6)') numinc
-          write(1,'("# ")')
-          write(1,'("# E-incident    FP yield    FF yield",
-     +      "      FP xs       FF xs")')
-          do 310 nen=1,nin0-1
-            write(1,'(5es12.5)') eninc(nen),0.,0.,0.,0.
-  310     continue
         else
-          open (unit=1,file=fpfile,status='old')
-          do 320 nen=1,nin0+4
-            read(1,*,end=330,err=330)
-  320     continue
+          open (unit = 1, file = fpfile, status = 'old', position = 'append')
         endif
-        write(1,'(5es12.5)') Einc0,yieldApost(ia),yieldApre(ia),
-     +    xsApost(ia),xsApre(ia)
-  330   close (unit=1)
-  210 continue
-      close (unit=2)
-      write(*,'(/"Total        ",4es15.4)') yieldtotpost,yieldtotpre,
-     +  xstotpost,xstotpre
-      return
-      end
-Copyright (C)  2019 A.J. Koning, S. Hilaire and S. Goriely
+        if (i == 1 .and. xsZApre(iz, in) >= fpeps .and. xsZApost(iz, in) >= fpeps) then
+          write(*, '(2i5, i3, 4es15.6)') iz, ia, -1, yieldZApost(iz, in), yieldZApre(iz, in), xsZApost(iz, in), xsZApre(iz, in)
+          Nfy=Nfy+1
+        endif
+        if (i == 1) then
+          write(1, '(5es15.6)') Einc0, yieldZApost(iz, in), yieldZApre(iz, in), xsZApost(iz, in), xsZApre(iz, in)
+        else
+          write(1, '(2es15.6)') Einc0, xsZApost(iz, in)
+        endif
+        close (unit = 1)
+        if (xsfpex(iz, in, 1) > 0.) then
+          do nex = 0, 1
+            write(fpfile(10:12), '("i", i2.2)') nex
+            finalnuclide=trim(nuc(iz))//trim(adjustl(massstring))//isochar(nex)
+            if ( .not. fpexist(i, iz, in, nex)) then
+              open (unit = 1, file = fpfile, status = 'replace')
+              reaction='('//parsym(k0)//',f)'
+              topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' for '//finalnuclide
+              col(1)='E'
+              un(1)='MeV'
+              if (i == 1) then
+                col(2)='FP yield'
+                un(2)=''
+                col(3)='FP xs'
+                un(3)='mb'
+                col(4)='Ratio'
+                un(4)=''
+                Ncol=4
+              else
+                col(2)='FP xs'
+                un(2)='mb'
+                Ncol=2
+              endif
+              call write_header(topline,source,user,date,oformat)
+              call write_target
+              if (i == 1) then
+                call write_reaction(reaction,0.D0,0.D0,0,0)
+              else
+                call write_reaction(reaction,0.D0,0.D0,6,5)
+              endif
+              call write_residual(iz,ia,finalnuclide)
+              call write_datablock(quantity,Ncol,Atarget,col,un)
+              if (i == 1) then
+                do nen = 1, nin0 - 1
+                  write(1, '(4es15.6)') eninc(nen), 0., 0., 0.
+                enddo
+              else
+                do nen = 1, nin0 - 1
+                  write(1, '(2es15.6)') eninc(nen), 0.
+                enddo
+              endif
+              fpexist(i, iz, in, nex) = .true.
+            else
+              open (unit = 1, file = fpfile, status = 'old', position = 'append')
+            endif
+            if (xsZApre(iz, in) >= fpeps .and. xsZApost(iz, in) >= fpeps) then
+              write(*, '(2i5, i3, 2(es15.6, 15x), es15.6)') iz, ia, nex, yieldfpex(iz, in, nex), xsfpex(iz, in, nex), &
+ &            fpratio(iz, in, nex)
+              Nfy=Nfy+1
+            endif
+            if (i == 1) then
+              write(1, '(4es15.6)') Einc0, yieldfpex(iz, in, nex), xsfpex(iz, in, nex), fpratio(iz, in, nex)
+            else
+              write(1, '(2es15.6)') Einc0, xsZApost(iz, in)
+            endif
+            close (unit = 1)
+          enddo
+        endif
+        if ( .not. fpexist(i, iz, in, -1)) fpexist(i, iz, in, -1) = .true.
+      enddo
+    enddo
+!
+! Write cumulative ff/fp production
+!
+    un = ''
+    if (xsApre(ia) < fpeps .and. xsApost(ia) < fpeps .and. .not. fpaexist(ia)) cycle
+    fpfile = 'fp000000.tot'//natstring(iso)
+    write(fpfile(6:8), '(i3.3)') ia
+    if ( .not. fpaexist(ia)) then
+      fpaexist(ia) = .true.
+      finalnuclide=trim(nuc(iz))//trim(adjustl(massstring))
+      open (unit = 1, file = fpfile, status = 'replace')
+      reaction='('//parsym(k0)//',f)'
+      quantity='fission yield'
+      topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' for '//finalnuclide
+      col(1)='E'
+      un(1)='MeV'
+      col(2)='FP yield'
+      col(3)='FF yield'
+      col(4)='FP xs'
+      un(4)='mb'
+      col(5)='FF xs'
+      un(5)='mb'
+      Ncol=5
+      call write_header(topline,source,user,date,oformat)
+      call write_target
+      call write_reaction(reaction,0.D0,0.D0,0,0)
+      call write_residual(iz,ia,finalnuclide)
+      call write_datablock(quantity,Ncol,Ninc,col,un)
+      do nen = 1, nin0 - 1
+        write(1, '(5es15.6)') eninc(nen), 0., 0., 0., 0.
+      enddo
+    else
+      open (unit = 1, file = fpfile, status = 'old', position = 'append')
+    endif
+    write(1, '(5es15.6)') Einc0, yieldApost(ia), yieldApre(ia), xsApost(ia), xsApre(ia)
+    close (unit = 1)
+  enddo
+  fpyieldfile = 'yieldZA0000.000.fis'//natstring(iso)
+  if (Einc0 < 0.001) then
+    write(fpyieldfile(8:15), '(es8.2)') Einc0
+  else
+    write(fpyieldfile(8:15), '(f8.3)') Einc0
+    write(fpyieldfile(8:11), '(i4.4)') int(Einc0)
+  endif
+  open (unit = 1, file = fpyieldfile, status = 'replace')
+  quantity='fission yield'
+  topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' per Z, A'//' at '//Estr//' MeV'
+  un = ''
+  col(1)='Z'
+  col(2)='A'
+  col(3)='isomer'
+  col(4)='FP yield'
+  col(5)='FF yield'
+  col(6)='FP xs'
+  un(6)='mb'
+  col(7)='FF xs'
+  un(7)='mb'
+  col(8)='Isomeric ratio'
+  Ncol=8
+  MT = 459
+  call write_header(topline,source,user,date,oformat)
+  call write_target
+  call write_reaction(reaction,0.D0,0.D0,MF,MT)
+  call write_real(2,'E-incident [MeV]',Einc0)
+  call write_datablock(quantity,Ncol,Nfy,col,un)
+  do ia = 1, Atarget
+    do iz = 1, Ztarget
+      in = ia - iz
+      if (in < 1 .or. in > Ninit) cycle
+      if (xsZApre(iz, in) < fpeps .and. xsZApost(iz, in) < fpeps .and. .not. fpexist(1, iz, in, -1)) cycle
+      if (xsZApre(iz, in) >= fpeps .and. xsZApost(iz, in) >= fpeps) &
+ &      write(1, '(3(i6, 9x), 4es15.6)') iz, ia, -1, yieldZApost(iz, in), yieldZApre(iz, in), xsZApost(iz, in), xsZApre(iz, in)
+      if (xsfpex(iz, in, 1) > 0.) then
+        do nex = 0, 1
+          if (xsZApre(iz, in) >= fpeps .and. xsZApost(iz, in) >= fpeps) &
+ &          write(1, '(3(i6, 9x), 2(es15.6, 15x), es15.6)') iz, ia, nex, yieldfpex(iz, in, nex), xsfpex(iz, in, nex), &
+ &          fpratio(iz, in, nex)
+        enddo
+      endif
+    enddo
+  enddo
+  close (unit=1)
+  write(*, '(/"Total          ", 4es15.6)') yieldtotpost, yieldtotpre, xstotpost, xstotpre
+  return
+end subroutine massdisout
+! Copyright A.J. Koning 2021

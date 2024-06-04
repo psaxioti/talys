@@ -1,71 +1,78 @@
-      function intri(x,y,x1,y1,x2,y2,x3,y3)
-c
-c +---------------------------------------------------------------------
-c | Author: Stephane Hilaire
-c | Date  : September 9, 2004
-c | Task  : Test if (x,y) belongs to the triangle defined by the points
-c |         (x1,y1),(x2,y2),(x3,y3)
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-c x,y   : coordinates of the point to test
-c x1,y1 : coordinates of the 1st summit of the triangle
-c x2,y2 : coordinates of the 2nd summit of the triangle
-c x3,y3 : coordinates of the 3rd summit of the triangle
-c xg,yg : center of gravity of the triangle (x1,y1),(x2,y2),(x3,y3)
-c sign1 : help variable in talys.cmb
-c signg1: help variable
-c sign2 : help variable in talys.cmb
-c signg2: help variable
-c sign3 : help variable in talys.cmb
-c signg3: help variable
-c
-      logical intri
-      real    x,y,x1,y1,x2,y2,x3,y3,xg,yg,signg1,signg2,signg3,sideline,
-     +        sign1,sign2,sign3
-c
-c ********************************* Method *****************************
-c
-c We test if the center of gravity (xg,yg) of the three summits and the
-c point to test are on the same side of each of the three segments
-c defining the triangle
-c
-      intri=.false.
-c
-c Center of gravity
-c
-      xg=(x1+x2+x3)/3.0
-      yg=(y1+y2+y3)/3.0
-c
-c Sideline for each point
-c
-c first segment (x1,y1) --> (x2,y2)
-c
-c sideline: function to indicate if (x,y) is on one side of the segment 
-c
-      sign1=sideline(x,y,x1,y1,x2,y2)
-      signg1=sideline(xg,yg,x1,y1,x2,y2)
-c
-c second segment (x2,y2) --> (x3,y3)
-c
-      sign2=sideline(x,y,x2,y2,x3,y3)
-      signg2=sideline(xg,yg,x2,y2,x3,y3)
-c
-c third segment (x3,y3) --> (x1,y1)
-c
-      sign3=sideline(x,y,x3,y3,x1,y1)
-      signg3=sideline(xg,yg,x3,y3,x1,y1)
-c
-c Final test
-c
-      if ((sign1.eq.signg1).or.(sign1.eq.0.0)) then
-        if ((sign2.eq.signg2).or.(sign2.eq.0.0)) then
-          if ((sign3.eq.signg3).or.(sign3.eq.0.0)) then
-            intri=.true.
-          endif
-        endif
+function intri(x, y, x1, y1, x2, y2, x3, y3)
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Test if (x,y) belongs to the triangle defined by the points
+!
+! Author    : Stephane Hilaire
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+  use A0_talys_mod
+!
+! Definition of single and double precision variables
+!   sgl                 ! single precision kind
+!
+! *** Declaration of local data
+!
+  logical   :: intri    ! function to test if (x,y) belongs to the triangle
+  real(sgl) :: sideline ! function to indicate if (x,y) is on one side of the segment
+  real(sgl) :: sign1    ! help variable in talys.cmb
+  real(sgl) :: sign2    ! help variable in talys.cmb
+  real(sgl) :: sign3    ! help variable in talys.cmb
+  real(sgl) :: signg1   ! help variable
+  real(sgl) :: signg2   ! help variable
+  real(sgl) :: signg3   ! help variable
+  real(sgl) :: x        ! help variable
+  real(sgl) :: x1       ! coordinates of intersection points inside the bin
+  real(sgl) :: x2       ! coordinates of the 2nd summit of the triangle
+  real(sgl) :: x3       ! coordinates of the 3rd summit of the triangle
+  real(sgl) :: xg       ! center of gravity of the intersection points
+  real(sgl) :: y        ! coordinates of the point to test
+  real(sgl) :: y1       ! variable for final GOE calculation
+  real(sgl) :: y2       ! variable for final GOE calculation
+  real(sgl) :: y3       ! variable for final GOE calculation
+  real(sgl) :: yg       ! center of gravity of the intersection points
+!
+! ********************************* Method *****************************
+!
+! We test if the center of gravity (xg,yg) of the three summits and the point to test are on the same side of each of the
+! three segments defining the triangle
+!
+  intri = .false.
+!
+! Center of gravity
+!
+  xg = (x1 + x2 + x3) / 3.0
+  yg = (y1 + y2 + y3) / 3.0
+!
+! Sideline for each point
+!
+! first segment (x1,y1) --> (x2,y2)
+!
+! sideline: function to indicate if (x,y) is on one side of the segment
+!
+  sign1 = sideline(x, y, x1, y1, x2, y2)
+  signg1 = sideline(xg, yg, x1, y1, x2, y2)
+!
+! second segment (x2,y2) --> (x3,y3)
+!
+  sign2 = sideline(x, y, x2, y2, x3, y3)
+  signg2 = sideline(xg, yg, x2, y2, x3, y3)
+!
+! third segment (x3,y3) --> (x1,y1)
+!
+  sign3 = sideline(x, y, x3, y3, x1, y1)
+  signg3 = sideline(xg, yg, x3, y3, x1, y1)
+!
+! Final test
+!
+  if ((sign1 == signg1) .or. (sign1 == 0.0)) then
+    if ((sign2 == signg2) .or. (sign2 == 0.0)) then
+      if ((sign3 == signg3) .or. (sign3 == 0.0)) then
+        intri = .true.
       endif
-      return
-      end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+    endif
+  endif
+  return
+end function intri
+! Copyright A.J. Koning 2021

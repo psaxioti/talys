@@ -63,6 +63,7 @@ if [ $# -lt 4 ] || [ $# -gt 30 ] ; then
   echo "clean     : clean - clean up plot parameter file [default]"
   echo "          : noclean - do not clean up plot parameter file "
   echo "noexp     : exclude experimental data"
+  echo "lib       : include nuclear data libraries "
   echo "nolib     : exclude nuclear data libraries "
   echo "tendl     : tendl - include TENDL data in plot "
   echo "          : notendl - do not include TENDL data in plot "
@@ -151,6 +152,7 @@ tendlprev=0
 group=1
 high=-1
 noexp=0
+lib=0
 nolib=0
 print=0
 branch=0
@@ -213,6 +215,7 @@ while [ $# -ge 5 ] ; do
     noclean) clean=0;shift;;
     clean) clean=1;shift;;
     noexp) noexp=1;shift;;
+    lib) lib=1;shift;;
     nolib) nolib=1;shift;;
     noendfb) endfb=0;shift;;
     endfb) endfb=1;shift;;
@@ -315,6 +318,9 @@ else
   resdir=
   talys=1
   nolib=1
+fi
+if [ $lib -eq 1 ] ; then
+  nolib=0
 fi
 if [ $nolib -eq 1 ] ; then
   tendl=0

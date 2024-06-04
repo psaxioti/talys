@@ -1,87 +1,90 @@
-      subroutine compoundinit
-c
-c +---------------------------------------------------------------------
-c | Author: Arjan Koning
-c | Date  : January 24, 2023
-c | Task  : Initialization of compound model parameters
-c +---------------------------------------------------------------------
-c
-c ****************** Declarations and common blocks ********************
-c
-      include "talys.cmb"
-      integer type,k
-c
-c ************ Help variable for Hauser-Feshbach subroutine ************
-c
-c spin2  : 2 * spin of particle (usually)
-c parspin: spin of particle
-c
-c For alpha-particles and photons, spin2 is set to 1, to prevent
-c division by zero in Hauser-Feshbach routines. This is fine, since in
-c these cases the enumerator in the expression in which spin2 appears
-c is always zero.
-c
-      spin2(0)=1
-      do type=1,5
-        spin2(type)=int(2.*parspin(type))
-      enddo
-      spin2(6)=1
-c
-c *********** Initialization for width fluctuation calculation *********
-c
-c enincmin       : minimum incident energy
-c ewfc           : off-set incident energy for width fluctuation
-c wpower         : power used for rho*(t**wpower)
-c wmode          : designator for width fluctuation model
-c nmold          : number of points for Gauss-Laguerre integration
-c gaulag         : subroutine for calculation of Gauss-Laguerre arrays
-c xmold,wmold    : variables for Gauss-Laguerre integration
-c ngoep,ngoes,...: number of points for Gauss-Legendre integration
-c xgoep,wgoep,...: variables for Gauss-Legendre integration
-c gauleg         : subroutine for calculation of Gauss-Legendre arrays
-c
-c Generate weight and nodes for Gauss-Legendre/Laguerre integration
-c
-      if (enincmin.le.ewfc) then
-        wpower=1
-c
-c 1. Moldauer
-c
-        if (wmode.eq.1) then
-          nmold=32
-          call gaulag(nmold,xmold,wmold)
-        endif
-c
-c 2. HRTW
-c
-        if (wmode.eq.2) wpower=2
-c
-c 3. GOE
-c
-        if (wmode.eq.3) then
-          wpower=5
-          ngoep=50
-          ngoes=50
-          ngoet=50
-          call gauleg(ngoep,xgoep,wgoep)
-          call gauleg(ngoes,xgoes,wgoes)
-          call gauleg(ngoet,xgoet,wgoet)
-        endif
-      endif
-c
-c ***** Initialization for compound nucleus angular distributions ******
-c
-c flagang: flag for output of angular distributions
-c numfact: number of terms for factorial logarithm
-c logfact: factorial logarithm
-c
-      if (flagang) then
-        logfact(1) = 0.
-        logfact(2) = 0.
-        do k=3,numfact
-          logfact(k)=logfact(k-1)+log(float(k-1))
-        enddo
-      endif
-      return
-      end
-Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely
+subroutine compoundinit
+!
+!-----------------------------------------------------------------------------------------------------------------------------------
+! Purpose   : Initialization of compound model parameters
+!
+! Author    : Arjan Koning
+!
+! 2021-12-30: Original code
+!-----------------------------------------------------------------------------------------------------------------------------------
+!
+! *** Use data from other modules
+!
+  use A0_talys_mod
+!
+! All global variables
+!   numfact     ! number of terms for factorial logarithm
+! Variables for basic reaction
+!   flagang     ! flag for output of angular distributions
+! Variables for compound reactions
+!   ewfc        ! off - set incident energy for width fluctuation
+!   wmode       ! designator for width fluctuation model
+! Variables for input energies
+!   enincmin    ! minimum incident energy
+! Variables for initial compund nucleus
+!   logfact     ! factorial logarithm
+!   ngoep       ! number of points for Gauss - Legendre integration
+!   ngoes       ! number of points for Gauss - Legendre integration
+!   ngoet       ! number of points for Gauss - Legendre integration
+!   nmold       ! number of points for Gauss - Laguerre integration
+!   wgoep       ! variables for Gauss - Laguerre integration
+!   wgoes       ! variables for Gauss - Laguerre integration
+!   wgoet       ! variables for Gauss - Laguerre integration
+!   wmold       ! variables for Gauss - Laguerre integration
+!   wpower      ! power used for rho * (t **wpower)
+!   xgoep       ! variables for Gauss - Legendre integration
+!   xgoes       ! variables for Gauss - Legendre integration
+!   xgoet       ! variables for Gauss - Legendre integration
+!   xmold       ! variables for Gauss - Laguerre integration
+!
+! *** Declaration of local data
+!
+  implicit none
+  integer :: k                 ! counter
+!
+! *********** Initialization for width fluctuation calculation *********
+!
+! gaulag         : subroutine for calculation of Gauss-Laguerre arrays
+! gauleg         : subroutine for calculation of Gauss-Legendre arrays
+!
+! Generate weight and nodes for Gauss-Legendre/Laguerre integration
+!
+  if (enincmin <= ewfc) then
+    wpower = 1
+!
+! 1. Moldauer
+!
+    if (wmode == 1) then
+      nmold = 32
+      call gaulag(nmold, xmold, wmold)
+    endif
+!
+! 2. HRTW
+!
+    if (wmode == 2) wpower = 2
+!
+! 3. GOE
+!
+    if (wmode == 3) then
+      wpower = 5
+      ngoep = 50
+      ngoes = 50
+      ngoet = 50
+      call gauleg(ngoep, xgoep, wgoep)
+      call gauleg(ngoes, xgoes, wgoes)
+      call gauleg(ngoet, xgoet, wgoet)
+    endif
+  endif
+!
+! ***** Initialization for compound nucleus angular distributions ******
+!
+  if (flagang) then
+    logfact(1) = 0.
+    logfact(2) = 0.
+    do k = 3, numfact
+      logfact(k) = logfact(k - 1) + log(float(k - 1))
+    enddo
+  endif
+  return
+end subroutine compoundinit
+! Copyright A.J. Koning 2021
