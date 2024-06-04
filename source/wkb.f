@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Roberto Capote, Arjan Koning, Stephane Goriely, G. Scamps
-c | Date  : October 11, 2019
+c | Date  : January 8, 2021
 c | Task  : Initialization of WKB approximation for fission
 c +---------------------------------------------------------------------
 c
@@ -125,8 +125,10 @@ C
         Uwkb(Zix,Nix,i)=uexc
         if (flagfispartdamp) then
           if (nbar.gt.1) then
-            Vwell=vfis(iiextr(2))
-            Vwell2=vfis(iiextr(4))
+            Vwell=0.
+            Vwell2=0.
+            if (iiextr(2).gt.0) Vwell=vfis(iiextr(2))
+            if (iiextr(4).gt.0) Vwell2=vfis(iiextr(4))
             Vtop=min(Vheight(1),Vheight(3))
             Vtop2=min(Vheight(3),Vheight(5))
             Twkbdir(Zix,Nix,i,1)=tdir

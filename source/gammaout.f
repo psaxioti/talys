@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 23, 2019
+c | Date  : January 8, 2021
 c | Task  : Output of gamma-ray strength functions, transmission
 c |         coefficients and cross sections
 c +---------------------------------------------------------------------
@@ -68,14 +68,16 @@ c
           Epsf(i)=egrid(nen)
    10   continue
         Npsf=i
-        if (Epsf(Npsf).lt.30.) then
-          nenb=int(2.*(Epsf(Npsf)+0.5))
-          nene=60
-          do 20 nen=nenb,nene
-            i=i+1
-            Epsf(i)=0.5*nen
-   20     continue
-          Npsf=i
+        if (Npsf.gt.0) then
+          if (Epsf(Npsf).lt.30.) then
+            nenb=int(2.*(Epsf(Npsf)+0.5))
+            nene=60
+            do 20 nen=nenb,nene
+              i=i+1
+              if (i.le.numen) Epsf(i)=0.5*nen
+   20       continue
+            Npsf=min(i,numen)
+          endif
         endif
       endif
       write(*,'(/" ########## GAMMA STRENGTH FUNCTIONS, TRANSMISSION",
