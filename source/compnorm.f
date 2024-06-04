@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 8, 2006
+c | Date  : August 29, 2007
 c | Task  : Normalization of compound nucleus cross section
 c +---------------------------------------------------------------------
 c
@@ -38,7 +38,10 @@ c J2end      : 2 * end of J summation
 c lmaxinc    : maximal l-value for transmission coefficients for
 c              incident channel                                        
 c numJ       : maximal J-value 
+c flagastro  : flag for calculation of astrophysics reaction rate
 c flagwidth  : flag for width fluctuation calculation
+c flagastrogs: flag for calculation of astrophysics reaction rate 
+c              with target in ground state only
 c
       xsreacsum=0.
       pik2=10.*pi/(wavenum*wavenum)
@@ -49,6 +52,9 @@ c
       J2beg=mod(int(2.*(targetspin+parspin(k0))),2)
       J2end=int(2*(lmaxinc+parspin(k0)+targetspin))
       J2end=min(J2end,2*numJ)
+      if (flagastro.and..not.flagwidth) J2end=2*numJ
+      if (flagastro.and..not.flagwidth.and..not.flagastrogs) 
+     +  J2end=2*numJ
 c
 c ******************* Loop over incoming channels **********************
 c
@@ -100,8 +106,22 @@ c spin2  : 2 * spin of particle (usually)
 c Tjlinc : transmission coefficients as a function of j and l 
 c          for the incident channel
 c
-              if (l.gt.lmaxinc.or.mod(l,2).ne.pardif) goto 40
-              updown=int(jj2-2.*l)/spin2(k0)
+c A. Incident particles
+c
+              if (k0.gt.0) then
+                if (l.gt.lmaxinc.or.mod(l,2).ne.pardif) goto 40
+                updown=int(jj2-2.*l)/spin2(k0)
+c
+c B. Incident photons
+c
+c Multipole radiation selection rules
+c (updown=0: M-transition, irad=1: E-transition)
+c
+              else
+                updown=1
+                if (pardif.eq.0.and.mod(l,2).eq.1) updown=0
+                if (pardif.ne.0.and.mod(l,2).eq.0) updown=0
+              endif
               xsreacsum=xsreacsum+CNfactor*(J2+1.)*Tjlinc(updown,l)
    40       continue
    30     continue
@@ -111,6 +131,7 @@ c
 c Create the compound nucleus formation cross section xsflux and the 
 c associated normalization factors.
 c
+c cfratio     : compound formation ratio
 c colltype    : type of collectivity (D, V or R)
 c flagrot     : flag for use of rotational optical model per
 c               outgoing particle, if available  
@@ -121,21 +142,21 @@ c xscoupled   : inelastic cross section from coupled channels
 c xspreeqsum  : total preequilibrium cross section summed over particles
 c xsgrsum     : sum over giant resonance cross sections   
 c xsreacinc   : reaction cross section for incident channel
-c cfratio     : compound formation ratio
 c flagcheck   : flag for output of numerical checks
 c
 c For coupled-channels calculations, the transmission coefficients are 
 c already depleted by the contribution going into the strongly coupled
 c inelastic channels.
 c
+      cfratio=0.
       if (colltype(Zix,Nix).ne.'S'.and.flagrot(k0)) then
         norm=1.
         xsflux=xsreacsum-xsdirdiscsum+xscoupled-xspreeqsum-xsgrsum
-        cfratio=xsflux/xsreacsum
+        if (xsreacsum.gt.0.) cfratio=xsflux/xsreacsum
       else
         norm=xsreacsum/xsreacinc
         xsflux=xsreacinc-xsdirdiscsum-xspreeqsum-xsgrsum
-        cfratio=xsflux/xsreacinc
+        if (xsreacinc.gt.0.) cfratio=xsflux/xsreacinc
       endif
       CNfactor=CNfactor*cfratio/norm
       if (flagcheck) then

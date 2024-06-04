@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : December 14, 2006
+c | Date  : October 4, 2007
 c | Task  : Tabulated level densities
 c +---------------------------------------------------------------------
 c
@@ -13,6 +13,7 @@ c
       character*4      denchar
       character*90     denfile
       integer          Zix,Nix,Z,A,ibar,nloop,ploop,ia,parity,nex,J
+      real             Ktriax,Eex,ald,ignatyuk,spincut,term
       double precision pardisloc,ldtot,ld2j1(0:numJ)
 c
 c *********** Tabulated level densities from Goriely *******************
@@ -110,12 +111,47 @@ c
               do 50 nex=1,nendens
                 read(2,'(24x,e9.2,9x,30e9.2)',err=100) 
      +            ldtot,(ld2j1(J),J=0,29)
-                ldtottableP(Zix,Nix,nex,parity,ibar)=pardisloc*ldtot
+c
+c Determination of the mass-asymmetric enhancement factor for fission 
+c barrier
+c
+c Ktriax  : level density enhancement factor for triaxial shapes
+c ald     : level density parameter
+c ignatyuk: function for energy dependent level density parameter a
+c twopi   : 2.*pi
+c spincut : spin cutoff factor
+c
+                Ktriax=1.
+                if (ibar.gt.0) then
+                  if (axtype(Zix,Nix,ibar).eq.2) Ktriax=2.
+                  if (axtype(Zix,Nix,ibar).ge.3) then
+                    Eex=edens(nex)
+                    ald=ignatyuk(Zix,Nix,Eex,ibar)
+                    term=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
+                    if (axtype(Zix,Nix,ibar).eq.3) 
+     +                Ktriax=0.5*sqrt(twopi)*term
+                    if (axtype(Zix,Nix,ibar).eq.4) 
+     +                Ktriax=sqrt(twopi)*term
+                    if (axtype(Zix,Nix,ibar).eq.5) 
+     +                Ktriax=2.*sqrt(twopi)*term
+                  endif
+                endif
+                ldtottableP(Zix,Nix,nex,parity,ibar)=
+     +            pardisloc*ldtot*Ktriax
+                if (ploop.eq.1) ldtottableP(Zix,Nix,nex,-1,ibar)=
+     +            pardisloc*ldtot*Ktriax
                 ldtottable(Zix,Nix,nex,ibar)=
      +            ldtottable(Zix,Nix,nex,ibar)+ldtot
                 do 60 J=0,29
-                  ldtable(Zix,Nix,nex,J,parity,ibar)=pardisloc*ld2j1(J)
+                  ldtable(Zix,Nix,nex,J,parity,ibar)=
+     +              pardisloc*ld2j1(J)*Ktriax
    60           continue
+                if (ploop.eq.1) then
+                  do 70 J=0,29
+                    ldtable(Zix,Nix,nex,J,-1,ibar)=
+     +                pardisloc*ld2j1(J)*Ktriax
+   70             continue
+                endif
    50         continue
               read(2,'()')
             endif

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : October 5, 2006
+c | Date  : June 19, 2007
 c | Task  : Fission fragment yields
 c +---------------------------------------------------------------------
 c
@@ -194,7 +194,7 @@ c
           else
             open(unit=1,status='old',file=fpfile)
             do 120 nen=1,nin+4
-              read(1,*)
+              read(1,*,end=130,err=130)
   120       continue       
           endif
           if (flagffevap) then
@@ -203,7 +203,7 @@ c
           else
             write(1,'(1p,e10.3,e12.4)') Einc,yieldaz(k,i)
           endif
-          close (unit=1)
+  130     close (unit=1)
    90   continue
    80 continue              
       end

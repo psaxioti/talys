@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : December 8, 2006
+c | Date  : August 31, 2007
 c | Task  : Prepare information for initial compound nucleus
 c +---------------------------------------------------------------------
 c
@@ -13,7 +13,7 @@ c
      +                 jj2end,jj2,l2beg,l2end,l2,l,updown,i,parspin2o,
      +                 pspin2o,type,Zix,Nix,nexout,l2maxhf,Pprimebeg,
      +                 Pprimeend,Irspin2beg,Irspin2end,J2res,Pprime,
-     +                 pardif2,Irspin2,Ir,jj2primebeg,
+     +                 pardif2,Irspin2,Ir,J2maxastro,jj2primebeg,
      +                 jj2primeend,jj2prime,l2primebeg,l2primeend,
      +                 l2prime,lprime,modl,irad,updown2,ihill
       real             Tinc,Tout
@@ -50,6 +50,13 @@ c numbers are multiplied by 2, which can be seen from a 2 present in the
 c corresponding variable names. For each loop, the begin and end point
 c is determined from the triangular rule.
 c
+c We have to distinguish between incident particles and incident 
+c photons.
+c
+c A. Incident particles
+c
+      if (k0.gt.0) then
+c
 c 10: Sum over j (jj2) of incident channel
 c
 c jj2beg     : 2 * start of j summation
@@ -57,9 +64,9 @@ c targetspin2: 2 * spin of target
 c jj2end     : 2 * end of j summation
 c jj2        : 2 * j
 c
-      jj2beg=abs(J2-targetspin2)
-      jj2end=J2+targetspin2
-      do 10 jj2=jj2beg,jj2end,2
+        jj2beg=abs(J2-targetspin2)
+        jj2end=J2+targetspin2
+        do 10 jj2=jj2beg,jj2end,2
 c
 c 20: Sum over l of incident channel
 c
@@ -68,11 +75,11 @@ c l2end   : 2 * end of l summation
 c lmaxinc : maximal l-value for transmission coefficients for 
 c           incident channel
 c
-        l2beg=abs(jj2-parspin2i)
-        l2end=jj2+parspin2i
-        l2end=min(l2end,2*lmaxinc)
-        do 20 l2=l2beg,l2end,2
-          l=l2/2
+          l2beg=abs(jj2-parspin2i)
+          l2end=jj2+parspin2i
+          l2end=min(l2end,2*lmaxinc)
+          do 20 l2=l2beg,l2end,2
+            l=l2/2
 c
 c Check parity conservation and make index for transmission 
 c coefficient. 
@@ -85,9 +92,9 @@ c
 c If the parity of the target nucleus is equal (unequal) to the parity
 c of compound nucleus, i.e. pardif=0(1), the l-value must be even (odd).
 c     
-          if (mod(l,2).ne.pardif) goto 20
-          updown=(jj2-l2)/pspin2i
-          Tinc=Tjlinc(updown,l)
+            if (mod(l,2).ne.pardif) goto 20
+            updown=(jj2-l2)/pspin2i
+            Tinc=Tjlinc(updown,l)
 c
 c Information needed for width fluctuation calculation. 
 c
@@ -106,18 +113,43 @@ c 2. Outgoing particle channels
 c 3. Gamma channel
 c 4. Fission channel (if present)
 c
-          if (flagwidth) then
-            tnum=tnum+1
-            transjl(0,tnum)=1.
-            do 30 i=1,wpower
-              transjl(i,tnum)=0.
-              if (Tinc.gt.1.e-30**(1./i)) transjl(i,tnum)=Tinc**i
-   30       continue
-          else
-            if (.not.flagcompang) feed=feed+Tinc
-          endif
-   20   continue
-   10 continue
+            if (flagwidth) then
+              tnum=tnum+1
+              transjl(0,tnum)=1.
+              do 30 i=1,wpower
+                transjl(i,tnum)=0.
+                if (Tinc.gt.1.e-30**(1./i)) transjl(i,tnum)=Tinc**i
+   30         continue
+            else
+              if (.not.flagcompang) feed=feed+Tinc
+            endif
+   20     continue
+   10   continue
+      else
+c
+c B. Incident photons
+c
+c gammax    : number of l-values for gamma multipolarity
+c targetspin: spin of target
+c irad      : variable to indicate M(=0) or E(=1) radiation
+c targetP   : parity of target
+c
+c Note that for photons, the first index of Tjlinc represents
+c radiation type (M or E)
+c
+        Tinc=0.
+        if (J2.ne.targetspin2.or.J2.ne.0) then
+          do 40 l=1,gammax
+            if (0.5*J2.lt.targetspin-l.or.0.5*J2.gt.targetspin+l) 
+     +        goto 40
+            irad=1
+            if (parity.eq.targetP.and.mod(l,2).eq.1) irad=0
+            if (parity.ne.targetP.and.mod(l,2).eq.0) irad=0
+            Tinc=Tinc+Tjlinc(irad,l)
+   40     continue
+          feed=feed+Tinc
+        endif
+      endif
 c
 c There are two possible types of calculation for the initial compound
 c nucleus. If either width fluctuation corrections or compound nucleus
@@ -130,8 +162,6 @@ c stored in enumhf.
 c
 c enumhf    : enumerator for compound nucleus formula
 c Ltarget   : excited level of target
-c targetspin: spin of target
-c targetP   : parity of target
 c tnuminc   : counter for width fluctuation calculation
 c
       enumhf(k0,Ltarget,int(targetspin),targetP)=feed
@@ -233,15 +263,22 @@ c
 c
 c 140: Sum over residual spin
 c    
-c Irspin2  : 2 * residual spin
-c Ir       : residual spin
-c rho,rho0 : integrated level density
+c Irspin2    : 2 * residual spin
+c Ir         : residual spin
+c rho,rho0   : integrated level density
+c flagastro  : flag for calculation of astrophysics reaction rate
+c flagastrogs: flag for calculation of astrophysics reaction rate 
+c              with target in ground state only
 c
             do 140 Irspin2=Irspin2beg,Irspin2end,2
               Ir=Irspin2/2
               enumhf(type,nexout,Ir,Pprime)=0.
               rho=rho0(type,nexout,Ir,Pprime)
               if (rho.lt.1.e-20) goto 140
+              if (flagastro.and..not.flagastrogs) then
+                J2maxastro=int(2*(lmaxhf(k0,nexout)+parspin(k0)+Ir))
+                J2maxastro=min(J2maxastro,numJ)
+              endif
 c
 c 150: Sum over j (jj2) of outgoing channel
 c
@@ -274,9 +311,8 @@ c
 c We include photons as a special case, with the multipole radiation
 c selection rules (irad=0: M-transition, irad=1: E-transition)
 c  
-c irad  : variable to indicate M(=0) or E(=1) radiation
-c Tout  : transmission coefficients
-c Tgam  : gamma transmission coefficients
+c Tout: transmission coefficients
+c Tgam: gamma transmission coefficients
 c
                   if (type.eq.0) then
                     if (pardif2.eq.modl) then
@@ -334,6 +370,22 @@ c required, the partial decay width is used in subroutine comptarget.
 c
                     if (.not.flagcompang) enumhf(type,nexout,Ir,Pprime)=
      +                enumhf(type,nexout,Ir,Pprime)+factor
+                  endif
+c
+c Astrophysical case
+c
+c Tastrotot  : total transmission coefficient for astrophysical case
+c rhoastrotot: total level density for astrophysical case
+c
+                  if (flagastro.and..not.flagastrogs.and.type.eq.k0)
+     +              then
+                    if (Tout.gt.0.) then
+                      rhoastrotot=rhoastrotot+rho
+                      if (nexout.ne.Ltarget) Tastrotot=Tastrotot+factor
+                    endif
+                    if (type.eq.k0.and.nexout.ne.Ltarget) then
+                      if (J2.le.J2maxastro) feed=feed+factor
+                    endif
                   endif
   160           continue
   150         continue

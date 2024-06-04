@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : October 9, 2006
+c | Date  : May 24, 2007
 c | Task  : Binary reaction results
 c +---------------------------------------------------------------------
 c
@@ -15,6 +15,7 @@ c
 c
 c * Add direct and pre-equilibrium cross sections to population arrays *
 c
+c flaginitpop : flag for initial population distribution
 c parskip     : logical to skip outgoing particle
 c Zindex,Zix  : charge number index for residual nucleus
 c Nindex,Nix  : neutron number index for residual nucleus
@@ -29,6 +30,10 @@ c xspopex0    : binary population cross section for discrete states
 c xspopnuc    : population cross section per nucleus
 c xsdirdisctot: direct cross section summed over discrete states
 c xsbinary    : cross section from initial compound to residual nucleus 
+c
+c No binary reaction for initial excitation energy population.
+c
+      if (flaginitpop) return
 c
 c Depending on whether the nucleus is even or odd, the quantum number J
 c appearing in the array xspop represents either J or J+0.5.

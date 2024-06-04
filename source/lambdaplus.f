@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 6, 2006
+c | Date  : November 1, 2007
 c | Task  : Transition rates for n --> n+2
 c +---------------------------------------------------------------------
 c
@@ -15,8 +15,8 @@ c
      +                 factor1,term1,term2,term12,finitewell,L1p,L2p,
      +                 L1h,L2h,dExpp,dExhh,uup,uuh,lambda1p,lambda1h,
      +                 Zratio,Nratio,uu,eopt,Weff(2),ww,densh,densp,
-     +                 ratio,phdens,term1p,term1h
-      double precision lplus,sum1p,sum1h,phtot
+     +                 ratio,phdens
+      double precision lplus,sum1p,sum1h,term1p,term1h,phtot
 c
 c *************************** Transition rates *************************
 c
@@ -118,7 +118,11 @@ c
         L2p=U-Apauli(p-1,h)
         L1h=Apauli(p+1,h+1)-Apauli(p,h-1)
         L2h=U-Apauli(p,h-1)
-        nexcbins=max(nbins/2,2)
+        if (primary) then
+          nexcbins=max(nbins/2,2)
+        else
+          nexcbins=max(nbins/4,2)
+        endif
         dExpp=(L2p-L1p)/nexcbins
         dExhh=(L2h-L1h)/nexcbins
         sum1p=0.

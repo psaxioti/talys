@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : March 5, 2006   
+c | Date  : December 17, 2007
 c | Task  : Optical model parameters
 c +---------------------------------------------------------------------
 c
@@ -43,6 +43,9 @@ c d1,d2,d3    : components for Wd
 c rvso0,avso0 : real spin-orbit radius, diffuseness
 c vso1,vso2   : components for Vso
 c wso1,wso2   : components for Wso
+c flagdisp    : flag for dispersive optical model   
+c flagjlm     : flag for using semi-microscopic JLM OMP
+c disp        : flag for dispersive optical model   
 c colltype    : type of collectivity (D, V or R)  
 c
       Z=ZZ(Zix,Nix,0)
@@ -78,6 +81,7 @@ c
    30     continue
           goto 20
         endif
+        omptype=' '
         do 40 i=1,nomp
           read(2,'(4x,f7.2,f8.3)') ef(Zix,Nix,k),rc0(Zix,Nix,k)
           read(2,'(2f8.3,f6.1,f10.4,f9.6,f6.1,f7.1)') rv0(Zix,Nix,k),
@@ -88,10 +92,15 @@ c
           read(2,'(2f8.3,f6.1,f10.4,f6.1,f7.1)') rvso0(Zix,Nix,k),
      +      avso0(Zix,Nix,k),vso1(Zix,Nix,k),vso2(Zix,Nix,k),
      +      wso1(Zix,Nix,k),wso2(Zix,Nix,k)
-c
-c Only non-dispersive potentials are included in this version of TALYS.
-c
-          goto 60
+          if (flagdisp) then
+            if (nomp.eq.1.or.flagjlm) then
+              disp(Zix,Nix,k)=.false.
+            else
+              disp(Zix,Nix,k)=.true.
+            endif
+          else
+            goto 60
+          endif
    40   continue
    60   close (unit=2)
 c
@@ -113,6 +122,7 @@ c
 c Test if local OMP has been assigned.
 c
   100 if (rv0(Zix,Nix,1).eq.0.) then
+        if (flagdisp) disp(Zix,Nix,1)=.false.
         ompglobal(Zix,Nix,1)=.true.
         ef(Zix,Nix,1)=-11.2814+0.02646*A
         rv0(Zix,Nix,1)=1.3039-0.4054*A**(-onethird)
@@ -145,6 +155,7 @@ c
 c 2. Protons
 c
       if (rv0(Zix,Nix,2).eq.0.) then
+        if (flagdisp) disp(Zix,Nix,2)=.false.
         ompglobal(Zix,Nix,2)=.true.
         ef(Zix,Nix,2)=-8.4075+0.01378*A
         rv0(Zix,Nix,2)=1.3039-0.4054*A**(-onethird)
@@ -182,7 +193,8 @@ c numZph    : maximal number of protons away from the initial
 c             compound nucleus for multiple pre-equilibrium emission
 c optmod    : file with optical model parameters
 c optmodfile: file with optical model parameters
-c omplines  : number of lines on optical model file
+c omplines  : number of lines in optical model file
+c numomp    : maximum number of lines in optical model file
 c eomp      : energies on optical model file
 c vomp      : optical model parameters from file
 c
@@ -192,6 +204,11 @@ c
           if (optmodfile(1:1).ne.' ') then
             open (unit=2,status='old',file=optmodfile)   
             read(2,'(8x,i4)') omplines(k)
+            if (omplines(k).gt.numomp) then
+              write(*,'(" TALYS-error: number of lines in OMP file > ",
+     +          i4)') numomp
+              stop
+            endif
             eomp(Zix,Nix,k,0)=0.
             do 220 nen=1,omplines(k)
               read(2,*,err=300) eomp(Zix,Nix,k,nen),

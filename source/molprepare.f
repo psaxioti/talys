@@ -3,7 +3,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire 
-c | Date  : September 10, 2004
+c | Date  : June 19, 2007
 c | Task  : Preparation of Moldauer width fluctuation correction
 c +---------------------------------------------------------------------
 c
@@ -21,41 +21,41 @@ c
 c tgamma: gamma transmission coefficient
 c numtjl: number of transmission coefficients
 c tav   : average transmission coefficients
+c vnu   : number of degrees of freedom
 c tjl   : transmission coefficients
 c
 c Initialisation and average transmission coefficients
 c
       tgamma=0.
-      do 10 i=1,numtjl
-        if (tjl(0,i).eq.0.) then
-          tav(i)=0.
-        else
-          tav(i)=tjl(1,i)/tjl(0,i)
-        endif
+      do 10 i=1,numtr
+        tav(i)=0.
+        vnu(i)=1.
    10 continue
+      do 20 i=1,numtjl
+        if (tjl(0,i).gt.0.) tav(i)=tjl(1,i)/tjl(0,i)
+   20 continue
       tgamma=tjl(1,numtjl+1)
 c
 c Calculation of number of degrees of freedom
 c
-c vnu: number of degrees of freedom
 c st : denominator of compound nucleus formula
 c
-      do 20 i=1,numtjl
+      do 30 i=1,numtjl
         vnu(i)=1.78+real(((tav(i)**1.212)-0.78)*exp(-0.228*st))
-   20 continue
+   30 continue
       vnu(numtjl+1)=1.
 c
 c Loop over integration points
 c
 c x,expo,capt: help variables
 c
-      do 30 im=1,npmold
+      do 40 im=1,npmold
         x=xmo(im)
 c
 c Special case for capture
 c
         expo=real(tgamma*x/st)
-        if (expo.gt.90.) then
+        if (expo.gt.80.) then
           capt=0.
         else
           capt=exp(-expo)
@@ -68,7 +68,7 @@ c prod,fxmsqrt,fxmold: help variables
 c product            : product used in final Moldauer calculation
 c
         factor=0.
-        do 40 i=numinc+1,numtjl
+        do 50 i=numinc+1,numtjl
           eps=real(2.*tav(i)*x/(st*vnu(i)))
           yy=real(-vnu(i)*0.5*tjl(0,i))
           if (eps.lt.1.e-5) then
@@ -77,12 +77,12 @@ c
             x1=log(1.+eps)
           endif
           factor=factor+yy*x1
-   40   continue
+   50   continue
         prod=exp(factor)
         fxmsqrt=wmo(im)*exp(0.5*x)
         fxmold=fxmsqrt*prod*fxmsqrt
         product(im)=fxmold*capt
-   30 continue
+   40 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 9, 2004
+c | Date  : April 20, 2007
 c | Task  : Particle-hole state density
 c +---------------------------------------------------------------------
 c
@@ -37,7 +37,8 @@ c
       if (p.lt.0.or.h.lt.0) return
       if (p+h.eq.0) return
       Ap=Apauli(p,h)
-      if (Ap.ge.Eex) return
+      factor=(p*p+h*h+p+h)/(4.*gs)
+      if (Ap+factor.ge.Eex) return
       n1=p+h-1
       fac1=nfac(p)*nfac(h)*nfac(n1)
       factor=gs**(p+h)/fac1

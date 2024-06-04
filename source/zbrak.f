@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning (adapted from Numerical Recipes)
-c | Date  : July 5, 2004
+c | Date  : June 26, 2007
 c | Task  : Bracket the function
 c +---------------------------------------------------------------------
 c
@@ -21,6 +21,7 @@ c
       nbb=0
       x=x1
       dx=(x2-x1)/n
+      fc=0.
       fp=func(x)
       do 10 i=1,n
         x=x+dx

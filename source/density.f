@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 14, 2006
+c | Date  : December 18, 2007
 c | Task  : Level density 
 c +---------------------------------------------------------------------
 c
@@ -14,7 +14,7 @@ c
       include "talys.cmb"
       integer          Zix,Nix,parity,ibar,ldmod,jj,nex2
       real             Eex,Rspin,ald,ignatyuk,spindis,Eshift
-      double precision density,densitytot,eb,ee,ldb,lde,ldtab,ctable
+      double precision density,densitytot,eb,ee,ldb,lde,ldtab,cctable
 c
 c ************************** Level density *****************************
 c
@@ -48,7 +48,7 @@ c
 c 4. Tabulated level densities     
 c
 c Eshift             : shifted excitation energy
-c c1table,c2table    : constant to adjust tabulated level densities
+c ctable,ptable      : constant to adjust tabulated level densities
 c Edensmax           : maximum energy on level density table
 c locate             : subroutine to find value in ordered table 
 c edens              : energy grid for tabulated level densities
@@ -56,10 +56,10 @@ c nendens            : number of energies for level density grid
 c eb,ee,ldb,lde,ldtab: help variables
 c ldtable            : level density from table
 c expo               : exponent
-c ctable             : constant to adjust tabulated level densities
+c cctable            : constant to adjust tabulated level densities
 c
         jj=min(29,int(Rspin))
-        Eshift=Eex-c1table(Zix,Nix)
+        Eshift=Eex-ptable(Zix,Nix,ibar)
         if (Eshift.le.0.) goto 100
         if (Eshift.le.Edensmax) then
           call locate(edens,0,nendens,Eshift,nex2) 
@@ -80,8 +80,8 @@ c
           lde=log(ldtable(Zix,Nix,nendens,jj,parity,ibar))
           ldtab=exp(ldb+(Eshift-eb)/(ee-eb)*(lde-ldb))
         endif
-        ctable=exp(c2table(Zix,Nix)*sqrt(Eex))
-        density=ctable*ldtab
+        cctable=exp(dble(ctable(Zix,Nix,ibar)*sqrt(Eshift)))
+        density=cctable*ldtab
       endif
   100 density=max(density,1.d-30)
       return

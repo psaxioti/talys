@@ -1,22 +1,22 @@
-      function fi(x,i)                                                  
+      function fidi(x,i)
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : September 9, 2004
-c | Task  : fi=0 determines the exact shape of the dinuclear complex.
+c | Date  : May 8, 2007
+c | Task  : fidi=0 determines the exact shape of the dinuclear complex.
 c +---------------------------------------------------------------------
 c
 c *************************** Comments *********************************
 c
-c This function is based on the function fi originally developed by
+c This function is based on the function fidi originally developed by
 c U. Brosa.
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"                                               
       integer i                                                         
-      real    fi,x(i),d,wu1,wu3,sq1,sq3,z21,z32,vr3,vr2,vr1,al,be,ga,de,
-     +        eq,epsc,ds
+      real    fidi,x(i),d,wu1,wu3,sq1,sq3,z21,z32,vr3,vr2,vr1,al,be,ga,
+     +        de,eq,epsc,ds
 c
 c **********************************************************************
 c
@@ -45,6 +45,6 @@ c
       eq=(z1/sq1-aaa*cur*sinh(z21))**2*1.e5        
       epsc=((d-z3)/sq3-aaa*cur*sinh(z32))**2*1.e5 
       ds=x(7)**2*1.e-4                                                  
-      fi=al+be+ga+de+eq+epsc+ds                                         
+      fidi=al+be+ga+de+eq+epsc+ds
       return                                                            
       end                                                               

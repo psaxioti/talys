@@ -54,10 +54,13 @@ c section.)
 c
 c Qres     : Q-value for residual nucleus
 c xseps    : limit for cross sections
+c flagastro: flag for calculation of astrophysics reaction rate
+c xsastro  : cross section for astrophysical calculation
 c nin      : counter for incident energy
 c
    40     if (Qres(Zcomp,Ncomp,0).gt.0..and.
      +      xspopnuc(Zcomp,Ncomp).le.xseps) xspopnuc(Zcomp,Ncomp)=xseps
+          if (flagastro) xsastro(Zcomp,Ncomp,nin)=xspopnuc(Zcomp,Ncomp)
    20   continue
    10 continue
       return

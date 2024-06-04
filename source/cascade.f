@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 29, 2004
+c | Date  : May 22, 2007
 c | Task  : Gamma-ray cascade
 c +---------------------------------------------------------------------
 c
@@ -25,7 +25,10 @@ c intens     : total gamma intensity
 c branchratio: gamma-ray branching ratio to level
 c xspopex    : population cross section summed over spin and parity
 c xspartial  : emitted cross section flux per energy bin         
-c maxchannel2: 2*maxchannel
+c numZchan   : maximal number of outgoing proton units in individual
+c              channel description
+c numNchan   : maximal number of outgoing neutron units in individual
+c              channel description
 c mcontrib   : contribution to emission spectrum
 c
       J=int(jdis(Zcomp,Ncomp,nex))
@@ -40,7 +43,7 @@ c
         xspopex(Zcomp,Ncomp,k)=xspopex(Zcomp,Ncomp,k)+intens
         xspopex(Zcomp,Ncomp,nex)=xspopex(Zcomp,Ncomp,nex)-intens
         xspartial(0,nex)=xspartial(0,nex)+intens
-        if (Zcomp.le.maxchannel2.and.Ncomp.le.maxchannel2)
+        if (Zcomp.le.numZchan.and.Ncomp.le.numNchan)
      +    mcontrib(0,nex,k)=intens
 c
 c ************ Storage of discrete gamma line intensities **************

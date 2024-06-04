@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 16, 2005
+c | Date  : December 18, 2007
 c | Task  : Reaction models
 c +---------------------------------------------------------------------
 c
@@ -27,6 +27,8 @@ c               parameters
 c flagcomp    : flag for compound nucleus calculation
 c compoundinit: subroutine for initialization of compound model 
 c               parameters
+c flagastro   : flag for calculation of astrophysics reaction rate
+c astroinit   : subroutine for initialization of astrophysics quantities
 c
       if (.not.flagompall) call basicxs(0,0)
       if (enincmax.ge.epreeq) then
@@ -34,6 +36,7 @@ c
         call excitoninit
       endif
       if (flagcomp) call compoundinit
+      if (flagastro) call astroinit
 c
 c Loop over incident energies
 c
@@ -56,20 +59,25 @@ c
 c
 c Optical model
 c
-c incident  : subroutine for main settings and basic cross sections for 
-c             incident energy
-c exgrid    : subroutine to set excitation energy grid
-c flagrecoil: flag for calculation of recoils
-c recoilinit: subroutine for calculation of initial recoil velocity
-c             and direction
-c lmaxinc   : maximal l-value for transmission coefficients
-c xsreacinc : reaction cross section for incident channel
-c xseps     : limit for cross sections
+c incident   : subroutine for main settings and basic cross sections for
+c              incident energy
+c exgrid     : subroutine to set excitation energy grid
+c flagrecoil : flag for calculation of recoils
+c recoilinit : subroutine for calculation of initial recoil velocity
+c              and direction
+c lmaxinc    : maximal l-value for transmission coefficients
+c xsreacinc  : reaction cross section for incident channel
+c xseps      : limit for cross sections
+c flaginitpop: flag for initial population distribution
 c
         call incident
         call exgrid(0,0)
         if (flagrecoil) call recoilinit
-        if (lmaxinc.eq.-1.or.xsreacinc.lt.xseps) goto 20
+c
+c In certain cases, there will be no nuclear reaction calculation
+c
+        if ((lmaxinc.eq.-1.or.xsreacinc.lt.xseps).and..not.flaginitpop) 
+     +    goto 20
 c
 c Direct reactions
 c
@@ -145,11 +153,12 @@ c
         call residual
         if (flagrecoil) call totalrecoil
         if (nin.eq.numinclow+1.and.numinclow.gt.0) call thermal
-   20   call output
+   20   if (.not.flagastro) call output
    10 continue
 c
 c Final output
 c
+c astro      : subroutine for astrophysical reaction rates    
 c finalout   : subroutine for output of final results
 c flagendf   : flag for information for ENDF-6 file
 c endf       : subroutine for cross sections and information for 
@@ -157,7 +166,11 @@ c              ENDF-6 file
 c flagmain   : flag for main output
 c timer      : subroutine for output of execution time
 c
-      call finalout
+      if (flagastro) then
+        call astro
+      else
+        call finalout
+      endif
       if (flagendf) call endf
       if (flagmain) call timer
       return

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : August 23, 2006
+c | Date  : October 18, 2007
 c | Task  : Read ECIS results for direct cross section
 c +---------------------------------------------------------------------
 c
@@ -30,9 +30,9 @@ c xs              : help variable
 c xsdirdisc       : direct cross section for discrete state    
 c dorigin         : origin of direct cross section (Direct or Preeq)
 c
-      open (unit=8,status='unknown',file='ecis03.dirang')
-      open (unit=9,status='unknown',file='ecis03.dirleg')
-      open (unit=10,status='unknown',file='ecis03.dirin')
+      open (unit=8,status='unknown',file='ecis06.dirang')
+      open (unit=9,status='unknown',file='ecis06.dirleg')
+      open (unit=10,status='unknown',file='ecis06.dirin')
       do 10 type=k0,k0
         if (parskip(type)) goto 10
         Zix=Zindex(0,0,type)
@@ -65,7 +65,7 @@ c l      : l-value
 c dleg,dl: direct reaction Legendre coefficient
 c
         
-          read(9,'(45x,i5)') nS
+          read(9,'(55x,i5)') nS
           do 110 iS=1,nS
             if (iS.eq.1) then
               read(9,'(5x,i5)')  nleg
@@ -101,8 +101,8 @@ c
           read(8,'(12x,i3)') nS
           do 220 iang=0,nangle
             do 220 k=1,nS
-            read(8,'(i3,12x,e12.5)') itype,xs
-            if (itype.eq.0) directad(type,i,iang)=real(xs)
+              read(8,'(i3,12x,e12.5)',end=220,err=220) itype,xs
+              if (itype.eq.0) directad(type,i,iang)=real(xs)
   220     continue
    20   continue
 c
@@ -139,7 +139,7 @@ c
               read(8,'(12x,i3)') nS
               do 340 iang=0,nanglecont
                 do 340 k=1,nS
-                  read(8,'(i3,12x,e12.5)') itype,xs
+                  read(8,'(i3,12x,e12.5)',err=340,end=340) itype,xs
                   if (itype.eq.0) grcollad(k0,l,i,iang)=real(xs)
   340         continue
   310     continue
@@ -170,7 +170,7 @@ c
       close (unit=8,status=ecisstatus)
       close (unit=9,status=ecisstatus)
       close (unit=10,status=ecisstatus)
-      open (unit=3,status='unknown',file='ecis03.dircs')
+      open (unit=3,status='unknown',file='ecis06.dircs')
       close (unit=3,status=ecisstatus)
       return
       end

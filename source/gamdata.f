@@ -2,14 +2,13 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 1, 2004
+c | Date  : March 7, 2007
 c | Task  : Kopecky's spline fit of radiative widths
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb" 
-      integer ia
 c
 c ***************** Gamma_gamma tabulated values ***********************
 c
@@ -17,7 +16,7 @@ c Spline fit to experimental data made by J. Kopecky, 2002.
 c
 c gamkopecky: radiative width in eV by spline fit of Kopecky 
 c
-      data (gamkopecky(ia),ia=40,250) /1.15,
+      data (gamkopecky(indx),indx=40,250) /1.15,
      +  1.1,1.08,1.02,1.005,0.95,1.0,1.0,1.15,1.3,1.5,
      +  1.7,1.95,2.2,2.4,2.6,2.8,2.8,2.65,2.3,1.9,
      +  1.6,1.3,1.0,0.8,0.65,0.5,0.46,0.42,0.4,0.36,

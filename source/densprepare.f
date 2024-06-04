@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : April 26, 2006
+c | Date  : June 26, 2007
 c | Task  : Prepare energy grid, level density and transmission 
 c |         coefficient information for compound nucleus
 c +---------------------------------------------------------------------
@@ -334,8 +334,8 @@ c
               exfis=Ex(Zcomp,Ncomp,maxex(Zcomp,Ncomp))-
      +          fecont(Zcomp,Ncomp,ibar)
             endif
-            if (exfis.le.0.) goto 310
             nbintfis(ibar)=numbinfis/2
+            if (exfis.le.0.) goto 310
             dExmin=0.01
             dEx=exfis/nbintfis(ibar)
             if (dEx.lt.dExmin) then

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 9, 2006
+c | Date  : September 20, 2007
 c | Task  : Output of exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -14,7 +14,7 @@ c
       character*16 xsfile
       character*20 spfile,recfile
       integer      npart,ia,ih,it,id,ip,in,nex,ident,idc,Zcomp,Ncomp,NL,
-     +             nen,Ngam,i1,i2,i,type
+     +             nen,Ngam,i1,i2,type
       real         emissum,xs
 c
 c ****************** Output of channel cross sections ******************
@@ -156,12 +156,12 @@ c
               else
                 open (unit=1,status='old',file=xsfile)
                 do 150 nen=1,nin+4
-                  read(1,*)
+                  read(1,*,end=160,err=160)
   150           continue
               endif      
               write(1,'(1p,e10.3,3e12.5)') Einc,xschannel(idc),
      +          xsgamchannel(idc),xsratio(idc)
-              close (unit=1)
+  160         close (unit=1)
 c
 c B. Ground state and isomers
 c
@@ -201,12 +201,12 @@ c
                   else
                     open (unit=1,status='old',file=isofile)
                     do 260 nen=1,nin+4
-                      read(1,*)
+                      read(1,*,end=270,err=270)
   260               continue
                   endif
                   write(1,'(1p,e10.3,e12.5,0p,f11.5)') Einc,
      +              xschaniso(idc,nex),exclyield(idc,nex)     
-                  close (unit=1)
+  270             close (unit=1)
                 endif      
   230         continue
 c
@@ -251,12 +251,12 @@ c
                 else
                   open (unit=1,status='old',file=gamfile)
                   do 350 nen=1,5
-                    read(1,*)
+                    read(1,*,end=400,err=400)
   350             continue
                   do 360 nen=1,nin-1
-                    read(1,'(10x,i5)') Ngam
+                    read(1,'(10x,i5)',end=400,err=400) Ngam
                     do 370 i1=1,Ngam
-                      read(1,*) 
+                      read(1,*,end=400,err=400) 
   370               continue
   360             continue
                 endif      
@@ -273,7 +273,7 @@ c
      +                xsgamdischan(idc,i1,i2),edis(Zcomp,Ncomp,i1),
      +                edis(Zcomp,Ncomp,i2)
   390           continue
-                close (unit=1)
+  400           close (unit=1)
               endif      
             endif      
   120     continue
@@ -284,6 +284,7 @@ c *************** Output of fission channel cross sections *************
 c
 c flagfission : flag for fission
 c chanfisexist: flag for existence of exclusive fission cross section
+c fisstring   : string for exclusive fission reaction channel
 c xsfischannel: fission channel cross section
 c channelsum  : sum over exclusive channel cross sections
 c xsngnsum    : sum over total (projectile,gamma-ejectile) cross 
@@ -311,14 +312,8 @@ c
   420     continue
           goto 410
   430     if (xsfischannel(idc).lt.xseps) goto 410
-          do 440 i=1,17
-            if (reacstring(idc)(i:i).eq.')') then
-              reacstring(idc)(i:i+1)='f)'
-              goto 450
-            endif
-  440     continue
-  450     write(*,'(1x,6i4,3x,1p,e12.5,2x,a17)') in,ip,id,it,ih,ia,
-     +      xsfischannel(idc),reacstring(idc)
+          write(*,'(1x,6i4,3x,1p,e12.5,2x,a17)') in,ip,id,it,ih,ia,
+     +      xsfischannel(idc),fisstring(idc)
   410   continue
       endif
       write(*,'(/" Sum over exclusive channel cross sections:",f12.5)')
@@ -358,7 +353,7 @@ c
                 open (unit=1,status='unknown',file=xsfile)
                 write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Fission")')
      +            parsym(k0),Atarget,nuc(Ztarget),isostring,
-     +            reacstring(idc)
+     +            fisstring(idc)
                 write(1,'("# Q-value    =",1p,e12.5)') Qexcl(idc,0)
                 write(1,'("# E-threshold=",1p,e12.5)') Ethrexcl(idc,0)
                 write(1,'("# # energies =",i3)') numinc
@@ -369,11 +364,11 @@ c
               else
                 open (unit=1,status='old',file=xsfile)
                 do 540 nen=1,nin+4
-                  read(1,*)
+                  read(1,*,end=550,err=550)
   540           continue
               endif      
               write(1,'(1p,e10.3,e12.5)') Einc,xsfischannel(idc)
-              close (unit=1)
+  550         close (unit=1)
             endif
   520     continue
   510   continue
@@ -389,12 +384,12 @@ c
         write(*,'(/" Check of particle production cross sections")')
         write(*,'(" (Only applies if non-elastic cross section is",
      +    " exhausted by exclusive cross sections)"/)')
-        do 550 type=1,6
-          if (parskip(type)) goto 550
+        do 560 type=1,6
+          if (parskip(type)) goto 560
           write(*,'(1x,a8,"=",1p,e12.5,
      +      "    Summed exclusive cross sections=",1p,e12.5)') 
      +      parname(type),xsparticle(type),xsparcheck(type)
-  550 continue
+  560 continue
       endif
 c
 c *************** Output of channel cross section spectra **************
@@ -488,7 +483,7 @@ c xsfischancheck: integrated fission channel spectra
 c
         if (flagfission) then
           write(*,'(/" 6b2. Exclusive fission spectra ")')
-          do 710 npart=1,maxchannel
+          do 710 npart=0,maxchannel
           do 710 ia=0,numia
           do 710 ih=0,numih
           do 710 it=0,numit
@@ -506,21 +501,33 @@ c
             write(*,'(/"      Emitted particles     ",
      +        "cross section reaction")')
             write(*,'("    n   p   d   t   h   a")')
-            do 740 i=1,17
-              if (reacstring(idc)(i:i).eq.')') then
-                reacstring(idc)(i:i)='f'
-                reacstring(idc)(i+1:i+1)=')'
-                goto 750
-              endif
-  740       continue
-  750       write(*,'(1x,6i4,3x,1p,e12.5,2x,a17)') in,ip,id,it,ih,ia,
-     +        xsfischannel(idc),reacstring(idc)
+            write(*,'(1x,6i4,3x,1p,e12.5,2x,a17)') in,ip,id,it,ih,ia,
+     +        xsfischannel(idc),fisstring(idc)
             write(*,'(/"  Outgoing spectra"/)') 
             write(*,'("  Energy  ",7(a8,4x)/)') (parname(type),type=0,6)
             do 760 nen=ebegin(0),eend(0)
               write(*,'(1x,f7.3,1p,7e12.5)') egrid(nen),
      +          (xsfischannelsp(idc,type,nen),type=0,6)
   760       continue
+            if (filechannels) then
+              spfile='sp000000E000.000.fis'
+              write(spfile(3:8),'(6i1)') in,ip,id,it,ih,ia 
+              write(spfile(10:16),'(f7.3)') Einc
+              write(spfile(10:12),'(i3.3)') int(Einc)
+              open (unit=1,status='unknown',file=spfile)
+              write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Spectra")')
+     +          parsym(k0),Atarget,nuc(Ztarget),isostring,fisstring(idc)
+              write(1,'("# E-incident = ",f7.3)') Einc
+              write(1,'("# ")')
+              write(1,'("# # energies =",i3)') eendhigh-ebegin(0)+1
+              write(1,'("# E-out  ",7(2x,a8,2x))') 
+     +          (parname(type),type=0,6)
+              do 770 nen=ebegin(0),eendhigh
+                write(1,'(f7.3,1p,7e12.5)') egrid(nen),
+     +            (xsfischannelsp(idc,type,nen),type=0,6)
+  770         continue
+              close (unit=1)
+            endif
             if (flagcheck) then
               write(*,'(/" Check of integrated emission spectra:")')
               write(*,'(" Cross section (x multiplicity)=",1p,e12.5)') 

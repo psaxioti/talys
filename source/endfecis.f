@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 15, 2006
+c | Date  : December 17, 2007
 c | Task  : ECIS calculation for incident particle on ENDF-6 energy grid
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      rotational,vibrational                      
+      logical      jlmloc,rotational,vibrational                      
       character*13 outfile
       integer      Zix,Nix,i1,i,ii,nen
       real         e
@@ -17,6 +17,7 @@ c
 c ********************** Set ECIS input parameters *********************
 c
 c legendre        : logical for output of Legendre coefficients
+c hint            : integration step size h
 c rmatch          : matching radius
 c projmass,parmass: mass of projectile
 c spin,parspin    : spin of incident particle
@@ -38,6 +39,7 @@ c ecis2(13)=F : output of transmission coefficients
 c ecis2(14)=F : no output of elastic angular distribution 
 c
       legendre=.false.
+      hint=0.
       rmatch=0.
       projmass=parmass(k0)
       spin=parspin(k0)
@@ -57,6 +59,7 @@ c
 c Standard ECIS inputs for phenomenological optical potentials
 c
 c ecis1,ecis2: 100 input flags ('T' or 'F') for ECIS
+c jlmloc     : flag for JLM OMP
 c colltype   : type of collectivity (D, V or R)
 c flagrot    : flag for use of rotational optical model per
 c              outgoing particle, if available
@@ -71,15 +74,18 @@ c              rotational model
 c Elevel     : energy of level
 c tarspin    : spin of target nucleus
 c tarparity  : parity of target nucleus
+c jlmexist   : flag for existence of tabulated radial matter density
+c nrad       : number of radial points
 c
 c Some input flags for ECIS are energy dependent for the rotational
 c model so ecis1 will be defined inside the energy loop.
 c
       ecis1='FFFFFTFFFFFFFFFFFFFFFFFFTFFTFFFFFFFFFFFFFFFFFFFFFF'
-      ecis2='FFFFFFFFTFFFFFFFTTTFFTTFTFFFFFFFFFFFFFFFFFFFFFFFFF'
+      ecis2='FFFFFFFFTFFFFFFFTTTFTTTFTFFFFFFFFFFFFFFFFFFFTFFFFF'
 c
 c 1. Spherical nucleus
 c
+      jlmloc=.false.
       if (colltype(Zix,Nix).eq.'S'.or..not.flagrot(k0)) then
         rotational=.false.
         vibrational=.false.
@@ -91,6 +97,16 @@ c
         Elevel(1)=0.
         tarspin=0.
         tarparity='+'
+        if (jlmexist(Zix,Nix,k0)) then
+          ecis1(7:7)='T'
+          ecis1(15:15)='T'
+          ecis1(29:29)='T'
+          ecis1(41:41)='T'
+          hint=0.1
+          rmatch=12.
+          nrad=122
+          jlmloc=.true.
+        endif
       else
 c
 c 2. Deformed nucleus
@@ -187,20 +203,32 @@ c
 c
 c **************** ECIS input files for several energies ***************
 c
-c deftype : deformation length (D) or parameter (B)          
-c flagrel : flag for relativistic kinematics
-c nen6    : total number of energies 
-c e       : energy in MeV
-c e6      : energies of ENDF-6 energy grid in MeV
-c njmax   : maximal number of j-values in ECIS
-c Atarget : mass number of target nucleus 
-c onethird: 1/3
-c numl    : maximum l-value (set in talys.cmb)
+c deftype  : deformation length (D) or parameter (B)          
+c flagrel  : flag for relativistic kinematics
+c disp     : flag for dispersive optical model
+c efer     : Fermi energy
+c w2disp,..: constants for imaginary potentials
+c nen6     : total number of energies 
+c e        : energy in MeV
+c e6       : energies of ENDF-6 energy grid in MeV
+c coullimit: energy limit for charged particle OMP calculation
+c njmax    : maximal number of j-values in ECIS
+c Atarget  : mass number of target nucleus 
+c onethird : 1/3
+c numl     : maximum l-value (set in talys.cmb)
 c
       if (deftype(Zix,Nix).eq.'B') ecis1(6:6)='F'  
       if (flagrel) ecis1(8:8)='T'
+      if (disp(Zix,Nix,k0)) then
+        ecis1(10:10)='T'
+        efer=ef(Zix,Nix,k0)
+        w2disp=w2(Zix,Nix,k0)
+        d3disp=d3(Zix,Nix,k0)
+        d2disp=d2(Zix,Nix,k0)
+      endif
       do 110 nen=1,nen6
         e=real(e6(nen))
+        if (k0.gt.1.and.e.lt.coullimit(k0)) goto 110
 c
 c We use a simple formula to estimate the required number of j-values:
 c    njmax=2.4*k*R;  R=1.25*A**1/3 ; k=0.22*sqrt(m(in amu)E(in MeV))
@@ -210,6 +238,7 @@ c
      +    sqrt(projmass*e))
         njmax=max(njmax,20)
         njmax=min(njmax,numl-2)
+        if (jlmloc) njmax=1600
 c
 c *************** Calculate optical potential parameters ***************
 c
@@ -239,7 +268,7 @@ c
      +      e.le.2.*Elevel(ncoll)) e=0.1*Elevel(ncoll)
           if (flagrel) ecis1(8:8)='T'
         endif
-        call ecisinput(Zix,Nix,k0,e,rotational,vibrational)
+        call ecisinput(Zix,Nix,k0,e,rotational,vibrational,jlmloc)
   110 continue
       write(9,'("fin")') 
       close (unit=9)
@@ -249,7 +278,7 @@ c
 c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
-c ecis03t    : subroutine ecis03, adapted for TALYS
+c ecis06t    : subroutine ecis06, adapted for TALYS
 c ecisstatus : status of ECIS file
 c
       if (flagoutecis) then
@@ -257,8 +286,8 @@ c
       else
         outfile=nulldev
       endif
-      call ecis03t('ecisendf.inp ',outfile,'ecis03.endfcs',
-     +  'ecis03.endfin','null         ','null         ','null         ')
+      call ecis06t('ecisendf.inp ',outfile,'ecis06.endfcs',
+     +  'ecis06.endfin','null         ','null         ','null         ')
       open (unit=9,status='unknown',file='ecisendf.inp')
       close (unit=9,status=ecisstatus)
       return

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 27, 2005
+c | Date  : June 26, 2007
 c | Task  : Emission rates for exciton model
 c +---------------------------------------------------------------------
 c
@@ -98,6 +98,7 @@ c
           Ewell=edepth
         endif    
         if (phcomp.le.1.e-10) goto 10
+        if (type.eq.0.and.phcompg.le.1.e-10) goto 10
         do 30 nen=ebegin(type),eend(type)
           Eout=egrid(nen)
           xs=xsreac(type,nen)

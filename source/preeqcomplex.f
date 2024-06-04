@@ -2,21 +2,22 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Vivian Demetriou
-c | Date  : December 14, 2006
+c | Date  : March 21, 2007
 c | Task  : Pre-equilibrium complex particle emission
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical flagknock,flaginel,surfwell
+      logical flagbreakup,flagknock,flaginel,surfwell
       integer type,ndelta,ndeltapi,ndeltanu,ppi,hpi,pnu,hnu,A,i,j,type2,
      +        nen,k,l,parity
       real    proj2sp1,ejecmass,ejec2sp1,term1,Kap,Va,term2,term3,term4,
      +        base,term5,termps,V1well,surface,XNT,gsn,gsp,Ewell,
      +        termki,AKO,Ccl,phi,denom,Pn(6),gscomp(6),emax,dE,total,
-     +        Eout,sigav,denomki(6),termk0,termin0,factor1,Eres,omegaNT,
-     +        omegaph,phdens2,U,factor
+     +        Eout,sigav,denomki(6),termk0,termin0,Bdeut,Ecent,width,
+     +        fac1,fac2,Kdb,xsbreakup,factor1,Eres,omegaNT,
+     +        omegaph,phdens2,U,gauss,factor
 c
 c ************************** Kalbach model *****************************
 c
@@ -125,11 +126,11 @@ c
           Ewell=V1well
         endif
 c
-c Factors for knockout and inelastic processes.
+c Factors for break-up, knockout and inelastic processes.
 c
+c flagbreakup..: help variables
 c termki       : term for knockout and inelastic
 c AKO          : Pauli correction factor
-c flagknock....: help variables
 c xsreacinc    : reaction cross section for incident channel    
 c Ccl          : adjustment factor
 c phi          : time fraction for alpha cluster
@@ -138,6 +139,7 @@ c gscomp       : single-particle level density parameter
 c
 c Calculation of terms independent of emission energy.
 c
+        flagbreakup=(k0.eq.3.and.(type.eq.1.or.type.eq.2))
         termki=0.
         AKO=0.
         flagknock=((k0.eq.1.or.k0.eq.2).and.type.eq.6)
@@ -193,7 +195,7 @@ c
             sigav=xsreac(type2,eend(type2))
           endif
           denomki(type2)=(2.*parspin(type2)+1.)*sigav*
-     +      (emax+2.*coulbar(type2))*(emax-coulbar(type2))**2
+     +      (emax+2.*coulbar(type2))*max((emax-coulbar(type2))**2,1.)
    20   continue
 c
 c Knockout and inelastic terms
@@ -225,6 +227,35 @@ c
    50     continue
         endif
 c
+c Preliminary break-up model by Kalbach: PRECO-2006 manual, unpublished.
+c This is only included for (d,p) and (d,n) reactions. We store the 
+c values in the knockout array xspreeqki.
+c
+c Bdeut    : deuteron binding energy
+c Ecent    : centroid energy for emission spectrum
+c Einc     : incident energy in MeV
+c width    : width of break-up peak in emission spectrum
+c fac1,fac2: help variables
+c sqrttwopi: sqrt(2.*pi)
+c Kdb      : normailzation constant for (d,p) or (d,n) break-up
+c xsbreakup: break-up cross section
+c onethird : 1/3
+c
+c Calculation of terms independent of emission energy.
+c
+  100   if (flagbreakup) then
+          Bdeut=2.224
+          Ecent=parmass(type)/parmass(k0)*
+     +      (Einc-Bdeut-parZ(k0)*Ztarget/9.5)+parZ(type)*Ztarget/9.5
+          width=1.15+0.12*Einc-Atarget/140.
+          fac1=1./(width*sqrttwopi)
+          fac2=1./(2.*width**2)
+          if (type.eq.1) Kdb=18.
+          if (type.eq.2) Kdb=21.
+          xsbreakup=Cknock(type)*Kdb*(Atarget**onethird+0.8)**2/
+     +      (1.+exp((13.-Einc)/6.))
+        endif
+c
 c Calculation of pre-equilibrium complex particle emission.
 c
 c factor1: help variable
@@ -232,7 +263,7 @@ c Eres   : total energy of residual system
 c Etotal : total energy of compound system (target + projectile)
 c S      : separation energy per particle                       
 c
-  100   do 110 nen=ebegin(type),eend(type)
+        do 110 nen=ebegin(type),eend(type)
           Eout=egrid(nen)
           factor1=xsreac(type,nen)*Eout
           Eres=Etotal-S(0,0,type)-Eout
@@ -280,6 +311,17 @@ c
           if (flagknock.or.flaginel) then
             U=max(Eres-AKO,0.)
             xspreeqki(type,nen)=termki*factor1*U
+          endif
+c
+c Break-up term that depends on emission energy. We store this in the
+c knock-out array.
+c
+c gauss: Gaussian contribution
+c
+
+          if (flagbreakup) then
+            gauss=fac1*exp(-(Ecent-Eout)**2*fac2)
+            xspreeqki(type,nen)=xsbreakup*gauss
           endif
 c
 c If the pre-equilibrium spin distribution is chosen, we assume that the

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : February 13, 2006
+c | Date  : October 3, 2007
 c | Task  : Goriely liquid drop mass
 c +---------------------------------------------------------------------
 c
@@ -45,7 +45,7 @@ c
       Esur=as*(rA**twothird)
       Esym=(asym+ass*(rA**(-onethird)))*rA*factor**2
       Ecoul=ac*rZ**2/(rA**onethird)
-      Eldm=Z*Mh+N*Mn+Ev+Esur+Esym+Ecoul
+      Eldm=Z*Mh+N*Mn+Ev+Esur+Esym+Ecoul-1.4333e-5*rZ**2.39
       mliquid2=A+Eldm/amu
       return
       end

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 22, 2006
+c | Date  : December 17, 2007
 c | Task  : Check for errors in keywords
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer      numkey,i,j
-      parameter    (numkey=211)
+      parameter    (numkey=232)
       character*80 keyword(numkey),word(40),key
 c
 c Although it is difficult to prevent the user from all possible input
@@ -27,22 +27,22 @@ c
       data (keyword(i),i=1,numkey) /
      +  ' ', 'a',
      +  'abundance', 'adddiscrete',
-     +  'addelastic', 'alimit', 'alphald', 'angles',
-     +  'anglescont', 'anglesrec', 'asys',
+     +  'addelastic', 'alimit', 'alphald', 'alphaomp', 'angles',
+     +  'anglescont', 'anglesrec', 'astro', 'astrogs', 'asys',
      +  'autorot', 'avadjust', 'avdadjust', 'avsoadjust', 'axtype', 
-     +  'beta2', 'betald', 'bins', 'c1table', 
-     +  'c2table', 'cfermi', 'cfermibf', 'channelenergy',
+     +  'beta2', 'betafiscor', 'betald', 'bins', 'cglobal', 'ctable',
+     +  'cfermi', 'cfermibf', 'channelenergy',
      +  'channels', 'cknock', 'class2', 'class2file',
      +  'class2width', 'colenhance', 'compound',
-     +  'core', 'cstrip', 'd0', 'd1adjust', 'd2adjust', 
-     +  'd3adjust', 'ddxmode', 'deformfile', 'deltaw',
+     +  'core', 'cstrip', 'ctmglobal', 'd0', 'd1adjust', 'd2adjust', 
+     +  'd3adjust', 'ddxmode', 'deformfile', 'deltaw', 'dispersion',
      +  'e0', 'eciscalc',
      +  'eciscompound', 'ecisdwba', 'ecissave',
      +  'egr', 'ejectiles',
      +  'electronconv', 'element',
      +  'elow', 'elwidth',
      +  'emsdmin', 'endf', 'endfdetail',
-     +  'energy', 'esurf', 'exmatch', 'expmass',
+     +  'energy', 'esurf', 'etable', 'exmatch', 'expmass',
      +  'ffevaporation', 'fileangle',
      +  'filechannels', 'fileddxa',
      +  'fileddxe', 'filedensity', 'filediscrete',
@@ -51,19 +51,19 @@ c
      +  'filespectrum', 'filetotal',
      +  'fisbar', 'fishw',
      +  'fismodel', 'fismodelalt',
-     +  'fission', 'fullhf', 'g',
+     +  'fission', 'ftable', 'fullhf', 'g',
      +  'gamgam',
      +  'gammald', 'gammashell1', 'gammashell2', 'gammax',
      +  'ggr',
      +  'giantresonance', 'gn', 'gnorm',
      +  'gp', 'gshell', 'hbtransfile',
-     +  'inccalc', 'isomer',
-     +  'kph', 'krotconstant', 'labddx', 'ldmodel', 'levelfile',
-     +  'localomp', 'ltarget',
-     +  'm2constant', 'm2limit', 'm2shift',
-     +  'mass', 'massdis', 'massexcess', 'massmodel', 'massnucleus',
-     +  'maxband', 'maxchannel', 'maxenrec',
-     +  'maxlevelsbin', 'maxlevelsres',
+     +  'inccalc', 'isomer', 'jlmomp', 'kph', 'krotconstant', 
+     +  'kvibmodel', 'labddx', 'ldmodel', 'levelfile',
+     +  'localomp', 'ltarget', 'lvadjust', 'lwadjust', 'lv1adjust', 
+     +  'lw1adjust', 'lvsoadjust', 'lwsoadjust', 'm2constant', 
+     +  'm2limit', 'm2shift', 'mass', 'massdis', 'massexcess', 
+     +  'massmodel', 'massnucleus', 'maxband', 'maxchannel', 
+     +  'maxenrec', 'maxlevelsbin', 'maxlevelsres',
      +  'maxlevelstar', 'maxn', 'maxrot',
      +  'maxz', 'mpreeqmode',
      +  'msdbins',
@@ -82,19 +82,19 @@ c
      +  'outpopulation', 'outpreequilibrium',
      +  'outspectra', 'outtransenergy',
      +  'pair', 'pairconstant', 'pairmodel', 'parity', 'partable', 
-     +  'popeps', 'preeqcomplex', 'preeqmode',
-     +  'preeqspin', 'preeqsurface',
-     +  'preequilibrium', 'projectile', 'pshift', 'pshiftconstant',
-     +  'rcadjust', 'rclass2mom', 'reaction', 'recoil',
-     +  'recoilaverage', 'relativistic', 'rfiseps', 'rgamma',
-     +  'rnunu', 'rnupi', 'rotational', 'rpinu', 'rpipi',
-     +  'rspincut', 'rtransmom', 'rvadjust', 'rvdadjust', 
+     +  'pglobal', 'popeps', 'preeqcomplex', 'preeqmode',
+     +  'preeqspin', 'preeqsurface', 'preequilibrium', 
+     +  'projectile', 'pshift', 'pshiftconstant', 'ptable',
+     +  'radialfile', 'radialmodel', 'rcadjust', 'rclass2mom',
+     +  'reaction', 'recoil', 'recoilaverage', 'relativistic', 
+     +  'rfiseps', 'rgamma', 'rnunu', 'rnupi', 'rotational', 'rpinu',
+     +  'rpipi', 'rspincut', 'rtransmom', 'rvadjust', 'rvdadjust', 
      +  'rvsoadjust', 's0', 'segment', 'sgr', 'shellmodel',
      +  'spherical', 'spincutmodel', 'statepot',
      +  'strength', 'strucpath', 'sysreaction',
      +  't', 'transeps',
      +  'transpower', 'twocomponent',
-     +  'ufermi', 'ufermibf',
+     +  'ufermi', 'ufermibf', 'vfiscor',
      +  'v1adjust', 'v2adjust', 'v3adjust', 'v4adjust',
      +  'vso1adjust', 'vso2adjust',
      +  'w1adjust', 'w2adjust', 'wso1adjust', 'wso2adjust',

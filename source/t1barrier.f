@@ -3,7 +3,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Marieke Duijvestijn
-c | Date  : August 22, 2004
+c | Date  : October 3, 2007
 c | Task  : Fission transmission coefficient for one barrier
 c +---------------------------------------------------------------------
 c
@@ -12,8 +12,8 @@ c
       include "talys.cmb"
       integer          Zcomp,Ncomp,J2,parity,ibar,iloop,J,itr,j2trans,
      +                 pitrans,ihill,i
-      real             Eex,bfis,wfis,etrans,Eeff,thill,elow,emid,eup,
-     +                 dE1,dE2 
+      real             Eex,bfis,wfis,etrans,Eeff,twkbint,thill,elow,
+     +                 emid,eup,dE1,dE2 
       double precision trfis,rhof,trfisone,rho1,rho2,rho3,r1log,r2log,
      +                 r3log,rho,rhotr
 c
@@ -61,6 +61,7 @@ c pfistrrot     : parity of rotational transition states
 c thill         : Hill-Wheeler penetrability
 c primary       : flag to designate primary (binary) reaction
 c trfisone      : help variable
+c twkbint       : WKB penetrability
 c ihill         : counter for Hill-Wheeler magnitude
 c numhill       : maximum number of Hill-Wheeler points
 c tfisA         : transmission coefficient for Hill-Wheeler magnitude
@@ -73,7 +74,11 @@ c
         pitrans=pfistrrot(Zcomp,Ncomp,ibar,itr)
         Eeff=Eex-etrans
         if ((J2.eq.j2trans).and.(parity.eq.pitrans)) then
-          trfisone=thill(Eeff,bfis,wfis)
+          if (fismodel.eq.5) then
+            trfisone=twkbint(Eeff,ibar,Zcomp,Ncomp)
+          else
+            trfisone=thill(Eeff,bfis,wfis)
+          endif
           if ((ibar.eq.1).and.primary.and.iloop.eq.2) then
             ihill=min(int(numhill*trfisone)+1,numhill)
             tfisA(J,parity,ihill)=tfisA(J,parity,ihill)+trfisone
@@ -105,9 +110,9 @@ c
           eup=min(eintfis(i+2,ibar),Eex)
           dE1=emid-elow
           dE2=eup-emid
-          rho1=rhofis(i,J,parity,ibar)+1.e-30
+          rho1=rhofis(i,J,parity,ibar)*(1.+1.d-10)
           rho2=rhofis(i+1,J,parity,ibar)
-          rho3=rhofis(i+2,J,parity,ibar)+1.e-30
+          rho3=rhofis(i+2,J,parity,ibar)*(1.+1.d-10)
           r1log=log(rho1)
           r2log=log(rho2)
           r3log=log(rho3)
@@ -118,7 +123,11 @@ c
             rho=rho2*(dE1+dE2)
           endif 
           Eeff=Eex-emid
-          trfisone=thill(Eeff,bfis,wfis)
+          if (fismodel.eq.5) then
+            trfisone=twkbint(Eeff,ibar,Zcomp,Ncomp)
+          else
+            trfisone=thill(Eeff,bfis,wfis)
+          endif
           rhotr=rho*trfisone
           trfis=trfis+rhotr
           rhof=rhof+rho

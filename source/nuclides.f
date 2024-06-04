@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 8, 2004
+c | Date  : September 12, 2007
 c | Task  : Properties of nuclides
 c +---------------------------------------------------------------------
 c
@@ -125,6 +125,10 @@ c parskip     : logical to skip outgoing particle
 c structure   : subroutine for nuclear structure parameters
 c odd         : odd (1) or even (0) nucleus
 c weakcoupling: subroutine for weak coupling model       
+c Einc        : incident energy
+c enincmin    : minimum incident energy 
+c radwidtheory: subroutine for theoretical calculation of total 
+c               radiative width
 c flaggiant0  : flag for collective contribution from giant resonances
 c sumrules    : subroutine for giant resonance sum rules
 c targetspin  : spin of target
@@ -161,6 +165,8 @@ c
         odd=mod(A,2)
         if (type.eq.k0.and.odd.eq.1) call weakcoupling(Zix,Nix,type)
   110 continue
+      Einc=enincmin
+      call radwidtheory(Zcomp,Ncomp)
       if (flaggiant0) call sumrules
       targetspin=jdis(parZ(k0),parN(k0),Ltarget)
       targetspin2=int(2.*targetspin)
@@ -203,8 +209,16 @@ c epreeq    : on-set incident energy for preequilibrium calculation
 c kalbachsep: subroutine for separation energy for Kalbach systematics
 c
       NL=Nlast(parZ(k0),parN(k0),0)
-      if (epreeq.eq.-1.) epreeq=edis(parZ(k0),parN(k0),NL)
+      if (epreeq.eq.-1.) epreeq=max(edis(parZ(k0),parN(k0),NL),1.)
       call kalbachsep
+c
+c For astrophysical calculations, the incident energy grid is determined
+c
+c flagastro : flag for calculation of astrophysics reaction rate
+c egridastro: subroutine to calculate default incident energy grid 
+c             for astrophysical rate
+
+      if (flagastro) call egridastro
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

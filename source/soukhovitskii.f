@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : February 8, 2006
+c | Date  : December 17, 2007
 c | Task  : Global optical model parameters for actinides by
 c |         Soukhovitskii et al.
 c +---------------------------------------------------------------------
@@ -11,7 +11,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer k,Z,A
-      real    eopt,asym,efer,f,Cviso,V0r,Var,vrdisp,v1r,v2r,lambdaR,
+      real    eopt,asym,eferm,f,Cviso,V0r,Var,vrdisp,v1r,v2r,lambdaR,
      +        viso,Ccoul,phicoul,rr,Crr,widr,w1loc,w2loc,wddisp,Cwiso,
      +        Wad,d1loc,d2loc,d3loc,vso1loc,vso2loc,wso1loc,wso2loc
 c
@@ -22,7 +22,7 @@ c Z         : charge number of residual nucleus
 c A         : mass number of residual nucleus
 c eopt      : incident energy
 c asym      : asymmetry parameter
-c efer      : Fermi energy
+c eferm     : Fermi energy
 c f         : eopt-efer
 c Cviso,....: optical potential parameters
 c w1loc.....: help variables
@@ -36,11 +36,11 @@ c wso1,wso2 : components for Wso
 
       asym=(A-2.*Z)/real(A)
       if (k.eq.1) then
-        efer=-11.2814+0.02646*A
+        eferm=-11.2814+0.02646*A
       else
-        efer=-8.4075+0.01378*A
+        eferm=-8.4075+0.01378*A
       endif
-      f=eopt-efer
+      f=eopt-eferm
       Cviso=10.5
       V0r=-41.45
       Var=-0.06667

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 31, 2004
+c | Date  : May 29, 2007
 c | Task  : Output
 c +---------------------------------------------------------------------
 c
@@ -13,6 +13,7 @@ c
 c ******************************* Output *******************************
 c
 c flagmain     : flag for main output
+c flaginitpop  : flag for initial population distribution
 c totalout     : subroutine for output of total cross sections
 c binaryout    : subroutine for output of binary cross sections
 c productionout: subroutine for output of particle production cross 
@@ -39,8 +40,10 @@ c flaggamdis   : flag for output of discrete gamma-ray intensities
 c gamdisout    : subroutine for output of discrete gamma-ray intensities
 c
       if (flagmain) then
-        call totalout
-        call binaryout
+        if (.not.flaginitpop) then
+          call totalout
+          call binaryout
+        endif
         call productionout
         call residualout
         if (flagfission) call fissionout

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning, Eric Bauge and Pascal Romain
-c | Date  : September 14, 2006
+c | Date  : October 19, 2007
 c | Task  : Read ECIS results for incident energy 
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       character*72     line
       integer          infilecs,infiletr,infileang,infileleg,infilein,
-     +                 Zix,Nix,i,nJ,k,nS,lev,l,ispin,nL,ii,nSt,iSt,iang,
+     +                 Zix,Nix,i,nJ,k,nS,lev,l,ispin,nSt,nL,ii,iSt,iang,
      +                 itype
       real             groundspin2,rj,jres,factor,xsr
       double precision xs,Tcoef,dl,teps
@@ -36,11 +36,11 @@ c If the ECIS calculation has already been done in a previous run, we
 c can read from existing files.
 c
       if (flaginccalc) then
-        open (unit=3,status='unknown',file='ecis03.inccs')
-        open (unit=7,status='unknown',file='ecis03.inctr')
-        open (unit=8,status='unknown',file='ecis03.incang')
-        open (unit=9,status='unknown',file='ecis03.incleg')
-        open (unit=10,status='unknown',file='ecis03.incin')
+        open (unit=3,status='unknown',file='ecis06.inccs')
+        open (unit=7,status='unknown',file='ecis06.inctr')
+        open (unit=8,status='unknown',file='ecis06.incang')
+        open (unit=9,status='unknown',file='ecis06.incleg')
+        open (unit=10,status='unknown',file='ecis06.incin')
         infilecs=3
         infiletr=7
         infileang=8
@@ -90,6 +90,14 @@ c
         read(infilecs,*) xs
         xselasinc=real(xs)
       endif
+      if (xselasinc.lt.0..or.xsreacinc.lt.0..or.xstotinc.lt.0.) then
+        write(*,'(" TALYS-error: Negative OMP cross section")')
+        write(*,'(" Elastic : ",1p,e12.5)') xselasinc
+        write(*,'(" Reaction: ",1p,e12.5)') xsreacinc
+        write(*,'(" Total   : ",1p,e12.5)') xstotinc
+        stop
+      endif
+     
 c
 c ******************* Read transmission coefficients *******************
 c
@@ -97,14 +105,15 @@ c Zindex,Zix : charge number index for residual nucleus
 c Nindex,Nix : neutron number index for residual nucleus
 c groundspin2: 2 * spin of ground state
 c jdis       : spin of level
-c nJ         : number of total J values for transmission coeffients
+c nJ         : number of total J values for transmission coefficients
 c rJ         : compound nucleus spin
-c nS         : number of transmission coeffients per J-value
+c nS         : number of transmission coefficients per J-value
 c lev        : level number
 c l          : orbital angular momentum
 c jres       : j-value
 c Tjl,Tcoef  : transmission coefficients as a function of spin and 
 c              l-value
+c numl       : maximal number of l-values
 c colltype   : type of collectivity (D, V or R)
 c flagrot    : flag for use of rotational optical model per
 c              outgoing particle, if available  
@@ -118,11 +127,12 @@ c
       Zix=Zindex(0,0,k0)
       Nix=Nindex(0,0,k0)
       groundspin2=int(2.*jdis(Zix,Nix,0))
-      read(infiletr,'(45x,i5)') nJ
+      read(infiletr,'(55x,i5)') nJ
       do 110 i=1,nJ
-        read(infiletr,'(f5.1,2x,i5)') rj,nS
+        read(infiletr,'(f10.1,5x,i5)') rj,nS
         do 120 k=1,nS
-          read(infiletr,'(i3,i4,f6.1,e16.7)') lev,l,jres,Tcoef
+          read(infiletr,'(i3,i6,f9.1,e20.8)') lev,l,jres,Tcoef
+          if (l.gt.numl) goto 120
           if (lev.eq.1) then
             if (colltype(Zix,Nix).ne.'S'.and.flagrot(k0)) then
               factor=(2.*rj+1.)/(2.*jres+1.)/(groundspin2+1.)
@@ -147,7 +157,6 @@ c somewhat too early. For the highest l values the transmission
 c coefficient for (l+spin) is not written in the output. Since these 
 c are small numbers we put them equal to the value for (l-spin).
 c
-c numl      : maximal number of l-values
 c Tlinc     : transmission coefficients as a function of l for the
 c             incident channel, averaged over spin
 c translimit: limit for transmission coefficient 
@@ -220,32 +229,27 @@ c reaction only. The compound nucleus coefficients are calculated by
 c TALYS later on. For coupled-channels reactions, the inelastic
 c Legendre coefficients are also read.
 c
+c nSt    : number of states
 c nL     : number of Legendre coefficients
 c i      : level number
 c l      : l-value
 c indexcc: level index for coupled channel
 c dleg,dl: direct reaction Legendre coefficient
 c
-  300 read(infileleg,'()') 
-      read(infileleg,'(5x,i5)')  nL
-  310 do 320 k=1,nL
-        read(infileleg,'(2i5,e20.10)') i,l,dl
-        ii=i-1
-        if (i.ne.1) ii=indexcc(Zix,Nix,i)
-        dleg(k0,ii,l)=real(dl)
-  320 continue
-      read(infileleg,'(a72)',end=400) line
-      if (line(2:9).eq.'legendre') then
-        backspace infileleg
-        goto 400
-      endif
-      read(line,'(5x,i5)') nL
-      goto 310
-        
+  300 read(infileleg,'(55x,i5)') nSt
+      do 310 ist=1,nSt
+        read(infileleg,'(5x,i5)') nL
+        do 320 k=1,nL
+          read(infileleg,'(2i5,e20.10)') i,l,dl
+          if (l.gt.3*numl) goto 320
+          ii=i-1
+          if (i.ne.1) ii=indexcc(Zix,Nix,i)
+          dleg(k0,ii,l)=real(dl)
+  320   continue
+  310 continue
 c
 c ******************* Read elastic angular distributions ***************
 c
-c nSt     : number of states
 c iang    : running variable for angle
 c nangle  : number of angles
 c xs      : help variable
@@ -254,11 +258,11 @@ c ruth    : elastic/rutherford ratio
 c
 c For charged particles, we also read the elastic/rutherford ratio.
 c
-  400 read(infileang,'(45x,i5)') nSt
+      read(infileang,'(55x,i5)') nSt
       read(infileang,'(12x,i3)') nS
       do 410 iang=0,nangle
         do 410 k=1,nS
-          read(infileang,'(i3,12x,e12.5)') itype,xs
+          read(infileang,'(i3,12x,e12.5)',end=410,err=410) itype,xs
           xsr=1.e38
           if (xs.le.1.e38) xsr=real(xs)
           if (itype.eq.0) directad(k0,0,iang)=xsr
@@ -282,30 +286,26 @@ c
           read(infileang,'(i5,7x,i3)') i,nS
           do 520 iang=0,nangle
             do 530 k=1,nS
-              read(infileang,'(i3,12x,e12.5)') itype,xs
+              read(infileang,'(i3,12x,e12.5)',end=530,err=530) itype,xs
               ii=indexcc(Zix,Nix,i)
               if (itype.eq.0) directad(k0,ii,iang)=real(xs)
   530       continue
   520     continue
   510   continue
-        read(infilein,'(a72)',end=560) line
-  540   read(infilein,'(a72)',end=560) line
-        if (line(1:1).eq.'<') then
-          backspace infilein
-          goto 560
-        endif
-        read(line,'(e12.5,i3)') xs,i
-        ii=indexcc(Zix,Nix,i+1)
-        xsdirdisc(k0,ii)=real(xs)
-        if (ii.le.Nlast(Zix,Nix,0)) then
-          xsdirdisctot(k0)=xsdirdisctot(k0)+xsdirdisc(k0,ii)
-        else
-          xscollconttot=xscollconttot+xsdirdisc(k0,ii)
-        endif       
-        xscoupled=xscoupled+xsdirdisc(k0,ii)
-        dorigin(k0,ii)='Direct'
-        goto 540
-  560   xsdirdiscsum=xsdirdisctot(k0)
+        read(infilein,'(55x,i5)') nSt
+        do 540 ist=1,nSt
+          read(infilein,'(e12.5,i3)') xs,i
+          ii=indexcc(Zix,Nix,i+1)
+          xsdirdisc(k0,ii)=real(xs)
+          if (ii.le.Nlast(Zix,Nix,0)) then
+            xsdirdisctot(k0)=xsdirdisctot(k0)+xsdirdisc(k0,ii)
+          else
+            xscollconttot=xscollconttot+xsdirdisc(k0,ii)
+          endif       
+          xscoupled=xscoupled+xsdirdisc(k0,ii)
+          dorigin(k0,ii)='Direct'
+  540   continue
+        xsdirdiscsum=xsdirdisctot(k0)
       endif
 c
 c Close files

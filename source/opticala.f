@@ -1,8 +1,8 @@
       subroutine opticala(Zix,Nix,eopt)
 c
 c +---------------------------------------------------------------------
-c | Author: Arjan Koning 
-c | Date  : December 8, 2005
+c | Author: Arjan Koning and Stephane Goriely
+c | Date  : October 5, 2007
 c | Task  : Optical potential for alpha
 c +---------------------------------------------------------------------
 c
@@ -154,6 +154,27 @@ c
       vso=0.
       wso=0.
       eopt=eopt*4.
+c
+c S. Goriely: inclusion of the alpha OMP of Mc Fadden & Satchler 
+c for alphaomp=2
+c alphaomp=1 --> Watanabe potential
+c alphaomp=2 --> Global OMP potential of L. McFadden, G.R. Satchler, 
+c Nucl. Phys. 84 (1966) 177
+c
+c Overwrite some of the previous values.
+c
+      if (alphaomp.eq.2) then
+        v=185.0
+        rv=1.40
+        av=0.52
+        w=25.0
+        rw=rv
+        aw=av
+        vd=0.
+        wd=0.
+        vso=0.
+        wso=0.
+      endif
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

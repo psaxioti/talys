@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
-c | Date  : July 2, 2004
+c | Date  : September 10, 2007
 c | Task  : Build rotational bands on transition states
 c +---------------------------------------------------------------------
 c
@@ -29,6 +29,7 @@ c minertia    : moment of inertia of fission barrier
 c Eband       : help variable     
 c efistrhb    : energy of head band transition states
 c fecont      : start of continuum energy
+c numrot      : number of rotational states
 c efistrrot   : energy of rotational transition states
 c jfistrrot   : spin of rotational transition states
 c pfistrrot   : parity of rotational transition states
@@ -53,6 +54,13 @@ c
           if (Eband.gt.fecont(Zix,Nix,nbi)) goto 20
           nfistrrot(Zix,Nix,nbi)=nfistrrot(Zix,Nix,nbi)+1
           itstot=nfistrrot(Zix,Nix,nbi)
+          if (itstot.gt.numrot) then
+            write(*,'(" TALYS-error: Due to the number of",
+     +        " head band states, the number of rotational states",
+     +        " exceeds ",i3)') numrot
+            write(*,'(" numrot in talys.cmb should be increased")')
+            stop
+          endif
           efistrrot(Zix,Nix,nbi,itstot)=Eband
           jfistrrot(Zix,Nix,nbi,itstot)=rj
           pfistrrot(Zix,Nix,nbi,itstot)=pfistrhb(Zix,Nix,nbi,i)

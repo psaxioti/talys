@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 15, 2006   
+c | Date  : December 17, 2007
 c | Task  : ECIS calculation for outgoing particles and energy grid
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      rotational,vibrational
+      logical      jlmloc,rotational,vibrational
       character*13 outfile
       integer      Zcomp,Ncomp,type,Zix,Nix,Z,A,i1,i,ii,nen
       real         e
@@ -19,10 +19,16 @@ c
 c Zcomp       : charge number index for compound nucleus 
 c Ncomp       : neutron number index for compound nucleus 
 c legendre    : logical for output of Legendre coefficients
+c hint        : integration step size h
 c rmatch      : matching radius
 c anginc      : angle increment
 c angend      : last angle
+c jlmloc      : flag for JLM OMP
+c jlmexist    : flag for existence of tabulated radial matter density
 c flagoutomp  : flag for output of optical model parameters
+c numjlm      : maximum number of radial points
+c rhojlmp     : density for protons
+c rhojlmn     : density for neutrons
 c flageciscalc: flag for new ECIS calculation for outgoing particles
 c               and energy grid
 c parskip     : logical to skip outgoing particle
@@ -40,18 +46,30 @@ c ecis2(13)=T : output of transmission coefficients
 c ecis2(14)=F : no output of elastic angular distribution 
 c
       legendre=.false.
+      hint=0.
       rmatch=0.
       anginc=180.
       angend=180.
 c
 c Loop over all particle types and energies on standard energy grid.
 c
-      if (flagoutomp) 
-     +  write(*,'(/" ######### OPTICAL MODEL PARAMETERS ##########")')
+      jlmloc=.false.
+      if (jlmexist(Zcomp,Ncomp,1)) jlmloc=.true.
+      if (flagoutomp) then
+        write(*,'(/" ######### OPTICAL MODEL PARAMETERS ##########")')
+        if (jlmloc) then
+          write(*,'(/" Radial densities"/)')
+          write(*,'(" Radius   Protons     Neutrons"/)')
+          do 10 i=1,numjlm
+            write(*,'(f7.3,1p,2e12.5)') 0.1*real(i),
+     +        rhojlmp(Zcomp,Ncomp,i,1),rhojlmn(Zcomp,Ncomp,i,1)
+   10     continue
+        endif
+      endif
       if (flageciscalc) 
      +  open (unit=9,status='unknown',file='ecisinv.inp')
-      do 10 type=1,6
-        if (parskip(type)) goto 10
+      do 110 type=1,6
+        if (parskip(type)) goto 110
         Zix=Zindex(Zcomp,Ncomp,type)
         Nix=Nindex(Zcomp,Ncomp,type)
         Z=ZZ(Zcomp,Ncomp,type)
@@ -64,7 +82,7 @@ c
 c
 c Output of optical model parameters, if requested.
 c
-        if (flagoutomp) then
+        if (flagoutomp.and.(.not.jlmloc.or.type.gt.2)) then
           write(*,'(/11x,a8," on ",i3,a2/)') parname(type),A,nuc(Z)
           write(*,'("  Energy",4x,"V",5x,"rv",4x,"av",4x,"W",5x,
      +      "rw",4x,"aw",4x,"Vd",3x,"rvd",3x,"avd",4x,"Wd",
@@ -81,7 +99,7 @@ c Some input flags for ECIS are energy dependent for the rotational
 c model so ecis1 will be defined inside the energy loop.
 c
         ecis1='FFFFFTFFFFFFFFFFFFFFFFFFTFFTFFFFFFFFFFFFFFFFFFFFFF'
-        ecis2='FFFFFFFFTFFFTFFFTTTFFTTFTFFFFFFFFFFFFFFFFFFFFFFFFF'
+        ecis2='FFFFFFFFTFFFTFFFTTTFTTTFTFFFFFFFFFFFFFFFFFFFTFFFFF'
         Nband=0
 c
 c 1. Spherical nucleus
@@ -100,7 +118,9 @@ c              rotational model
 c Elevel     : energy of level
 c tarspin    : spin of target nucleus
 c tarparity  : parity of target nucleus
+c nrad       : number of radial points
 c
+        jlmloc=.false.
         if (colltype(Zix,Nix).eq.'S'.or..not.flagrot(type)) then
           rotational=.false.
           vibrational=.false.
@@ -112,6 +132,16 @@ c
           Elevel(1)=0.
           tarspin=0.
           tarparity='+'
+          if (jlmexist(Zix,Nix,type)) then
+            ecis1(7:7)='T'
+            ecis1(15:15)='T'
+            ecis1(29:29)='T'
+            ecis1(41:41)='T'
+            hint=0.1
+            rmatch=12.
+            nrad=122
+            jlmloc=.true.
+          endif
         else
 c
 c 2. Deformed nucleus
@@ -139,12 +169,12 @@ c
           tarspin=jdis(Zix,Nix,0)
           tarparity=cparity(parlev(Zix,Nix,0))
           i1=0
-          do 20 i=1,ndef(Zix,Nix)
+          do 120 i=1,ndef(Zix,Nix)
             ii=indexlevel(Zix,Nix,i)
             if (leveltype(Zix,Nix,ii).ne.'V'.and.
-     +        leveltype(Zix,Nix,ii).ne.'R') goto 20
+     +        leveltype(Zix,Nix,ii).ne.'R') goto 120
             if (colltype(Zix,Nix).eq.'R'.and.
-     +        vibband(Zix,Nix,i).gt.maxband) goto 20
+     +        vibband(Zix,Nix,i).gt.maxband) goto 120
             i1=i1+1
             idvib(i1)=vibband(Zix,Nix,i)
             Elevel(i1)=edis(Zix,Nix,ii)
@@ -157,7 +187,7 @@ c
             Kmag(i1)=Kband(Zix,Nix,i)
             vibbeta(i1)=defpar(Zix,Nix,i)
             Nband=max(Nband,iband(i1))
-   20     continue
+  120     continue
           ncoll=i1
           if (flagstate) then
             npp=ncoll
@@ -172,9 +202,9 @@ c
             rotational=.false.
             vibrational=.true.
             title='Vibrational optical model                         '
-            do 30 i=1,ncoll
+            do 130 i=1,ncoll
               idvib(i)=0
-   30       continue
+  130       continue
           else
 c
 c 2b. Rotational model
@@ -190,9 +220,9 @@ c
             vibrational=.false.
             ecis1(1:1)='T' 
             Nrotbeta=nrot(Zix,Nix)
-            do 40 i=1,Nrotbeta
+            do 140 i=1,Nrotbeta
               rotbeta(i)=rotpar(Zix,Nix,i)
-   40       continue
+  140       continue
             if (colltype(Zix,Nix).eq.'R') then
               title='Symmetric rotational optical model                '
               iqm=2*Nrotbeta
@@ -209,6 +239,9 @@ c **************** ECIS input files for several energies ***************
 c
 c deftype         : deformation length (D) or parameter (B)
 c flagrel         : flag for relativistic kinematics
+c disp            : flag for dispersive optical model
+c efer            : Fermi energy
+c w2disp,.........: constants for imaginary potentials 
 c projmass,parmass: mass of projectile
 c spin,parspin    : spin of incident particle
 c nucmass,resmass : mass of nucleus
@@ -223,12 +256,18 @@ c specmass        : specific mass
 c
         if (deftype(Zix,Nix).eq.'B') ecis1(6:6)='F'  
         if (flagrel) ecis1(8:8)='T'
-        ecis1(10:10)='F'
+        if (disp(Zix,Nix,type)) then
+          ecis1(10:10)='T'
+          efer=ef(Zix,Nix,type)
+          w2disp=w2(Zix,Nix,type)
+          d3disp=d3(Zix,Nix,type)
+          d2disp=d2(Zix,Nix,type)
+        endif
         projmass=parmass(type)
         spin=parspin(type)
         resmass=nucmass(Zix,Nix)
         prodZ=real(Z*parZ(type))
-        do 110 nen=ebegin(type),eendmax(type)
+        do 210 nen=ebegin(type),eendmax(type)
           e=real(egrid(nen)/specmass(Zix,Nix,type))
 c
 c We use a simple formula to estimate the required number of j-values:
@@ -243,6 +282,7 @@ c
      +      sqrt(projmass*e))
           njmax=max(njmax,20)
           njmax=min(njmax,numl-2)
+          if (jlmloc) njmax=1600
 c
 c *************** Calculate optical potential parameters ***************
 c
@@ -250,12 +290,12 @@ c optical: subroutine for determination of optical potential
 c v,rv,..: optical model parameters
 c
           call optical(Zix,Nix,type,e)
-          if (flagoutomp) then
+          if (flagoutomp.and.(.not.jlmloc.or.type.gt.2)) then
             write(*,'(1x,f7.3,1x,6(f6.2,f6.3,f6.3),f6.3)')
      +        e,v,rv,av,w,rw,aw,vd,rvd,avd,wd,rwd,awd,vso,rvso,
      +        avso,wso,rwso,awso,rc       
           endif
-          if (.not.flageciscalc) goto 110
+          if (.not.flageciscalc) goto 210
 c
 c ******************* Write ECIS input file ****************************
 c
@@ -278,10 +318,11 @@ c
             if (type.gt.1.and.e.le.0.05*coulbar(type).and.
      +        e.le.2.*Elevel(ncoll)) e=0.1*Elevel(ncoll)
             if (flagrel) ecis1(8:8)='T'
+            if (disp(Zix,Nix,type)) ecis1(10:10)='T'
           endif
-          call ecisinput(Zix,Nix,type,e,rotational,vibrational)
-  110   continue
-   10 continue
+          call ecisinput(Zix,Nix,type,e,rotational,vibrational,jlmloc)
+  210   continue
+  110 continue
       if (.not.flageciscalc) return
       write(9,'("fin")') 
       close (unit=9)
@@ -292,7 +333,7 @@ c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
 c csfile     : file with inverse reaction cross sections 
-c ecis03t    : subroutine ecis03, adapted for TALYS
+c ecis06t    : subroutine ecis06, adapted for TALYS
 c transfile  : file with transmission coefficients
 c ecisstatus : status of ECIS file  
 c
@@ -301,8 +342,8 @@ c
       else
         outfile=nulldev
       endif
-      call ecis03t('ecisinv.inp  ',outfile,csfile,
-     +    'ecis03.invin ',transfile,'null         ','null         ')  
+      call ecis06t('ecisinv.inp  ',outfile,csfile,
+     +    'ecis06.invin ',transfile,'null         ','null         ')  
       open (unit=9,status='unknown',file='ecisinv.inp')
       close (unit=9,status=ecisstatus)
       return

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : November 10, 2006
+c | Date  : December 18, 2007
 c | Task  : Write input parameters
 c +---------------------------------------------------------------------
 c
@@ -32,12 +32,13 @@ c
 c
 c 1. Four main keywords
 c
-c ptype0    : type of incident particle
-c Starget   : symbol of target nucleus
-c Atarget   : mass number of target nucleus
-c numinc    : number of incident energies
-c eninc     : incident energy in MeV
-c energyfile: file with incident energies
+c ptype0     : type of incident particle
+c Starget    : symbol of target nucleus
+c Atarget    : mass number of target nucleus
+c numinc     : number of incident energies
+c flaginitpop: flag for initial population distribution
+c eninc      : incident energy in MeV
+c energyfile : file with incident energies
 c
       write(*,'(" #"/" # Four main keywords"/" #")')
       write(*,'(" projectile          ",a1,"     ptype0",
@@ -46,7 +47,7 @@ c
      +  "      symbol of target nucleus")') Starget
       write(*,'(" mass              ",i3,"     mass     ",
      +  "    mass number of target nucleus")') Atarget
-      if (numinc.eq.1) then
+      if (numinc.eq.1.and..not.flaginitpop) then
         write(*,'(" energy            ",f7.3," eninc",
      +    "        incident energy in MeV")') eninc(1)
       else
@@ -91,6 +92,9 @@ c flaglabddx  : flag for calculation of DDX in LAB system
 c flagrecoilav: flag for average velocity in recoil calculation
 c flagEchannel: flag for channel energy for emission spectrum
 c flagreaction: flag for calculation of nuclear reactions
+c flagastro   : flag for calculation of astrophysics reaction rate
+c flagastrogs : flag for calculation of astrophysics reaction rate with 
+c               target in ground state only
 c massmodel   : model for theoretical nuclear mass
 c flagexpmass : flag for using experimental nuclear mass if available
 c
@@ -160,6 +164,11 @@ c
      +  " channel energy for emission spectrum")') yesno(flagEchannel)
       write(*,'(" reaction            ",a1,"     flagreaction flag",
      +  " for calculation of nuclear reactions")') yesno(flagreaction)
+      write(*,'(" astro               ",a1,"     flagastro    flag for",
+     +  " calculation of astrophysics reaction rate")') yesno(flagastro)
+      write(*,'(" astrogs             ",a1,"     flagastrogs  flag for",
+     +  " calculation of astrophysics reaction rate with target in",
+     +  " ground state only")') yesno(flagastrogs)
       write(*,'(" massmodel          ",i2,"     massmodel",
      +  "    model for theoretical nuclear mass")') massmodel
       write(*,'(" expmass             ",a1,"     flagexpmass ",
@@ -169,6 +178,8 @@ c
 c 3. Optical model
 c
 c flaglocalomp: flag for local (y) or global (n) optical model
+c flagdisp    : flag for dispersive optical model   
+c flagjlm     : flag for using semi-microscopic JLM OMP 
 c flagompall  : flag for new optical model calculation for all residual
 c               nuclei  
 c flagautorot : flag for automatic rotational coupled channels
@@ -187,10 +198,15 @@ c flagecissave: flag for saving ECIS input and output files
 c flageciscalc: flag for new ECIS calculation for outgoing particles
 c               and energy grid
 c flaginccalc : flag for new ECIS calculation for incident channel
+c radialmodel : model for radial matter densities (JLM OMP only)
 c
       write(*,'(" #"/" # Optical model"/" #")')
       write(*,'(" localomp            ",a1,"     flaglocalomp flag for",
      +  " local (y) or global (n) optical model")') yesno(flaglocalomp)
+      write(*,'(" dispersion          ",a1,"     flagdisp    ",
+     +  " flag for dispersive optical model")') yesno(flagdisp)
+      write(*,'(" jlmomp              ",a1,"     flagjlm      flag for",
+     +  " using semi-microscopic JLM OMP")') yesno(flagjlm)
       write(*,'(" optmodall           ",a1,"     flagompall   flag for",
      +  " new optical model calculation for all residual nuclei")')
      +  yesno(flagompall)
@@ -236,6 +252,9 @@ c
       write(*,'(" inccalc             ",a1,"     flaginccalc ",
      +  " flag for new ECIS calculation for incident channel")')
      +  yesno(flaginccalc)
+      write(*,'(" radialmodel        ",i2,"     radialmodel ",
+     +  " model for radial matter densities (JLM OMP only)")') 
+     +  radialmodel
 c
 c 4. Compound nucleus
 c
@@ -351,10 +370,12 @@ c
 c ldmodel     : level density model
 c spincutmodel: model for spin cutoff factor for ground state
 c shellmodel  : model for shell correction energies
+c kvibmodel   : model for vibrational enhancement
 c flagasys    : flag for all level density parameters a from 
 c               systematics
 c flagparity  : flag for non-equal parity distribution
 c flagcol     : flag for collective enhancement of level density
+c flagctmglob : flag for global CTM model (no discrete level info)
 c flaggshell  : flag for energy dependence of single particle level
 c               density parameter g
 c
@@ -363,6 +384,8 @@ c
      +  "  level density model")') ldmodel
       write(*,'(" shellmodel         ",i2,"     shellmodel  ",
      +  " model for shell correction energies")') shellmodel
+      write(*,'(" kvibmodel          ",i2,"     kvibmodel   ",
+     +  " model for vibrational enhancement")') kvibmodel
       write(*,'(" spincutmodel       ",i2,"     spincutmodel",
      +  " model for spin cutoff factor for ground state")') spincutmodel
       write(*,'(" asys                ",a1,"     flagasys     flag",
@@ -372,6 +395,9 @@ c
      +  " flag for non-equal parity distribution")') yesno(flagparity)
       write(*,'(" colenhance          ",a1,"     flagcol     ",
      +  " flag for damping of collective effects")') yesno(flagcol)
+      write(*,'(" ctmglobal           ",a1,"     flagctmglob ",
+     +  " flag for global CTM model (no discrete level info)")') 
+     +  yesno(flagctmglob)
       write(*,'(" gshell              ",a1,"     flaggshell  ",
      +  " flag for energy dependence of single particle",
      +  " level density parameter g")') yesno(flaggshell)

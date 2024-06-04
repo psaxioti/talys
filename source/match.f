@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 17, 2004
+c | Date  : November 16, 2007
 c | Task  : Matching function
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       integer          i
       real             match,Eex,dEx,temp,logrhof
-      double precision rhof,factor1,factor2
+      double precision rhof,factor1,factor2,term
 c
 c *********************** Matching function ****************************
 c
@@ -20,6 +20,7 @@ c Eex         : excitation energy
 c pol1        : subroutine for interpolation of first order
 c temp,temprho: nuclear temperature
 c rhof        : value for total level density 
+c E0save      : E0 value saved for matching routine
 c NLo,EL,NP,EP: matching level numbers and energies
 c factor1,2   : help variables
 c
@@ -28,11 +29,16 @@ c
       call pol1(i*dEx,(i+1)*dEx,temprho(i),temprho(i+1),Eex,temp)
       if (temp.gt.0.) then
         call pol1(i*dEx,(i+1)*dEx,logrho(i),logrho(i+1),Eex,logrhof)
-        rhof=exp(logrhof)
-        factor1=exp(-Eex/temp)
-        factor2=exp(EP/temp)
-        if (EL.ne.0.) factor2=factor2-exp(EL/temp)
-        match=real(temp*rhof*factor1*factor2)+NLo-NP
+        rhof=exp(dble(logrhof))
+        if (E0save.eq.1.e-20) then
+          factor1=exp(-Eex/temp)
+          factor2=exp(dble(EP/temp))
+          if (EL.ne.0.) factor2=factor2-exp(EL/temp)
+          term=real(min(temp*rhof*factor1*factor2,1.d30))
+          match=term+NLo-NP
+        else
+          match=Eex-temp*log(temp*rhof)-E0save
+        endif
       endif
       return
       end

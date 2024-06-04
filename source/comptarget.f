@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : December 8, 2006
+c | Date  : May 24, 2007
 c | Task  : Compound reaction for initial compound nucleus
 c +---------------------------------------------------------------------
 c
@@ -21,16 +21,20 @@ c
       real             Tinc,fluxsum,ratio,Tout,Rspin,angfac,rJ,rlin,
      +                 rjin,rlout,rjout,phase,rLL,clin,clebsch,ra1in,
      +                 racah,ra2in,clout,ra1out,ra2out,Ablatt
-      double precision factor1,sumIPE,sumIP,rho,sumjl,compterm
+      double precision factor1,sumIPE,sumIP,sumIPas,rho,sumjl,compterm
 c
 c *** Check if initial compound nucleus calculation needs to be done ***
 c
-c xsflux: cross section flux
-c xseps : limit for cross sections
+c flaginitpop: flag for initial population distribution
+c xsflux     : cross section flux
+c xseps      : limit for cross sections
 c
 c This may occur when direct + pre-equilibrium reactions completely
-c exhaust the reaction cross section for the binary channel.
+c exhaust the reaction cross section for the binary channel, and
+c when the initial system is a excitation energy population.
+c 
 c
+      if (flaginitpop) return
       if (xsflux.le.xseps) return
 c
 c *************************** Initialization ***************************
@@ -96,6 +100,17 @@ c
         do 10 l=0,lmaxinc
           Tjlnex(k0,Ltarget,updown,l)=Tjlinc(updown,l)
    10 continue
+c
+c Initialisation of total astrophysical transmission coefficient
+c
+c flagastro  : flag for calculation of astrophysics reaction rate
+c Tastrotot  : total transmission coefficient for astrophysical case
+c rhoastrotot: total level density for astrophysical case
+c
+      if (flagastro) then
+        Tastrotot=0.
+        rhoastrotot=0.
+      endif
 c
 c ************** Loop over incoming and outgoing channels **************
 c
@@ -322,6 +337,7 @@ c Irspin2end: 2 * end of residual spin summation
 c J2res     : help variable
 c maxJ      : maximal J-value
 c sumIP     : compound contribution summed over residual spin and parity
+c sumIPas   : sumIP for astrophysics
 c
 c For discrete states, the begin and end points of the residual
 c spin/parity summation are both set equal to the residual discrete
@@ -345,6 +361,7 @@ c
                     Irspin2end=min(Irspin2end,2*maxJ(Zix,Nix,nexout))  
                   endif
                   sumIP=0.
+                  if (flagastro) sumIPas=0.
 c
 c 180: Sum over residual parity
 c
@@ -457,10 +474,17 @@ c required, the partial and total decay widths were already determined
 c in subroutine compprepare. This means we are now in the short loop 
 c with l=j=lprime=jprime=1.
 c
-c enumhf: enumerator for compound nucleus formula
+c enumhf     : enumerator for compound nucleus formula
+c flagastrogs: flag for calculation of astrophysics reaction rate with 
+c              target in ground state only
 c
                             factor1=feed*
      +                        enumhf(type,nexout,Ir,Pprime)/denomhf
+                            if (flagastro.and..not.flagastrogs.and.
+     +                        type.eq.k0) then
+                              sumIPas=sumIPas+CNfactor*(J2+1)*
+     +                          enumhf(type,nexout,Ir,Pprime)**2/denomhf
+                            endif
                           endif
 c
 c The contribution is added to the total width for the particular
@@ -568,6 +592,8 @@ c Compound elastic scattering is excluded from the residual production
 c cross sections.
 c
                   if (.not.elastic) sumIPE=sumIPE+sumIP
+                  if (flagastro.and..not.flagwidth.and.type.eq.k0.and.
+     +              sumIP-sumIPas.gt.xseps)  sumIPE=sumIPE-sumIPas
   170           continue
                 xspopnuc(Zix,Nix)=xspopnuc(Zix,Nix)+sumIPE
                 xsbinary(type)=xsbinary(type)+sumIPE
@@ -592,6 +618,21 @@ c
   130     continue
   120   continue
   110 continue
+c
+c ************************** Astrophysics ******************************
+c
+c transeps: absolute limit for transmission coefficient
+c parZ    : charge number of particle
+c k0      : index of incident particle
+c parN    : neutron number of particle
+c
+      if (flagastro.and..not.flagastrogs) then
+        if (Tastrotot.ge.transeps.and.rhoastrotot.ge.0..and.flagwidth) 
+     +    call astrotarget
+        if (flagwidth) then
+          if (maxex(parZ(k0),parN(k0))+1.gt.3) ewfc=Einc
+        endif
+      endif
 c
 c *********** Output of fission transmission coefficients **************
 c

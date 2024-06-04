@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 4, 2006   
+c | Date  : June 19, 2007   
 c | Task  : Output of particle production cross sections
 c +---------------------------------------------------------------------
 c
@@ -57,12 +57,12 @@ c
           else
             open (unit=1,status='old',file=totfile)
             do 30 nen=1,nin+4
-              read(1,*) 
+              read(1,*,end=40,err=40) 
    30       continue
           endif
           write(1,'(1p,e10.3,2e12.5)') Einc,xsparticle(type),
      +      multiplicity(type)
-          close (unit=1)
+   40     close (unit=1)
         endif
    10 continue
 c
@@ -94,11 +94,11 @@ c
           else
             open (unit=1,status='old',file=fisfile)
             do 120 nen=1,nin+4
-              read(1,*) 
+              read(1,*,end=130,err=130) 
   120       continue
           endif
           write(1,'(1p,e10.3,e12.5)') Einc,xsfistot
-          close (unit=1)
+  130     close (unit=1)
         endif
       endif
       return

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : September 26, 2006
+c | Date  : June 11, 2007
 c | Task  : Fission fragment mass yields per fission mode based on RNRM
 c +---------------------------------------------------------------------
 c
@@ -15,7 +15,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer Z,A,Zix,Nix,izmax,jimax,izloop,mcount,jmx,imax,i,k,
-     +  izstepnum
+     +  izstepnum,iaf1,izf1,iaf2,izf2,irn1,irn2
       real sumw,expo,rhodi,eob,ezdisnorm,ezdis,coulel,vnel,rnma,rnmi,
      +     es1,es2,bind01,bind02,es,bind1,bind2,ze1,ze2,am1,am2,coul12,
      +     sform,s12,x1,x2,b1,b2,de,vr3,ve1,ve2,a1,a2,zriss,zo,zu,
@@ -27,7 +27,7 @@ c
      +     fmass(nummass),rtbis,fmasscor(nummass),crel,aloop,elt,edefo,
      +     ap,ztot,atot,fmzcor(nummass,numelem),fmz(nummass,numelem),
      +     zf1(4000,numelem),ald,ignatyuk,dumm
-      external fi,rpoint,evap
+      external fidi,rpoint,evap
       data r0,xnu,rayl/1.15,1.0,11.00/
 c
 c determine mass and charge grid (depending whether evaporation 
@@ -118,7 +118,7 @@ c
       pa(i)=psh(i)-delt
       pe(i)=psh(i)+delt
  101  pd(i)=delt
- 100  fimin=fmin(fi,7,psh,pd,pa,pe,200,-1.E-4)
+ 100  fimin=fmin(fidi,7,psh,pd,pa,pe,200,-1.E-4)
  102  if (fimin.lt.1.E-3) goto 103
  103  d=totl-r1-r3
 c
@@ -217,7 +217,7 @@ c
       if(mcount.eq.1)ezdisnorm=ezdis
       mcount=mcount+1
       ezdis=ezdis-ezdisnorm
-      if(ezdis.lt.80.) zdis(jmx,izloop)=exp(-ezdis)
+      if (abs(ezdis).le.80.) zdis(jmx,izloop)=exp(-ezdis)
 c
 c total kinetic energy tke, mass probability distribution wgt(a).
 c
@@ -248,22 +248,20 @@ c
          wgt(k)=wgt(k)/sumw
          do 73, i=1,izmax
             zdis(k,i)=zdis(k,i)/sumtmp(k)
-            fmz(int(af1(k)+0.5),int(zf1(k,i)+0.5))=
-     +           wgt(k)*zdis(k,i)
-     +           +fmz(int(af1(k)+0.5),int(zf1(k,i)+0.5))
-            fmz(int(af2(k)+0.5),int(zf2(k,i)+0.5))=
-     +           wgt(k)*zdis(k,i)
-     +           +fmz(int(af2(k)+0.5),int(zf2(k,i)+0.5))
+            iaf1=max(int(af1(k)+0.5),1)
+            izf1=max(int(zf1(k,i)+0.5),1)
+            iaf2=max(int(af2(k)+0.5),1)
+            izf2=max(int(zf2(k,i)+0.5),1)
+            fmz(iaf1,izf1)=wgt(k)*zdis(k,i)+fmz(iaf1,izf1)
+            fmz(iaf2,izf2)=wgt(k)*zdis(k,i)+fmz(iaf2,izf2)
 c
 c calculate corrections for neutron evaporation if evapcor=true
 c
             if(flagffevap)then
-            fmzcor(int(af1(k)-rn1(k,i)+0.5),int(zf1(k,i)+0.5))
-     +           =fmzcor(int(af1(k)-rn1(k,i)+0.5),int(zf1(k,i)+0.5))+
-     +           wgt(k)*zdis(k,i)
-            fmzcor(int(af2(k)-rn2(k,i)+0.5),int(zf2(k,i)+0.5))
-     +           =fmzcor(int(af2(k)-rn2(k,i)+0.5),int(zf2(k,i)+0.5))+
-     +           wgt(k)*zdis(k,i)
+              irn1=max(int(af1(k)-rn1(k,i)+0.5),1)
+              irn2=max(int(af2(k)-rn2(k,i)+0.5),1)
+              fmzcor(irn1,izf1)=fmzcor(irn1,izf1)+wgt(k)*zdis(k,i)
+              fmzcor(irn2,izf2)=fmzcor(irn2,izf2)+wgt(k)*zdis(k,i)
             endif
  73      continue
          fmass(int(af1(k)+0.5))=fmass(int(af1(k)+0.5))+wgt(k)

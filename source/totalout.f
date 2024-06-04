@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 5, 2006   
+c | Date  : November 1, 2007   
 c | Task  : Output of total cross sections
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       character*14 totfile
-      integer      nen,i
+      integer      nen
 c
 c ********************* Total cross sections ***************************
 c
@@ -31,8 +31,13 @@ c xsgrsum     : sum over giant resonance cross sections
 c xscompnonel : total compound non-elastic cross section
 c xselastot   : total elastic cross section (shape + compound)
 c
-      write(*,'(/" ########### REACTION SUMMARY FOR E=",f7.3, 
-     +  " ###########"/)') Einc
+      if (Einc.ge.0.001) then
+        write(*,'(/" ########### REACTION SUMMARY FOR E=",f9.5, 
+     +    " ###########"/)') Einc
+      else
+        write(*,'(/" ########### REACTION SUMMARY FOR E=",1p,e12.5,
+     +    " ###########"/)') Einc
+      endif
       write(*,'(" Center-of-mass energy: ",f7.3/)') eninccm
       write(*,'(" 1. Total (binary) cross sections"/)') 
       if (k0.eq.1) write(*,'(" Total           =",1p,e12.5)') xstotinc
@@ -75,18 +80,21 @@ c
      +      "     Comp. el.  Shape el.  Reaction",
      +      " Comp. nonel   Direct   Pre-equil.")')
           do 10 nen=1,numinclow
-            write(1,'(1p,e10.3,2x,9e11.4)') eninc(nen),(0.,i=1,9)
+            write(1,'(1p,e10.3,2x,9e11.4)') eninc(nen),fxsnonel(nen),
+     +        fxselastot(nen),fxstotinc(nen),fxscompel(nen),
+     +        fxselasinc(nen),fxsreacinc(nen),fxscompnonel(nen),
+     +        fxsdirdiscsum(nen),fxspreeqsum(nen)
    10     continue
         else
           open (unit=1,status='old',file=totfile)
           do 20 nen=1,nin+4
-            read(1,*) 
+            read(1,*,end=30,err=30) 
    20     continue
         endif
         write(1,'(1p,e10.3,2x,9e11.4)') Einc,xsnonel,xselastot,
      +    xstotinc,xscompel,xselasinc,xsreacinc,xscompnonel,
      +    xsdirdiscsum,xspreeqsum
-        close (unit=1)
+   30   close (unit=1)
 c
 c Total cross sections (i.e. from OMP) only
 c
@@ -99,17 +107,17 @@ c
           write(1,'("# ")')
           write(1,'("# # energies =",i3)') numinc
           write(1,'("#    E      Cross section")')
-          do 30 nen=1,numinclow
-            write(1,'(1p,e10.3,2x,e11.4)') eninc(nen),0.
-   30     continue
+          do 40 nen=1,numinclow
+            write(1,'(1p,e10.3,2x,e11.4)') eninc(nen),fxstotinc(nen)
+   40     continue
         else
           open (unit=1,status='old',file=totfile)
-          do 40 nen=1,nin+4
-            read(1,*) 
-   40     continue
+          do 50 nen=1,nin+4
+            read(1,*,end=60,err=60) 
+   50     continue
         endif
         write(1,'(1p,e10.3,2x,e11.4)') Einc,xstotinc
-        close (unit=1)
+   60   close (unit=1)
 c
 c Elastic cross sections only
 c
@@ -122,17 +130,17 @@ c
           write(1,'("# ")')
           write(1,'("# # energies =",i3)') numinc
           write(1,'("#    E      Cross section")')
-          do 50 nen=1,numinclow
-            write(1,'(1p,e10.3,2x,e11.4)') eninc(nen),0.
-   50     continue
+          do 70 nen=1,numinclow
+            write(1,'(1p,e10.3,2x,e11.4)') eninc(nen),fxselastot(nen)
+   70     continue
         else
           open (unit=1,status='old',file=totfile)
-          do 60 nen=1,nin+4
-            read(1,*) 
-   60     continue
+          do 80 nen=1,nin+4
+            read(1,*,end=90,err=90) 
+   80     continue
         endif
         write(1,'(1p,e10.3,2x,e11.4)') Einc,xselastot
-        close (unit=1)
+   90   close (unit=1)
 c
 c Nonelastic cross sections only
 c
@@ -145,17 +153,17 @@ c
           write(1,'("# ")')
           write(1,'("# # energies =",i3)') numinc
           write(1,'("#    E      Cross section")')
-          do 70 nen=1,numinclow
-            write(1,'(1p,e10.3,2x,e11.4)') eninc(nen),0.
-   70     continue
+          do 100 nen=1,numinclow
+            write(1,'(1p,e10.3,2x,e11.4)') eninc(nen),fxsnonel(nen)
+  100     continue
         else
           open (unit=1,status='old',file=totfile)
-          do 80 nen=1,nin+4
-            read(1,*) 
-   80     continue
+          do 110 nen=1,nin+4
+            read(1,*,end=120,err=120) 
+  110     continue
         endif
         write(1,'(1p,e10.3,2x,e11.4)') Einc,xsnonel
-        close (unit=1)
+  120   close (unit=1)
       endif
       return
       end

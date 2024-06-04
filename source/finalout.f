@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 7, 2006   
+c | Date  : May 10, 2007
 c | Task  : Output of final results        
 c +---------------------------------------------------------------------
 c
@@ -52,6 +52,7 @@ c parsym        : symbol of particle
 c Cstrip        : adjustable parameter for stripping/pick-up reactions
 c Cknock        : adjustable parameter for knockout reactions
 c v1adjust..    : adjustable factors for OMP (default 1.)
+c flagjlm       : flag for using semi-microscopic JLM OMP
 c
       if (flagpartable) then
         write(11,'("#")')
@@ -136,6 +137,14 @@ c
           write(11,'("rcadjust   ",a1,f10.5)') parsym(type),
      +      rcadjust(type)
         enddo
+        if (flagjlm) then
+          write(11,'("lvadjust   ",f10.5)') lvadjust
+          write(11,'("lwadjust   ",f10.5)') lwadjust
+          write(11,'("lv1adjust  ",f10.5)') lv1adjust
+          write(11,'("lw1adjust  ",f10.5)') lw1adjust
+          write(11,'("lvsoadjust ",f10.5)') lvsoadjust
+          write(11,'("lwsoadjust ",f10.5)') lwsoadjust
+        endif
       endif
       close (unit=11)
 c

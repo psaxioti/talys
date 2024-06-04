@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 15, 2006
+c | Date  : December 17, 2007
 c | Task  : ECIS calculation of direct cross section
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      rotational,vibrational
+      logical      rotational,vibrational,jlmloc
       character*13 outfile
       integer      type,Zix,Nix,A,odd,i,l
 c
@@ -17,6 +17,7 @@ c ********************** Set ECIS input parameters *********************
 c
 c rotational      : flag for rotational input
 c vibrational     : flag for vibrational input
+c jlmloc          : flag for JLM OMP
 c legendre        : logical for output of Legendre coefficients     
 c title           : title of ECIS input file
 c ecis1,ecis2     : 100 input flags ('T' or 'F') for ECIS
@@ -26,6 +27,7 @@ c iterm           : number of iterations
 c flagstate       : flag for optical model potential for each excited 
 c                   state 
 c npp             : number of optical potentials
+c hint            : integration step size h
 c rmatch          : matching radius
 c projmass,parmass: mass of projectile
 c k0              : index of incident particle
@@ -44,18 +46,19 @@ c angbeg          : first angle
 c angend          : last angle
 c
 c Specific ECIS flags:
+c ecis1(30)=T : DWBA
 c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
 c ecis2(14)=T : output of inelastic angular distribution 
 c ecis2(15)=T : output of Legendre coefficients        
-c ecis2(42)=T : DWBA
 c
       open (unit=9,status='unknown',file='ecisdisc.inp')
       rotational=.false.
       vibrational=.true.  
+      jlmloc=.false.
       legendre=.true.
       title='Direct discrete cross sections by DWBA            '
-      ecis1='FFFFFTFFFFFFFFFFFFFFFFFFFFFTFFFFFFFFFFFFFFFFFFFFFF'
-      ecis2='FFFFFFFFTFFFFTTFTTTFFTTFTFFFFFFFFFFFFFFFFTFFFFFFFF'
+      ecis1='FFFFFTFFFFFFFFFFFFFFFFFFFFFTFTFFFFFFFFFFFFFFFFFFFF'
+      ecis2='FFFFFFFFTFFFFTTFTTTFTTTFTFFFFFFFFFFFFFFFFFFFTFFFFF'
       if (flagrel) ecis1(8:8)='T'
       ncoll=2
       iterm=1
@@ -64,6 +67,7 @@ c
       else
         npp=1
       endif 
+      hint=0.
       rmatch=0.
 c
 c We use a simple formula to estimate the required number of j-values:
@@ -92,6 +96,9 @@ c Zindex,Zix: charge number index for residual nucleus
 c Nindex,Nix: neutron number index for residual nucleus
 c AA,A      : mass number of residual nucleus     
 c deftype   : deformation length (D) or parameter (B)
+c disp      : flag for dispersive optical model
+c efer      : Fermi energy
+c w2disp,...: constants for imaginary potentials  
 c odd       : odd (1) or even (0) nucleus
 c resmass   : mass of residual nucleus
 c nucmass   : mass of nucleus   
@@ -108,6 +115,13 @@ c
         Nix=Nindex(0,0,type)
         A=AA(0,0,type)
         if (deftype(Zix,Nix).eq.'B') ecis1(6:6)='F'   
+        if (disp(Zix,Nix,k0)) then
+          ecis1(10:10)='T'
+          efer=ef(Zix,Nix,k0)
+          w2disp=w2(Zix,Nix,k0)
+          d3disp=d3(Zix,Nix,k0)
+          d2disp=d2(Zix,Nix,k0)
+        endif
         odd=mod(A,2)
         resmass=nucmass(Zix,Nix)
         idvib(1)=0       
@@ -158,7 +172,8 @@ c
           Kmag(1)=0
           iph(2)=1
           vibbeta(1)=deform(Zix,Nix,i)
-          call ecisinput(Zix,Nix,type,Einc,rotational,vibrational)
+          call ecisinput(Zix,Nix,type,Einc,rotational,vibrational,
+     +      jlmloc)
    20   continue
 c
 c 2. Giant resonance states
@@ -184,7 +199,8 @@ c
               vibbeta(1)=betagr(l,i)
               if (deftype(Zix,Nix).eq.'D')
      +          vibbeta(1)=vibbeta(1)*rv*real(Atarget)**onethird
-              call ecisinput(Zix,Nix,type,Einc,rotational,vibrational)
+              call ecisinput(Zix,Nix,type,Einc,rotational,vibrational,
+     +          jlmloc)
    30     continue
         endif
    10 continue
@@ -197,7 +213,7 @@ c
 c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
-c ecis03t    : subroutine ecis03, adapted for TALYS
+c ecis06t    : subroutine ecis06, adapted for TALYS
 c ecisstatus : status of ECIS file  
 c
       if (flagoutecis) then
@@ -205,8 +221,8 @@ c
       else
         outfile=nulldev
       endif
-      call ecis03t('ecisdisc.inp ',outfile,'ecis03.dircs ',
-     +  'ecis03.dirin ','null         ','ecis03.dirang','ecis03.dirleg')
+      call ecis06t('ecisdisc.inp ',outfile,'ecis06.dircs ',
+     +  'ecis06.dirin ','null         ','ecis06.dirang','ecis06.dirleg')
       open (unit=9,status='unknown',file='ecisdisc.inp')
       close (unit=9,status=ecisstatus)
       return

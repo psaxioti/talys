@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 9, 2006
+c | Date  : June 19, 2007
 c | Task  : Output of binary cross sections
 c +---------------------------------------------------------------------
 c
@@ -55,11 +55,11 @@ c
         else
           open (unit=1,status='old',file=binfile)
           do 30 nen=1,nin+4
-            read(1,*) 
+            read(1,*,end=40,err=40) 
   30     continue
         endif
         write(1,'(1p,e10.3,2x,7e11.4)') Einc,(xsbinary(type),type=0,6)
-        close (unit=1)
+  40    close (unit=1)
       endif
       return
       end

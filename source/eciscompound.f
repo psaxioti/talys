@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 25, 2004
+c | Date  : December 17, 2007
 c | Task  : Create ECIS input file for compound cross section
 c +---------------------------------------------------------------------
 c
@@ -54,6 +54,7 @@ c wd,rwd,awd   : imaginary surface potential, radius, diffuseness
 c vso,rvso,avso: real spin-orbit potential, radius, diffuseness
 c wso,rwso,awso: imaginary spin-orbit potential, radius, diffuseness
 c rc           : Coulomb radius
+c disp         : flag for dispersive optical model  
 c angbeg       : first angle 
 c anginc       : angle increment
 c angend       : last angle 
@@ -76,7 +77,7 @@ c
       write(1,'(a50)') ecis1
       write(1,'(a50)') ecis2
       write(1,'(4i5)') ncoll,njmax,iterm,npp
-      write(1,'(10x,f10.5,10x,3("     1.e-8"))') rmatch
+      write(1,'(10x,f10.5,10x,3("    1.e-10"))') rmatch
       write(1,'()') 
       write(1,'(2i5,10x,i5)') nsp1,nsp2,ncont
       if (Einc.ge.0.01) then
@@ -107,15 +108,22 @@ c
         write(1,'(3f10.5)') 0.,0.,0.
    20 continue
       write(1,'(3f10.5)') angbeg,anginc,angend
-      write(1,'(1f10.5)') bz1
-      if (parinclude(0)) write(1,'(5f10.5)') tgo,S(0,0,1),0.,
-     +  egr(0,0,1,1,1),ggr(0,0,1,1,1)
+      write(1,'(f10.5)') bz1
+      if (parinclude(0)) write(1,'(1p,e10.3,0p,4f10.5)') 
+     +  tgo,S(0,0,1),0.,egr(0,0,1,1,1),ggr(0,0,1,1,1)
       do 30 nex=0,ncont 
         if (parskip(0).and.nex.eq.0) goto 30
-        write(1,'(7f10.5)') real(Zinit),aldcomp(nex),Umcomp(nex),
+        write(1,'(1p,7e10.3)') real(Zinit),aldcomp(nex),Umcomp(nex),
      +    tempcomp(nex),0.,E0comp(nex),Excomp(nex)
    30 continue
       write(1,'(3i5)') 1,1,0
+      Zix=Zindex(0,0,k0)
+      Nix=Nindex(0,0,k0)
+      if (disp(Zix,Nix,k0)) then
+        write(1,'(10x,2i5)') 2,2
+        write(1,'(10x,f10.5,40x,f10.5)') ef(Zix,Nix,k0),w2(Zix,Nix,k0)
+        write(1,'(20x,2f10.5)') d3(Zix,Nix,k0),d2(Zix,Nix,k0)
+      endif
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

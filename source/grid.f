@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : December 13, 2006   
+c | Date  : August 1, 2007
 c | Task  : Energy and angle grid
 c +---------------------------------------------------------------------
 c
@@ -37,13 +37,13 @@ c same reason, this energy grid is used for the calculation of
 c transmission coefficients.
 c The grid can be further subdivided with the segment keyword.
 c
-      egrid(0)=0.
       Eout=0.
       degrid=0.001
       nen=0
    10 Eout=Eout+degrid
       Eeps=Eout+1.e-4
       if (Eeps.gt.enincmax+12.) goto 20
+      if (nen.eq.numen) goto 20
       nen=nen+1
       egrid(nen)=Eout
       if (Eeps.gt.0.002) degrid=0.003
@@ -51,8 +51,8 @@ c
       if (Eeps.gt.0.01) degrid=0.01
       if (Eeps.gt.0.02) degrid=0.03
       if (Eeps.gt.0.05) degrid=0.05
-      if (Eeps.gt.0.1) degrid=0.1/segment
-      if (Eeps.gt.2.) degrid=0.2/segment
+      if (Eeps.gt.0.1) degrid=0.1
+      if (Eeps.gt.2.) degrid=0.2
       if (Eeps.gt.4.) degrid=0.5/segment
       if (Eeps.gt.20.) degrid=1./segment
       if (Eeps.gt.40.) degrid=2./segment
@@ -83,6 +83,7 @@ c
 c ebegin    : first energy point of energy grid 
 c Atarget   : mass number of target nucleus 
 c coulfactor: constant for Coulomb barrier
+c coullimit : energy limit for charged particle OMP calculation
 c parskip   : logical to skip outgoing particle
 c coulbar   : Coulomb barrier
 c
@@ -96,12 +97,13 @@ c in the energies subroutine.
 c
       ebegin(0)=1
       ebegin(1)=1
-      coulfactor=0.01*(1.+Atarget/200.)
       do 110 type=2,6
         ebegin(type)=0
         if (parskip(type)) goto 110
+        coulfactor=0.01*(1.+Atarget/200.)
+        coullimit(type)=coulfactor*coulbar(type)
         do 120 nen=1,maxen
-          if (egrid(nen).gt.coulfactor*coulbar(type)) then
+          if (egrid(nen).gt.coullimit(type)) then
             ebegin(type)=nen
             goto 110
           endif
@@ -144,9 +146,9 @@ c of the resonance region are also inserted.
 c
       if (eninclow.eq.0.) then
         if (D0(0,0).eq.0.) then
-          eninclow=Dtheo(0,0)*1.e-6
+          eninclow=min(Dtheo(0,0)*1.e-6,1.)
         else
-          eninclow=D0(0,0)*1.e-6
+          eninclow=min(D0(0,0)*1.e-6,1.)
         endif
       endif
       E1v=0.2*eninclow

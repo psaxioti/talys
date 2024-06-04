@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 6, 2006
+c | Date  : November 1, 2007
 c | Task  : Proton transition rates for n --> n+2
 c +---------------------------------------------------------------------
 c
@@ -18,10 +18,9 @@ c
      +                 L1nuh,L2nuh,dExpip,dExpih,dExnup,dExnuh,uupip,
      +                 uupih,uunup,uunuh,lambdapipi1p,lambdapipi1h,
      +                 lambdanupi1p,lambdanupi1h,uu,eopt,Weff,phdens2,
-     +                 densh,densp,ratio,finitewell,termpipi1p,
-     +                 termpipi1h,termnupi1p,termnupi1h
+     +                 densh,densp,ratio,finitewell
       double precision lplus,sumpipi1p,sumpipi1h,sumnupi1p,sumnupi1h,
-     +       phtot
+     +                 termpipi1p,termpipi1h,termnupi1p,termnupi1h,phtot
 c
 c *************************** Transition rates *************************
 c
@@ -136,7 +135,11 @@ c
         L2nup=U-Apauli2(ppi,hpi,pnu-1,hnu)
         L1nuh=Apauli2(ppi+1,hpi+1,pnu,hnu)-Apauli2(ppi,hpi,pnu,hnu-1)
         L2nuh=U-Apauli2(ppi,hpi,pnu,hnu-1)
-        nexcbins=max(nbins/2,2)
+        if (primary) then
+          nexcbins=max(nbins/2,2)
+        else
+          nexcbins=max(nbins/4,2)
+        endif
         dExpip=(L2pip-L1pip)/nexcbins
         dExpih=(L2pih-L1pih)/nexcbins
         dExnup=(L2nup-L1nup)/nexcbins
@@ -181,7 +184,6 @@ c
               endif
               eopt=max(uu-S(Zix,Nix,k),-20.)
               nen=min(10*numen,int(eopt*10.))
-              nen=int(eopt*10.)
               if(j.le.2) then
                 Weff=Wompfac(1)*wvol(k,nen)
               else

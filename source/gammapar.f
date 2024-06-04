@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 13, 2004
+c | Date  : October 12, 2007
 c | Task  : Gamma ray parameters 
 c +---------------------------------------------------------------------
 c
@@ -13,7 +13,7 @@ c
       character*4  gamchar
       character*90 gamfile
       integer      Zix,Nix,Z,A,N,ia,irad,l,nen
-      real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom,fe1
+      real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom,ee,fe1
 c
 c ***************** Default giant resonance parameters *****************
 c
@@ -154,10 +154,11 @@ c
 c For Goriely's HFbcs or HFB QRPA strength function we overwrite the
 c E1 strength function with tabulated results, if available.
 c
-c numgamqrpa : number of energies for QRPA strength function
-c eqrpa      : energy grid for QRPA strength function
-c fe1qrpa,fe1: tabulated QRPA strength function
-c qrpaexist  : flag for existence of tabulated QRPA strength functions
+c numgamqrpa   : number of energies for QRPA strength function
+c eqrpa        : energy grid for QRPA strength function
+c fe1qrpa,fe1  : tabulated QRPA strength function
+c etable,ftable: constant to adjust tabulated strength functions
+c qrpaexist    : flag for existence of tabulated QRPA strength functions
 c
       if (strength.eq.3) 
      +  gamfile=path(1:lenpath)//'gamma/hfbcs/'//gamchar
@@ -175,8 +176,9 @@ c
         goto 220
       endif
       do 240 nen=1,numgamqrpa
-        read(2,'(f9.3,1p,e12.3)') eqrpa(nen),fe1
-        fe1qrpa(Zix,Nix,nen)=onethird*pi2h2c2*fe1
+        read(2,'(f9.3,1p,e12.3)') ee,fe1
+        eqrpa(Zix,Nix,nen)=ee+etable(Zix,Nix)
+        fe1qrpa(Zix,Nix,nen)=onethird*pi2h2c2*fe1*ftable(Zix,Nix)
   240 continue
       qrpaexist(Zix,Nix)=.true.
   210 close(unit=2)

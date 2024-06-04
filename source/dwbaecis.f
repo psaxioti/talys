@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 7, 2006
+c | Date  : October 16, 2007
 c | Task  : ECIS calculations of DWBA for MSD
 c +---------------------------------------------------------------------
 c
@@ -23,16 +23,18 @@ c ncoll      : number of nuclear states
 c maxJmsd    : maximal spin for MSD calculation
 c iterm      : number of iterations
 c npp        : number of optical potentials
+c hint       : integration step size h
 c rmatch     : matching radius
 c
       open (unit=9,status='unknown',file='ecisdwba.inp')
       title='DWBA cross sections for MSD                       '
-      ecis1='FFFFFFFFFFFTFFFFFFFFFFFFFFFTFFFFFFFFFFFFFFFFFFFFFF'
-      ecis2='FFFFFFFFTFFFFTFFTTTFFTTFTFFFFFFFFFFFFFFFFTFFFFFFFF'    
+      ecis1='FFFFFFFFFFFTFFFFFFFFFFFFFFFTFTFFFFFFFFFFFFFFFFFFFF'
+      ecis2='FFFFFFFFTFFFFTFFTTTFTTTFTFFFFFFFFFFFFFFFFFFFTFFFFF'    
       if (flagrel) ecis1(8:8)='T'
       ncoll=maxJmsd+2
       iterm=1
       npp=3
+      hint=0.
       rmatch=15.
 c
 c We use a simple formula to estimate the required number of j-values:
@@ -101,14 +103,14 @@ c 2. First exchange one-step reaction for multi-step
 c
       do 10 ii=1,2
         if (ii.eq.2) then
-          inquire (file='ecis03.msdin',exist=lexist)
+          inquire (file='ecis06.msdin',exist=lexist)
           if (.not.lexist) then
             write(*,'(" TALYS-error: The first calculation of a run",
      +        " should always be done with ecissave y and ecisdwba y")')
             stop
           endif      
-          open (unit=8,status='unknown',file='ecis03.msdang')
-          open (unit=10,status='unknown',file='ecis03.msdin')
+          open (unit=8,status='unknown',file='ecis06.msdang')
+          open (unit=10,status='unknown',file='ecis06.msdin')
         endif
         itype=k0
         do 20 type=1,2
@@ -205,7 +207,7 @@ c
 c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
-c ecis03t    : subroutine ecis03, adapted for TALYS
+c ecis06t    : subroutine ecis06, adapted for TALYS
 c ecisstatus : status of ECIS file  
 c
           if (flagoutecis) then
@@ -213,9 +215,9 @@ c
           else
             outfile=nulldev
           endif
-          call ecis03t('ecisdwba.inp ',outfile,
-     +      'ecis03.msdcs ','ecis03.msdin ','null         ',
-     +      'ecis03.msdang','null         ')  
+          call ecis06t('ecisdwba.inp ',outfile,
+     +      'ecis06.msdcs ','ecis06.msdin ','null         ',
+     +      'ecis06.msdang','null         ')  
           open (unit=9,status='unknown',file='ecisdwba.inp')
           close (unit=9,status=ecisstatus)
         endif

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : November 19, 2005
+c | Date  : September 8, 2007
 c | Task  : Deformation parameters
 c +---------------------------------------------------------------------
 c
@@ -338,7 +338,8 @@ c
       R=1.2*A**onethird
       Irigid0(Zix,Nix)=0.4*R*R*A*parmass(1)*amu/(hbarc**2)
       do 510 ibar=0,numbar
-        Irigid(Zix,Nix,ibar)=(1+beta2(Zix,Nix,ibar)/3.)*Irigid0(Zix,Nix)
+        Irigid(Zix,Nix,ibar)=(1+abs(beta2(Zix,Nix,ibar))/3.)*
+     +    Irigid0(Zix,Nix)
   510 continue
       return
       end

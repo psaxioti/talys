@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : February 24, 2006
+c | Date  : June 27, 2007
 c | Task  : Set excitation energy grid
 c +---------------------------------------------------------------------
 c
@@ -215,10 +215,11 @@ c
           do 220 Pprime=Pbeg,1,2
             do 230 Ir=0,maxJ(Zix,Nix,nex)
               Rspin=real(Ir)+Rodd
-              rho1=density(Zix,Nix,Ex1min,Rspin,Pprime,0,ldmodel)+1.e-30
+              rho1=density(Zix,Nix,Ex1min,Rspin,Pprime,0,ldmodel)*
+     +          (1.+1.d-10)
               rho2=density(Zix,Nix,Exout,Rspin,Pprime,0,ldmodel)
-              rho3=density(Zix,Nix,Ex1plus,Rspin,Pprime,0,ldmodel)+
-     +          1.e-30
+              rho3=density(Zix,Nix,Ex1plus,Rspin,Pprime,0,ldmodel)*
+     +          (1.+1.d-10)
               r1log=log(rho1)
               r2log=log(rho2)
               r3log=log(rho3)

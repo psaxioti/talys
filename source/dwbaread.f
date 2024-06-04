@@ -2,14 +2,13 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : September 26, 2006
+c | Date  : May 8, 2007
 c | Task  : Read ECIS results for DWBA for MSD
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*72     line
       integer          nen1,nen2,J,nS,iang,k,itype
       double precision xs
 c
@@ -26,15 +25,10 @@ c nS        : counter
 c
       read(10,'()') 
       do 10 J=0,maxJmsd
-        read(10,'(a72)',end=20) line
-        if(line(1:1).eq.'<') then
-          backspace 10
-          goto 20
-        endif
-        read(line,*) xs
+        read(10,*) xs
         xsdwin(nen1,nen2,J,0)=real(xs)
    10 continue
-   20 if (flagddx) then
+      if (flagddx) then
         read(8,'()')
         read(8,'(12x,i3)') nS
         do 30 iang=0,nanglecont

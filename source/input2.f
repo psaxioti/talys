@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 8, 2006
+c | Date  : November 29, 2007
 c | Task  : Read input for second set of variables
 c +---------------------------------------------------------------------
 c
@@ -76,7 +76,7 @@ c
       nangle=numang
       nanglecont=18
       maxenrec=numenrec
-      massmodel=1
+      massmodel=3
       ldmodel=1
       wmode=1
       preeqmode=2
@@ -129,101 +129,101 @@ c
           goto 110
         endif
         if (key.eq.'maxz') then
-          read(value,*,err=300) maxZ
+          read(value,*,end=300,err=300) maxZ
           goto 110
         endif
         if (key.eq.'maxn') then
-          read(value,*,err=300) maxN
+          read(value,*,end=300,err=300) maxN
           goto 110
         endif
         if (key.eq.'bins') then
-          read(value,*,err=300) nbins
+          read(value,*,end=300,err=300) nbins
           goto 110
         endif
         if (key.eq.'segment') then
-          read(value,*,err=300) segment
+          read(value,*,end=300,err=300) segment
           goto 110
         endif
         if (key.eq.'maxlevelstar') then
-          read(value,*,err=300) nlevmax
+          read(value,*,end=300,err=300) nlevmax
           goto 110
         endif
         if (key.eq.'maxlevelsres') then
-          read(value,*,err=300) nlevmaxres
+          read(value,*,end=300,err=300) nlevmaxres
           goto 110
         endif
         if (key.eq.'ltarget') then
-          read(value,*,err=300) Ltarget
+          read(value,*,end=300,err=300) Ltarget
           goto 110
         endif
         if (key.eq.'isomer') then
-          read(value,*,err=300) isomer
+          read(value,*,end=300,err=300) isomer
           goto 110
         endif
         if (key.eq.'core') then
-          read(value,*,err=300) core
+          read(value,*,end=300,err=300) core
           goto 110
         endif
         if (key.eq.'gammax') then
-          read(value,*,err=300) gammax
+          read(value,*,end=300,err=300) gammax
           goto 110
         endif
         if (key.eq.'transpower') then
-          read(value,*,err=300) transpower
+          read(value,*,end=300,err=300) transpower
           goto 110
         endif
         if (key.eq.'transeps') then
-          read(value,*,err=300) transeps
+          read(value,*,end=300,err=300) transeps
           goto 110
         endif
         if (key.eq.'xseps') then
-          read(value,*,err=300) xseps
+          read(value,*,end=300,err=300) xseps
           goto 110
         endif
         if (key.eq.'popeps') then
-          read(value,*,err=300) popeps
+          read(value,*,end=300,err=300) popeps
           goto 110
         endif
         if (key.eq.'Rfiseps') then
-          read(value,*,err=300) Rfiseps
+          read(value,*,end=300,err=300) Rfiseps
           goto 110
         endif
         if (key.eq.'angles') then
-          read(value,*,err=300) nangle
+          read(value,*,end=300,err=300) nangle
           goto 110
         endif
         if (key.eq.'anglescont') then
-          read(value,*,err=300) nanglecont
+          read(value,*,end=300,err=300) nanglecont
           goto 110
         endif
         if (key.eq.'maxenrec') then
-          read(value,*,err=300) maxenrec
+          read(value,*,end=300,err=300) maxenrec
           goto 110
         endif
         if (key.eq.'massmodel') then
-          read(value,*,err=300) massmodel
+          read(value,*,end=300,err=300) massmodel
           goto 110
         endif
         if (key.eq.'ldmodel') then
-          read(value,*,err=300) ldmodel
+          read(value,*,end=300,err=300) ldmodel
           goto 110
         endif
         if (key.eq.'widthmode') then
-          read(value,*,err=300) wmode
+          read(value,*,end=300,err=300) wmode
           goto 110
         endif
         if (key.eq.'preeqmode') then
-          read(value,*,err=300) preeqmode
+          read(value,*,end=300,err=300) preeqmode
           goto 110
         endif
         if (key.eq.'mpreeqmode') then
-          read(value,*,err=300) mpreeqmode
+          read(value,*,end=300,err=300) mpreeqmode
           goto 110
         endif
         if (key.eq.'nlevels') then
-          read(word(2),*,err=300) iz
-          read(word(3),*,err=300) ia
-          read(word(4),*,err=300) ivalue
+          read(word(2),*,end=300,err=300) iz
+          read(word(3),*,end=300,err=300) ia
+          read(word(4),*,end=300,err=300) ivalue
           Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZ.or.Nix.lt.0.or.Nix.gt.numN) then
@@ -242,7 +242,7 @@ c
             endif
   230     continue
           goto 300
-  240     read(word(3),*,err=300) nlevbin(type2)
+  240     read(word(3),*,end=300,err=300) nlevbin(type2)
           goto 110
         endif           
   110 continue

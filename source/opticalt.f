@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 8, 2005
+c | Date  : September 19, 2007
 c | Task  : Optical potential for tritons
 c +---------------------------------------------------------------------
 c
@@ -170,7 +170,7 @@ c
       avso=avsoadjust(4)*(2.*avson+avsop)*onethird
       wso=wso1adjust(4)*0.5*(wson+wsop)*onethird
       rwso=rvso
-      awso=rwso
+      awso=avso
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

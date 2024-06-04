@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : July 12, 2004
+c | Date  : June 12, 2007
 c | Task  : Calculation of direct inelastic cross sections 
 c +---------------------------------------------------------------------
 c

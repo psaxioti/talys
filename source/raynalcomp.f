@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 26, 2006
+c | Date  : December 17, 2007
 c | Task  : ECIS calculation of compound cross sections (reference only)
 c +---------------------------------------------------------------------
 c
@@ -20,22 +20,28 @@ c ********************** Set ECIS input parameters *********************
 c
 c Specific ECIS flags:
 c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
-c ecis2(64)=T : output of angular distributions
-c ecis2(65)=T : output of Legendre coefficients
-c ecis2(81)=T : compound
-c ecis2(83)=T : No Engelbrecht-Weidenmuller transformation
-c ecis2(84)=T : compound
+c ecis2(14)=T : output of angular distributions
+c ecis2(15)=T : output of Legendre coefficients
+c ecis2(31)=T : compound
+c ecis2(33)=T : No Engelbrecht-Weidenmuller transformation
+c ecis2(34)=T : compound
 c
 c title      : title of ECIS input file
 c ecis1,ecis2: 100 input flags ('T' or 'F') for ECIS
 c flagrel    : flag for relativistic kinematics
+c Zindex,Zix : charge number index for residual nucleus
+c Nindex,Nix : neutron number index for residual nucleus
+c disp       : flag for dispersive optical model
 c k0         : index of incident particle
 c
       open (unit=1,status='unknown',file='eciscomp.inp')
       title='Compound cross sections by ECIS                   '
       ecis1='FFTFFTFFFFFFFFTFFFFFFFFFFFFTFFFFFFFFFFFFFFFFFFFFFF'
-      ecis2='FFFFFFFFTFFFFTTFTTTFFTTFTFFFFFTFTTFFFFFFFTFFFFFFFF'
+      ecis2='FFFFFFFFTFFFFTTFTTTFTTTFTFFFFFTFTTFFFFFFFFFFTFFFFF'
       if (flagrel) ecis1(8:8)='T'
+      Zix=Zindex(0,0,k0)
+      Nix=Nindex(0,0,k0)
+      if (disp(Zix,Nix,k0)) ecis1(10:10)='T'
 c
 c Gamma emission
 c
@@ -59,8 +65,6 @@ c ******************** Enumerate discrete levels ***********************
 c
 c ilevel          : level counter
 c parskip         : logical to skip outgoing particle
-c Zindex,Zix      : charge number index for residual nucleus
-c Nindex,Nix      : neutron number index for residual nucleus
 c ZZ,Z            : charge number of residual nucleus
 c ethrcm          : threshold energy
 c eninccm         : center-of-mass incident energy in MeV
@@ -124,7 +128,7 @@ c
         tempcomp(0)=T(Zix,Nix,0)
         E0comp(0)=E0(Zix,Nix,0)
         Excomp(0)=Umcomp(0)+pair(Zix,Nix)
-        tgo=swaveth 
+        tgo=swaveth(Zix,Nix)
       endif
 c
 c 2. Particles
@@ -166,6 +170,7 @@ c
 c ncoll : number of nuclear states
 c iterm : number of iterations
 c npp   : number of optical potentials
+c hint  : integration step size h
 c rmatch: matching radius
 c nsp1  : number of uncoupled states and continua
 c nsp2  : number of uncoupled states with angular distribution
@@ -176,6 +181,7 @@ c
       ncoll=1
       iterm=1
       npp=ilevel+1
+      hint=0.
       rmatch=0.
       nsp1=ilevel
       nsp2=ilevel-ildens
@@ -231,17 +237,17 @@ c
 c ************************** ECIS calculation **************************
 c
 c flagoutecis: flag for output of ECIS results
-c ecis03t    : subroutine ecis03, adapted for TALYS
+c ecis06t    : subroutine ecis06, adapted for TALYS
 c nulldev    : null device
 c
       if (flagoutecis) then
-        call ecis03t('eciscomp.inp ','eciscomp.out ',
-     +    'ecis03.comcs ','ecis03.comin ','null         ',
-     +    'ecis03.comang','ecis03.comleg')  
+        call ecis06t('eciscomp.inp ','eciscomp.out ',
+     +    'ecis06.comcs ','ecis06.comin ','null         ',
+     +    'ecis06.comang','ecis06.comleg')  
       else
-        call ecis03t('eciscomp.inp ',nulldev,
-     +    'ecis03.comcs ','ecis03.comin ','null         ',
-     +    'ecis03.comang','ecis03.comleg')  
+        call ecis06t('eciscomp.inp ',nulldev,
+     +    'ecis06.comcs ','ecis06.comin ','null         ',
+     +    'ecis06.comang','ecis06.comleg')  
       endif
       return
       end

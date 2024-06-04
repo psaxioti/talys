@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 14, 2006
+c | Date  : December 18, 2007
 c | Task  : Output of level density   
 c +---------------------------------------------------------------------
 c
@@ -12,8 +12,8 @@ c
       character*12     ldfile
       character*25     model
       integer          Zix,Nix,Z,N,A,ibar,odd,J,ploop,parity,nex,NL,NT,i
-      real             aldmatch,SS,P,Eex,ignatyuk,spincut,ald,
-     +                 Krot,Kvib,Kcoll,chi2D0,Dratio,Ncum,chi2,dEx,sigma
+      real             aldmatch,SS,P,Eex,ignatyuk,spincut,ald,Krot,Kvib,
+     +                 Kcoll,chi2D0,Dratio,Ncum,chi2,dEx,sigma,avdev
       double precision densitytot,density,dens
 c
 c ********************** Level density parameters **********************
@@ -63,9 +63,9 @@ c
 c
 c Theoretical D0
 c
-c D0      : experimental s-wave resonance spacing in eV  
-c dD0     : uncertainty in D0         
-c D0theory: subroutine for theoretical calculation of D0   
+c D0   : experimental s-wave resonance spacing in eV  
+c dD0  : uncertainty in D0         
+c Dtheo: theoretical s-wave resonance spacing
 c
       write(*,'(" Experimental D0 :",f18.2," eV +- ",f15.5)')
      +  D0(Zix,Nix),dD0(Zix,Nix)
@@ -90,15 +90,16 @@ c Tcrit       : critical temperature
 c scutoffdisc : spin cutoff factor for discrete level region
 c spincut     : spin cutoff factor 
 c ignatyuk    : function for energy dependent level density parameter a
+c beta2       : deformation parameter
 c Krotconstant: normalization constant for rotational enhancement
 c Ufermi      : energy of Fermi distribution for damping of ground-state
-c             : rotational effects
+c               rotational effects
 c cfermi      : width of Fermi distribution for damping of ground-state
-c             : rotational effects
+c               rotational effects
 c Ufermibf    : energy of Fermi distribution for damping of barrier
-c             : rotational effects
+c               rotational effects
 c cfermibf    : width of Fermi distribution for damping of barrier
-c             : rotational effects     
+c               rotational effects     
 c
       P=pair(Zix,Nix)
       write(*,'(" Asymptotic a    :",f10.5)') alimit(Zix,Nix)
@@ -112,7 +113,7 @@ c
      +  ibar=0,nfisbar(Zix,Nix))
       write(*,'(" Ntop            :",4(7x,i3))') (Ntop(Zix,Nix,ibar),
      +  ibar=0,nfisbar(Zix,Nix))
-      if (ldmodel.eq.1.or.ibar.gt.0) then
+      if (ldmodel.eq.1) then
         write(*,'(" Matching Ex     :",4f10.5)') (Exmatch(Zix,Nix,ibar),
      +    ibar=0,nfisbar(Zix,Nix))
         write(*,'(" Temperature     :",4f10.5)') (T(Zix,Nix,ibar),
@@ -133,6 +134,7 @@ c
      +  (sqrt(spincut(Zix,Nix,ignatyuk(Zix,Nix,SS,ibar),SS,ibar)),
      +  ibar=0,nfisbar(Zix,Nix))
       if (flagcol.and..not.ldexist(Zix,Nix,ibar)) then
+        write(*,'(" beta2           :",f10.5)') beta2(Zix,Nix,0)
         write(*,'(" Krotconstant    :",4f10.5)') 
      +    (Krotconstant(Zix,Nix,ibar),ibar=0,nfisbar(Zix,Nix))
         write(*,'(" Ufermi          :",f10.5)') Ufermi
@@ -177,8 +179,8 @@ c edens      : energy grid for tabulated level densities
 c ldtottableP: total level density per parity from table  
 c ldtable    : level density from table
 c nendens    : number of energies for level density grid
-c c1table    : constant to adjust tabulated level densities
-c c2table    : constant to adjust tabulated level densities
+c ctable     : constant to adjust tabulated level densities
+c ptable     : constant to adjust tabulated level densities
 c
         if (ldmodel.ge.4.and.ldexist(Zix,Nix,ibar)) then
           if (ldmodel.eq.4) then
@@ -195,17 +197,16 @@ c
      +          (ldtable(Zix,Nix,nex,J,parity,ibar),J=0,8)
   130     continue
   120     continue
-          if (c1table(Zix,Nix).ne.0..or.c2table(Zix,Nix).ne.0.) then
-            write(*,'(/" Normalization:")')
-            write(*,'("            c1=",f10.5)') c1table(Zix,Nix)
-            write(*,'("            c2=",f10.5)') c2table(Zix,Nix)
-          endif
+          write(*,'(/" Normalization:")')
+          write(*,'("        ctable=",f10.5)') ctable(Zix,Nix,ibar)
+          write(*,'("        ptable=",f10.5)') ptable(Zix,Nix,ibar)
         else
 c
 c Analytical level densities
 c
 c Eex       : excitation energy
 c ald       : level density parameter
+c aldcrit   : critical level density parameter
 c colenhance: subroutine for collective enhancement  
 c Krot      : rotational enhancement factor
 c Kvib      : vibrational enhancement factor
@@ -217,9 +218,11 @@ c
          do 140 nex=1,nendens
             Eex=edens(nex)
             ald=ignatyuk(Zix,Nix,Eex,ibar)
+            if (ldmodel.eq.3.and.Eex.lt.Ucrit(Zix,Nix)-
+     +        P-Pshift(Zix,Nix,ibar)) ald=aldcrit(Zix,Nix)
             call colenhance(Zix,Nix,Eex,ald,ibar,Krot,Kvib,Kcoll)
             if (flagcol.and..not.ldexist(Zix,Nix,ibar)) then
-              write(*,'(1x,f6.2,2f7.3,1p,10e10.3,3f10.3)') Eex,ald,
+              write(*,'(1x,f6.2,2f7.3,1p,13e10.3)') Eex,ald,
      +          sqrt(spincut(Zix,Nix,ald,Eex,ibar)),
      +          densitytot(Zix,Nix,Eex,ibar,ldmodel)*pardis,
      +          (density(Zix,Nix,Eex,real(J+0.5*odd),1,ibar,ldmodel),
@@ -241,12 +244,17 @@ c NL,NT      : help variables
 c filedensity: flag for level densities on separate files
 c chi2D0     : chi-square of D0
 c Dratio     : ratio Dtheo/Dexp
+c nucmass    : mass of nucleus
+c delta0     : systematical pairing energy
+c aldcrit    : critical level density parameter
 c edis       : energy of level
 c dEx        : energy bin for integration
 c Ncum       : number of cumulative levels (integral of level density)
 c C          : integration constant
 c nlevmax2   : maximum number of levels
 c sigma      : square root of spin cutoff factor
+c chi2       : chi-square
+c avdev      : average deviation
 c
 c Output given in general output file and on separate files.
 c
@@ -260,8 +268,8 @@ c
         open (unit=1,status='unknown',file=ldfile)
         write(1,'("# Level density for ",i3,a2)') Atarget,nuc(Ztarget)
         if (flagcol.and..not.ldexist(Zix,Nix,ibar)) then
-          write(1,'("# Model: ",a25,"Collective enhancement: yes")') 
-     +      model
+          write(1,'("# Model: ",a25,"Collective enhancement: yes",
+     +      " beta2:",f12.5)') model,beta2(Zix,Nix,0)
         else
           write(1,'("# Model: ",a25,"Collective enhancement: no")') 
      +      model
@@ -278,10 +286,11 @@ c
         else
           Dratio=Dtheo(Zix,Nix)/D0(Zix,Nix)
         endif
-        write(1,'("# Theoretical D0  :",f18.2," eV Chi2:",1p,e12.5,
+        write(1,'("# Theoretical D0  :",f18.2," eV Chi2:",1p,e12.5,0p,
      +    " Dtheo/Dexp: ",f9.5)') Dtheo(Zix,Nix),chi2D0,Dratio
-        write(1,'("# Nlow: ",i3," Ntop: ",i3)') Nlow(Zix,Nix,0),
-     +    Ntop(Zix,Nix,0)
+        write(1,'("# Nlow: ",i3," Ntop: ",i3,
+     +    "           Mass in a.m.u.  : ",f10.6)') Nlow(Zix,Nix,0),
+     +    Ntop(Zix,Nix,0),nucmass(Zix,Nix)
         if (ldmodel.le.3) then
           write(1,'("# a(Sn)           :",f10.5,"   Asymptotic a    :",
      +      f10.5)')  alev(Zix,Nix),alimit(Zix,Nix)
@@ -292,11 +301,17 @@ c
           write(1,'("# Disc. sigma     :",f10.5,"   Sigma (Sn)      :",
      +      f10.5)') sqrt(scutoffdisc(Zix,Nix,0)),
      +      sqrt(spincut(Zix,Nix,ignatyuk(Zix,Nix,SS,0),SS,0))
-          write(1,'("# Adj. pair shift :",f10.5)') Pshift(Zix,Nix,0)
+          if (ldmodel.eq.3) then
+            write(1,'("# Adj. pair shift :",f10.5,
+     +        "   delta0          :",f10.5,"   Crit. a:",f10.5)') 
+     +        Pshift(Zix,Nix,0),delta0(Zix,Nix),aldcrit(Zix,Nix)
+          else
+            write(1,'("# Adj. pair shift :",f10.5)') Pshift(Zix,Nix,0)
+          endif
           if (ldmodel.eq.1) then
             write(1,'("# Matching Ex     :",f10.5,
-     +      "   Temperature     :",f10.5,"   E0:",f10.5)') 
-     +      Exmatch(Zix,Nix,0),T(Zix,Nix,0),E0(Zix,Nix,0)
+     +        "   Temperature     :",f10.5,"   E0:",f10.5)') 
+     +        Exmatch(Zix,Nix,0),T(Zix,Nix,0),E0(Zix,Nix,0)
           endif
           if (ldmodel.eq.2) write(1,'("#")')
           if (ldmodel.eq.3) then
@@ -305,8 +320,8 @@ c
      +        Ucrit(Zix,Nix),Econd(Zix,Nix),Tcrit(Zix,Nix)
           endif
         else
-          write(1,'("# c1              :",f10.5)') c1table(Zix,Nix)
-          write(1,'("# c2              :",f10.5)') c2table(Zix,Nix)
+          write(1,'("# ctable          :",f10.5)') ctable(Zix,Nix,0)
+          write(1,'("# ptable          :",f10.5)') ptable(Zix,Nix,0)
           write(1,'("#")')
           write(1,'("#")')
           write(1,'("#")')
@@ -315,8 +330,9 @@ c
         write(1,'("# Energy  Level N_cumulative    Total l.d. ",
      +    "       a            Sigma  ")')
       endif
-      Ncum=real(NL-0.5)
+      Ncum=real(NL)
       chi2=0.
+      avdev=0.
       do 210 i=NL+1,nlevmax2(Zix,Nix)-1
         if (edis(Zix,Nix,i+1).eq.0.) goto 210
         Eex=0.5*(edis(Zix,Nix,i)+edis(Zix,Nix,i-1))
@@ -329,6 +345,8 @@ c
           if (filedensity) then
            if (ldmodel.le.3) then
              ald=ignatyuk(Zix,Nix,Eex,0)
+             if (ldmodel.eq.3.and.Eex.lt.Ucrit(Zix,Nix)-P-
+     +         Pshift(Zix,Nix,ibar)) ald=aldcrit(Zix,Nix)
              dens=densitytot(Zix,Nix,Eex,0,ldmodel)
              sigma=sqrt(spincut(Zix,Nix,ald,Eex,0))
              write(1,'(f8.4,i4,4f14.3)') Eex,i,Ncum,dens,ald,sigma
@@ -337,11 +355,15 @@ c
            endif
           endif
         endif
-        if (i.le.NT) chi2=chi2+(Ncum-i)**2/(NT-NL)
+        if (i.le.NT) then
+          chi2=chi2+(Ncum-i)**2/i
+          avdev=avdev+abs(Ncum-i)/(NT-NL)
+        endif
   210 continue    
       if (filedensity) then
         write(1,'("# Chi-square per point for levels between ",
-     +    "Nlow and Ntop: ",1p,e12.5)') chi2
+     +    "Nlow and Ntop: ",1p,e12.5," Average deviation: ",e12.5)') 
+     +    chi2,avdev
       endif
       return 
       end

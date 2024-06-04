@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 19, 2006   
+c | Date  : May 11, 2007
 c | Task  : Read input for sixth set of variables
 c +---------------------------------------------------------------------
 c
@@ -46,6 +46,7 @@ c flagrecoil  : flag for calculation of recoils
 c flaggamdis  : flag for output of discrete gamma-ray intensities
 c flagdisc    : flag for output of discrete state cross sections 
 c filedensity : flag for level densities on separate files
+c flagastro   : flag for calculation of astrophysics reaction rate
 c
       fileelastic=.false.
       do 10 type=0,6
@@ -106,6 +107,7 @@ c
         endif
       endif
       filedensity=.true.
+      if (flagastro) fileresidual=.true.
 c
 c ***************** Read sixth set of input variables ******************
 c
@@ -206,13 +208,13 @@ c
           goto 110
         endif
         if (key.eq.'fileangle') then
-          read(value,*,err=300) ivalue
+          read(value,*,end=300,err=300) ivalue
           if (ivalue.lt.0.or.ivalue.gt.numlev) goto 310
           fileangle(ivalue)=.true.
           goto 110
         endif
         if (key.eq.'filediscrete') then
-          read(value,*,err=300) ivalue
+          read(value,*,end=300,err=300) ivalue
           if (ivalue.lt.0.or.ivalue.gt.numlev) goto 320
           filediscrete(ivalue)=.true.
           goto 110

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 28, 2005
+c | Date  : October 12, 2007
 c | Task  : Gamma ray strength functions 
 c +---------------------------------------------------------------------
 c
@@ -10,9 +10,9 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer Zcomp,Ncomp,irad,l,i,nen
-      real    fstrength,Egamma,sgr1,egr1,ggr1,kgr1,egr2,ggr2,Egam2,Tnuc,
-     +        ggredep0,ggredep,enum,denom,factor1,factor2,eb,ee,gamb,
-     +        game
+      real    fstrength,Egamma,sgr1,egr1,ggr1,kgr1,egr2,ggr2,Egam2,e,
+     +        Tnuc,ggredep0,ggredep,enum,denom,factor1,factor2,
+     +        Eq(0:numgamqrpa),eb,ee,gamb,game,f1
 c
 c ************************* Strength functions *************************
 c
@@ -50,7 +50,10 @@ c
 c 1. Kopecky-Uhl generalized Lorentzian.
 c
 c qrpaexist: flag for existence of tabulated QRPA strength functions
+c k0       : index of incident particle
+c Einc     : incident energy
 c Tnuc     : nuclear temperature
+c delta    : energy shift
 c S        : separation energy per particle
 c alev     : level density parameter
 c ggredep0 : energy dependent damping width at zero gamma energy
@@ -62,7 +65,12 @@ c factor1-2: help variables
 c
         if ((strength.eq.1.or.(strength.ge.3.and.
      +    .not.qrpaexist(Zcomp,Ncomp))).and.l.eq.1.and.irad.eq.1) then
-          Tnuc=sqrt(max(S(Zcomp,Ncomp,1)-Egamma,0.)/alev(Zcomp,Ncomp))
+          if (k0.gt.0.or.Egamma.ne.Einc) then
+            e=max(Einc+S(Zcomp,Ncomp,1)-delta(Zcomp,Ncomp,0)-Egamma,0.)
+            Tnuc=sqrt(e/alev(Zcomp,Ncomp))
+          else
+            Tnuc=0.
+          endif
           ggredep0=ggr1*twopi**2*Tnuc**2/egr2
           ggredep=ggredep0+ggr1*Egam2/egr2
           enum=ggredep*Egamma
@@ -74,12 +82,9 @@ c
 c
 c 2. Brink-Axel standard Lorentzian.
 c
-c egrid : outgoing energy grid
-c ebegin: first energy point of energy grid  
-c
         if (strength.eq.2.or.l.ne.1.or.irad.ne.1) then
           enum=0.
-          if (Egamma.gt.egrid(ebegin(0))) then
+          if (Egamma.gt.0.001) then
             enum=ggr2*Egamma**(3-2*l)
             denom=(Egam2-egr2)**2+Egam2*ggr2
             fstrength=fstrength+kgr1*sgr1*enum/denom
@@ -90,25 +95,40 @@ c 3+4. Tabulated QRPA strength functions
 c
 c locate    : subroutine to find value in ordered table
 c numgamqrpa: number of energies for QRPA strength function
-c eqrpa     : energy grid for QRPA strength function
+c eqrpa,Eq  : energy grid for QRPA strength function
 c fe1qrpa   : tabulated QRPA strength function
 c eb,ee,....: help variables
 c
         if (strength.ge.3.and.qrpaexist(Zcomp,Ncomp).and.l.eq.1.and.
      +    irad.eq.1) then
-          if (Egamma.le.30.) then
-            call locate(eqrpa,0,numgamqrpa,Egamma,nen)
-            eb=eqrpa(nen)
-            ee=eqrpa(nen+1)
+          do 110 nen=0,numgamqrpa
+            Eq(nen)=eqrpa(Zcomp,Ncomp,nen)
+  110     continue
+          if (Egamma.le.Eq(numgamqrpa)) then
+            call locate(Eq,0,numgamqrpa,Egamma,nen)
+            eb=Eq(nen)
+            ee=Eq(nen+1)
             gamb=fe1qrpa(Zcomp,Ncomp,nen)
             game=fe1qrpa(Zcomp,Ncomp,nen+1)
-            fstrength=gamb+(Egamma-eb)/(ee-eb)*(game-gamb)
+            if (gamb.gt.0..and.game.gt.0.) then
+              f1=log10(gamb)+(Egamma-eb)/(ee-eb)*
+     +          (log10(game)-log10(gamb))
+              fstrength=10.**f1
+            else
+              fstrength=gamb+(Egamma-eb)/(ee-eb)*(game-gamb)
+            endif
           else
-            eb=eqrpa(numgamqrpa-1)
-            ee=eqrpa(numgamqrpa)
+            eb=Eq(numgamqrpa-1)
+            ee=Eq(numgamqrpa)
             gamb=fe1qrpa(Zcomp,Ncomp,numgamqrpa-1)
             game=fe1qrpa(Zcomp,Ncomp,numgamqrpa)
-            fstrength=gamb+(Egamma-eb)/(ee-eb)*(game-gamb)
+            if (gamb.gt.0..and.game.gt.0.) then
+              f1=log10(gamb)+(Egamma-eb)/(ee-eb)*
+     +          (log10(game)-log10(gamb))
+              fstrength=10.**f1
+            else
+              fstrength=gamb+(Egamma-eb)/(ee-eb)*(game-gamb)
+            endif
           endif
         endif
    10 continue

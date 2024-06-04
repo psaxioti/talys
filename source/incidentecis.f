@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 5, 2006   
+c | Date  : December 17, 2007
 c | Task  : ECIS calculation for incident energy
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      rotational,vibrational
+      logical      jlmloc,rotational,vibrational
       character*13 inelfile,outfile
       integer      Zix,Nix,i1,i,ii,Z,A
       real         Ein
@@ -19,6 +19,7 @@ c
 c flaginccalc     : flag for new ECIS calculation for incident channel
 c legendre        : logical for output of Legendre coefficients     
 c Einc,Ein        : incident energy in MeV
+c hint            : integration step size h
 c rmatch          : matching radius
 c projmass,parmass: mass of projectile
 c k0              : index of incident particle
@@ -49,6 +50,7 @@ c
      +  open (unit=9,status='unknown',file='ecisinc.inp')
       legendre=.true.
       Ein=Einc
+      hint=0.
       rmatch=0.
 c
 c We use a simple formula to estimate the required number of j-values:
@@ -77,6 +79,7 @@ c
 c Standard ECIS inputs for phenomenological optical potentials
 c
 c ecis1,ecis2: 100 input flags ('T' or 'F') for ECIS
+c jlmloc     : flag for JLM OMP
 c colltype   : type of collectivity (D, V or R)
 c flagrot    : flag for use of rotational optical model per
 c              outgoing particle, if available 
@@ -92,12 +95,15 @@ c Elevel     : energy of level
 c tarspin    : spin of target nucleus
 c tarparity  : parity of target nucleus     
 c inelfile   : file for inelastic scattering cross sections
+c jlmexist   : flag for existence of tabulated radial matter density
+c nrad       : number of radial points
 c
       ecis1='FFFFFTFFFFFFFFFFFFFFFFFFTFFTFFFFFFFFFFFFFFFFFFFFFF'
-      ecis2='FFFFFFFFTFFFTTTFTTTFFTTFTFFFFFFFFFFFFFFFFFFFFFFFFF'
+      ecis2='FFFFFFFFTFFFTTTFTTTFTTTFTFFFFFFFFFFFFFFFFFFFTFFFFF'
 c
 c 1. Spherical nucleus
 c
+      jlmloc=.false.
       if (colltype(Zix,Nix).eq.'S'.or..not.flagrot(k0)) then
         rotational=.false.
         vibrational=.false.
@@ -110,6 +116,17 @@ c
         tarspin=0.
         tarparity='+'
         inelfile='null         '
+        if (jlmexist(Zix,Nix,k0)) then
+          ecis1(7:7)='T'
+          ecis1(15:15)='T'
+          ecis1(29:29)='T'
+          ecis1(41:41)='T'
+          hint=0.1
+          rmatch=12.
+          nrad=122
+          njmax=1600
+          jlmloc=.true.
+        endif
       else
 c
 c 2. Deformed nucleus
@@ -218,22 +235,37 @@ c
           endif
           iqmax=8
         endif
-        inelfile='ecis03.incin '
+        inelfile='ecis06.incin '
       endif
 c
 c ************** Calculate optical potential parameters ****************
 c
 c flagrel   : flag for relativistic kinematics
+c disp      : flag for dispersive optical model   
+c efer      : Fermi energy
+c w2disp,...: constants for imaginary potentials        
 c optical   : subroutine for determination of optical potential
 c flagoutomp: flag for output of optical model parameters
 c ZZ        : charge number of residual nucleus
 c AA        : mass number of residual nucleus
+c jlmexist  : flag for existence of tabulated radial matter density
+c numjlm    : maximum number of radial points
+c radjlm    : radial points for JLM potential
+c normjlm   : JLM potential normalization factors
+c potjlm    : JLM potential depth values
 c parname   : name of particle
 c nuc       : symbol of nucleus
 c v,rv,.....: optical model parameters
 c
       if (deftype(Zix,Nix).eq.'B') ecis1(6:6)='F'
       if (flagrel) ecis1(8:8)='T'
+      if (disp(Zix,Nix,k0)) then
+        ecis1(10:10)='T'
+        efer=ef(Zix,Nix,k0)
+        w2disp=w2(Zix,Nix,k0)
+        d3disp=d3(Zix,Nix,k0)
+        d2disp=d2(Zix,Nix,k0)
+      endif
       call optical(Zix,Nix,k0,Ein)
 c
 c Output of optical model parameters, if requested.
@@ -241,16 +273,31 @@ c
       if (flagoutomp) then
         Z=ZZ(0,0,k0)
         A=AA(0,0,k0)
-        write(*,'(/" +++++++++ OPTICAL MODEL PARAMETERS FOR ",
-     +    "INCIDENT CHANNEL ++++++++++")')
-        write(*,'(/11x,a8," on ",i3,a2/)') parname(k0),A,nuc(Z)
-        write(*,'("  Energy",4x,"V",5x,"rv",4x,"av",4x,"W",5x,"rw",
-     +    4x,"aw",4x,"Vd",3x,"rvd",3x,"avd",4x,"Wd",
-     +    3x,"rwd",3x,"awd",3x,"Vso",3x,"rvso",2x,"avso",
-     +    2x,"Wso",3x,"rwso",2x,"awso",2x,"rc",/)')
-        write(*,'(1x,f7.3,1x,6(f6.2,f6.3,f6.3),f6.3)')
-     +    Ein,v,rv,av,w,rw,aw,vd,rvd,avd,wd,rwd,awd,vso,rvso,
-     +    avso,wso,rwso,awso,rc
+        if (jlmexist(0,0,k0)) then
+          call mom(0,0,dble(prodZ),dble(Ein))
+          write(*,'(/" +++++++++ JLM OPTICAL MODEL POTENTIAL FOR ",
+     +      "INCIDENT CHANNEL ++++++++++")')
+          write(*,'(/11x,a8," on ",i3,a2/)') parname(k0),A,nuc(Z)
+          write(*,'("  Radius ",4x,"V",5x,"W",6x,"Vso",4x,"Wso"/)')
+          do 110 i=1,numjlm
+          write(*,'(f7.3,2x,4(f7.3))') radjlm(0,0,i),
+     +      normjlm(0,0,1)*potjlm(0,0,i,1),
+     +      normjlm(0,0,2)*potjlm(0,0,i,2),
+     +      normjlm(0,0,5)*potjlm(0,0,i,5),
+     +      normjlm(0,0,6)*potjlm(0,0,i,6)
+  110     continue
+        else
+          write(*,'(/" +++++++++ OPTICAL MODEL PARAMETERS FOR ",
+     +      "INCIDENT CHANNEL ++++++++++")')
+          write(*,'(/11x,a8," on ",i3,a2/)') parname(k0),A,nuc(Z)
+          write(*,'("  Energy",4x,"V",5x,"rv",4x,"av",4x,"W",5x,"rw",
+     +      4x,"aw",4x,"Vd",3x,"rvd",3x,"avd",4x,"Wd",
+     +      3x,"rwd",3x,"awd",3x,"Vso",3x,"rvso",2x,"avso",
+     +      2x,"Wso",3x,"rwso",2x,"awso",2x,"rc",/)')
+          write(*,'(1x,f7.3,1x,6(f6.2,f6.3,f6.3),f6.3)')
+     +      Ein,v,rv,av,w,rw,aw,vd,rvd,avd,wd,rwd,awd,vso,rvso,
+     +      avso,wso,rwso,awso,rc
+        endif
       endif
       if (.not.flaginccalc) return
 c
@@ -258,7 +305,7 @@ c ******************* Write ECIS input file ****************************
 c
 c ecisinput: subroutine to create ECIS input file
 c
-      call ecisinput(Zix,Nix,k0,Ein,rotational,vibrational)
+      call ecisinput(Zix,Nix,k0,Ein,rotational,vibrational,jlmloc)
       write(9,'("fin")') 
       close (unit=9)
       legendre=.false.
@@ -268,7 +315,7 @@ c
 c flagoutecis: flag for output of ECIS results
 c outfile    : output file
 c nulldev    : null device
-c ecis03t    : subroutine ecis03, adapted for TALYS
+c ecis06t    : subroutine ecis06, adapted for TALYS
 c ecisstatus : status of ECIS file  
 c
       if (flagoutecis) then
@@ -276,8 +323,8 @@ c
       else
         outfile=nulldev
       endif
-      call ecis03t('ecisinc.inp  ',outfile,'ecis03.inccs ',inelfile,
-     +  'ecis03.inctr ','ecis03.incang','ecis03.incleg')  
+      call ecis06t('ecisinc.inp  ',outfile,'ecis06.inccs ',inelfile,
+     +  'ecis06.inctr ','ecis06.incang','ecis06.incleg')  
       open (unit=9,status='unknown',file='ecisinc.inp')
       close (unit=9,status=ecisstatus)
       return

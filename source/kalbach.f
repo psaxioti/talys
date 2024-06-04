@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 15, 2004
+c | Date  : June 8, 2007
 c | Task  : Kalbach systematics
 c +---------------------------------------------------------------------
 c
@@ -48,7 +48,9 @@ c
         X1=Ek1*eb/ea
         X3=Ek3*eb/ea
         akal=C1*X1+C2*(X1**3)+C3*Cmin(k0)*Cmout(type)*(X3**4)
-        kalbach=1./fourpi*akal/sinh(akal)*exp(akal*cos(ang))
+        kalbach=0.
+        if (abs(akal).le.80.) kalbach=1./fourpi*akal/sinh(akal)*
+     +    exp(akal*cos(ang))
       endif
       return
       end

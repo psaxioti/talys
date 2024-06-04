@@ -4,7 +4,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire 
-c | Date  : September 10, 2004
+c | Date  : January 24, 2007
 c | Task  : Preparation of GOE triple integral width fluctuation 
 c |         correction
 c +---------------------------------------------------------------------
@@ -36,13 +36,12 @@ c tjl   : transmission coefficients
 c tav   : average transmission coefficients
 c
       tgamma=0.
-      do 10 i=1,numtjl
-        if (tjl(0,i).eq.0.) then
-          tav(i)=0.
-        else
-          tav(i)=tjl(1,i)/tjl(0,i)
-        endif
+      do 10 i=1,numtr
+        tav(i)=0.
    10 continue
+      do 20 i=1,numtjl
+        if (tjl(0,i).gt.0.) tav(i)=tjl(1,i)/tjl(0,i)
+   20 continue
       tgamma=tjl(1,numtjl+1)
 c
 c ****** Numerical calculation of triple integral for few channels *****
@@ -55,7 +54,7 @@ c Loop over p
 c
 c p1,...: help variables
 c
-        do 20 i=1,nweip
+        do 30 i=1,nweip
           p1=p(i)+1.
           pp=0.5*p1
           p2=(3.-pp)/pp
@@ -80,7 +79,7 @@ c Loop over s
 c
 c s1,...: help variables
 c
-          do 30 j=1,nweis
+          do 40 j=1,nweis
             s1=0.25*sqrt(2.)*(s(j)+1.)
             s2=ds2*s(j)+ds2
             s21=real(s1*s1)
@@ -117,7 +116,7 @@ c fpst1,fpst2   : variables for final GOE calculation
 c prodm,prodp   : product functions for GOE
 c s1,s2,s3,s4,s5: variables for final GOE calculation
 c
-            do 40 k=1,nweit
+            do 50 k=1,nweit
               t1=0.5*t(k)+0.5
               t2=umes2*t(k)+upes2
               wt2=ume*wt(k)
@@ -146,9 +145,9 @@ c
               fpst2(i,j,k)=wpws2*wt2*umt22*(ums22+s2t22)*pm2s22*
      +          ex2i*x2rat**10/pms222/
      +          sqrt((1.+s2t22)*(pm2s22+s2t22)*(uppm2s2+s2t22))
-   40       continue
-   30     continue
-   20   continue
+   50       continue
+   40     continue
+   30   continue
       else
 c
 c ***** Numerical calculation of triple integral for many channels *****

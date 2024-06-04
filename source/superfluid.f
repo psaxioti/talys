@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : May 10, 2006
+c | Date  : June 22, 2007
 c | Task  : Superfluid model level density formula
 c +---------------------------------------------------------------------
 c
@@ -51,7 +51,7 @@ c
           Tf=2.*Tcrit(Zix,Nix)*phi1/log((phi1+1.)/(1.-phi1))
           Sf=Scrit(Zix,Nix)*Tcrit(Zix,Nix)/Tf*(1.-phi2)
           sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
-          superfluid=exp(Sf)/sqrt(Df)/sqrttwopi/sigma
+          superfluid=exp(dble(Sf))/sqrt(Df)/sqrttwopi/sigma
         endif
       else
         superfluid=1.

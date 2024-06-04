@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 6, 2006
+c | Date  : November 1, 2007
 c | Task  : Proton-neutron transition rates for n --> n
 c +---------------------------------------------------------------------
 c
@@ -15,9 +15,8 @@ c
       real             lambdapinu,edepth,gsp,gsn,damp,ignatyuk,U,
      +                 preeqpair,factor1,factor2,factor3,factor4,
      +                 factor23,Bfactor,L1,L2,dEx,uu,lambdapinu1p,eopt,
-     +                 Weff,phdens2,densh,densp,ratio,finitewell,
-     +                 termpinu1p
-      double precision sumpinu1p,lpinu,phtot
+     +                 Weff,phdens2,densh,densp,ratio,finitewell
+      double precision sumpinu1p,lpinu,termpinu1p,phtot
 c
 c *************************** Transition rates *************************
 c
@@ -126,7 +125,11 @@ c phtot       : total particle-hole state density
 c                       
         L1=Apauli2(ppi,hpi,pnu,hnu)-Apauli2(ppi-1,hpi-1,pnu,hnu)
         L2=U-Apauli2(ppi-1,hpi-1,pnu,hnu)   
-        nexcbins=max(nbins/2,2)
+        if (primary) then
+          nexcbins=max(nbins/2,2)
+        else
+          nexcbins=max(nbins/4,2)
+        endif
         dEx=(L2-L1)/nexcbins
         sumpinu1p=0.
         do 10 i=1,nexcbins

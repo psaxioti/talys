@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 7, 2004
+c | Date  : August 29, 2007
 c | Task  : Gamma ray cross sections
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer Zcomp,Ncomp
+      integer Zcomp,Ncomp,irad,l
       real    gammaxs,Egamma,xsgdr,fstrength,levinger,freedeut,fpauli,
      +        xsqd
 c
@@ -24,8 +24,12 @@ c kgr      : constant for gamma-ray strength function
 c
 c 1. GDR part
 c
-      xsgdr=fstrength(Zcomp,Ncomp,Egamma,1,1)/kgr(Zcomp,Ncomp,1,1)*
-     +  Egamma
+      xsgdr=0.
+      do 10 irad=0,1
+        do 10 l=1,gammax
+          xsgdr=xsgdr+fstrength(Zcomp,Ncomp,Egamma,irad,l)/
+     +      kgr(Zcomp,Ncomp,irad,l)*Egamma
+   10 continue
 c
 c 2. QD part
 c

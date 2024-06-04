@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
-c | Date  : September 26, 2006
+c | Date  : June 26, 2007
 c | Task  : Initialization of basic recoil information
 c +---------------------------------------------------------------------
 c
@@ -98,6 +98,8 @@ c
         do in=0,numN
           do iz=0,numZ
             Erec(iz,in,iex)=0.
+            Erecmin(iz,in,iex)=0.
+            Erecmax(iz,in,iex)=0.
           enddo
         enddo
       enddo
@@ -138,7 +140,7 @@ c
       enddo
       do iang=0,numangcont
         do type=0,6
-          do iej=0,numen
+          do iej=0,numen2
             ddxejlab(type,iej,iang)=0.
           enddo
         enddo

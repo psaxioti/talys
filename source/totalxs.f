@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : February 27, 2005
+c | Date  : October 4, 2007
 c | Task  : Total cross sections
 c +---------------------------------------------------------------------
 c
@@ -64,7 +64,8 @@ c
           do 120 Ncomp=0,maxN
             xsparticle(type)=xsparticle(type)+xsfeed(Zcomp,Ncomp,type)
   120   continue
-        multiplicity(type)=xsparticle(type)/xsreacinc
+        if (xsreacinc.ne.0.) 
+     +    multiplicity(type)=xsparticle(type)/xsreacinc
   110 continue
 c
 c ******************* Total fission cross sections ********************
@@ -72,6 +73,8 @@ c
 c flagfission: flag for fission
 c xsfistot   : total fission cross section
 c xsfeed     : cross section from compound to residual nucleus
+c flagastro  : flag for calculation of astrophysics reaction rate
+c xsastrofis : astrophysical fission cross section
 c
       if (flagfission) then
         xsfistot=0.
@@ -79,6 +82,7 @@ c
           do 210 Ncomp=0,maxN
           xsfistot=xsfistot+xsfeed(Zcomp,Ncomp,-1)
   210   continue
+        if (flagastro) xsastrofis(nin)=xsfistot
       endif
       return
       end

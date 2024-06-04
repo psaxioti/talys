@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : July 4, 2006
+c | Date  : October 5, 2007
 c | Task  : Spin cutoff factor
 c +---------------------------------------------------------------------
 c
@@ -51,7 +51,6 @@ c ignatyuk    : function for energy dependent level density parameter a
 c Umatch      : Exmatch - pairing       
 c aldcrit     : critical level density parameter
 c Tcrit       : critical temperature
-c Ediscrete0  : energy of start of discrete level region
 c Ediscrete   : energy of middle of discrete level region
 c s2m,s2d,Ed  : help variables
 c scutoffdisc : spin cutoff factor for discrete level region 
@@ -63,7 +62,7 @@ c
         scutconst=Rspincut*Irigid0(Zix,Nix)
       endif
       Em=Exmatch(Zix,Nix,ibar)
-      if (ldmodel.eq.2) Em=S(Zix,Nix,1)
+      if (ldmodel.eq.2.or.ldmodel.ge.4) Em=S(Zix,Nix,1)
       if (ldmodel.eq.3) 
      +  Em=Ucrit(Zix,Nix)-pair(Zix,Nix)-Pshift(Zix,Nix,ibar)
       if (Eex.le.Em) then
@@ -97,9 +96,6 @@ c 2. Above the matching energy
 c
 c U       : excitation energy minus pairing energy
 c delta   : energy shift
-c beta2   : deformation parameter
-c flagcol : flag for collective enhancement of level density
-c twothird: 2/3
 c
         U=Eex-delta(Zix,Nix,ibar)
         if (U.gt.0.) then
@@ -113,7 +109,6 @@ c
         endif
       endif
       spincut=max(scutoffdisc(Zix,Nix,ibar),spincut)
-      if (flagcol) spincut=(1.-twothird*beta2(Zix,Nix,ibar))*spincut
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

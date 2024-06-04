@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire, Marieke Duijvestijn and Arjan Koning
-c | Date  : July 13, 2006
+c | Date  : October 22, 2007
 c | Task  : Fission parameters
 c +---------------------------------------------------------------------
 c
@@ -12,8 +12,8 @@ c
       logical      lexist
       character*4  fischar
       character*90 fisfile,hbsfile,c2file
-      integer      Zix,Nix,fislocal,Z,N,A,ia,n1,i,j,n2,il,modz,modn
-      real         bar1,bar2,hw1,hw2,egs,lbar0,esp
+      integer      Zix,Nix,fislocal,Z,N,A,ia,n1,i,j,n2,il,modz,modn,nbar
+      real         bar1,bar2,hw1,hw2,egs,lbar0,esp,bb,vv
 c
 c ****************** Read fission barrier parameters *******************
 c
@@ -56,7 +56,12 @@ c
 c fisfile  : fission file
 c path     : directory containing structure files to be read
 c lenpath  : length of pathname
-c axtype   : type of axiality of barrier (1: axial, 2: tri-axial)
+c axtype   : type of axiality of barrier 
+c               1: axial symmetry
+c               2: left-right asymmetry
+c               3: triaxial and left-right symmetry
+c               4: triaxial no left-right symmetry
+c               5: no symmetry
 c bar1,bar2: inner and outer barrier heights
 c hw1,hw2  : inner and outer barrier curvatures
 c deltaW   : shell correction in nuclear mass  
@@ -72,7 +77,7 @@ c
   110   read(2,'(4x,i4,4x,1x,2(f8.2),5x,2(f8.2))',end=100)
      +    ia,bar1,hw1,bar2,hw2
         if (A.ne.ia) goto 110
-        if (axtype(Zix,Nix,1).eq.2.and.deltaW(Zix,Nix,1).eq.0.) 
+        if (axtype(Zix,Nix,1).ge.2.and.deltaW(Zix,Nix,1).eq.0.) 
      +    deltaW(Zix,Nix,1)=2.5
         if (axtype(Zix,Nix,1).eq.1.and.deltaW(Zix,Nix,1).eq.0.) 
      +    deltaW(Zix,Nix,1)=1.5
@@ -81,79 +86,6 @@ c
         if (fbarrier(Zix,Nix,2).eq.0.) fbarrier(Zix,Nix,2)=bar2
         if (fwidth(Zix,Nix,2).eq.0.) fwidth(Zix,Nix,2)=hw2
         if (nfisbar(Zix,Nix).ne.3) nfisbar(Zix,Nix)=2
-        close (unit=2)
-c
-c Read fission states
-c
-c modz,modn: help variables
-c hbsfile  : file with head band transition states
-c c2file   : file with class 2 states
-c
-        modz=mod(Z,2)
-        modn=mod(N,2)
-        if (modz.eq.0) then
-          if (modn.eq.0) then
-            hbsfile=path(1:lenpath)//'fission/states/hbstates.ee'
-            c2file=path(1:lenpath)//'fission/states/class2states.ee'
-          else
-            hbsfile=path(1:lenpath)//'fission/states/hbstates.eo'
-            c2file=path(1:lenpath)//'fission/states/class2states.eo'
-          endif
-        else
-          if (modn.eq.0) then
-            hbsfile=path(1:lenpath)//'fission/states/hbstates.oe'
-            c2file=path(1:lenpath)//'fission/states/class2states.oe'
-          else
-            hbsfile=path(1:lenpath)//'fission/states/hbstates.oo'
-            c2file=path(1:lenpath)//'fission/states/class2states.oo'
-          endif
-        endif
-c
-c Use user-defined files for head band and class 2 transition states
-c
-        if (hbtransfile(Zix,Nix)(1:1).ne.' ') 
-     +    hbsfile=hbtransfile(Zix,Nix)
-        if (class2file(Zix,Nix)(1:1).ne.' ') 
-     +    c2file=class2file(Zix,Nix)
-c
-c Read head band transition states
-c
-c n1,n2   : help variables
-c nfistrhb: number of head band transition states for barrier
-c fecont  : start of continuum energy
-c efistrhb: energy of head band transition states 
-c jfistrhb: spin of head band transition states 
-c pfistrhb: parity of head band transition states 
-c
-        open (unit=2,status='old',file=hbsfile)
-        n1=nfisbar(Zix,Nix)
-        do 210 i=1,n1
-          read(2,'(4x,i4,f8.3)') nfistrhb(Zix,Nix,i),fecont(Zix,Nix,i)
-          do 220 j=1,nfistrhb(Zix,Nix,i)
-            read(2,'(4x,f11.6,f6.1,i5)') efistrhb(Zix,Nix,i,j),
-     +        jfistrhb(Zix,Nix,i,j),pfistrhb(Zix,Nix,i,j)
- 220      continue
- 210    continue
-        close (unit=2)                       
-c
-c Class2 states
-c
-c nclass2 : number of sets of class2 states   
-c nfisc2hb: number of class2 states for barrier
-c efisc2hb: energy of class2 states 
-c jfisc2hb: spin of class2 states 
-c pfisc2hb: parity of class2 states 
-c
-        open (unit=2,status='old',file=c2file)
-        n2=nfisbar(Zix,Nix)-1
-        nclass2(Zix,Nix)=n2
-        do 230 i=1,n2
-          read(2,'(4x,i4)',end=230) nfisc2hb(Zix,Nix,i)
-          do 240 j=1,nfisc2hb(Zix,Nix,i)
-            read(2,'(4x,f11.6,f6.1,i5)',end=230) efisc2hb(Zix,Nix,i,j),
-     +        jfisc2hb(Zix,Nix,i,j),pfisc2hb(Zix,Nix,i,j)
-  240     continue
-  230   continue
         close (unit=2)
       endif
 c
@@ -164,8 +96,8 @@ c
         inquire (file=fisfile,exist=lexist)
         if (.not.lexist) goto 100
         open (unit=2,status='old',file=fisfile)
-  310   read(2,'(4x,i4,2(24x,f8.2))',end=100) ia,bar1,bar2
-        if (A.ne.ia) goto 310
+  210   read(2,'(4x,i4,2(24x,f8.2))',end=100) ia,bar1,bar2
+        if (A.ne.ia) goto 210
         if (fbarrier(Zix,Nix,1).eq.0.) fbarrier(Zix,Nix,1)=bar1
         if (fbarrier(Zix,Nix,2).eq.0.) fbarrier(Zix,Nix,2)=bar2
         if (fbarrier(Zix,Nix,1).eq.0..or.fbarrier(Zix,Nix,2).eq.0.) then
@@ -206,6 +138,130 @@ c
         if (fwidth(Zix,Nix,1).eq.0.) fwidth(Zix,Nix,1)=0.24
       endif
 c
+c Fismodel 5: WKB approximation 
+c
+c Read the potential energy curve and call the WKB subroutine
+c
+c nbeta     : number of beta values
+c betafiscor: adjustable factor for fission path width
+c vfiscor   : adjustable factor for fission path height
+c betafis   : fission path width
+c vfis      : fission path height
+c wkb       : subroutine for WKB approximation for fission
+c
+      if (fislocal.eq.5) then
+        nfisbar(Zix,Nix)=0
+        fisfile=path(1:lenpath)//'fission/hfbpath/'//fischar
+        inquire (file=fisfile,exist=lexist)
+        if (lexist) then
+          open (unit=2,status='old',file=fisfile)
+  300     read(2,'(4x,2i4)',end=330) ia,nbeta
+          if (A.ne.ia) then
+            do 310 i=1,nbeta
+              read(2,'()')
+  310       continue
+            goto 300
+          else
+            do 320 i=1,nbeta
+              read(2,'(f10.3,20x,f10.3)') bb,vv
+              betafis(i)=betafiscor(Zix,Nix)*bb
+              vfis(i)=vfiscor(Zix,Nix)*vv
+  320       continue
+            call wkb(Z,A,Zix,Nix,nbar)
+            nfisbar(Zix,Nix)=nbar
+            if (axtype(Zix,Nix,1).ge.2.and.deltaW(Zix,Nix,1).eq.0.)
+     +        deltaW(Zix,Nix,1)=2.5
+            if (axtype(Zix,Nix,1).eq.1.and.deltaW(Zix,Nix,1).eq.0.)
+     +        deltaW(Zix,Nix,1)=1.5
+          endif
+  330     close (unit=2)
+        endif
+      endif
+c
+c Read fission states
+c
+c modz,modn: help variables
+c hbsfile  : file with head band transition states
+c c2file   : file with class 2 states
+c
+      modz=mod(Z,2)
+      modn=mod(N,2)
+      if (modz.eq.0) then
+        if (modn.eq.0) then
+          hbsfile=path(1:lenpath)//'fission/states/hbstates.ee'
+          c2file=path(1:lenpath)//'fission/states/class2states.ee'
+        else
+          hbsfile=path(1:lenpath)//'fission/states/hbstates.eo'
+          c2file=path(1:lenpath)//'fission/states/class2states.eo'
+        endif
+      else
+        if (modn.eq.0) then
+          hbsfile=path(1:lenpath)//'fission/states/hbstates.oe'
+          c2file=path(1:lenpath)//'fission/states/class2states.oe'
+        else
+          hbsfile=path(1:lenpath)//'fission/states/hbstates.oo'
+          c2file=path(1:lenpath)//'fission/states/class2states.oo'
+        endif
+      endif
+c
+c Use user-defined files for head band and class 2 transition states
+c
+      if (hbtransfile(Zix,Nix)(1:1).ne.' ') hbsfile=hbtransfile(Zix,Nix)
+      if (class2file(Zix,Nix)(1:1).ne.' ')  c2file=class2file(Zix,Nix)
+c
+c Read head band transition states
+c
+c n1,n2   : help variables
+c nfistrhb: number of head band transition states for barrier
+c fecont  : start of continuum energy
+c numlev  : maximum number of included discrete levels
+c efistrhb: energy of head band transition states 
+c jfistrhb: spin of head band transition states 
+c pfistrhb: parity of head band transition states 
+c
+      open (unit=2,status='old',file=hbsfile)
+      n1=min(nfisbar(Zix,Nix),2)
+      do 410 i=1,n1
+        read(2,'(4x,i4,f8.3)') nfistrhb(Zix,Nix,i),fecont(Zix,Nix,i)
+        if (nfistrhb(Zix,Nix,i).gt.numlev) then
+          write(*,'(" TALYS-error: there are more than",i3,
+     +      " head band states in file ",a73)') numlev,hbsfile
+          write(*,'(" numlev in talys.cmb should be increased")')
+          stop
+        endif
+        do 420 j=1,nfistrhb(Zix,Nix,i)
+          read(2,'(4x,f11.6,f6.1,i5)') efistrhb(Zix,Nix,i,j),
+     +      jfistrhb(Zix,Nix,i,j),pfistrhb(Zix,Nix,i,j)
+ 420    continue
+ 410  continue
+      close (unit=2)                       
+c
+c Class2 states
+c
+c nclass2 : number of sets of class2 states   
+c nfisc2hb: number of class2 states for barrier
+c efisc2hb: energy of class2 states 
+c jfisc2hb: spin of class2 states 
+c pfisc2hb: parity of class2 states 
+c
+      open (unit=2,status='old',file=c2file)
+      n2=nfisbar(Zix,Nix)-1
+      nclass2(Zix,Nix)=n2
+      do 430 i=1,n2
+        read(2,'(4x,i4)',end=430) nfisc2hb(Zix,Nix,i)
+        if (nfisc2hb(Zix,Nix,i).gt.numlev) then
+          write(*,'(" TALYS-error: there are more than",i3,
+     +      " class 2 states in file ",a73)') numlev,c2file
+          write(*,'(" numlev in talys.cmb should be increased")')
+          stop
+        endif
+        do 440 j=1,nfisc2hb(Zix,Nix,i)
+          read(2,'(4x,f11.6,f6.1,i5)',end=430) efisc2hb(Zix,Nix,i,j),
+     +      jfisc2hb(Zix,Nix,i,j),pfisc2hb(Zix,Nix,i,j)
+  440   continue
+  430 continue
+      close (unit=2)
+c
 c ************************* Default parameters *************************
 c
 c minertia  : moment of inertia of fission barrier deformation
@@ -226,10 +282,10 @@ c
         fwidth(Zix,Nix,1)=fwidth(Zix,Nix,2)
         deltaW(Zix,Nix,1)=deltaW(Zix,Nix,2)
       endif
-      do 410 i=1,numbar
+      do 510 i=1,numbar
         minertia(Zix,Nix,i)=Rtransmom(Zix,Nix,i)*Irigid(Zix,Nix,i)
         minertc2(Zix,Nix,i)=Rclass2mom(Zix,Nix,i)*Irigid(Zix,Nix,i)
-  410 continue
+  510 continue
 c
 c ********** Rotational bands on transition and class2 states **********
 c

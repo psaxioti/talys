@@ -3,7 +3,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire 
-c | Date  : August 22, 2004
+c | Date  : February 6, 2007
 c | Task  : GOE triple integral width fluctuation correction
 c +---------------------------------------------------------------------
 c
@@ -129,7 +129,7 @@ c
         res1=dab*2.*ta2*(1.-ta)/s12*(1.+c1s1+c1s2+c1s3+c1s4)+
      +    (1.+dab)*ta/s1*(tb+c2s1+c2s2+c2s3+c2s4+c2s5)
       endif
-      tt=tjl(1,na)*tjl(1,nb)
+      tt=tjl(1,na)*tjl(1,nb)/tjl(0,na)
       if (tt.ne.0.) then
         res=real(res1*st/tt)
       else

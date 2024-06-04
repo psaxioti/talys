@@ -1,8 +1,8 @@
-      subroutine bdef(amass,zchar,epscloc,coul,sym,b)
+      subroutine bdef(amass,zchar,epscloc,cou,sym,b)
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : September 9, 2004
+c | Date  : May 8, 2007
 c | Task  : Computes the binding energy of a deformed nucleus with 
 c |         eccentricity by the droplet model without shell corrections.
 c +---------------------------------------------------------------------
@@ -15,14 +15,14 @@ c
 c ****************** Declarations and common blocks ********************
 c
       external fcoul,fsurf                                             
-      real     b,sym,coul,epscloc,zchar,amass,a3w,fcoul,hsc,fsurf
+      real     b,sym,cou,epscloc,zchar,amass,a3w,fcoul,hsc,fsurf
 c
 c **********************************************************************
 c
       a3w=amass**(1./3.)
-      coul=0.7053/a3w*fcoul(epscloc)-1.153/amass
+      cou=0.7053/a3w*fcoul(epscloc)-1.153/amass
       hsc=15.4941*amass-17.9439*a3w**2*fsurf(epscloc)
       sym=1.7826/amass**2*hsc
-      b=-hsc+sym*(amass-zchar-zchar)**2+coul*zchar**2
+      b=-hsc+sym*(amass-zchar-zchar)**2+cou*zchar**2
       return                                                            
       end                                                               

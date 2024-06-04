@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 9, 2006      
+c | Date  : October 4, 2007
 c | Task  : Output of gamma-ray strength functions, transmission 
 c |         coefficients and cross sections
 c +---------------------------------------------------------------------
@@ -24,6 +24,7 @@ c AA,A     : mass number of residual nucleus
 c nuc      : symbol of nucleus
 c gamgam   : total radiative width
 c dgamgam  : uncertainty in gamgam
+c gamgamth : theoretical total radiative width
 c D0       : experimental s-wave resonance spacing in eV
 c dD0      : uncertainty in D0
 c Dtheo    : theoretical s-wave resonance spacing
@@ -33,6 +34,8 @@ c swaveth  : theoretical strength function for s-wave
 c gnorm    : gamma normalization factor
 c strength : model for E1 gamma-ray strength function
 c model    : string for E1 gamma-ray strength function
+c etable   : constant to adjust tabulated strength functions
+c ftable   : constant to adjust tabulated strength functions
 c gammax   : number of l-values for gamma multipolarity
 c sgr      : strength of GR
 c ngr      : number of GR
@@ -54,14 +57,15 @@ c
       write(*,'(/" Gamma-ray information for Z=",i3," N=",i3,
      +  " (",i3,a2,") "/)') Z,N,A,nuc(Z)   
       write(*,'(" S-wave strength function parameters:"/)')
-      write(*,'(" Exp. total radiative width=",f10.5," eV +/-",f8.5)') 
-     +  gamgam(Zcomp,Ncomp),dgamgam(Zcomp,Ncomp)
+      write(*,'(" Exp. total radiative width=",f10.5," eV +/-",f8.5,
+     +  " Theor. total radiative width=",f15.2," eV")') 
+     +  gamgam(Zcomp,Ncomp),dgamgam(Zcomp,Ncomp),gamgamth(Zcomp,Ncomp)
       write(*,'(" Exp. D0                   =",f10.2," eV +/-",f8.2,
      +  " Theor. D0                   =",f15.2," eV")') 
      +  D0(Zcomp,Ncomp),dD0(Zcomp,Ncomp),Dtheo(Zcomp,Ncomp)
       write(*,'(" Exp. S-wave strength func.=",f10.5,"E-4 +/-",f8.5,
      +  " Theor. S-wave strength func.=",f15.5,"E-4")') 
-     +  S0(Zcomp,Ncomp),dS0(Zcomp,Ncomp),1.e4*swaveth
+     +  S0(Zcomp,Ncomp),dS0(Zcomp,Ncomp),1.e4*swaveth(Zcomp,Ncomp)
       write(*,'(" Normalization factor      =",f10.5)') gnorm
       if (strength.eq.1) model="Kopecky-Uhl              "
       if (strength.eq.2) model="Brink-Axel               "
@@ -69,6 +73,10 @@ c
       if (strength.eq.4) model="Goriely HFB tables       "
       write(*,'(/" Gamma-ray strength function model for E1: ",a25)') 
      +  model
+      if (strength.ge.3) then
+        write(*,'(/" Adjustable parameters: etable=",f10.5," ftable=",
+     +    f10.5)') etable(Zcomp,Ncomp),ftable(Zcomp,Ncomp)
+      endif
       do 10 l=1,gammax
         write(*,'(/" Normalized gamma-ray strength functions and ",
      +    "transmission coefficients for l=",i2,/)') l

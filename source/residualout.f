@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 9, 2006   
+c | Date  : June 19, 2007
 c | Task  : Output of residual production cross sections
 c +---------------------------------------------------------------------
 c
@@ -149,11 +149,11 @@ c
             else
               open (unit=1,status='old',file=rpfile)
               do 150 nen=1,nin+4
-                read(1,*)
+                read(1,*,end=160,err=160)
   150         continue
             endif 
             write(1,'(1p,e10.3,e12.5)') Einc,xspopnuc(Zcomp,Ncomp)
-            close (unit=1)
+  160       close (unit=1)
 c
 c B. Per ground state and isomer
 c
@@ -170,11 +170,11 @@ c
                   rpisoexist(Zcomp,Ncomp,nex)=.true.
                   open (unit=1,status='unknown',file=isofile)
                   if (nex.eq.0) then
-                    write(1,'("# ",a1," + ",i3,a2,": Production of",
+                    write(1,'("# ",a1," + ",i3,a2,": Production of ",
      +                i3,a2," - Ground state")') parsym(k0),Atarget,
      +                nuc(Ztarget),A,nuc(Z)
                   else
-                    write(1,'("# ",a1," + ",i3,a2,": Production of",
+                    write(1,'("# ",a1," + ",i3,a2,": Production of ",
      +                i3,a2," - Level",i3)') parsym(k0),Atarget,
      +                nuc(Ztarget),A,nuc(Z),nex
                   endif
@@ -195,12 +195,12 @@ c
                 else
                   open (unit=1,status='old',file=isofile)
                   do 260 nen=1,nin+4
-                    read(1,*)
+                    read(1,*,end=270,err=270)
   260             continue
                 endif 
                 write(1,'(1p,e10.3,e12.5,0p,f9.5)') Einc,
      +            xspopex(Zcomp,Ncomp,nex),xsbranch(Zcomp,Ncomp,nex) 
-                close (unit=1)
+  270           close (unit=1)
               endif
   230       continue
   120     continue

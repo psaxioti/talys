@@ -2,19 +2,19 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 15, 2006    
+c | Date  : December 21, 2007
 c | Task  : Main output
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer Zcomp,Ncomp,Zix,Nix,type,i
+      integer Zcomp,Ncomp,Zix,Nix,type,i,J
 c
 c *************************** Code and version *************************
 c
-      write(*,'(/"    TALYS-0.72      (Version: December 15, 2006)"/)')
-      write(*,'(" Copyright (C) 2004  A.J. Koning, S. Hilaire ",
+      write(*,'(/"    TALYS-1.0      (Version: December 21, 2007)"/)')
+      write(*,'(" Copyright (C) 2007  A.J. Koning, S. Hilaire ",
      +  "and M.C. Duijvestijn")')
       write(*,'(24x," NRG          CEA              NRG"/)')
       write(*,'(" Dimensions - Cross sections: mb, Energies: MeV, ",
@@ -28,27 +28,28 @@ c
 c
 c ********************** Main nuclear parameters ***********************
 c
-c Zcomp  : charge number index for compound nucleus
-c Ncomp  : neutron number index for compound nucleus
-c Zindex : charge number index for residual nucleus
-c Nindex : neutron number index for residual nucleus
-c k0     : index of incident particle
-c parname: name of particle
-c parmass: mass of particle in a.m.u.
-c Atarget: mass number of target nucleus
-c Starget: symbol of target nucleus
-c tarmass: mass of target nucleus
-c Ltarget: excited level of target
-c edis   : energy of level
-c jdis   : spin of level
-c cparity: parity of level (character)
-c parlev : parity of level 
-c tau    : lifetime of state in seconds
-c parskip: logical to skip outgoing particle
-c numinc : number of incident energies
-c eninc  : incident energy in MeV
-c parsym : symbol of particle
-c Q      : Q-value for target nucleus 
+c Zcomp      : charge number index for compound nucleus
+c Ncomp      : neutron number index for compound nucleus
+c Zindex     : charge number index for residual nucleus
+c Nindex     : neutron number index for residual nucleus
+c k0         : index of incident particle
+c parname    : name of particle
+c parmass    : mass of particle in a.m.u.
+c Atarget    : mass number of target nucleus
+c Starget    : symbol of target nucleus
+c tarmass    : mass of target nucleus
+c Ltarget    : excited level of target
+c edis       : energy of level
+c jdis       : spin of level
+c cparity    : parity of level (character)
+c parlev     : parity of level 
+c tau        : lifetime of state in seconds
+c parskip    : logical to skip outgoing particle
+c numinc     : number of incident energies
+c flaginitpop: flag for initial population distribution
+c eninc      : incident energy in MeV
+c parsym     : symbol of particle
+c Q          : Q-value for target nucleus 
 c
       Zcomp=0
       Ncomp=0
@@ -71,24 +72,55 @@ c
         if (parskip(type)) goto 10
         write(*,'(21x,a8)') parname(type)
    10 continue
-      if (numinc.eq.1) then
-        write(*,'(/," 1 incident energy (LAB):"/)') 
-      else
-        write(*,'(/,1x,i3," incident energies (LAB):"/)') numinc
-      endif
-      do 20 i=1,numinc
-        if (eninc(i).lt.0.001) then
-          write(*,'(1x,1p,e10.3)') eninc(i)
+c
+c Projectile
+c
+      if (.not.flaginitpop) then
+        if (numinc.eq.1) then
+          write(*,'(/," 1 incident energy (LAB):"/)') 
         else
-          write(*,'(1x,f10.3)') eninc(i)
+          write(*,'(/,1x,i3," incident energies (LAB):"/)') numinc
         endif
-   20 continue
+        do 20 i=1,numinc
+          if (eninc(i).lt.0.001) then
+            write(*,'(1x,1p,e10.3)') eninc(i)
+          else
+            write(*,'(1x,f10.3)') eninc(i)
+          endif
+   20   continue
+      else
+c
+c Initial population distribution
+c
+c npopbins: number of excitation energy bins for population distribution
+c npopJ   : number of spins for population distribution
+c Exdist  : excitation energy of population distribution
+c Pdistex : population distribution, spin-independent
+c Pdist   : population distribution per spin
+c
+
+        write(*,'(/," Initial population distribution - Bins: ",i3,
+     +    " Spins: ",i3," Maximum excitation energy:",f12.5/)')
+     +    npopbins,npopJ,eninc(1)
+        if (npopJ.eq.0) then
+          write(*,'("    Ex     Population "/)')
+          do 30 i=1,npopbins
+            write(*,'(1p,2e10.3)') Exdist(i),Pdistex(i)
+  30      continue
+        else
+          write(*,'("    Ex ",11("      J=",i2)/)') 
+     +      (J,J=0,10)
+          do 40 i=1,npopbins
+            write(*,'(1p,12e10.3)') Exdist(i),(Pdist(i,J),J=0,10)
+  40      continue
+        endif
+      endif
       write(*,'(/" Q-values for binary reactions:"/)') 
-      do 30 type=0,6
-        if (parskip(type)) goto 30
+      do 50 type=0,6
+        if (parskip(type)) goto 50
         write(*,'(" Q(",a1,",",a1,"):",f9.5)') parsym(k0),parsym(type),
      +    Q(type)
-   30 continue
+   50 continue
 c
 c * Write nuclear structure parameters for target and compound nucleus *
 c

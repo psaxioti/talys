@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning, Stephane Hilaire, Eric Bauge and Pascal Romain
-c | Date  : October 5, 2006   
+c | Date  : June 22, 2007
 c | Task  : Read ECIS results for outgoing particles and energy grid
 c +---------------------------------------------------------------------
 c
@@ -65,14 +65,15 @@ c Zindex,Zix : charge number index for residual nucleus
 c Nindex,Nix : neutron number index for residual nucleus    
 c groundspin2: 2 * spin of ground state
 c jdis       : spin of level
-c nJ         : number of total J values for transmission coeffients
+c nJ         : number of total J values for transmission coefficients
 c rJ         : compound nucleus spin
-c nS         : number of for transmission coeffients per J-value
+c nS         : number of for transmission coefficients per J-value
 c lev        : level number
 c l          : orbital angular momentum
 c jres       : j-value
 c Tjl,Tcoef  : transmission coefficients as a function of
 c              particle type, energy, spin and l-value
+c numl       : maximal number of l-values in TALYS
 c colltype   : type of collectivity (D, V or R)
 c flagrot    : flag for use of rotational optical model per
 c              outgoing particle, if available  
@@ -95,11 +96,12 @@ c
         Nix=Nindex(Zcomp,Ncomp,type)
         groundspin2=int(2.*jdis(Zix,Nix,0))
         do 120 nen=ebegin(type),eendmax(type)
-          read(7,'(45x,i5)') nJ
+          read(7,'(55x,i5)') nJ
           do 130 i=1,nJ
-            read(7,'(f5.1,2x,i5)') rj,nS
+            read(7,'(f10.1,5x,i5)') rj,nS
             do 140 k=1,nS
-              read(7,'(i3,i4,f6.1,e16.7)') lev,l,jres,Tcoef
+              read(7,'(i3,i6,f9.1,e20.8)') lev,l,jres,Tcoef
+              if (l.gt.numl) goto 140
               if (lev.eq.1) then
                 if (colltype(Zix,Nix).ne.'S'.and.flagrot(type)) then
                   factor=(2.*rj+1.)/(2.*jres+1.)/(groundspin2+1.)
@@ -128,7 +130,6 @@ c coefficient for (l+spin) is not written in the output. Since these
 c are small numbers we put them equal to the value for (l-spin).
 c
 c eend      : last energy point of energy grid 
-c numl      : maximal number of l-values in TALYS
 c Tl        : transmission coefficients as a function of
 c             particle type, energy and l-value (averaged over spin)
 c translimit: limit for transmission coefficient 
@@ -207,7 +208,7 @@ c
         endif
   210 continue
       close (unit=7,status=ecisstatus)
-      open (unit=10,status='unknown',file='ecis03.invin')
+      open (unit=10,status='unknown',file='ecis06.invin')
       close (unit=10,status=ecisstatus)
       return
       end

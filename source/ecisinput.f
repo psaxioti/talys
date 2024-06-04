@@ -1,17 +1,17 @@
-      subroutine ecisinput(Zix,Nix,kopt,e,rotational,vibrational)
+      subroutine ecisinput(Zix,Nix,kopt,e,rotational,vibrational,jlmloc)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 13, 2004
+c | Date  : December 18, 2007
 c | Task  : Create ECIS input file
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      rotational,vibrational
+      logical      rotational,vibrational,jlmloc
       character*32 Eformat
-      integer      Zix,Nix,kopt,i
+      integer      Zix,Nix,kopt,i,k
       real         e,eopt
 c
 c *********************** Write standard input *************************
@@ -22,12 +22,14 @@ c kopt       : optical model index for fast particle
 c e          : incident energy in MeV
 c rotational : flag for rotational input
 c vibrational: flag for vibrational input
+c jlmloc     : flag to enable JLM calculation
 c title      : title of ECIS input file
 c ecis1,ecis2: 100 input flags ('T' or 'F') for ECIS
 c ncoll      : number of nuclear states
 c njmax      : maximal number of j-values in ECIS
 c iterm      : number of iterations   
 c npp        : number of optical potentials    
+c hint       : integration step size h
 c rmatch     : matching radius
 c legendre   : logical for output of Legendre coefficients
 c Eformat    : format string
@@ -56,7 +58,8 @@ c
       write(9,'(a50)') ecis1
       write(9,'(a50)') ecis2
       write(9,'(4i5)') ncoll,njmax,iterm,npp
-      write(9,'(10x,f10.5,10x,"    1.e-10    1.e-10    1.e-30")') rmatch
+      write(9,'(2f10.5,10x,"    1.e-10    1.e-10    1.e-30")') 
+     +  hint,rmatch
       if (legendre) write(9,'()')
       if (e.ge.0.01) then
         Eformat='(f5.2,2i2,a1,5f10.5)'
@@ -87,6 +90,8 @@ c
 c The optical model parameters can be calculated at the ground state
 c and every excited state.
 c
+c 1. Phenomenological OMP
+c
 c eopt         : incident energy
 c optical      : subroutine for determination of optical potential
 c v,rv,av      : real volume potential, radius, diffuseness
@@ -96,23 +101,90 @@ c wd,rwd,awd   : imaginary surface potential, radius, diffuseness
 c vso,rvso,avso: real spin-orbit potential, radius, diffuseness
 c wso,rwso,awso: imaginary spin-orbit potential, radius, diffuseness
 c rc           : Coulomb radius
+c efer         : Fermi energy
+c w2disp,......: constants for imaginary potentials  
+c disp         : flag for dispersive optical model
 c angbeg       : first angle 
 c anginc       : angle increment
 c angend       : last angle 
 c
-      do 30 i=1,npp
-        eopt=e-real(Elevel(i)*(resmass+projmass)/resmass)
-        call optical(Zix,Nix,kopt,eopt)
-        write(9,'(3f10.5)') v,rv,av
-        write(9,'(3f10.5)') w,rw,aw
-        write(9,'(3f10.5)') vd,rvd,avd
-        write(9,'(3f10.5)') wd,rwd,awd
-        write(9,'(3f10.5)') vso,rvso,avso
-        write(9,'(3f10.5)') wso,rwso,awso
-        write(9,'(3f10.5)') rc,0.,0.
-        write(9,'(3f10.5)') 0.,0.,0.
-   30 continue
-      write(9,'(3f10.5)') angbeg,anginc,angend
+      if (.not.jlmloc) then
+        do 30 i=1,npp
+          eopt=e-real(Elevel(i)*(resmass+projmass)/resmass)
+          call optical(Zix,Nix,kopt,eopt)
+          write(9,'(3f10.5)') v,rv,av
+          write(9,'(3f10.5)') w,rw,aw
+          write(9,'(3f10.5)') vd,rvd,avd
+          write(9,'(3f10.5)') wd,rwd,awd
+          write(9,'(3f10.5)') vso,rvso,avso
+          write(9,'(3f10.5)') wso,rwso,awso
+          write(9,'(3f10.5)') rc,0.,0.
+          write(9,'(3f10.5)') 0.,0.,0.
+   30   continue
+        write(9,'(3f10.5)') angbeg,anginc,angend
+        if (disp(Zix,Nix,kopt)) then
+          write(9,'(10x,2i5)') 2,2
+          write(9,'(10x,f10.5,40x,f10.5)') efer,w2disp
+          write(9,'(20x,2f10.5)') d3disp,d2disp
+        endif
+      endif
+c
+c 2. JLM OMP
+c
+c mom    : subroutine for microscopic optical model (Eric Bauge)
+c normjlm: JLM potential normalization factors
+c radjlm : radial points for JLM potential
+c potjlm : JLM potential depth values
+c nrad   : number of radial points
+
+c
+c Write the potentials in ECIS external input format
+c
+      if (jlmloc) then
+        write(9,'(3f10.5)') angbeg,anginc,angend
+        call mom(Zix,Nix,dble(prodZ),dble(e))
+        write(9,'(2i5)') 1,1
+c
+c 1.  Real central
+c 2.  Imaginary central
+c
+        do 110 k=1,2
+          write(9,'(9i5)') 1,1,0,k,0,0,0,1,-1
+          write(9,'(f10.5)') normjlm(Zix,Nix,k)
+          write(9,'(2(f10.5,e20.6))') 
+     +      (radjlm(Zix,Nix,i),-potjlm(Zix,Nix,i,k),i=1,nrad-2)
+          write(9,'(2(f10.5,e20.6),a4)') (radjlm(Zix,Nix,i),
+     +      -potjlm(Zix,Nix,i,k),i=nrad-1,nrad),"last"
+  110   continue
+c
+c 3.  Real surface (not used)
+c 4.  Imaginary surface (not used)
+c
+        do 120 k=3,4
+          write(9,'(8i5)') 1,1,0,k,0,0,0,-1
+          write(9,'()')
+  120   continue
+c
+c 5.  Real spin-orbit
+c 6.  Imaginary spin-orbit
+c
+        do 130 k=5,6
+          write(9,'(9i5)') 1,1,0,k,0,0,0,1,-1
+          write(9,'(f10.5)') normjlm(Zix,Nix,k)
+          write(9,'(2(f10.5,e20.6))') 
+     +      (radjlm(Zix,Nix,i),-0.5*potjlm(Zix,Nix,i,k),i=1,nrad-2)
+          write(9,'(2(f10.5,e20.6),a4)') (radjlm(Zix,Nix,i),
+     +      -0.5*potjlm(Zix,Nix,i,k),i=nrad-1,nrad),"last"
+  130   continue
+c
+c 7.  Coulomb
+c 8.  Coulomb spin-orbit (not used)
+c
+        write(9,'(9i5)') 1,1,0,7,0,0,0,-1,-1
+        write(9,'(2f10.5)') prodZ,rc
+        write(9,'(9i5)') 1,1,0,8,0,0,0,-1,-1
+        write(9,'(3f10.5)') 0.0,1.12,0.55
+      endif
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

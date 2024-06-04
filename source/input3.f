@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : October 25, 2006    
+c | Date  : December 17, 2007
 c | Task  : Read input for third set of variables
 c +---------------------------------------------------------------------
 c
@@ -18,7 +18,6 @@ c
 c Some defaults are set on the basis of the input variables specified
 c before. This can of course be overruled in the input file.
 c
-c flagecissave: flag for saving ECIS input and output files
 c flageciscalc: flag for new ECIS calculation for outgoing particles
 c               and energy grid
 c flaginccalc : flag for new ECIS calculation for incident channel
@@ -28,6 +27,7 @@ c flagfullhf  : flag for full spin dependence of transmission
 c               coefficients         
 c ewfc        : off-set incident energy for width fluctuation 
 c               calculation
+c ptype0      : type of incident particle
 c epreeq      : on-set incident energy for preequilibrium calculation
 c emulpre     : on-set incident energy for multiple preequilibrium 
 c               calculation
@@ -52,6 +52,7 @@ c flageciscomp: flag for compound nucleus calculation by ECIS
 c flagecisdwba: flag for new ECIS calculation for DWBA for MSD
 c flagonestep : flag for continuum one-step direct only
 c flaglocalomp: flag for local (y) or global (n) optical model 
+c flagdisp    : flag for dispersive optical model   
 c flagompall  : flag for new optical model calculation for all 
 c               residual nuclei
 c flagautorot : flag for automatic rotational coupled channels
@@ -80,16 +81,23 @@ c flaglabddx  : flag for calculation of DDX in LAB system
 c flagrecoilav: flag for average velocity in recoil calculation
 c flagEchannel: flag for channel energy for emission spectrum
 c flagreaction: flag for calculation of nuclear reactions
+c flagastro   : flag for calculation of astrophysics reaction rate
+c flagastrogs : flag for calculation of astrophysics reaction rate 
+c               with target in ground state only
 c flagexpmass : flag for using experimental nuclear mass if available
+c flagjlm     : flag for using semi-microscopic JLM OMP 
 c
-      flagecissave=.false.
       flageciscalc=.true.
       flaginccalc=.true.
       flagrel=.true.
       flagcomp=.true.
       flagfullhf=.false.
       ewfc=-1.
-      epreeq=-1.
+      if (ptype0.eq.'0') then
+        epreeq=250.
+      else
+        epreeq=-1.
+      endif
       emulpre=20.
       flagpespin=.false.
       maxband=0
@@ -127,6 +135,7 @@ c
       flagecisdwba=.true.
       flagonestep=.false.
       flaglocalomp=.true.
+      flagdisp=.false.
       flagompall=.false.
       flagautorot=.false.
       flagstate=.false.
@@ -146,7 +155,7 @@ c
       do 40 type=3,6
         flagrot(type)=.false.
    40 continue   
-      flagasys=.true.
+      flagasys=.false.
       flaggshell=.false.
       flagmassdis=.false.
       flagffevap=.false.
@@ -161,7 +170,10 @@ c
       flagrecoilav=.false.
       flagEchannel=.false.
       flagreaction=.true.
+      flagastro=.false.
+      flagastrogs=.false.
       flagexpmass=.true.
+      flagjlm=.false.
 c
 c **************** Read third set of input variables *******************
 c
@@ -191,21 +203,15 @@ c Ninit : neutron number of initial compound nucleus
 c parsym: symbol of particle 
 c
         if (key.eq.'maxband') then
-          read(value,*,err=300) maxband
+          read(value,*,end=300,err=300) maxband
           goto 110
         endif
         if (key.eq.'maxrot')  then
-          read(value,*,err=300) maxrot
+          read(value,*,end=300,err=300) maxrot
           goto 110
         endif
         if (key.eq.'strength') then
-          read(value,*,err=300) strength
-          goto 110
-        endif
-        if (key.eq.'ecissave') then
-          if (ch.eq.'n') flagecissave=.false.
-          if (ch.eq.'y') flagecissave=.true.
-          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          read(value,*,end=300,err=300) strength
           goto 110
         endif
         if (key.eq.'eciscalc') then
@@ -241,7 +247,7 @@ c
             ewfc=0.
             goto 110
           endif
-          read(value,*,err=300) ewfc
+          read(value,*,end=300,err=300) ewfc
           goto 110
         endif
         if (key.eq.'preequilibrium') then
@@ -253,7 +259,7 @@ c
             epreeq=250.
             goto 110
           endif
-          read(value,*,err=300) epreeq
+          read(value,*,end=300,err=300) epreeq
           goto 110
         endif
         if (key.eq.'multipreeq') then
@@ -265,7 +271,7 @@ c
             emulpre=250.
             goto 110
           endif
-          read(value,*,err=300) emulpre
+          read(value,*,end=300,err=300) emulpre
           goto 110
         endif
         if (key.eq.'preeqspin') then
@@ -346,6 +352,12 @@ c
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif
+        if (key.eq.'dispersion') then
+          if (ch.eq.'n') flagdisp=.false.
+          if (ch.eq.'y') flagdisp=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
         if (key.eq.'optmodall') then
           if (ch.eq.'n') flagompall=.false.
           if (ch.eq.'y') flagompall=.true.
@@ -359,8 +371,8 @@ c
           goto 110
         endif
         if (key.eq.'optmod') then 
-          read(word(2),*,err=300) iz
-          read(word(3),*,err=300) ia
+          read(word(2),*,end=300,err=300) iz
+          read(word(3),*,end=300,err=300) ia
           Zix=Zinit-iz
           Nix=Ninit-ia+iz
           if (Zix.lt.0.or.Zix.gt.numZph.or.
@@ -493,9 +505,27 @@ c
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif
+        if (key.eq.'astro') then
+          if (ch.eq.'n') flagastro=.false.
+          if (ch.eq.'y') flagastro=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
+        if (key.eq.'astrogs') then
+          if (ch.eq.'n') flagastrogs=.false.
+          if (ch.eq.'y') flagastrogs=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
         if (key.eq.'expmass') then
           if (ch.eq.'n') flagexpmass=.false.
           if (ch.eq.'y') flagexpmass=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
+        if (key.eq.'jlmomp') then
+          if (ch.eq.'n') flagjlm=.false.
+          if (ch.eq.'y') flagjlm=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif

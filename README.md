@@ -1,6 +1,6 @@
-     TALYS-0.72 (Version: December 15, 2006)
+     TALYS-1.0 (Version: December 21, 2007)
 
- Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+ Copyright (C) 2007  A.J. Koning, S. Hilaire and M.C. Duijvestijn
                          NRG          CEA              NRG
 
 The TALYS package
@@ -14,20 +14,20 @@ contains the following directories and files:
 
 - talys.setup is a script that takes care of the installation.
 
-- source/ contains the source code of TALYS: 259 Fortran subroutines, and the 
+- source/ contains the source code of TALYS: 274 Fortran subroutines, and the 
   file talys.cmb, which contains all variable declarations and common blocks.
-  This includes the file ecis03t.f. This is basically Jacques Raynal's code 
-  ECIS-03, which we have transformed into a subroutine and slightly modified 
+  This includes the file ecis06t.f. This is basically Jacques Raynal's code 
+  ECIS-06, which we have transformed into a subroutine and slightly modified 
   to generate extra output that is not given by the original version of ECIS.
 
 - structure/ contains the nuclear structure database in various subdirectories. 
 
 - doc/ contains the documentation: this manual in postscript and pdf format and 
-  the description of ECIS-03.
+  the description of ECIS-06.
 
 - samples/ contains the input and output files of the sample cases.
 
-In total, you will need about 900 Mb of free disk space to install TALYS.
+In total, you will need about 1.3 Gb of free disk space to install TALYS.
 
 Installation
 ------------
@@ -55,7 +55,7 @@ should be taken:
   in subroutine machine.f. If talys.setup has not already replaced the path 
   name in machine.f, do it yourself. We think this is the only Unix/Linux 
   machine dependence of TALYS. Apart from a few trivial warning messages for 
-  ecis03t.f, we expect no complaints from the compiler. 
+  ecis06t.f, we expect no complaints from the compiler. 
 
 - f95 -c *.f
 

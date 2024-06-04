@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : September 25, 2006
+c | Date  : December 18, 2007
 c | Task  : Level density parameters
 c +---------------------------------------------------------------------
 c
@@ -15,7 +15,7 @@ c
       character*90     denfile
       integer          Zix,Nix,Z,N,A,ia,Nlow0,Ntop0,ibar,imax,imin,i,
      +                 oddZ,oddN
-      real             ald0,pshift0,sigsum,denom,rj,scutoffsys,ald,
+      real             ald0,pshift0,scutoffsys,sigsum,denom,rj,sd,ald,
      +                 Spair,fU,difprev,factor,argum
       double precision mldm,mliquid1,mliquid2
 c
@@ -40,19 +40,21 @@ c
 c
 c *********** Read values from level density parameter file ************
 c
-c denchar : string for level density file
-c ldmodel : level density model
-c denfile : level density parameter file
-c path    : directory containing structure files to be read
-c flagcol : flag for collective enhancement of level density
-c ia      : mass number from level density table
-c Nlow0,..: help variables
-c Nlow    : lowest discrete level for temperature matching
-c Ntop    : highest discrete level for temperature matching
-c flagasys: flag for all level density parameters a from systematics
-c alev    : level density parameter
-c Pshift  : adjustable pairing shift
-c c1table : constant to adjust tabulated level densities
+c denchar   : string for level density file
+c ldmodel   : level density model
+c denfile   : level density parameter file
+c path      : directory containing structure files to be read
+c flagcol   : flag for collective enhancement of level density
+c ia        : mass number from level density table
+c Nlow0,..  : help variables
+c ldparexist: flag for existence of tabulated level density parameters
+c Nlow      : lowest discrete level for temperature matching
+c Ntop      : highest discrete level for temperature matching
+c flagasys  : flag for all level density parameters a from systematics
+c alev      : level density parameter
+c Pshift    : adjustable pairing shift
+c ctable    : constant to adjust tabulated level densities
+c ptable    : constant to adjust tabulated level densities
 c
 c Level density parameters from the table can always be overruled
 c by values given in the input file. With flagasys, all experimental
@@ -82,6 +84,7 @@ c
       open (unit=2,status='old',file=denfile)
    10 read(2,fmt=denformat,end=30) ia,Nlow0,Ntop0,ald0,pshift0
       if (A.ne.ia) goto 10
+      ldparexist(Zix,Nix)=.true.
       if (Nlow(Zix,Nix,0).eq.-1) Nlow(Zix,Nix,0)=Nlow0
       if (Ntop(Zix,Nix,0).eq.-1) Ntop(Zix,Nix,0)=min(Ntop0,50)
       if (.not.flagasys) then
@@ -92,8 +95,8 @@ c
      +        Pshift(Zix,Nix,ibar)=pshift0
    20     continue
         else
-          if (c1table(Zix,Nix).eq.0.) c1table(Zix,Nix)=ald0
-          if (c2table(Zix,Nix).eq.0.) c2table(Zix,Nix)=pshift0
+          if (ctable(Zix,Nix,0).eq.1.e-20) ctable(Zix,Nix,0)=ald0
+          if (ptable(Zix,Nix,0).eq.1.e-20) ptable(Zix,Nix,0)=pshift0
         endif
       endif
    30 close (unit=2)
@@ -120,6 +123,8 @@ c
 c
 c Determine spin cut-off parameter for discrete level region
 c
+c scutoffsys  : spin cutoff factor for discrete level from systematics
+c scutoffdisc : spin cutoff factor for discrete level region
 c imin,imax   : help variables
 c Ediscrete   : energy of middle of discrete level region
 c edis        : energy of level
@@ -127,41 +132,40 @@ c efistrrot   : energy of rotational transition states
 c sigsum,denom: help variables
 c jdis        : spin of the level
 c jfistrrot   : spin of rotational transition states
-c scutoffdisc : spin cutoff factor for discrete level region
-c scutoffsys  : spin cutoff factor for discrete level from
-c             : systematics
 c
+c First assign the systematics value, then overrule in case of enough
+c discrete level info.
+c
+      scutoffsys=(0.83*(A**0.26))**2
       do 50 ibar=0,nfisbar(Zix,Nix)      
-        imax=Ntop(Zix,Nix,ibar)
-        if (ibar.eq.0) then
-          imin=Nlow(Zix,Nix,0)
-          Ediscrete(Zix,Nix,0)=0.5*(edis(Zix,Nix,imin)+
-     +      edis(Zix,Nix,imax))
-        else
-          imin=1
-          Ediscrete(Zix,Nix,ibar)=0.5*(efistrrot(Zix,Nix,ibar,imin)+
-     +      efistrrot(Zix,Nix,ibar,imax))
-        endif
-        sigsum=0.
-        denom=0.
-        do 60 i=imin,imax
+        scutoffdisc(Zix,Nix,ibar)=scutoffsys
+        if (ldparexist(Zix,Nix)) then
+          imax=Ntop(Zix,Nix,ibar)
           if (ibar.eq.0) then
-            rj=jdis(Zix,Nix,i)
+            imin=Nlow(Zix,Nix,0)
+            Ediscrete(Zix,Nix,0)=0.5*(edis(Zix,Nix,imin)+
+     +        edis(Zix,Nix,imax))
           else
-            rj=jfistrrot(Zix,Nix,ibar,i)
+            imin=1
+            Ediscrete(Zix,Nix,ibar)=0.5*(efistrrot(Zix,Nix,ibar,imin)+
+     +        efistrrot(Zix,Nix,ibar,imax))
           endif
-          sigsum=sigsum+rj*(rj+1)*(2*rj+1)
-          denom=denom+2*rj+1
-   60   continue
-        scutoffsys=(0.83*(A**0.26))**2
-        if (sigsum.ne.0.and.denom.ne.0.) then
-          scutoffdisc(Zix,Nix,ibar)=sigsum/(3*denom)
-        else
-          scutoffdisc(Zix,Nix,ibar)=scutoffsys
+          sigsum=0.
+          denom=0.
+          do 60 i=imin,imax
+            if (ibar.eq.0) then
+              rj=jdis(Zix,Nix,i)
+            else
+              rj=jfistrrot(Zix,Nix,ibar,i)
+            endif
+            sigsum=sigsum+rj*(rj+1)*(2*rj+1)
+            denom=denom+2*rj+1
+   60     continue
+          sd=0.
+          if (denom.ne.0.) sd=sigsum/(3.*denom)
+          if (sd.gt.scutoffsys/3..and.sd.lt.scutoffsys*3.) 
+     +      scutoffdisc(Zix,Nix,ibar)=sd
         endif
-        if (scutoffdisc(Zix,Nix,ibar).le.scutoffsys/3..or.
-     +    scutoffdisc(Zix,Nix,ibar).ge.scutoffsys*3.)
-     +    scutoffdisc(Zix,Nix,ibar)=scutoffsys
    50 continue
 c
 c Check input of various level density parameters
@@ -257,13 +261,15 @@ c
 c Generalized superfluid model. The critical functions are 
 c calculated here.
 c
-c Tcrit  : critical temperature
-c factor : help variable
-c aldcrit: critical level density parameter
-c Econd  : condensation energy
-c Ucrit  : critical U
-c Scrit  : critical entropy
-c Dcrit  : critical determinant
+c Tcrit    : critical temperature
+c factor   : help variable
+c aldcrit  : critical level density parameter
+c S        : separation energy per particle
+c fU,factor: help variables
+c Econd    : condensation energy
+c Ucrit    : critical U
+c Scrit    : critical entropy
+c Dcrit    : critical determinant
 c
       if (ldmodel.eq.3) then
         Tcrit(Zix,Nix)=0.567*delta0(Zix,Nix)
@@ -277,6 +283,11 @@ c
           difprev=abs(aldcrit(Zix,Nix)-ald)
           ald=aldcrit(Zix,Nix)
           if (ald.gt.1.) goto 80
+        endif
+        if (aldcrit(Zix,Nix).lt.alimit(Zix,Nix)/3.) then
+          fU=1.-exp(-gammald(Zix,Nix)*S(Zix,Nix,1))
+          factor=1.+fU*deltaW(Zix,Nix,0)/S(Zix,Nix,1)
+          aldcrit(Zix,Nix)=max(alimit(Zix,Nix)*factor,1.)
         endif
         Econd(Zix,Nix)=1.5/pi2*aldcrit(Zix,Nix)*delta0(Zix,Nix)**2
         Ucrit(Zix,Nix)=aldcrit(Zix,Nix)*Tcrit(Zix,Nix)**2+Econd(Zix,Nix)
@@ -301,8 +312,6 @@ c    Ignatyuk formula to derive the level density parameter at the
 c    separation energy.
 c
 c Spair    : help variable
-c S        : separation energy per particle
-c fU,factor: help variables
 c
       Spair=S(Zix,Nix,1)-delta(Zix,Nix,0)
       Spair=max(Spair,1.)
@@ -317,20 +326,27 @@ c 2. If an experimental level density parameter is available, then we
 c    impose the extra boundary boundary condition that it should be 
 c    equal to the energy dependent level density parameter at the
 c    neutron separation energy. There are various possibilities.
-c    If deltaW is not given as input, we re-adjust it.
+c    If alimit is not given as input, we re-adjust it.
+c
+        if (.not.inpalimit) then
+          fU=1.-exp(-gammald(Zix,Nix)*Spair)
+          factor=1.+fU*deltaW(Zix,Nix,0)/Spair
+          alimit(Zix,Nix)=alev(Zix,Nix)/factor
+        else
+c 
+c If both alev and alimit are explicitly given as input, we
+c re-adjust deltaW, provided it is not given as input.
+c
+          if (.not.inpdeltaW) then
+            fU=1.-exp(-gammald(Zix,Nix)*Spair)
+            factor=alev(Zix,Nix)/alimit(Zix,Nix)-1.
+            deltaW(Zix,Nix,0)=Spair*factor/fU
+          else
+c
+c Determine gammald if alev, alimit and deltaW are given by input.
 c
 c argum: help variable
 c
-        if (.not.inpdeltaW) then
-          fU=1.-exp(-gammald(Zix,Nix)*Spair)
-          factor=alev(Zix,Nix)/alimit(Zix,Nix)-1.
-          deltaW(Zix,Nix,0)=Spair*factor/fU
-        else
-c 
-c If both alev and deltaW are explicitly given as input, we
-c re-adjust gammald, provided it is not given as input.
-c
-          if (.not.inpgammald) then
             argum=1.-Spair/deltaW(Zix,Nix,0)*
      +        (alev(Zix,Nix)/alimit(Zix,Nix)-1.)
             if (argum.gt.0..and.argum.lt.1.) then
@@ -344,13 +360,6 @@ c
               factor=alev(Zix,Nix)/alimit(Zix,Nix)-1.
               deltaW(Zix,Nix,0)=Spair*factor/fU
             endif
-          else
-c
-c Determine alimit if alev, gammald and deltaW are given by input.
-c
-            fU=1.-exp(-gammald(Zix,Nix)*Spair)
-            factor=1.+fU*deltaW(Zix,Nix,0)/Spair
-            alimit(Zix,Nix)=alev(Zix,Nix)/factor
           endif
         endif
       endif

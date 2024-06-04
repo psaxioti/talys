@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire 
-c | Date  : August 22, 2004
+c | Date  : February 6, 2007
 c | Task  : HRTW width fluctuation correction
 c +---------------------------------------------------------------------
 c
@@ -30,7 +30,7 @@ c
 c
 c Final result
 c
-      tt=tjl(1,na)*tjl(1,nb)
+      tt=tjl(1,na)*tjl(1,nb)/tjl(0,na)
       if (tt.ne.0) then
         res1=v(na)*v(nb)*tjl(0,nb)/sv*(1.+dab*(w(na)-1.))
         res=real(res1*st/tt)

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : October 9, 2006     
+c | Date  : May 30, 2007
 c | Task  : Multiple emission
 c +---------------------------------------------------------------------
 c
@@ -21,9 +21,8 @@ c Loop over all residual nuclei, starting with the initial compound
 c nucleus (Zcomp=0, Ncomp=0), and then according to decreasing Z and N.
 c
 c primary    : flag to designate primary (binary) reaction
-c maxchannel2: 2*maxchannel
-c maxchannel : maximal number of outgoing particles in individual
-c              channel description (e.g. this is 3 for (n,2np))
+c flaginitpop: flag for initial population distribution
+c excitation : subroutine for excitation energy population 
 c flagpop    : flag for output of population
 c Zcomp      : charge number index for compound nucleus
 c Ncomp      : neutron number index for compound nucleus
@@ -33,7 +32,7 @@ c maxN       : maximal number of neutrons away from the initial compound
 c              nucleus
 c
       primary=.false.
-      maxchannel2=2*maxchannel
+      if (flaginitpop) call excitation
       if (flagpop) 
      +  write(*,'(/" ########## MULTIPLE EMISSION ##########")')
       do 10 Zcomp=0,maxZ
@@ -156,7 +155,7 @@ c
      +          maxex(Zcomp,Ncomp)-NL,dExinc
             else
               write(*,'(" Maximum excitation energy:",f8.3,
-     +        " Discrete levels:",i3)') Exmax(Zcomp,Ncomp),NL
+     +          " Discrete levels:",i3)') Exmax(Zcomp,Ncomp),NL
             endif
             write(*,'(" bin    Ex    Popul.",10("    J=",f4.1)/)') 
      +        (J+0.5*odd,J=0,9)
@@ -318,15 +317,20 @@ c
 c
 c For exclusive channel calculation: Determine feeding terms.
 c
+c numZchan: maximal number of outgoing proton units in individual
+c           channel description
+c numNchan: maximal number of outgoing neutron units in individual
+c           channel description
 c feedexcl: feeding terms from compound excitation energy bin to 
 c           residual excitation energy bin
 c
-          if (flagchannels.and.Zcomp.le.maxchannel2.and.
-     +      Ncomp.le.maxchannel2) then
+          if (flagchannels.and.Zcomp.le.numZchan.and.
+     +      Ncomp.le.numNchan) then
             do 220 nex=maxex(Zcomp,Ncomp),1,-1
               do 230 type=0,6
                 if (parskip(type)) goto 230
-                if (Zcomp.eq.0.and.Ncomp.eq.0.and.type.gt.0) goto 230
+                if (Zcomp.eq.0.and.Ncomp.eq.0.and.type.gt.0.and.
+     +            .not.flaginitpop) goto 230
                 Zix=Zindex(Zcomp,Ncomp,type)
                 Nix=Nindex(Zcomp,Ncomp,type)
                 do 240 nexout=0,maxex(Zix,Nix)
@@ -583,7 +587,7 @@ c
 c This is done to keep proper track of exclusive cross sections and
 c channels such as (n,gn).
 c
-  500     if (Zcomp.eq.0.and.Ncomp.eq.0) then
+  500     if (Zcomp.eq.0.and.Ncomp.eq.0.and..not.flaginitpop) then
             xsngnsum=0.
             do 510 type=-1,6
               if (parinclude(type)) then

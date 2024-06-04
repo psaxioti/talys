@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : September 26, 2006
+c | Date  : September 13, 2007
 c | Task  : Exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -25,12 +25,18 @@ c
 c
 c Initially, all the flux is in the initial compound state.
 c
-c xsexcl   : exclusive cross section per excitation energy
-c gamexcl  : exclusive gamma cross section per excitation energy
-c maxex    : maximum excitation energy bin for compound nucleus
-c xsreacinc: reaction cross section for incident channel
+c flaginitpop: flag for initial population distribution
+c xsexcl     : exclusive cross section per excitation energy
+c xsinitpop  : initial population cross section
+c gamexcl    : exclusive gamma cross section per excitation energy
+c maxex      : maximum excitation energy bin for compound nucleus
+c xsreacinc  : reaction cross section for incident channel
 c
-      xsexcl(0,maxex(0,0)+1)=xsreacinc
+      if (flaginitpop) then
+        xsexcl(0,maxex(0,0)+1)=xsinitpop
+      else
+        xsexcl(0,maxex(0,0)+1)=xsreacinc
+      endif
       gamexcl(0,maxex(0,0)+1)=0.
 c
 c ********** Construction of exclusive channel cross sections **********
@@ -38,20 +44,23 @@ c
 c 1. Loop over all residual nuclei, starting with the first residual 
 c    nucleus, and then according to decreasing Z and N.
 c
-c idnum      : counter for exclusive channel
-c Zix        : charge number index for residual nucleus
-c maxchannel2: 2*maxchannel
-c numZ       : maximal number of protons away from the initial compound
-c              nucleus
-c Nix        : neutron number index for residual nucleus
-c numN       : maximal number of neutron away from the initial compound
-c              nucleus
+c idnum   : counter for exclusive channel
+c Zix     : charge number index for residual nucleus
+c numZchan: maximal number of outgoing proton units in individual
+c           channel description
+c numNchan: maximal number of outgoing neutron units in individual
+c           channel description
+c numZ    : maximal number of protons away from the initial compound
+c           nucleus
+c Nix     : neutron number index for residual nucleus
+c numN    : maximal number of neutron away from the initial compound
+c           nucleus
 c
 c Each idnum represents a different exclusive channel.
 c
       idnum=-1
-      do 110 Zix=0,min(maxchannel2,numZ)
-        do 110 Nix=0,min(maxchannel2,numN)
+      do 110 Zix=0,min(numZchan,numZ)
+        do 110 Nix=0,min(numNchan,numN)
 c
 c 2. To minimize the loops, the maximal possible number of each particle
 c    type is determined, given Zix and Nix. E.g. for Zix=1, Nix=2 there
@@ -100,10 +109,10 @@ c npart    : number of particles in outgoing channel
 c ident    : exclusive channel identifier
 c idchannel: identifier for exclusive channel
 c
-          do 120 ia=0,iaend
           do 120 ih=0,ihend
           do 120 it=0,itend
           do 120 id=0,idend
+          do 120 ia=0,iaend
           do 120 ip=0,ipend
           do 120 in=0,inend
             if (.not.chanopen(in,ip,id,it,ih,ia).and.idnumfull) goto 120
@@ -502,6 +511,7 @@ c 10. Create reaction string for output
 c
 c apos      : '
 c reacstring: string for exclusive reaction channel
+c fisstring : string for exclusive fission reaction channel
 c parsym    : symbol of particle             
 c numchantot: maximal number of exclusive channels
 c
@@ -588,6 +598,8 @@ c
               endif
             endif           
             reacstring(idnum)(i:i)=')'
+            if (flagfission) 
+     +        fisstring(idnum)=reacstring(idnum)(1:i-1)//'f)'
 c
 c Reset idnum counter in the case that the cross section is too small.
 c

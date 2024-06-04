@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire 
-c | Date  : September 10, 2004
+c | Date  : January 24, 2007
 c | Task  : Preparation of HRTW width fluctuation correction
 c +---------------------------------------------------------------------
 c
@@ -25,22 +25,21 @@ c tav   : average transmission coefficients
 c tjl   : transmission coefficients
 c 
       niter=60
-      do 10 i=1,numtjl+1
-        if (tjl(0,i).eq.0.) then
-          tav(i)=0.
-        else
-          tav(i)=tjl(1,i)/tjl(0,i)
-        endif
+      do 10 i=1,numtr
+        tav(i)=0.
    10 continue
+      do 20 i=1,numtjl+1
+        if (tjl(0,i).gt.0.) tav(i)=tjl(1,i)/tjl(0,i)
+   20 continue
 c
 c Calculation of sum over t**2 
 c
 c st2: help variable
 c
       st2=0.
-      do 20 i=numinc+1,numtjl+1
+      do 30 i=numinc+1,numtjl+1
         st2=st2+tjl(2,i)
-   20 continue
+   30 continue
 c
 c Initialisation for HRTW calculation
 c
@@ -48,7 +47,7 @@ c factor,t,f,sv: help variables
 c v,w          : variables for final HRTW calculation
 c 
       factor=real(4.*st2/(st*st+3.*st2))
-      do 30 i=1,numtjl+1
+      do 40 i=1,numtjl+1
         t=tav(i)
         if (t.lt.st) then
           f=factor*(1.+t/st)
@@ -56,28 +55,28 @@ c
         else
           w(i)=3.
         endif
-   30 continue
-      do 40 i=1,numtjl+1
-        v(i)=real(tav(i)/(1.+tav(i)/st*(w(i)-1.)))
    40 continue
+      do 50 i=1,numtjl+1
+        v(i)=real(tav(i)/(1.+tav(i)/st*(w(i)-1.)))
+   50 continue
 c
 c Loop over iterations
 c
-      do 50 ni=1,niter
+      do 60 ni=1,niter
         sv=0.
 c
 c Sum over v 
 c
-        do 60 i=numinc+1,numtjl+1
+        do 70 i=numinc+1,numtjl+1
           sv=sv+v(i)*tjl(0,i)
-   60   continue
+   70   continue
 c
 c Determination of new v's
 c
-        do 70 i=1,numtjl+1
+        do 80 i=1,numtjl+1
           v(i)=real(tav(i)/(1.+v(i)/sv*(w(i)-1.)))
-   70   continue
-   50 continue
+   80   continue
+   60 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

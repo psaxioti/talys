@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 13, 2005
+c | Date  : August 16, 2007
 c | Task  : Theoretical calculation of D0
 c +---------------------------------------------------------------------
 c
@@ -40,7 +40,7 @@ c
         rhosum=rhosum+density(Zix,Nix,max(0.,S(Zix,Nix,1)),
      +    0.5*J2,parity,0,ldmodel)
    10 continue
-      if (rhosum.ne.0.) Dtheo(Zix,Nix)=real(1.e6/rhosum)
+      if (rhosum.ge.1.e-10) Dtheo(Zix,Nix)=real(1.e6/rhosum)
       return 
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

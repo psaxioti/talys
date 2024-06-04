@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : July 21, 2005
+c | Date  : October 31, 2007
 c | Task  : Estimate of thermal cross sections
 c +---------------------------------------------------------------------
 c
@@ -148,17 +148,38 @@ c
 c
 c Determine cross sections on low-energy grid
 c
-c Ereslog   : logarithm of energy at start of resonance region
-c numinclow : number of incident energies below Elow 
-c elog,ealog: help variables
-c Eratio    : energy ratio
-c eninc     : incident energy in MeV
+c Ereslog      : logarithm of energy at start of resonance region
+c numinclow    : number of incident energies below Elow 
+c elog,ealog   : help variables
+c Eratio       : energy ratio
+c eninc        : incident energy in MeV
+c fxsnonel     : non-elastic cross section
+c fxselastot   : total elastic cross section (shape + compound)
+c fxstotinc    : total cross section (neutrons only) for incident 
+c                channel
+c fxscompel    : compound elastic cross section
+c fxselasinc   : total elastic cross section (neutrons only) for 
+c                incident channel
+c fxsreacinc   : reaction cross section for incident channel
+c fxscompnonel : total compound non-elastic cross section
+c fxsdirdiscsum: total direct cross section
+c fxspreeqsum  : total preequilibrium cross section summed over 
+c                particles
 c
       Ereslog=log(E1v)
       do 110 nen=1,numinclow
         elog=log(eninc(nen))
         ealog=log(eninc(numinclow+1))
         Eratio=sqrt(Etherm)/sqrt(eninc(nen))
+        fxsnonel(nen)=0.
+        fxselastot(nen)=0.
+        fxstotinc(nen)=0.
+        fxscompel(nen)=0.
+        fxselasinc(nen)=0.
+        fxsreacinc(nen)=0.
+        fxscompnonel(nen)=0.
+        fxsdirdiscsum(nen)=0.
+        fxspreeqsum(nen)=0.
 c
 c Exclusive channel cross sections
 c
@@ -214,6 +235,7 @@ c
               xs=xsa*R*Eratio                         
               fxschannel(nen,idc)=xs
             endif
+            fxsnonel(nen)=fxsnonel(nen)+fxschannel(nen,idc)
             fxsratio(nen,idc)=xsratio(idc)
             do 140 nex=0,Nlast(0,0,0)
               fxschaniso(nen,idc,nex)=0.
@@ -311,6 +333,7 @@ c            nucleus
 c fxspopnuc: population cross section per nucleus
 c fxspopex : population cross section summed over spin and parity
 c fxsbranch: branching ratio for isomeric cross section     
+c flagastro: flag for calculation of astrophysics reaction rate
 c
         do 310 Zcomp=0,maxZ
           do 310 Ncomp=0,maxN
@@ -340,6 +363,8 @@ c
               xs=xsa*R*Eratio                         
               fxspopnuc(nen,Zcomp,Ncomp)=xs
             endif
+            if (.not.flagchannels) fxsnonel(nen)=fxsnonel(nen)+
+     +        fxspopnuc(nen,Zcomp,Ncomp)
             do 320 nex=0,Nlast(Zcomp,Ncomp,0)     
               fxspopex(nen,Zcomp,Ncomp,nex)=0.
               if (eninc(nen).le.Ethresh(Zcomp,Ncomp,nex)) goto 320
@@ -358,6 +383,8 @@ c
               endif
               fxsbranch(nen,Zcomp,Ncomp,nex)=xsbranch(Zcomp,Ncomp,nex)
   320       continue
+            if (flagastro) xsastro(Zcomp,Ncomp,nen)=
+     +        fxspopnuc(nen,Zcomp,Ncomp)
   310   continue
 c
 c Reactions to discrete states
@@ -498,6 +525,17 @@ c
             endif
   420     continue
   410   continue
+c
+c Total cross sections
+c
+        fxselastot(nen)=xselastot
+        fxstotinc(nen)=fxselastot(nen)+fxsnonel(nen)
+        fxscompel(nen)=xscompel
+        fxselasinc(nen)=xselasinc
+        fxsreacinc(nen)=fxsnonel(nen)+fxscompel(nen)
+        fxscompnonel(nen)=fxsnonel(nen)
+        fxsdirdiscsum(nen)=xsdirdiscsum
+        fxspreeqsum(nen)=xspreeqsum
   110 continue
       return
       end

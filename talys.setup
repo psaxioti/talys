@@ -5,7 +5,7 @@ unalias -a
 # All you have to do is adapt the next 2 variables to your own situation,
 # and run.....
 #
-set compiler='g77'       # your own Fortran compiler
+set compiler='lf95'       # your own Fortran compiler
 set bindir=${HOME}'/bin'  # destiny directory of the TALYS executable
 #
 # From here on, the rest should work automatically

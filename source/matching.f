@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : July 10, 2006
+c | Date  : November 16, 2007
 c | Task  : Determine matching between temperature and Fermi-gas region
 c +---------------------------------------------------------------------
 c
@@ -11,8 +11,8 @@ c
       include "talys.cmb"
       external match
       integer  Zix,Nix,ibar,A,nseg,Nb
-      real     Exm,Exmemp,ald,ignatyuk,xacc,x1,x2,match,rtbis,xb1(2),
-     +         xb2(2),Exm1,Exm2
+      real     Exm,ald,ignatyuk,xacc,x1,x2,match,rtbis,xb1(2),xb2(2),
+     +         Exm1,Exm2
 c
 c ************************ Search for zeroes ***************************
 c
@@ -21,6 +21,7 @@ c Nix     : neutron number index for residual nucleus
 c Exm     : matching energy
 c ibar    : fission barrier
 c AA,A    : mass number of residual nucleus
+c Exmemp  : empirical estimate for matching point for Ex 
 c Exmemp  : empirical values for matching energy
 c pair    : total pairing correction
 c ald     : level density parameter
@@ -31,13 +32,12 @@ c match   : function to search for zero crossings of the function
 c zbrak   : function to bracket the function
 c
       A=AA(Zix,Nix,0)
-      Exmemp=max(2.8+266./A+pair(Zix,Nix),0.1)
       ald=ignatyuk(Zix,Nix,Exmemp,ibar)
       xacc=0.0001
 c
 c Set possible region for solution
 c
-      x1=max(2.25/ald+pair(Zix,Nix),0.)+0.1
+      x1=max(2.25/ald+pair(Zix,Nix),0.)+0.11
       x2=19.+300./A
       nseg=100
       Nb=2
@@ -45,7 +45,7 @@ c
 c
 c Look for 0,1 or 2 solutions      
 c
-      if (Nb.eq.0) Exm=Exmemp
+      if (Nb.eq.0) Exm=0.
       if (Nb.eq.1) Exm=rtbis(match,xb1(1),xb2(1),xacc)
 c
 c If there are 2 solutions, we choose the one closest to the empirical 
@@ -63,8 +63,7 @@ c
 c
 c If the solution is unphysical, we choose the empirical expression.
 c
-      ald=ignatyuk(Zix,Nix,Exm,ibar)
-      if (Exm.le.x1.or.Exm.le.0..or.Exm.gt.x2) Exm=Exmemp
+      if (Exm.lt.x1.or.Exm.gt.x2) Exm=0.
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

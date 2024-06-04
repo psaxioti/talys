@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : November 13, 2004
+c | Date  : December 17, 2007
 c | Task  : Create ECIS input file for macroscopic DWBA calculation for 
 c |         MSD
 c +---------------------------------------------------------------------
@@ -19,6 +19,7 @@ c
 c Zindex,Zix : charge number index for residual nucleus
 c Nindex,Nix : neutron number index for residual nucleus     
 c ZZ,Z       : charge number of residual nucleus
+c disp       : flag for dispersive optical model
 c title      : title of ECIS input file
 c ecis1,ecis2: 100 input flags ('T' or 'F') for ECIS
 c ncoll      : number of nuclear states
@@ -41,7 +42,11 @@ c
       Zix=Zindex(0,0,type)
       Nix=Nindex(0,0,type)
       Z=ZZ(0,0,type)
-      ecis1(10:10)='F'
+      if (disp(Zix,Nix,itype)) then
+        ecis1(10:10)='T'
+      else
+        ecis1(10:10)='F'
+      endif
       write(9,'(a72)') title
       write(9,'(a50)') ecis1
       write(9,'(a50)') ecis2
@@ -115,6 +120,12 @@ c
         write(9,'(3f10.5)') 0.,0.,0.
    30 continue
       write(9,'(3f10.5)') angbeg,anginc,angend
+      if (disp(Zixi,Nixi,itype)) then
+        write(9,'(10x,2i5)') 2,2
+        write(9,'(10x,f10.5,40x,f10.5)') ef(Zixi,Nixi,itype),
+     +    w2(Zixi,Nixi,itype)
+        write(9,'(20x,2f10.5)') d3(Zixi,Nixi,itype),d2(Zixi,Nixi,itype)
+      endif
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

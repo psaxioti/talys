@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning    
-c | Date  : October 9, 2006    
+c | Date  : October 4, 2007
 c | Task  : Output for fission parameters
 c +---------------------------------------------------------------------
 c
@@ -22,7 +22,17 @@ c nuc       : symbol of nucleus
 c nfisbar   : number of fission barrier parameters
 c flagclass2: flag for class2 states in fission
 c nclass2   : number of sets of class2 states    
-c axtype    : type of axiality of barrier (1: axial, 2: tri-axial)
+c fismodel  : fission model
+c betafiscor: adjustable factor for fission path width
+c vfiscor   : adjustable factor for fission path height
+c betafis   : fission path width
+c vfis      : fission path height
+c axtype    : type of axiality of barrier 
+c               1: axial symmetry
+c               2: left-right asymmetry
+c               3: triaxial and left-right symmetry
+c               4: triaxial no left-right symmetry
+c               5: no symmetry
 c fbarrier  : height of fission barrier
 c fwidth    : width of fission barrier
 c Rtransmom : normalization constant for moment of inertia for
@@ -43,15 +53,16 @@ c
       if (flagclass2) 
      +  write(*,'(" Number of sets of class2 states      :",i3)') 
      +  nclass2(Zix,Nix)
+      if (fismodel.eq.5) then
+        write(*,'(" Correction factor betafiscor:",f8.3)')
+     +    betafiscor(Zix,Nix)
+        write(*,'(" Correction factor vfiscor   :",f8.3)')
+     +    vfiscor(Zix,Nix)
+      endif
       do 10 i=1,nfisbar(Zix,Nix)
         write(*,'(/" Parameters for fission barrier",i3/)') i
-        if (axtype(Zix,Nix,i).eq.1) then
-          write(*,'(" Type of axiality                     :",i3,
-     +    " (axial)")') axtype(Zix,Nix,i)
-        else
-          write(*,'(" Type of axiality                     :",i3,
-     +    " (tri-axial)")') axtype(Zix,Nix,i)
-        endif
+          write(*,'(" Type of axiality                     :",i3)')
+     +      axtype(Zix,Nix,i)
         write(*,'(" Height of fission barrier ",i1,"          :",f8.3)')
      +    i,fbarrier(Zix,Nix,i)
         write(*,'(" Width of fission barrier ",i1,"           :",f8.3)')

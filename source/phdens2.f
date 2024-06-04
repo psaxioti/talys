@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 9, 2004
+c | Date  : April 20, 2007
 c | Task  : Two-component particle-hole state density
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,8 @@ c
       include "talys.cmb"
       logical surfwell
       integer ppi,hpi,pnu,hnu,h,p,npi,nnu,n1
-      real    phdens2,gsp,gsn,Eex,Ewell,Ap,fac1,factor,finitewell
+      real    phdens2,gsp,gsn,Eex,Ewell,Ap,factorn,factorp,fac1,factor,
+     +        finitewell
 c
 c ******** State density of Kalbach, Phys. Rev. C33, 818 (1986). *******
 c
@@ -26,6 +27,7 @@ c Eex       : excitation energy
 c Ewell     : depth of potential well
 c surfwell  : flag for surface effects in finite well  
 c Apauli2,Ap: two-component Pauli blocking correction factor
+c factorn,..: help variables
 c h         : hole number
 c p         : particle number
 c npi       : proton exciton number
@@ -44,7 +46,9 @@ c
       if (ppi.lt.0.or.hpi.lt.0.or.pnu.lt.0.or.hnu.lt.0) return
       if (ppi+hpi+pnu+hnu.eq.0) return
       Ap=Apauli2(ppi,hpi,pnu,hnu)
-      if (Ap.ge.Eex) return   
+      factorn=(pnu*pnu+hnu*hnu+pnu+hnu)/(4.*gsn)
+      factorp=(ppi*ppi+hpi*hpi+ppi+hpi)/(4.*gsp)
+      if (Ap+factorn+factorp.ge.Eex) return
       h=hpi+hnu
       p=ppi+pnu
       npi=ppi+hpi

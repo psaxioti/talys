@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 6, 2006
+c | Date  : November 1, 2007
 c | Task  : Neutron transition rates for n --> n+2
 c +---------------------------------------------------------------------
 c
@@ -18,10 +18,9 @@ c
      +                 L1pih,L2pih,dExnup,dExnuh,dExpip,dExpih,uunup,
      +                 uunuh,uupip,uupih,lambdanunu1p,lambdanunu1h,
      +                 lambdapinu1p,lambdapinu1h,uu,eopt,Weff,phdens2,
-     +                 densh,densp,ratio,finitewell,termnunu1p,
-     +                 termnunu1h,termpinu1p,termpinu1h
+     +                 densh,densp,ratio,finitewell
       double precision lplus,sumnunu1p,sumnunu1h,sumpinu1p,sumpinu1h,
-     +                 phtot
+     +                 termnunu1p,termnunu1h,termpinu1p,termpinu1h,phtot
 c
 c *************************** Transition rates *************************
 c
@@ -136,7 +135,11 @@ c
         L2pip=U-Apauli2(ppi-1,hpi,pnu,hnu)
         L1pih=Apauli2(ppi,hpi,pnu+1,hnu+1)-Apauli2(ppi,hpi-1,pnu,hnu)
         L2pih=U-Apauli2(ppi,hpi-1,pnu,hnu)
-        nexcbins=max(nbins/2,2)
+        if (primary) then
+          nexcbins=max(nbins/2,2)
+        else
+          nexcbins=max(nbins/4,2)
+        endif
         dExnup=(L2nup-L1nup)/nexcbins
         dExnuh=(L2nuh-L1nuh)/nexcbins
         dExpip=(L2pip-L1pip)/nexcbins

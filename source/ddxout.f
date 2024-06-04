@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 9, 2006
+c | Date  : May 1, 2007
 c | Task  : Output of double-differential cross sections
 c +---------------------------------------------------------------------
 c
@@ -75,7 +75,7 @@ c
             write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum")')
      +        parsym(k0),Atarget,nuc(Ztarget),parname(type)
             write(1,'("# E-incident = ",f7.3)') Einc
-            write(1,'("# ")')
+            write(1,'("# E-emission = ",f7.3)') enf
             write(1,'("# # angles =",i3)') nanglecont+1
             write(1,'("# Angle    Total       Direct    Pre-equil.",
      +        "  Mult. preeq  Compound")')      
@@ -111,8 +111,9 @@ c ddxejlab     : LAB ddx array
 c
           if (flagrecoil.and.flaglabddx) then
             do 60 nen=1,iejlab(type)
+              Eo(nen)=Eejlab(type,nen)
               write(*,'(/" DDX for outgoing ",a8," at ",f7.3," MeV",
-     +          " in LAB frame")') parname(type),Eejlab(type,nen)
+     +          " in LAB frame")') parname(type),Eo(nen)
               write(*,'(" Angle   Cross section"/)')
               do 70 iang=0,nanglecont   
                 write(*,'(1x,f5.1,1p,e12.5)') anglecont(iang),
@@ -121,6 +122,8 @@ c
    60       continue
             do 80 i=1,ddxecount(type)
               enf=fileddxe(type,i)
+              call locate(Eo,1,iejlab(type),enf,nen)
+              fac=(enf-Eo(nen))/deltaE(nen)
               ddxfile=' ddx000_0.lab'
               write(ddxfile(1:1),'(a1)') parsym(type)
               write(ddxfile(5:9),'(f5.1)') enf
@@ -130,12 +133,14 @@ c
      +          " in LAB system")') parsym(k0),Atarget,nuc(Ztarget),
      +          parname(type)
               write(1,'("# E-incident = ",f7.3)') Einc
-              write(1,'("# ")')
+              write(1,'("# E-emission = ",f7.3)') enf
               write(1,'("# # angles =",i3)') nanglecont+1
               write(1,'("# Angle    Total")')
               do 90 iang=0,nanglecont
-                write(1,'(f5.1,1p,e12.5)') anglecont(iang),
-     +            ddxejlab(type,nen,iang)
+                xsa=ddxejlab(type,nen,iang)
+                xsb=ddxejlab(type,nen+1,iang)
+                xs1=xsa+fac*(xsb-xsa)
+                write(1,'(f5.1,1p,e12.5)') anglecont(iang),xs1
    90         continue
    80       continue
           endif
@@ -181,7 +186,7 @@ c
             write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum")')
      +        parsym(k0),Atarget,nuc(Ztarget),parname(type)
             write(1,'("# E-incident = ",f7.3)') Einc
-            write(1,'("# ")')
+            write(1,'("# Angle      = ",f7.3)') angf
             write(1,'("# # energies =",i3)')
      +        eendout(type)-ebegin(type)+1
             write(1,'("# E-out    Total       Direct    Pre-equil.",
@@ -223,6 +228,8 @@ c
   160       continue
             do 180 i=1,ddxacount(type)
               angf=fileddxa(type,i)
+              call locate(anglecont,0,nanglecont,angf,iang)
+              fac=(angf-anglecont(iang))/anginc
               ddxfile=' ddx000_0.lab'
               write(ddxfile(1:1),'(a1)') parsym(type)
               write(ddxfile(5:9),'(f5.1)') angf
@@ -232,12 +239,14 @@ c
      +          " in LAB system")') parsym(k0),Atarget,nuc(Ztarget),
      +          parname(type)
               write(1,'("# E-incident = ",f7.3)') Einc
-              write(1,'("# ")')
+              write(1,'("# Angle      = ",f7.3)') angf
               write(1,'("# # energies =",i3)') iejlab(type)
               write(1,'("# E-out    Total")')
               do 190 nen=1,iejlab(type)
-                write(1,'(f7.3,1p,e12.5)') Eejlab(type,nen),
-     +            ddxejlab(type,nen,iang)
+                xsa=ddxejlab(type,nen,iang)
+                xsb=ddxejlab(type,nen,iang+1)
+                xs1=xsa+fac*(xsb-xsa)
+                write(1,'(f7.3,1p,e12.5)') Eejlab(type,nen),xs1
   190         continue
   180       continue
             close (unit=1)

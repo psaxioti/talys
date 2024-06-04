@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 14, 2006
+c | Date  : October 31, 2007
 c | Task  : Initialization of arrays for various cross sections
 c +---------------------------------------------------------------------
 c
@@ -426,6 +426,7 @@ c discad     : discrete state angular distribution
 c cleg       : compound nucleus Legendre coefficient
 c tleg       : total Legendre coefficient
 c tlegnor    : total Legendre coefficient normalized to 1 
+c transjl    : array for width fluctuation calculation
 c
       J2beg=0
       J2end=0
@@ -500,6 +501,10 @@ c
             tleg(type,nex,LL)=0.
             tlegnor(type,nex,LL)=0.
   600 continue                                   
+      do 610 l=1,numtrans
+        do 610 i=0,5
+          transjl(i,l)=0.
+  610 continue                                   
 c
 c ************* Initialization of multiple mission arrays **************
 c
@@ -508,8 +513,10 @@ c               sections
 c idnum       : counter for exclusive channel
 c flagchannels: flag for exclusive channels calculation 
 c channelsum  : sum over exclusive channel cross sections
-c numchannel  : maximal number of outgoing particles in individual
-c               channel description (e.g. this is 3 for (n,2np))   
+c numNchan    : maximal number of outgoing neutron units in individual
+c               channel description
+c numZchan    : maximal number of outgoing proton units in individual
+c               channel description
 c feedexcl    : feeding terms from compound excitation energy bin to
 c               residual excitation energy bin
 c popexcl     : population cross section of bin just before decay
@@ -527,8 +534,8 @@ c
         do 710 nexout=0,numex+1
           do 710 nex=0,numex+1
             do 710 type=0,numpar
-              do 710 Nix=0,2*numchannel
-                do 710 Zix=0,2*numchannel
+              do 710 Nix=0,numNchan
+                do 710 Zix=0,numZchan
                   feedexcl(Zix,Nix,type,nex,nexout)=0.
   710   continue
         do 720 nex=0,numex
@@ -656,6 +663,18 @@ c fxsgamdischan: discrete gamma channel cross section
 c fxschaniso   : channel cross section per isomer
 c fexclyield   : exclusive channel yield per isomer 
 c fxsgamdischan: discrete gamma channel cross section
+c fxsnonel     : non-elastic cross section
+c fxselastot   : total elastic cross section (shape + compound)
+c fxstotinc    : total cross section (neutrons only) for incident 
+c                channel
+c fxscompel    : compound elastic cross section
+c fxselasinc   : total elastic cross section (neutrons only) for 
+c                incident channel
+c fxsreacinc   : reaction cross section for incident channel
+c fxscompnonel : total compound non-elastic cross section
+c fxsdirdiscsum: total direct cross section
+c fxspreeqsum  : total preequilibrium cross section summed over 
+c                particles
 c
       do 910 type=0,numpar
         xsexclusive(type)=0.

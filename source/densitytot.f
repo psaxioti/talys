@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 8, 2006
+c | Date  : December 18, 2007
 c | Task  : Total level density 
 c +---------------------------------------------------------------------
 c
@@ -12,7 +12,7 @@ c
       integer          Zix,Nix,ibar,ldmod,nex2
       real             Eex,P,ald,ignatyuk,Krot,Kvib,Kcoll,Eshift
       double precision densitytot,dens,gilcam,bsfgmodel,superfluid,
-     +                 eb,ee,ldb,lde,ldtab,ctable
+     +                 eb,ee,ldb,lde,ldtab,cctable
 c
 c *********************** Total level density **************************
 c
@@ -64,7 +64,7 @@ c
 c 4. Tabulated level densities     
 c
 c Eshift             : shifted excitation energy
-c c1table,c2table    : constant to adjust tabulated level densities
+c ctable,ptable      : constant to adjust tabulated level densities
 c Edensmax           : maximum energy on level density table
 c locate             : subroutine to find value in ordered table 
 c edens              : energy grid for tabulated level densities
@@ -72,7 +72,7 @@ c nendens            : number of energies for level density grid
 c eb,ee,ldb,lde,ldtab: help variables
 c ldtottable         : total level density from table
 c
-        Eshift=Eex-c1table(Zix,Nix)
+        Eshift=Eex-ptable(Zix,Nix,ibar)
         if (Eshift.le.0.) goto 100
         if (Eshift.le.Edensmax) then
           call locate(edens,0,nendens,Eshift,nex2) 
@@ -88,8 +88,8 @@ c
           lde=log(ldtottable(Zix,Nix,nendens,ibar))
           ldtab=exp(ldb+(Eshift-eb)/(ee-eb)*(lde-ldb))
         endif
-        ctable=exp(c2table(Zix,Nix)*sqrt(Eex))
-        densitytot=ctable*ldtab
+        cctable=exp(ctable(Zix,Nix,ibar)*sqrt(Eshift))
+        densitytot=cctable*ldtab
       endif
   100 densitytot=max(densitytot,1.d-30)
       return

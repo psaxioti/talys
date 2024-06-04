@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 13, 2006
+c | Date  : December 17, 2007
 c | Task  : Initialization of arrays for various structure parameters
 c +---------------------------------------------------------------------
 c
@@ -15,7 +15,6 @@ c *********** Initialization of nuclear structure arrays ***************
 c
 c Masses and separation energies
 c
-c flagreaction: flag for calculation of nuclear reactions
 c Nix         : neutron number index for residual nucleus
 c numN        : maximal number of neutrons away from the initial 
 c               compound nucleus
@@ -25,15 +24,16 @@ c               compound nucleus
 c nucmass     : mass of nucleus
 c expmexc     : experimental mass excess
 c thmexc      : theoretical mass excess           
+c ldparexist  : flag for existence of tabulated level density parameters
 c numpar      : number of particles
 c specmass    : specific mass for target nucleus
 c redumass    : reduced mass
 c S           : separation energy per particle
+c numen       : maximum number of outgoing energies
+c egrid       : energies of basic energy grid in MeV
+c coullimit   : energy limit for charged particle OMP calculation
+c flagreaction: flag for calculation of nuclear reactions
 c
-c If no nuclear reaction calculation is requested, we skip a large
-c part of this subroutine to speed up the calculation.
-c
-      if (.not.flagreaction) goto 600
       do 10 Nix=0,numN+4
         do 10 Zix=0,numZ+4
           nucmass(Zix,Nix)=0.
@@ -42,11 +42,23 @@ c
    10 continue
       do 20 Nix=0,numN
         do 20 Zix=0,numZ
+          ldparexist(Zix,Nix)=.false.
           do 20 type=0,numpar
             specmass(Zix,Nix,type)=0.    
             redumass(Zix,Nix,type)=0.    
             S(Zix,Nix,type)=0.    
    20 continue
+      do 30 nen=0,numen
+        egrid(nen)=0.
+   30 continue
+      do 40 type=0,numpar
+        coullimit(type)=0.
+   40 continue
+c
+c If no nuclear reaction calculation is requested, we skip a large
+c part of this subroutine to speed up the calculation.
+c
+      if (.not.flagreaction) goto 600
 c
 c Level and deformation parameters
 c
@@ -66,7 +78,6 @@ c iph,iphonon: phonon (1 or 2)
 c deform     : deformation parameter       
 c defpar     : deformation parameter  
 c numlev     : maximum number of included discrete levels
-c ENSDF      : string from original ENSDF discrete level file
 c tau        : lifetime of state in seconds     
 c bassign    : flag for assignment of branching ratio 
 c branchratio: gamma-ray branching ratio to level
@@ -101,7 +112,6 @@ c
       do 120 i=0,numlev
         do 120 Nix=0,numN
           do 120 Zix=0,numZ
-            ENSDF(Zix,Nix,i)='                  ' 
             tau(Zix,Nix,i)=0.
   120 continue
       do 130 k=0,numlev
@@ -129,12 +139,16 @@ c
 c
 c Resonance parameters
 c
-c dD0    : uncertainty in D0
-c dS0    : uncertainty in S0
-c dgamgam: uncertainty in gamgam            
+c gamgamth: theoretical total radiative width
+c swaveth : theoretical strength function for s-wave
+c dD0     : uncertainty in D0
+c dS0     : uncertainty in S0
+c dgamgam : uncertainty in gamgam            
 c
       do 210 Nix=0,numN
         do 210 Zix=0,numZ
+          gamgamth(Zix,Nix)=0.
+          swaveth(Zix,Nix)=0.
           dD0(Zix,Nix)=0.
           dS0(Zix,Nix)=0.
           dgamgam(Zix,Nix)=0.
@@ -162,9 +176,9 @@ c
           qrpaexist(Zix,Nix)=.false.
   320 continue                         
       do 330 nen=0,numgamqrpa
-        eqrpa(nen)=0.
         do 340 Nix=0,numN
           do 340 Zix=0,numZ
+            eqrpa(Zix,Nix,nen)=0.
             fe1qrpa(Zix,Nix,nen)=0.
   340   continue                         
   330 continue                         
@@ -173,6 +187,9 @@ c Optical model parameters
 c
 c ompglobal  : flag for use of global optical model
 c rc0,rv0,...: optical model parameters
+c disp       : flag for dispersive optical model
+c jlmexist   : flag for existence of tabulated radial matter density
+c normjlm    : JLM potential normalization factors
 c numomp     : number of energies on optical model file
 c eomp       : energies on optical model file
 c vomp       : optical model parameters from file
@@ -180,9 +197,12 @@ c numNph     : maximal number of neutrons away from the initial
 c              compound nucleus for multiple pre-equilibrium emission
 c numZph     : maximal number of protons away from the initial 
 c              compound nucleus for multiple pre-equilibrium emission
-c numen      : maximum number of outgoing energies
 c wvol       : absorption part of the optical potential averaged over
 c              the volume
+c rhojlmn    : density for neutrons
+c rhojlmp    : density for protons
+c potjlm     : JLM potential depth values
+c radjlm     : radial points for JLM potential
 c
       do 410 k=1,numpar
         do 410 Nix=0,numN
@@ -207,6 +227,9 @@ c
             vso2(Zix,Nix,k)=0.
             wso1(Zix,Nix,k)=0.
             wso2(Zix,Nix,k)=0.
+            disp(Zix,Nix,k)=.false.
+            jlmexist(Zix,Nix,k)=.false.
+            normjlm(Zix,Nix,k)=1.
   410 continue
       do 420 i=1,19
         do 420 nen=0,numomp
@@ -216,10 +239,23 @@ c
                 eomp(Zix,Nix,k,nen)=0.
                 vomp(Zix,Nix,k,nen,i)=0.
   420 continue
-      do 440 type=1,2
-        do 440 nen=-200,10*numen
+      do 430 type=1,2
+        do 430 nen=-200,10*numen
           wvol(type,nen)=0.
+  430 continue
+      do 440 k=1,6
+        do 440 nen=1,numjlm
+          do 440 Nix=0,numN
+            do 440 Zix=0,numZ
+              rhojlmp(Zix,Nix,nen,k)=0.
+              rhojlmn(Zix,Nix,nen,k)=0.
+              potjlm(Zix,Nix,nen,k)=0.
   440 continue
+      do 450 nen=1,numjlm
+        do 450 Nix=0,numN
+          do 450 Zix=0,numZ
+            radjlm(Zix,Nix,nen)=0.
+  450 continue
 c
 c Fission parameters
 c
@@ -290,12 +326,14 @@ c
 c Level density parameters
 c
 c Nlast      : last discrete level
+c Ediscrete  : energy of middle of discrete level region
 c scutoffdisc: spin cutoff factor for discrete level region 
 c ldexist    : flag for existence of level density table  
 c edens      : energy grid for tabulated level densities
 c ldmodel    : level density model       
 c nendens    : number of energies for level density grid
 c Edensmax   : maximum energy on level density table
+c ENSDF      : string from original ENSDF discrete level file
 c Dtheo      : theoretical s-wave resonance spacing 
 c ldtable    : level density from table
 c ldtottableP: total level density per parity from table
@@ -306,6 +344,7 @@ c
         do 610 Nix=0,numN
           do 610 Zix=0,numZ
             Nlast(Zix,Nix,i)=0.
+            Ediscrete(Zix,Nix,i)=0.
             scutoffdisc(Zix,Nix,i)=0.
             ldexist(Zix,Nix,i)=.false.
   610 continue
@@ -337,6 +376,11 @@ c
         nendens=60
         Edensmax=200.
       endif
+      do 660 i=0,numlev
+        do 660 Nix=0,numN
+          do 660 Zix=0,numZ
+            ENSDF(Zix,Nix,i)='                  ' 
+  660 continue
       if (.not.flagreaction) return
       do 710 Nix=0,numN
         do 710 Zix=0,numZ

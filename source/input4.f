@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 19, 2006   
+c | Date  : November 21, 2007
 c | Task  : Read input for fourth set of variables
 c +---------------------------------------------------------------------
 c
@@ -21,8 +21,8 @@ c flagpop     : flag for output of population
 c flagcheck   : flag for output of numerical checks 
 c flagoutomp  : flag for output of optical model parameters
 c flagdirect  : flag for output of direct reaction cross sections
-c flaginverse : flag for output of transmission coefficients and inverse
-c               reaction cross sections
+c flaginverse : flag for output of transmission coefficients and 
+c               inverse reaction cross sections
 c flaggamma   : flag for output of gamma-ray information
 c flaglevels  : flag for output of discrete level information
 c flagdensity : flag for output of level densities       
@@ -42,6 +42,9 @@ c flagoutdwba : flag for output of DWBA cross sections for MSD
 c flaggamdis  : flag for output of discrete gamma-ray intensities
 c flageciscomp: flag for compound nucleus calculation by ECIS
 c flagoutecis : flag for output of ECIS results
+c flagompall  : flag for new optical model calculation for all 
+c               residual nuclei
+c flagecissave: flag for saving ECIS input and output files
 c numinc      : number of incident energies
 c flagexc     : flag for output of excitation functions
 c flagnatural : flag for calculation of natural element
@@ -50,9 +53,13 @@ c flagaddel   : flag for addition of elastic peak to spectra
 c flagelectron: flag for application of electron conversion coefficient
 c flagspher   : flag to force spherical optical model
 c flagcol     : flag for collective enhancement of level density
+c flagctmglob : flag for global CTM model (no discrete level info)
+c cglobal     : global constant to adjust tabulated level densities
+c pglobal     : global constant to adjust tabulated level densities
+c alphaomp    : alpha optical model (1=normal, 2= McFadden-Satchler)
 c flagpartable: flag for output of model parameters on separate file
-c maxchannel, : maximal number of outgoing particles in individual
-c numchannel    channel description (e.g. this is 3 for (n,2np))
+c maxchannel  : maximal number of outgoing particles in individual
+c               channel description (e.g. this is 3 for (n,2np))
 c Ztarget     : charge number of target nucleus
 c pairmodel   : model for preequilibrium pairing energy
 c fismodel    : fission model
@@ -84,6 +91,11 @@ c
       flagoutdwba=.false.
       flaggamdis=.false.
       flagoutecis=flageciscomp
+      if (flagompall) then
+        flagecissave=.true.
+      else
+        flagecissave=.false.
+      endif
 c
 c By default, we assume that with more than one incident energy output 
 c of excitation functions (e.g. residual production cross sections as a 
@@ -109,6 +121,10 @@ c
       else
         flagcol=.false.
       endif
+      flagctmglob=.false.
+      cglobal=1.e-20
+      pglobal=1.e-20
+      alphaomp=1
 c
 c If the results of TALYS are used to create ENDF-6 data files,
 c several output flags are automatically set.
@@ -247,7 +263,7 @@ c
           goto 10
         endif
         if (key.eq.'ddxmode') then
-          read(value,*,err=200) ddxmode
+          read(value,*,end=200,err=200) ddxmode
           if (ddxmode.eq.0) flagddx=.false.
           if (ddxmode.gt.0) then
             flagddx=.true.
@@ -276,6 +292,12 @@ c
         if (key.eq.'outecis') then
           if (ch.eq.'n') flagoutecis=.false.
           if (ch.eq.'y') flagoutecis=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
+        if (key.eq.'ecissave') then
+          if (ch.eq.'n') flagecissave=.false.
+          if (ch.eq.'y') flagecissave=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
         endif
@@ -320,6 +342,12 @@ c
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
         endif
+        if (key.eq.'ctmglobal') then
+          if (ch.eq.'n') flagctmglob=.false.
+          if (ch.eq.'y') flagctmglob=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
         if (key.eq.'partable') then
           if (ch.eq.'n') flagpartable=.false.
           if (ch.eq.'y') flagpartable=.true.
@@ -327,19 +355,31 @@ c
           goto 10
         endif                    
         if (key.eq.'maxchannel') then
-          read(value,*,err=200) maxchannel
+          read(value,*,end=200,err=200) maxchannel
           goto 10
         endif                    
         if (key.eq.'pairmodel') then
-          read(value,*,err=200) pairmodel
+          read(value,*,end=200,err=200) pairmodel
           goto 10
         endif                    
         if (key.eq.'fismodel') then
-          read(value,*,err=200) fismodel
+          read(value,*,end=200,err=200) fismodel
           goto 10
         endif                    
         if (key.eq.'fismodelalt') then
-          read(value,*,err=200) fismodelalt   
+          read(value,*,end=200,err=200) fismodelalt   
+          goto 10
+        endif                    
+        if (key.eq.'cglobal') then
+          read(value,*,end=200,err=200) cglobal
+          goto 10
+        endif
+        if (key.eq.'pglobal') then
+          read(value,*,end=200,err=200) pglobal
+          goto 10
+        endif
+        if (key.eq.'alphaomp') then
+          read(value,*,end=200,err=200) alphaomp
           goto 10
         endif                    
    10 continue

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 29, 2004
+c | Date  : November 13, 2007
 c | Task  : Energy grid for ENDF-6 file
 c +---------------------------------------------------------------------
 c
@@ -16,6 +16,7 @@ c
 c ************************ Basic ENDF-6 energy grid ********************
 c
 c Eout,e6,Eeps: energies of ENDF-6 energy grid in MeV
+c eninclow    : minimal incident energy for nuclear model calculations
 c degrid      : energy increment
 c enincmax    : maximum incident energy
 c 
@@ -33,11 +34,15 @@ c
 c This grid ensures that the total, elastic and reaction cross section  
 c are calculated on a sufficiently precise energy grid.
 c
+      e6(1)=eninclow
       Eout=0.
       degrid=0.001
       nen=1
    10 Eout=Eout+degrid
-      e6(nen)=Eout
+      if (Eout.gt.e6(1)) then
+        nen=nen+1
+        e6(nen)=Eout
+      endif
       Eeps=Eout+1.e-4
       if (Eeps.gt.enincmax) goto 100
       if (Eeps.gt.0.01) degrid=0.01
@@ -48,7 +53,6 @@ c
       if (Eeps.gt.20.) degrid=1. 
       if (Eeps.gt.100.) degrid=2. 
       if (Eeps.gt.200.) goto 100
-      nen=nen+1
       goto 10
 c
 c *************** Add partial thresholds to energy grid ****************
@@ -73,7 +77,7 @@ c
           do 120 nex=0,Nlast(Zix,Nix,0)
             if (type.eq.k0.and.nex.eq.Ltarget) goto 120
             ee=Ethresh(Zix,Nix,nex)
-            if (ee.gt.0..and.ee.le.emax) then
+            if (ee.gt.eninclow.and.ee.le.emax) then
               nen=nen+1
               e6(nen)=ee
             endif
@@ -87,7 +91,7 @@ c
           if (idchannel(idc).eq.10) goto 130
           if (idchannel(idc).eq.1) goto 130
           ee=Ethrexcl(idc,0)
-          if (ee.gt.0..and.ee.le.emax) then
+          if (ee.gt.eninclow.and.ee.le.emax) then
             nen=nen+1
             e6(nen)=ee
           endif

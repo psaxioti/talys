@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : February 24, 2006
+c | Date  : September 12, 2007
 c | Task  : Nuclear structure parameters
 c +---------------------------------------------------------------------
 c
@@ -26,6 +26,8 @@ c gammapar    : subroutine for gamma ray parameters
 c flagompall  : flag for new optical model calculation for all residual
 c               nuclides
 c omppar      : subroutine for optical model parameters
+c flagjlm     : flag for using semi-microscopic JLM OMP
+c radialtable : subroutine for tabulated radial matter densities
 c flagfission : flag for fission
 c fissionpar  : subroutine for fission parameters
 c densitypar  : subroutine for level density parameters
@@ -48,6 +50,7 @@ c
         call gammapar(Zix,Nix)
       endif
       if ((Zix.le.2.and.Nix.le.2).or.flagompall) call omppar(Zix,Nix)
+      if (flagjlm) call radialtable(Zix,Nix)
       if (flagfission) call fissionpar(Zix,Nix)
       call densitypar(Zix,Nix)
       if (ldmodel.eq.4.or.ldmodel.eq.5) call densitytable(Zix,Nix)
