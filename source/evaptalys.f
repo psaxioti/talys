@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
 c
-c These subroutines are executed for each nuclide as a fission fragment 
+c These subroutines are executed for each nuclide as a fission fragment
 c or as a remaining resdiual product of a high-energy calculation.
 c
 c talysinput  : subroutine for user input and defaults

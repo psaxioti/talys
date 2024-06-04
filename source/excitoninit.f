@@ -60,7 +60,13 @@ c npi             : proton exciton number
 c pnu             : neutron particle number
 c hnu             : neutron hole number
 c nnu             : neutron exciton number
-c factor1-7       : help variables
+c factor1         : help variable
+c factor2         : help variable
+c factor3         : help variable
+c factor4         : help variable
+c factor5         : help variable
+c factor6         : help variable
+c factor7         : help variable
 c nfac            : n!
 c
       if (flag2comp) return

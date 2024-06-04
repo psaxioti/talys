@@ -59,7 +59,7 @@ c
         call gammapar(Zix,Nix)
       endif
       if ((Zix.le.2.and.Nix.le.2).or.flagompall) call omppar(Zix,Nix)
-      if (flagjlm.or.alphaomp.ge.3.and.alphaomp.le.5) 
+      if (flagjlm.or.alphaomp.ge.3.and.alphaomp.le.5)
      +  call radialtable(Zix,Nix)
       if (flagomponly.and..not.flagcomp) return
       if (flagfission) call fissionpar(Zix,Nix)

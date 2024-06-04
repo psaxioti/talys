@@ -30,8 +30,11 @@ c lbar0    : l-value for which bfis becomes zero
 c iz,zchar : charge number of residual nucleus
 c ia,amass : mass number of residual nucleus
 c il,ll    : angular momentum
+c jloop    : loop counter
+c kloop    : loop counter
 c amax,amin: maximal and minimal mass number defining range of the fit
 c a,z,l    : fit variables
+c z        : charge number
 c plegendre: function for calculation of Legendre polynomial
 c
 c Barrier height for l=0
@@ -60,6 +63,8 @@ c
 c L-values corresponding to fission barrier height which is 20% (80%)
 c of L=0 fission barrier
 c
+c amin2 : minimum A value
+c amax2 : maximum A value
 c l20,l80: l-value for which bfis is 20% (80% resp.) of bfis(l=0)
 c
       l80=0.
@@ -87,7 +92,9 @@ c
 c L-dependent fission barrier
 c
 c x,y,p1,p2,r  : help variables
-c q1,q2,q3     : help variables
+c q1           : help variable
+c q2           : help variable
+c q3           : help variable
 c barcof,l80cof: fitted parameters
 c l20cof,lmxcof: fitted parameters
 c egscof       : fitted parameters

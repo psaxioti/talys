@@ -28,6 +28,18 @@ c
 c
 c  Convert arguments to integer and make useful combinations
 c
+c j4: J value
+c j5: J value
+c j6: J value
+c j7: J value
+c ja: J value
+c jb: J value
+c jc: J value
+c jd: J value
+c je: J value
+c jf: J value
+c o : J value
+c
       ja  = int(2.*a + eps)
       jb  = int(2.*b + eps)
       jc  = int(2.*c + eps)

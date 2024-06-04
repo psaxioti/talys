@@ -18,7 +18,9 @@ c
 c mliquid1 : function for liquid drop mass
 c rZ,Z     : charge number of residual nucleus
 c rA,A     : mass number of residual nucleus
-c a1,a2,.. : Myers-Swiatecki parameters
+c a1       : Myers-Swiatecki parameter
+c a2       : Myers-Swiatecki parameter
+c kappa    : Myers-Swiatecki parameter
 c Mn,Mh    : mass excess of neutron and hydrogen
 c rN,N     : neutron number of residual nucleus
 c factor   : help variable

@@ -120,24 +120,24 @@ c ident    : exclusive channel identifier
 c idchannel: identifier for exclusive channel
 c
           do 120 ih=0,ihend
-          do 120 it=0,itend
-          do 120 id=0,idend
-          do 120 ia=0,iaend
-          do 120 ip=0,ipend
-          do 120 in=0,inend
-            if (.not.chanopen(in,ip,id,it,ih,ia).and.idnumfull) goto 120
-            if (idnum.eq.numchantot) goto 120
+          do 121 it=0,itend
+          do 122 id=0,idend
+          do 123 ia=0,iaend
+          do 124 ip=0,ipend
+          do 125 in=0,inend
+            if (.not.chanopen(in,ip,id,it,ih,ia).and.idnumfull) goto 125
+            if (idnum.eq.numchantot) goto 125
             Ztot=ip+id+it+2*ih+2*ia
             Ntot=in+id+2*it+ih+2*ia
             npart=in+ip+id+it+ih+ia
-            if (npart.gt.maxchannel) goto 120
-            if (Ztot.ne.Zix.or.Ntot.ne.Nix) goto 120
+            if (npart.gt.maxchannel) goto 125
+            if (Ztot.ne.Zix.or.Ntot.ne.Nix) goto 125
             ident=100000*in+10000*ip+1000*id+100*it+10*ih+ia
             idnum=idnum+1
             idchannel(idnum)=ident
 c
 c Initialization of arrays. Since the idnum counter may be reset at the
-c end of loop 120, in the case that the exclusive cross section is
+c end of loop 125, in the case that the exclusive cross section is
 c below a threshold, the various exclusive channel arrays need to be
 c initialized to zero here.
 c
@@ -201,6 +201,7 @@ c 4. Determine source paths for exclusive channel.
 c
 c parskip       : logical to skip outgoing particle
 c identorg,idorg: identifier for previous channel
+c idd           : identifier for channel
 c Zcomp         : charge number index for compound nucleus
 c parZ          : charge number of particle
 c Ncomp         : neutron number index for compound nucleus
@@ -331,6 +332,8 @@ c
                       if (parskip(type2)) goto 350
 c
 c Calculation of first term of exclusive spectrum.
+c
+c term3: help variable
 c
                       do 360 nen=ebegin(type2),eend(type2)
                         term3=term1*specexcl(idorg,type2,nex,nen)
@@ -540,7 +543,7 @@ c
 c
 c 10. Create reaction string for output
 c
-c apos      : '
+c apos      : apostrophe
 c reacstring: string for exclusive reaction channel
 c fisstring : string for exclusive fission reaction channel
 c parsym    : symbol of particle
@@ -644,9 +647,14 @@ c
             if (xschannel(idnum).lt.xseps.and.npart.gt.1.and.
      +        .not.chanopen(in,ip,id,it,ih,ia)) idnum=idnum-1
             if (opennum.eq.numchantot-10) idnumfull=.true.
-            if (idnum.lt.0) goto 120
+            if (idnum.lt.0) goto 125
             if (xschannel(idnum).lt.0.) xschannel(idnum)=xseps
-  120     continue
+  125   continue
+  124   continue
+  123   continue
+  122   continue
+  121   continue
+  120   continue
   110 continue
 c
 c Set threshold energy for inelastic scattering to that of first

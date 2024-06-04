@@ -89,6 +89,7 @@ c
 c ****** Reorganize class2 states by increasing excitation energy ******
 c
 c en1,en2,rj1,rj2,pa1,pa2: help variables
+c its : counter
 c
       do 110 nbi=1,nclass2(Zix,Nix)
         do 120 its=1,nfisc2rot(Zix,Nix,nbi)-1

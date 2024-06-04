@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 28, 2015
+c | Date  : December 21, 2017
 c | Task  : Main output
 c +---------------------------------------------------------------------
 c
@@ -13,10 +13,10 @@ c
 c
 c *************************** Code and version *************************
 c
-      write(*,'(/"    TALYS-1.8 (Version: December 28, 2015)"/)')
-      write(*,'(" Copyright (C) 2015  A.J. Koning, S. Hilaire ",
+      write(*,'(/"    TALYS-1.9 (Version: December 21, 2017)"/)')
+      write(*,'(" Copyright (C) 2017  A.J. Koning, S. Hilaire ",
      +  "and S. Goriely      ")')
-      write(*,'(24x," NRG          CEA          ULB    "/)')
+      write(*,'(24x," IAEA         CEA          ULB    "/)')
       write(*,'(" Dimensions - Cross sections: mb, Energies: MeV, ",
      +  "Angles: degrees")')
 c
@@ -65,7 +65,7 @@ c
       if (Ltarget.ne.0) then
         write(*,'(/" Excited target level : Number  Energy  ",
      +    "Spin Parity Lifetime(sec)")')
-        write(*,'(24x,i3,4x,f7.4,2x,f4.1,3x,a1,4x,1p,e10.3)')
+        write(*,'(24x,i3,4x,f7.4,2x,f4.1,3x,a1,4x,es10.3)')
      +    Ltarget,edis(Zix,Nix,Ltarget),jdis(Zix,Nix,Ltarget),
      +    cparity(parlev(Zix,Nix,Ltarget)),tau(Zix,Nix,Ltarget)
       endif
@@ -86,7 +86,7 @@ c
         endif
         do 20 i=1,numinc
           if (eninc(i).lt.0.001) then
-            write(*,'(1x,1p,e10.3)') eninc(i)
+            write(*,'(1x,es10.3)') eninc(i)
           else
             write(*,'(1x,f10.3)') eninc(i)
           endif
@@ -108,14 +108,14 @@ c
         if (npopJ.eq.0) then
           write(*,'("    Ex     Population "/)')
           do 30 i=1,npopE
-            write(*,'(1p,2e10.3)') EdistE(i),PdistE(i)
+            write(*,'(2es10.3)') EdistE(i),PdistE(i)
   30      continue
         else
           write(*,'("    Ex ",11("      J=",i2)/)')
      +      (J,J=0,10)
           do 40 parity=-1,1,2
             do 40 i=1,npopE
-              write(*,'(1p,12e10.3)') EdistE(i),(PdistJP(i,J,parity),
+              write(*,'(12es10.3)') EdistE(i),(PdistJP(i,J,parity),
      +          J=0,10)
   40      continue
         endif
@@ -150,4 +150,4 @@ c
       endif
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2017 A.J. Koning, S. Hilaire and S. Goriely

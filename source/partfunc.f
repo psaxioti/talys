@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire, Stephane Goriely, Arjan Koning
-c | Date  : December 30, 2011
+c | Date  : May 3, 2017
 c | Task  : Calculate partition function
 c +---------------------------------------------------------------------
 c
@@ -33,6 +33,12 @@ c sumjp   : help variable
 c maxex   : maximum excitation energy bin for residual nucleus
 c nlev    : number of excited levels for nucleus
 c
+      if (flagastrogs) then
+        do 1 i=1,nTmax
+          partf(i)=1.
+    1   continue
+        return
+      endif
       MeVkT=11.605
       Zix=parZ(k0)
       Nix=parN(k0)
@@ -55,8 +61,9 @@ c spindeg  : (2J+1) degeneracy of target level
 c jdis     : spin of level
 c fex,sum  : help variables
 c
+          if (nexout.eq.nonthermlev) goto 30
           dex=deltaEx(Zix,Nix,nexout)/real(numdiv)
-          Elev=edis(Zix,Nix,nexout)
+          Elev=edis(Zix,Nix,nexout)-edis(Zix,Nix,Ltarget)
           if (nexout.le.NL) then
             spindeg=2.*jdis(Zix,Nix,nexout)+1
             fex=MeVkT*Elev/T9(i)
@@ -73,13 +80,17 @@ c Pprime     : parity variable in target continuum bin
 c Ir         : level spin variable in target continuum bin
 c Rspin      : true level spin in target continuum bin
 c numJ       : maximal J-value
+c idiv       : counter
+c dex        : energy bin
 c rho        : level density
 c Atarget    : mass number of target nucleus
 c partf      : integrated partition function
-c targetspin2: 2 * spin of target
+c jdis       : spin of level
+c Ltarget    : excited level of target
 c
             do 40 idiv=1,numdiv
-              Elev=Ex(Zix,Nix,nexout)+(real(idiv)-0.5*numdiv)*dex
+              Elev=Ex(Zix,Nix,nexout)-Ex(Zix,Nix,Ltarget)+
+     +          (real(idiv)-0.5*numdiv)*dex
               fex=MeVkT*Elev/T9(i)
               if (fex.gt.80.) goto 40
               nex=nex+1
@@ -88,16 +99,16 @@ c
                   Rspin=Ir+mod(Atarget,2)/2.
                   spindeg=2.*(Ir+mod(Atarget,2)/2.)+1.
                   rho=density(Zix,Nix,Elev,Rspin,Pprime,0,ldmod)
-                  sumjp(nex)=sumjp(nex)+spindeg*rho*exp(-fex)
+                  sumjp(nex)=sumjp(nex)+spindeg*rho*exp(-fex)*dex
    60           continue
    50         continue
    40       continue
           endif
    30   continue
         do 70 idiv=1,nex
-          sum=sum+(sumjp(idiv-1)+sumjp(idiv))/2.*dex
+          sum=sum+(sumjp(idiv-1)+sumjp(idiv))/2.
    70   continue
-        partf(i)=sum/(targetspin2+1.)
+        partf(i)=sum/(2.*jdis(Zix,Nix,Ltarget)+1.)
    10 continue
       return
       end

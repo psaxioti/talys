@@ -27,13 +27,18 @@ c
 c ielas   : designator for elastic channel
 c tjl     : transmission coefficients
 c numtjl  : number of transmission coefficients
-c na,nb   : counters for width fluctuation calculation
-c tav,ta..: average transmission coefficients
+c na      : counter for width fluctuation calculation
+c nb      : counter for width fluctuation calculation
+c tav     : average transmission coefficients
+c ta      : average transmission coefficients
 c rhob    : help variable
 c st      : denominator of compound nucleus formula
-c nweip,..: variables for GOE triple integral calculation
+c nweip   : variable for GOE triple integral calculation
+c nweis   : variable for GOE triple integral calculation
+c nweit   : variable for GOE triple integral calculation
 c res     : width fluctuation factor
-c res1,dab: help variables
+c res1    : help variable
+c dab     : help variable
 c st      : denominator of compound nucleus formula
 c
 c Initialization
@@ -62,9 +67,24 @@ c Loop over t
 c
             do 30 k=1,nweit
 c
-c y1.......res2i: help variables
-c fpst1,fpst2   : variables for final GOE calculation
-c x02,x102,.....: variables for final GOE calculation
+c fpst1         : variable for final GOE calculation
+c fpst2         : variable for final GOE calculation
+c x02           : variable for final GOE calculation
+c x102          : variable for final GOE calculation
+c x12i          : variable for final GOE calculation
+c x202          : variable for final GOE calculation
+c x22i          : variable for final GOE calculation
+c x2i           : variable for final GOE calculation
+c y1            : variable for final GOE calculation
+c y2            : variable for final GOE calculation
+c y3            : variable for final GOE calculation
+c y4            : variable for final GOE calculation
+c y5            : variable for final GOE calculation
+c y6            : variable for final GOE calculation
+c y7            : variable for final GOE calculation
+c y8            : variable for final GOE calculation
+c res02         : variable for final GOE calculation
+c res2i         : variable for final GOE calculation
 c func1         : function for GOE
 c
               y1=fpst1(i,j,k)
@@ -87,8 +107,39 @@ c ***** Numerical calculation of triple integral for many channels *****
 c
 c Compute sum of tc,tc**2,tc**3 ....
 c
-c s12,.......,tt: help variables
-c s1,s2,s3,s4,s5: variables for final GOE calculation
+c s12     : help variable
+c s13     : help variable
+c s14     : help variable
+c s15     : help variable
+c s1      : variable for final GOE calculation
+c s2      : variable for final GOE calculation
+c s3      : variable for final GOE calculation
+c s4      : variable for final GOE calculation
+c s5      : variable for final GOE calculation
+c c1s1    : term for GOE
+c c1s2    : term for GOE
+c c1s3    : term for GOE
+c c1s4    : term for GOE
+c c2s1    : term for GOE
+c c2s2    : term for GOE
+c c2s3    : term for GOE
+c c2s4    : term for GOE
+c c2s5    : term for GOE
+c taptb   : term for GOE
+c taptb2  : term for GOE
+c taptb3  : term for GOE
+c taptb4  : term for GOE
+c taptb5  : term for GOE
+c tb      : term for GOE
+c tb2     : term for GOE
+c tb3     : term for GOE
+c tb4     : term for GOE
+c tb5     : term for GOE
+c tb6     : term for GOE
+c ta2     : transmission coefficient ** 2
+c ta3     : transmission coefficient ** 3
+c ta4     : transmission coefficient ** 4
+c ta5     : transmission coefficient ** 5
 c
         s12=s1*s1
         s13=s12*s1

@@ -53,6 +53,7 @@ c             nucleus
 c xspopnuc  : population cross section per nucleus
 c xseps     : limit for cross sections
 c maxenrec  : number of recoil energies
+c nexrec    : energy index for recoils
 c dErecoil  : width of recoil bin
 c Erecmax   : maximal energy limit of recoil bin
 c Erecmin   : minimal energy limit of recoil bin
@@ -68,8 +69,8 @@ c specrecoil: recoil spectrum
 c recoilint : total recoil integrated over spectrum
 c
       do 110 Zcomp=0,maxZ
-        do 110 Ncomp=0,maxN
-          if (xspopnuc(Zcomp,Ncomp).lt.xseps) goto 110
+        do 115 Ncomp=0,maxN
+          if (xspopnuc(Zcomp,Ncomp).lt.xseps) goto 115
           sumen=0.
           do 120 ixl=0,maxenrec
             dErecoil=abs(Erecmax(Zcomp,Ncomp,ixl)-
@@ -85,6 +86,7 @@ c
             sumen=sumen+sum*twopi
   120     continue
           recoilint(Zcomp,Ncomp)=sumen
+  115   continue
   110 continue
       return
       end

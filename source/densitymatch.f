@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : April 4, 2012
+c | Date  : December 15, 2016
 c | Task  : Level density matching solution
 c +---------------------------------------------------------------------
 c
@@ -59,6 +59,8 @@ c Exend     : end of possible energy region
 c nEx       : number of energy points for T matching
 c nummatchT : maximum number of energy points for T matching
 c logrho    : logarithm of level density
+c logrholoc : logarithm of level density
+c logrhomatch : logarithm of level density at matching energy
 c temprho   : temperature
 c Eex       : excitation energy
 c ald       : level density parameter
@@ -242,9 +244,11 @@ c dtheory: subroutine for theoretical calculation of average neutron
 c          spacings
 c D0theo : mean s-wave resonance spacing
 c Dl     : mean s-wave resonance spacing per l value
+c D1theo : mean p-wave resonance spacing
 c
       call dtheory(Zix,Nix,0.)
       D0theo(Zix,Nix)=Dl(0)
+      D1theo(Zix,Nix)=Dl(1)
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

@@ -20,6 +20,10 @@ c Indices for MT numbers
 c
 c nummt : maximum number of MT numbers
 c MTchan: channel index for MT number
+c mt0   : MT number
+c mtc   : MT number for continuum
+c mtd   : MT number for discrete states
+c mtf   : MT number for fission
 c
       do 10 mt=1,nummt
         MTchan(mt)=-1000
@@ -159,6 +163,10 @@ c xstotinc    : total cross section (neutrons only) for incident channel
 c xselastot   : total elastic cross section (shape + compound)
 c xsadd       : total difference in cross section after normalization
 c ratio       : adjustment factor
+c xsdifelas   : difference in elastic cross section
+c xsdiftot    : difference in total cross section
+c xsdifgs     : difference in ground state cross section
+c xsdifiso    : difference in isomeric cross section
 c
 c Application of normalization from rescue files. For each partial
 c cross section the applied difference is stored, so that later it can
@@ -224,6 +232,8 @@ c
             if (xschannel(idc).le.0.) goto 250
 c
 c Find associated residual nucleus
+c
+c xsfrac: fractional cross section
 c
             Zix=0
             Nix=0

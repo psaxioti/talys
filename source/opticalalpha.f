@@ -21,6 +21,7 @@ c
 c Overwrite some of the previous values.
 c
 c v,rv,...: optical model parameters
+c A13: A**1/3
 c
       call ompadjust(eopt,6)
       Z=ZZ(Zix,Nix,0)
@@ -47,8 +48,13 @@ c
 c alphaomp=6 --> Global OMP of Avrigeanu et al.,
 c Phys. Rev. C 90, 044612 (2014).
 c
+c e1opt: energy for alpha OMP
+c e2opt: energy for alpha OMP
+c e3opt: energy for alpha OMP
+c e4opt: energy for alpha OMP
+c
       if (alphaomp.eq.6) then
-        rb=2.66+1.36*A13!Norenberg, HIC, N-H, 1980, p.8 
+        rb=2.66+1.36*A13!Norenberg, HIC, N-H, 1980, p.8
         e2opt=(2.59+10.4/A)*Z/rb
         e1opt=-3.03-0.76*A13+1.24*e2opt
         e3opt=22.2+0.181*Z/A13

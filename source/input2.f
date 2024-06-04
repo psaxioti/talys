@@ -155,6 +155,11 @@ c parsym   : symbol of particle
 c Zinit    : charge number of initial compound nucleus
 c Ninit    : neutron number of initial compound nucleus
 c getvalues: subroutine to assign values to keywords
+c fcol     : flag for collective enhancement
+c sfexp    : variable for spectrocopic factor
+c sfexpall : variable for spectrocopic factor
+c sfth     : variable for spectrocopic factor
+c sfthall  : variable for spectrocopic factor
 c
         if (key.eq.'ejectiles') then
           ip=-1

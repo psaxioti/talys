@@ -17,6 +17,7 @@ c
 c
 c *********** Determine integration grid and stopping power ************
 c
+c numint       : number of integration points
 c Ninte        : number of integration points
 c dE           : energy step
 c Ebeam        : incident energy in MeV for isotope production

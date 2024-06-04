@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 8, 2015
+c | Date  : November 2, 2016
 c | Task  : Read input for fifth set of variables
 c +---------------------------------------------------------------------
 c
@@ -109,6 +109,7 @@ c gpr           : width of PR
 c tpr           : strength of PR
 c egradjust.....: adjustable factors for giant resonance parameters
 c                 (default 1.)
+c upbend        : properties of the low-energy upbend of given multipolarity
 c fiso          : correction factor for isospin forbidden transitions
 c aadjust,...   : adjustable factors for level density parameters
 c                 (default 1.)
@@ -137,7 +138,7 @@ c hbtransfile   : file with head band transition states
 c class2file    : file with class 2 transition states
 c levelfile     : discrete level file
 c deformfile    : deformation parameter file
-c E1file        : E1 strength function file
+c Exlfile       : tabulated strength function file
 c optmodfileN   : optical model parameter file for neutrons
 c optmodfileP   : optical model parameter file for protons
 c radialfile    : radial matter density file
@@ -147,6 +148,7 @@ c radialmodel   : model for radial matter densities (JLM OMP only)
 c breakupmodel  : model for break-up reaction: 1. Kalbach 2. Avrigeanu
 c massnucleus   : mass of nucleus in amu as read from user input file
 c massexcess    : mass excess in MeV as read from user input file
+c massdir       : directory with mass tables
 c beta2         : deformation parameter
 c msdbins       : number of energy points for DWBA calculation for MSD
 c Emsdmin       : minimal outgoing energy for MSD calculation
@@ -322,13 +324,13 @@ c
           gn(Zix,Nix)=0.
           gamgam(Zix,Nix)=0.
           D0(Zix,Nix)=0.
-          etable(Zix,Nix)=0.
-          ftable(Zix,Nix)=1.
           ldadjust(Zix,Nix)=.false.
           gamadjust(Zix,Nix)=.false.
           fisadjust(Zix,Nix)=.false.
           do 40 irad=0,1
             do 40 lval=1,numgam
+              etable(Zix,Nix,irad,lval)=0.
+              ftable(Zix,Nix,irad,lval)=1.
               do 40 igr=1,2
                 egr(Zix,Nix,irad,lval,igr)=0.
                 ggr(Zix,Nix,irad,lval,igr)=0.
@@ -342,6 +344,7 @@ c
                 epradjust(Zix,Nix,irad,lval,igr)=1.
                 gpradjust(Zix,Nix,irad,lval,igr)=1.
                 tpradjust(Zix,Nix,irad,lval,igr)=1.
+                upbend(Zix,Nix,irad,lval,igr)=0.
    40     continue
           do type=0,6
             fiso(Zix,Nix,type)=1.
@@ -388,7 +391,11 @@ c
           Rtransmom(Zix,Nix,1)=0.6
           hbtransfile(Zix,Nix)='                                       '
           clas2file(Zix,Nix)='                                         '
-          E1file(Zix,Nix)='                                            '
+          do 55 irad=0,1
+            do 57 l=1,numgam
+              Exlfile(Zix,Nix,irad,l)='                                '
+   57       continue
+   55     continue
    20   continue
         levelfile(Zix)='                                               '
         deformfile(Zix)='                                              '
@@ -399,6 +406,7 @@ c
       ompenergyfile='                                            '
       radialmodel=2
       breakupmodel=1
+      massdir='                                                        '
       do 60 Zix=0,numZ+4
         do 60 Nix=0,numN+4
           massnucleus(Zix,Nix)=0.
@@ -599,6 +607,10 @@ c val       : real value
 c ival      : integer value
 c cval      : character value
 c flagassign: flag to assign value or not
+c ilev0     : counter for level
+c ilev1     : counter for level
+c iword     : word counter
+c nbr       : number of branches
 c
         if (key.eq.'elow') then
           read(value,*,end=1000,err=1000) eninclow
@@ -616,6 +628,10 @@ c
           call getvalues(class,word,Zix,Nix,type,
      +      ibar,irad,lval,igr,val,ival,cval,flagassign)
           if (flagassign) massexcess(Zix,Nix)=val
+          goto 110
+        endif
+        if (key.eq.'massdir') then
+          read(value,*,end=1000,err=1000) massdir
           goto 110
         endif
         if (key.eq.'a') then
@@ -877,6 +893,20 @@ c
           endif
           goto 110
         endif
+        if (key.eq.'upbendc') then
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) upbend(Zix,Nix,irad,lval,1)=val
+          goto 110
+        endif
+        if (key.eq.'upbende') then
+          class=5
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) upbend(Zix,Nix,irad,lval,2)=val
+          goto 110
+        endif
         if (key.eq.'fiso') then
           do 120 type=0,6
             if (ch.eq.parsym(type)) then
@@ -962,21 +992,21 @@ c
           goto 110
         endif
         if (key.eq.'etable') then
-          class=1
+          class=5
           call getvalues(class,word,Zix,Nix,type,
      +      ibar,irad,lval,igr,val,ival,cval,flagassign)
           if (flagassign) then
-            etable(Zix,Nix)=val
+            etable(Zix,Nix,irad,lval)=val
             gamadjust(Zix,Nix)=.true.
           endif
           goto 110
         endif
         if (key.eq.'ftable') then
-          class=1
+          class=5
           call getvalues(class,word,Zix,Nix,type,
      +      ibar,irad,lval,igr,val,ival,cval,flagassign)
           if (flagassign) then
-            ftable(Zix,Nix)=val
+            ftable(Zix,Nix,irad,lval)=val
             gamadjust(Zix,Nix)=.true.
           endif
           goto 110
@@ -1067,7 +1097,14 @@ c
           class=11
           call getvalues(class,word,Zix,Nix,type,
      +      ibar,irad,lval,igr,val,ival,cval,flagassign)
-          if (flagassign) E1file(Zix,Nix)=cval
+          if (flagassign) Exlfile(Zix,Nix,1,1)=cval
+          goto 110
+        endif
+        if (key.eq.'m1file') then
+          class=11
+          call getvalues(class,word,Zix,Nix,type,
+     +      ibar,irad,lval,igr,val,ival,cval,flagassign)
+          if (flagassign) Exlfile(Zix,Nix,0,1)=cval
           goto 110
         endif
         if (key.eq.'hbtransfile') then
@@ -1895,6 +1932,11 @@ c
   110 continue
 c
 c Set level density parameters per nucleus
+c
+c alphaldall : variable for level density
+c betaldall  : variable for level density
+c gammashell1all: variable for level density
+c Pshiftconstantall: variable for level density
 c
       if (alphaldall.ne.-99.) then
         do 910 Nix=0,numN

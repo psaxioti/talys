@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 15, 2014
+c | Date  : December 12, 2016
 c | Task  : Optical model parameters
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       logical      lexist
       character*1  omptype
-      character*4  ompchar
+      character*8  ompchar
       character*72 optmodfile
       character*90 ompfile
       integer      Zix,Nix,Z,N,A,k,ia,i,nomp,ii,nen
@@ -31,7 +31,6 @@ c ompfile     : optical model parameter file
 c optmodfileN : optical model parameter file for neutrons
 c optmodfileP : optical model parameter file for protons
 c path        : directory containing structure files to be read
-c lenpath     : length of pathname
 c ia          : mass number from level file
 c nomp        : number of particles for optical model parameters
 c ef          : Fermi energy
@@ -54,26 +53,25 @@ c
       A=AA(Zix,Nix,0)
       omptype=' '
       if (.not.flaglocalomp) goto 100
-      ompchar='z   '
-      write(ompchar(2:4),'(i3.3)') Z
       do 10 k=1,2
+        ompchar=parsym(k)//'-'//trim(nuc(Z))//'.omp'
         if (k.eq.1) then
           if (optmodfileN(Zix)(1:1).ne.' ') then
             ompfile=optmodfileN(Zix)
           else
-            ompfile=path(1:lenpath)//'optical/neutron/'//ompchar
+            ompfile=trim(path)//'optical/neutron/'//ompchar
           endif
         else
           if (optmodfileP(Zix)(1:1).ne.' ') then
             ompfile=optmodfileP(Zix)
           else
-            ompfile=path(1:lenpath)//'optical/proton/'//ompchar
+            ompfile=trim(path)//'optical/proton/'//ompchar
           endif
         endif
         omptype=' '
         inquire (file=ompfile,exist=lexist)
         if (.not.lexist) goto 10
-        open (unit=2,status='old',file=ompfile)
+        open (unit=2,file=ompfile,status='old')
    20   read(2,'(4x,2i4,3x,a1)',end=60) ia,nomp,omptype
         if (A.ne.ia) then
           do 30 i=1,nomp
@@ -203,7 +201,7 @@ c
         do 210 k=1,6
           optmodfile=optmod(Zix,Nix,k)
           if (optmodfile(1:1).ne.' ') then
-            open (unit=2,status='old',file=optmodfile)
+            open (unit=2,file=optmodfile,status='old')
             read(2,*) omplines(Zix,Nix,k)
             if (omplines(Zix,Nix,k).gt.numomp) then
               write(*,'(" TALYS-error: number of lines in OMP file > ",
@@ -261,7 +259,7 @@ c Eompend1: upper energy of alternative OMP
 c Eompend0: lower energy of KD03 OMP
 c
 c Eompbeg0 <=  Eompbeg1 <=  Eompend1 <=  Eompend0
-c 
+c
 c Deuteron OMPs
 c
       do 410 i=2,5
@@ -289,4 +287,4 @@ c
   300 write(*,'(" TALYS-error: Format error in ",a72)') optmodfile
       stop
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

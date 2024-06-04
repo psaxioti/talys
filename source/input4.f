@@ -74,7 +74,7 @@ c alphaomp    : alpha optical model (1=normal, 2= McFadden-Satchler,
 c               3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)
 c deuteronomp : deuteron optical model (1=normal, 2=Daehnick,
 c               3=Bojowald, 4=Han-Shi-Shen, 5=An-Cai)
-c altomp      : flag for alternative optical model 
+c altomp      : flag for alternative optical model
 c soswitch    : switch for deformed spin-orbit calculation and sequential
 c               iterations in ECIS
 c flagpartable: flag for output of model parameters on separate file
@@ -100,7 +100,7 @@ c flagendfdet : flag for detailed ENDF-6 information per channel
 c flagprod    : flag for isotope production
 c flagoutfy   : flag for output detailed fission yield calculation
 c gefran      : number of random events for GEF calculation
-c flagrpevap  : flag for evaporation of residual products at high 
+c flagrpevap  : flag for evaporation of residual products at high
 c               incident energies
 c flagffruns  : flag to denote that run is for fission fragment
 c flagrpruns  : flag to denote that run is for residual product
@@ -176,6 +176,7 @@ c
       do 5 type=1,6
         altomp(type)=.false.
     5 continue
+      altomp(6)=.true.
       soswitch=3.
       if (k0.ne.1.or..not.flagcomp) then
         eurr=0.
@@ -195,7 +196,7 @@ c
         flagdisc=.true.
         if (k0.eq.1) then
           if (Atarget.gt.20) flagurr=.true.
-          eadd=20.
+          eadd=30.
           eaddel=Emaxtalys
         endif
         if (flagfission) flagfisout=.true.
@@ -541,7 +542,11 @@ c
         endif
         if (key.eq.'alphaomp') then
           read(value,*,end=200,err=200) alphaomp
-          altomp(6)=.true.
+          if (alphaomp.eq.1) then
+            altomp(6)=.false.
+          else
+            altomp(6)=.true.
+          endif
           goto 10
         endif
         if (key.eq.'deuteronomp') then

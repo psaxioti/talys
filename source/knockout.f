@@ -84,6 +84,7 @@ c
 c
 c Denominator of cluster emission formula
 c
+c type2     : particle type
 c denomki   : denominator for knockout formula
 c emax      : maximal emission energy for particle channel
 c eninccm   : center-of-mass incident energy in MeV
@@ -122,6 +123,7 @@ c
 c adjust        : subroutine for energy-dependent parameter adjustment
 c termk0,termin0: help variable
 c Cknock        : adjustable parameter for knockout reactions
+c Ckn           : adjustable parameter for knockout reactions
 c xsreacinc     : reaction cross section for incident channel
 c
         key='cknock'

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Goriely & Arjan Koning
-c | Date  : August 10, 2015
+c | Date  : December 12, 2016
 c | Task  : Tabulated spin- and parity-dependent particle-hole level
 c |         densities
 c +---------------------------------------------------------------------
@@ -11,7 +11,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical          lexist
-      character*4      denchar
+      character*5      denchar
       character*6      phdir
       character*90     denfile
       integer          Zix,Nix,Z,A,ia,parity,nex,J,istat
@@ -22,6 +22,7 @@ c *********** Tabulated level densities from Goriely *******************
 c
 c Zix          : charge number index for residual nucleus
 c Nix          : neutron number index for residual nucleus
+c phdir        : directory for particle-hole density
 c ZZ,Z         : charge number of residual nucleus
 c AA,A,ia      : mass number of residual nucleus
 c ldmodelracap : level density model for direct radiative captures
@@ -46,12 +47,14 @@ ctest if (k0.eq.3) phdir='ph1111'
 ctest if (k0.eq.4) phdir='ph1122'
 ctest if (k0.eq.5) phdir='ph2211'
 ctest if (k0.eq.6) phdir='ph2222'
-      denchar='z   '
-      write(denchar(2:4),'(i3.3)') Z
-      denfile=path(1:lenpath)//'density/phjp/'//phdir//'/'
-     +  //denchar
+      denchar=trim(nuc(Z))//'.ph'
+      denfile=trim(path)//'density/phjp/'//phdir//'/'//denchar
 c
 c Check existence of file and read data from the tables.
+c
+c ephjpgrid: energy for level density grid
+c ldtot : total level density
+c ld2j1  : spin dependent level density
 c
       inquire (file=denfile,exist=lexist)
       if (lexist) then
@@ -99,4 +102,4 @@ c
      +  " Z=",i3," A=",i3)') Z,A
       stop
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

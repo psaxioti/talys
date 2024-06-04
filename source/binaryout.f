@@ -18,6 +18,7 @@ c
 c flagcompo   : flag for output of cross section components
 c parskip     : logical to skip outgoing particle
 c parname     : name of particle
+c xsrac       : direct radiative capture cross section
 c xsracape    : direct radiative capture cross section
 c xsbinary    : cross section from initial compound to residual nucleus
 c xsdirdisctot: direct cross section summed over discrete states
@@ -43,17 +44,18 @@ c
         if (flagcompo.and.type.ge.0) then
           xsc=max(xsbinary(type)-xsdirdisctot(type)-xspreeqtot(type)-
      +      xsgrtot(type)-xsrac,0.)
-          write(*,'(1x,a8,"=",1p,e12.5,12x,4e12.5)') parname(type),
+          write(*,'(1x,a8,"=",es12.5,12x,4es12.5)') parname(type),
      +      xsbinary(type),xsdirdisctot(type),
      +      xspreeqtot(type)+xsgrtot(type),xsc,xsrac
         else
-          write(*,'(1x,a8,"=",1p,e12.5)') parname(type),xsbinary(type)
+          write(*,'(1x,a8,"=",es12.5)') parname(type),xsbinary(type)
         endif
    10 continue
 c
 c Write results to separate file
 c
 c filetotal : flag for total cross sections on separate file
+c binfile   : file for binary output
 c numinclow : number of incident energies below Elow
 c eninc,Einc: incident energy in MeV
 c parsym    : symbol of particle
@@ -66,7 +68,7 @@ c
       if (filetotal) then
         binfile='binary.tot'
         if (nin.eq.numinclow+1) then
-          open (unit=1,status='unknown',file=binfile)
+          open (unit=1,file=binfile,status='replace')
           write(1,'("# ",a1," + ",i3,a2," Binary cross sections")')
      +      parsym(k0),Atarget,Starget
           write(1,'("# ")')
@@ -75,16 +77,16 @@ c
           write(1,'("#    E       ",7(2x,a8,1x))')
      +      (parname(type),type=0,6)
           do 20 nen=1,numinclow
-            write(1,'(1p,8e12.5)') eninc(nen),
+            write(1,'(8es12.5)') eninc(nen),
      +        (fxsbinary(nen,type),type=0,6)
   20     continue
         else
-          open (unit=1,status='old',file=binfile)
+          open (unit=1,file=binfile,status='old')
           do 30 nen=1,nin+4
             read(1,*,end=40,err=40)
   30     continue
         endif
-        write(1,'(1p,8e12.5)') Einc,(xsbinary(type),type=0,6)
+        write(1,'(8es12.5)') Einc,(xsbinary(type),type=0,6)
   40    close (unit=1)
       endif
       return

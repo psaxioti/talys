@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 24, 2013
+c | Date  : November 16, 2016
 c | Task  : Output of isotope production
 c +---------------------------------------------------------------------
 c
@@ -12,11 +12,20 @@ c
       character*3  rstr,ystr
       character*13 state
       character*15 Yfile
+      character*35 halflife,maxprod
       integer      i,Zix,Nix,Z,N,A,is,k,it
 c
 c ************************* Main output ********************************
 c
+c radiounit: unit for radioactivity: Bq, kBq, MBq, Gbq,
+c            mCi, Ci or kCi
+c yieldunit: unit for isotope yield: num (number),
+c            mug (micro-gram), mg, g, or kg
 c Tirrad   : irradiation time per time unit
+c rstr     : string
+c ystr     : string
+c halflife : half life
+c maxprod  : maximum production
 c Tcool    : cooling time per unit
 c Ebeam    : incident energy in MeV for isotope production
 c Eback    : lower end of energy range in MeV for isotope production
@@ -30,6 +39,18 @@ c Ntar0    : number of original target atoms
 c projnum  : number of incident particles [s^-1]
 c heat     : produced heat
 c
+      rstr='MBq'
+      ystr='   '
+      if (radiounit.eq.'bq') rstr=' Bq'
+      if (radiounit.eq.'kbq') rstr='KBq'
+      if (radiounit.eq.'gbq') rstr='GBq'
+      if (radiounit.eq.'ci') rstr=' Ci'
+      if (radiounit.eq.'kci') rstr='KCi'
+      if (radiounit.eq.'mci') rstr='mCi'
+      if (yieldunit.eq.'g') ystr='  g'
+      if (yieldunit.eq.'mug') ystr='mug'
+      if (yieldunit.eq.'mg') ystr=' mg'
+      if (yieldunit.eq.'kg') ystr=' kg'
       write(*,'(/" Summary of isotope production "/)')
       write(*,'(" Maximal irradiation time    : ",i3," years ",i3,
      +  " days ",i3," hours ",i3," minutes ",i3," seconds ")')
@@ -37,7 +58,7 @@ c
       write(*,'(" Cooling time                : ",i3," years ",i3,
      +  " days ",i3," hours ",i3," minutes ",i3," seconds ")')
      +  (Tcool(i),i=1,5)
-      write(*,'(" Energy range                : ",f7.3," --> ",f7.3,
+      write(*,'(" Energy range                : ",f8.3," --> ",f8.3,
      +  " MeV")') Ebeam,Eback
       write(*,'(" Beam current                : ",f12.3," mA")')
      +  Ibeam
@@ -51,19 +72,54 @@ c
      +  Vtar
       write(*,'(" Effective target mass       : ",f12.3," g   ")')
      +  Mtar
-      write(*,'(" Number of target atoms      : ",1p,e12.5)')
+      write(*,'(" Number of target atoms      : ",es12.5)')
      +  Ntar0
-      write(*,'(" Number of incident particles: ",1p,e12.5," s^-1")')
+      write(*,'(" Number of incident particles: ",es12.5," s^-1")')
      +  projnum
       write(*,'(" Produced heat in target     : ",f12.3," kW")')
      +  heat
+      write(*,'(/" (Maximum) production and decay rates per isotope"/)')
+      write(*,'(" Production rate for all isotopes: ",es12.5,
+     + " [s^-1]"/)') prate(-1,-1,-1)
+      write(*,'("#  Nuc    Prod.rate   Decay rate  Activity",
+     +  "    #isotopes   Yield       Isotopic                 Half ",
+     +  "life               Time of maximum production")')
+      write(*,'("#           [s^-1]      [s^-1]     ",
+     +  " [",a3,"]       [",a3,"]     [",a3, "/mAh]   fraction")')
+     +  rstr,ystr,rstr
+      do 10 Zix=0,maxZ
+        Z=Zinit-Zix
+        do 20 Nix=0,maxN
+          N=Ninit-Nix
+          A=Z+N
+          do 30 is=-1,Nisomer(Zix,Nix)
+            if (.not.Yexist(Zix,Nix,is)) goto 30
+            it=Tmaxactivity(Zix,Nix,is)
+            halflife='                                   '
+            if (Thalf(Zix,Nix,is).gt.1.e17) then
+              write(halflife,'(a13)') '     stable  '
+            else
+              write(halflife,'(i8," y ",i3," d ",i3," h ",i3," m ",
+     +          i3," s ")') (Td(Zix,Nix,is,k),k=1,5)
+            endif
+            maxprod='                                   '
+            if (Tmax(Zix,Nix,is).gt.1.e17) then
+              write(maxprod,'(a13)') '     infinite'
+            else
+              write(maxprod,'(i8," y ",i3," d ",i3," h ",i3," m ",
+     +          i3," s ")') (Tp(Zix,Nix,is,k),k=1,5)
+            endif
+            write(*,'(1x,a2,i4,1x,a1,5es12.5,f8.5,2a35)')
+     +        nuc(Z),A,isochar(is),prate(Zix,Nix,is),lambda(Zix,Nix,is),
+     +        activity(Zix,Nix,is,it),Niso(Zix,Nix,is,it),
+     +        yield(Zix,Nix,is,it),Nisorel(Zix,Nix,is,it),halflife,
+     +        maxprod
+   30     continue
+   20   continue
+   10 continue
 c
 c Output to files per residual product
 c
-c radiounit: unit for radioactivity: Bq, kBq, MBq, Gbq,
-c            mCi, Ci or kCi
-c yieldunit: unit for isotope yield: num (number),
-c            mug (micro-gram), mg, g, or kg
 c maxZ     : maximal number of protons away from the initial
 c            compound nucleus
 c Z        : charge number of nucleus
@@ -93,18 +149,6 @@ c yield    : yield of produced isotope in MBq/(mA.h)
 c Niso     : number of isotopes produced after irradiation
 c Nisorel  : fraction of number of produced isotopes per element
 c
-      rstr='MBq'
-      ystr='   '
-      if (radiounit.eq.'bq') rstr=' Bq'
-      if (radiounit.eq.'kbq') rstr='KBq'
-      if (radiounit.eq.'gbq') rstr='GBq'
-      if (radiounit.eq.'ci') rstr=' Ci'
-      if (radiounit.eq.'kci') rstr='KCi'
-      if (radiounit.eq.'mci') rstr='mCi'
-      if (yieldunit.eq.'g') ystr='  g'
-      if (yieldunit.eq.'mug') ystr='mug'
-      if (yieldunit.eq.'mg') ystr=' mg'
-      if (yieldunit.eq.'kg') ystr=' kg'
       do 110 Zix=0,maxZ
         Z=Zinit-Zix
         do 120 Nix=0,maxN
@@ -122,10 +166,18 @@ c
             else
               state=' Ground state'
             endif
-            open (unit=1,status='unknown',file=Yfile)
+            open (unit=1,file=Yfile,status='replace')
             write(1,'("# Reaction: ",a1," + ",i3,a2," Production of ",
      +        i3,a2,a13)') parsym(k0),Atarget,nuc(Ztarget),
      +        A,nuc(Z),state
+            write(1,'("# Beam current: ",f12.5," mA Energy range: ",
+     +        f8.3," --> ",f8.3," MeV")') Ibeam,Ebeam,Eback
+            write(1,'("# Irradiation time     : ",i6," years ",i3,
+     +        " days",i3," hours",i3," minutes",i3," seconds ")')
+     +        (Tirrad(k),k=1,5)
+            write(1,'("# Cooling time         : ",i6," years ",i3,
+     +        " days",i3," hours",i3," minutes",i3," seconds ")')
+     +        (Tcool(k),k=1,5)
             if (Thalf(Zix,Nix,is).gt.1.e17) then
               write(1,'("# Half life            : stable")')
             else
@@ -140,14 +192,14 @@ c
      +          " days",i3," hours",i3," minutes",i3," seconds ")')
      +          (Tp(Zix,Nix,is,k),k=1,5)
             endif
-            write(1,'("# Initial production rate: ",1p,e12.5,
-     +        " [s^-1] Decay rate: ",e12.5," [s^-1]")')
+            write(1,'("# Initial production rate: ",es12.5,
+     +        " [s^-1] Decay rate: ",es12.5," [s^-1]")')
      +        prate(Zix,Nix,is),lambda(Zix,Nix,is)
             write(1,'("# # time points =",i3)') numtime
-            write(1,'("# Time [h] Activity [",a3,"] #isotopes ["a3,"]",
+            write(1,'("# Time [h] Activity [",a3,"] #isotopes [",a3,"]",
      +        "  Yield [",a3,"/mAh]  Isotopic frac.")') rstr,ystr,rstr
             do 140 it=1,numtime
-              write(1,'(f8.1,1p,3e15.5,0p,f15.5)') Tgrid(it),
+              write(1,'(f8.1,3es15.5,f15.5)') Tgrid(it),
      +          activity(Zix,Nix,is,it),Niso(Zix,Nix,is,it),
      +          yield(Zix,Nix,is,it),Nisorel(Zix,Nix,is,it)
   140       continue

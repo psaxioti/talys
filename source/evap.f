@@ -20,6 +20,13 @@ c
 c
 c **********************************************************************
 c
+c an1: help variable
+c bn1: help variable
+c bn : help variable
+c evap: Brosa evaporation function
+c rn  : help variable
+c dumm: help variable
+c 
       call bdef(amm,zee,0.,dum,dumm,b)
       an=amm-rn
       call bdef(an,zee,0.,dum,dumm,bn)

@@ -29,10 +29,21 @@ c iz,zchar: charge number of residual nucleus
 c ia,amass: mass number of residual nucleus
 c neut    : neutron number of residual nucleus
 c il,ll   : angular momentum
-c cx,bx...: help variables
-c x,y,....: help variables
-c paren   : help variables
+c cx      : help variable
+c cy      : help variable
+c bx      : help variable
+c by      : help variable
+c bfrlrm  : liquid drop value
+c x,y,....: help variable
+c paren   : help variable
 c x1b,x2b.: fitted parameters
+c b1      : help variable
+c h1      : help variable
+c h2      : help variable
+c hf      : help variable
+c ero     : rotational energy
+c bfrldm  : help variable
+c dy      : increment
 c eso     : surface energy
 c egs     : rotating ground state energy
 c esp     : saddle point energy

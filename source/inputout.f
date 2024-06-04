@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 1, 2015
+c | Date  : November 16, 2016
 c | Task  : Write input parameters
 c +---------------------------------------------------------------------
 c
@@ -48,7 +48,7 @@ c
       write(*,'(" mass              ",i3,"     mass     ",
      +  "    mass number of target nucleus")') Atarget
       if (numinc.eq.1.and..not.flaginitpop) then
-        write(*,'(" energy            ",f7.3," eninc",
+        write(*,'(" energy           ",f8.3," eninc",
      +    "        incident energy in MeV")') eninc(1)
       else
         write(*,'(" energy ",a14,"     energyfile",
@@ -103,6 +103,9 @@ c flagreaction: flag for calculation of nuclear reactions
 c flagastro   : flag for calculation of astrophysics reaction rate
 c flagastrogs : flag for calculation of astrophysics reaction rate with
 c               target in ground state only
+c nonthermlev : non-thermalized level in the calculation of astrophysics rate
+c flagastroex : flag for calculation of astrophysics reaction rate
+c               to final long-lived excited states
 c massmodel   : model for theoretical nuclear mass
 c flagexpmass : flag for using experimental nuclear mass if available
 c disctable   : table with discrete levels
@@ -150,19 +153,19 @@ c
    20 continue
       write(*,'(" ltarget           ",i3,"     ltarget",
      +  "      excited level of target")') Ltarget
-      write(*,'(" isomer          ",1p,e9.2," isomer ",
+      write(*,'(" isomer          ",es9.2," isomer ",
      +  "      definition of isomer in seconds")') isomer
       write(*,'(" transpower        ",i3,"     transpower",
      +  "   power for transmission coefficient limit")') transpower
-      write(*,'(" transeps        ",1p,e9.2," transeps",
+      write(*,'(" transeps        ",es9.2," transeps",
      +  "     limit for transmission coefficient")') transeps
-      write(*,'(" xseps           ",1p,e9.2," xseps   ",
+      write(*,'(" xseps           ",es9.2," xseps   ",
      +  "     limit for cross sections")') xseps
-      write(*,'(" popeps          ",1p,e9.2," popeps  ",
+      write(*,'(" popeps          ",es9.2," popeps  ",
      +  "     limit for population cross section per nucleus")') popeps
-      write(*,'(" Rfiseps         ",1p,e9.2," Rfiseps      ratio",
+      write(*,'(" Rfiseps         ",es9.2," Rfiseps      ratio",
      +  " for limit for fission cross section per nucleus")') Rfiseps
-      write(*,'(" elow            ",1p,e9.2," elow         minimal",
+      write(*,'(" elow            ",es9.2," elow         minimal",
      +  " incident energy for nuclear model calculations")') eninclow
       write(*,'(" angles            ",i3,"     nangle",
      +  "       number of angles")') nangle
@@ -206,6 +209,12 @@ c
       write(*,'(" astrogs             ",a1,"     flagastrogs  flag for",
      +  " calculation of astrophysics reaction rate with target in",
      +  " ground state only")') yesno(flagastrogs)
+      write(*,'(" astroex             ",a1,"     flagastroex  flag for",
+     +  " calculation of astrophysics reaction rate to",
+     +  " long-lived excited states")') yesno(flagastroex)
+      write(*,'(" nonthermlev       ",i3,"     nonthermlev ",
+     +  " excited level non-thermalized in the calculation",
+     +  " of astrophysics rate")') nonthermlev
       write(*,'(" massmodel          ",i2,"     massmodel",
      +  "    model for theoretical nuclear mass")') massmodel
       write(*,'(" expmass             ",a1,"     flagexpmass ",
@@ -250,9 +259,9 @@ c rhotarget : target density
 c
       if (flagprod) then
         write(*,'(" #"/" # Isotope production "/" #")')
-        write(*,'(" Ebeam             ",f7.3," beam    ",
+        write(*,'(" Ebeam            ",f8.3," beam    ",
      +    "     incident energy in MeV for isotope production")') Ebeam
-        write(*,'(" Eback             ",f7.3," Eback  ",
+        write(*,'(" Eback            ",f8.3," Eback  ",
      +    "      lower end of energy range in MeV for isotope",
      +    "  production")') Eback
         write(*,'(" radiounit             ",a3," radiounit ",
@@ -305,9 +314,9 @@ c flaginccalc : flag for new ECIS calculation for incident channel
 c flagendfecis: flag for new ECIS calculation for ENDF-6 files
 c radialmodel : model for radial matter densities (JLM OMP only)
 c jlmmode     : option for JLM imaginary potential normalization
-c alphaomp    : alpha optical model (1=normal, 2= McFadden-Satchler,
+c alphaomp    : alpha OMP (1=normal, 2= McFadden-Satchler,
 c               3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)
-c deuteronomp : deuteron optical model (1=normal, 2=Daehnick,
+c deuteronomp : deuteron OMP (1=normal, 2=Daehnick,
 c               3=Bojowald, 4=Han-Shi-Shen, 5=An-Cai)
 c
       write(*,'(" #"/" # Optical model"/" #")')
@@ -380,11 +389,11 @@ c
      +  " option for JLM imaginary potential normalization")')
      +  jlmmode
       write(*,'(" alphaomp           ",i2,"     alphaomp    ",
-     +  " alpha optical model (1=normal, 2= McFadden-Satchler,",
-     +  " 3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)")') 
+     +  " alpha OMP (1=normal, 2= McFadden-Satchler,",
+     +  " 3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)")')
      +  alphaomp
       write(*,'(" deuteronomp        ",i2,"     deuteronomp ",
-     +  " deuteron optical model (1=normal, 2=Daehnick,",
+     +  " deuteron OMP (1=normal, 2=Daehnick,",
      +  " 3=Bojowald, 4=Han-Shi-Shen, 5=An-Cai)")') deuteronomp
 c
 c 4. Compound nucleus
@@ -408,7 +417,7 @@ c flagurrnjoy : normalization of URR parameters with NJOY method
 c
       write(*,'(" #"/" # Compound nucleus"/" #")')
       if (numinc.gt.1.and.enincmin.lt.ewfc.and.enincmax.ge.ewfc) then
-        write(*,'(" widthfluc         ",f7.3," ewfc         off-set",
+        write(*,'(" widthfluc        ",f8.3," ewfc         off-set",
      +    " incident energy for width fluctuation calculation")') ewfc
       else
         write(*,'(" widthfluc           ",a1,"     flagwidth  ",
@@ -427,7 +436,7 @@ c
      +  " compound angular distribution calculation for incident",
      +  " charged particles")') yesno(flagcpang)
       if (numinc.gt.1.and.enincmin.lt.eurr.and.enincmax.ge.eurr) then
-        write(*,'(" urr               ",f7.3," eurr         off-set",
+        write(*,'(" urr              ",f8.3," eurr         off-set",
      +    " incident energy for URR calculation")') eurr
       else
         write(*,'(" urr                 ",a1,"     flagurr    ",
@@ -487,7 +496,7 @@ c
       write(*,'(" #"/" # Pre-equilibrium"/" #")')
       if (numinc.gt.1.and.enincmin.lt.epreeq.and.enincmax.ge.epreeq)
      +  then
-        write(*,'(" preequilibrium    ",f7.3," epreeq       on-set",
+        write(*,'(" preequilibrium   ",f8.3," epreeq       on-set",
      +    " incident energy for preequilibrium calculation")') epreeq
       else
         write(*,'(" preequilibrium      ",a1,"     flagpreeq  ",
@@ -497,7 +506,7 @@ c
      +  "    designator for pre-equilibrium model")') preeqmode
       if (numinc.gt.1.and.enincmin.lt.emulpre.and.enincmax.ge.emulpre)
      +  then
-        write(*,'(" multipreeq        ",f7.3," emulpre      on-set",
+        write(*,'(" multipreeq       ",f8.3," emulpre      on-set",
      +    " incident energy for multiple preequilibrium")') emulpre
       else
         write(*,'(" multipreeq          ",a1,"     flagmulpre   ",
@@ -703,7 +712,7 @@ c
      +  " sections")') yesno(flaggroup)
       if (numinc.gt.1.and.enincmin.lt.eadd.and.enincmax.ge.eadd)
      +  then
-        write(*,'(" adddiscrete       ",f7.3," eadd         on-set ",
+        write(*,'(" adddiscrete      ",f8.3," eadd         on-set ",
      +    "incident energy for addition of discrete peaks to spectra")')
      +    eadd
       else
@@ -713,7 +722,7 @@ c
       endif
       if (numinc.gt.1.and.enincmin.lt.eaddel.and.enincmax.ge.eaddel)
      +  then
-        write(*,'(" addelastic        ",f7.3," eaddel       on-set",
+        write(*,'(" addelastic       ",f8.3," eaddel       on-set",
      +    " incident energy addition of elastic peak to spectra")')
      +    eaddel
       else

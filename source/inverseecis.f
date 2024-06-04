@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 8, 2014
+c | Date  : November 16, 2016
 c | Task  : ECIS calculation for outgoing particles and energy grid
 c +---------------------------------------------------------------------
 c
@@ -62,14 +62,14 @@ c
           write(*,'(/" Radial densities"/)')
           write(*,'(" Radius   Protons     Neutrons"/)')
           do 10 i=1,numjlm
-            write(*,'(f7.3,1p,2e12.5)') 0.1*real(i),
+            write(*,'(f7.3,2es12.5)') 0.1*real(i),
      +        rhojlmp(Zcomp,Ncomp,i,1),rhojlmn(Zcomp,Ncomp,i,1)
    10     continue
         endif
       endif
       flagecisinp=.false.
       if (flageciscalc)
-     +  open (unit=9,status='unknown',file='ecisinv.inp')
+     +  open (unit=9,file='ecisinv.inp',status='unknown')
       do 110 type=1,6
         if (parskip(type)) goto 110
         Zix=Zindex(Zcomp,Ncomp,type)
@@ -92,7 +92,7 @@ c Output of optical model parameters, if requested.
 c
         if (flagoutomp.and..not.jlmloc) then
           write(*,'(/11x,a8," on ",i3,a2/)') parname(type),A,nuc(Z)
-          write(*,'("  Energy",4x,"V",5x,"rv",4x,"av",4x,"W",5x,
+          write(*,'("  Energy",5x,"V",5x,"rv",4x,"av",4x,"W",5x,
      +      "rw",4x,"aw",4x,"Vd",3x,"rvd",3x,"avd",4x,"Wd",
      +      3x,"rwd",3x,"awd",3x,"Vso",3x,"rvso",2x,"avso",
      +      2x,"Wso",3x,"rwso",2x,"awso",2x,"rc",/)')
@@ -299,7 +299,7 @@ c v,rv,..: optical model parameters
 c
           call optical(Zix,Nix,type,e)
           if (flagoutomp.and..not.jlmloc) then
-            write(*,'(1x,f7.3,1x,6(f6.2,f6.3,f6.3),f6.3)')
+            write(*,'(1x,f8.3,1x,6(f6.2,f6.3,f6.3),f6.3)')
      +        e,v,rv,av,w,rw,aw,vd,rvd,avd,wd,rwd,awd,vso,rvso,
      +        avso,wso,rwso,awso,rc
           endif
@@ -362,7 +362,7 @@ c
       call ecist('ecisinv.inp  ',outfile,csfile,
      +    'ecis.invin   ',transfile,'null         ','null         ')
       invexist(Zcomp,Ncomp)=.true.
-      open (unit=9,status='unknown',file='ecisinv.inp')
+      open (unit=9,file='ecisinv.inp',status='unknown')
       close (unit=9,status=ecisstatus)
       return
       end

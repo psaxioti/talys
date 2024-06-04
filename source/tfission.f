@@ -68,7 +68,15 @@ c
 c nfisbar   : number of fission barrier parameters
 c t1barrier : subroutine for fission transmission coefficient for one
 c             barrier
-c tfb1,rnfb1: help variables
+c tfb1      : help variable
+c tfb2      : help variable
+c tfb3      : help variable
+c tfbii     : help variable
+c tfbiii    : help variable
+c tsum123   : help variable
+c rnfb1: help variable
+c rnfb2: help variable
+c rnfb3: help variable
 c
         if (nfisbar(Zcomp,Ncomp).eq.1) then
           call t1barrier(Zcomp,Ncomp,J2,parity,1,tfb1,rnfb1,Eex,iloop)
@@ -96,8 +104,13 @@ c term1,term2: help variables
 c damper     : damping factor
 c efisc2rot  : energy of rotational class2 states
 c nfisc2rot  : number of rotational class2 states per set
-c nc2,ic2,ec2: help variables
-c wo2,jc2,pc2: help variables
+c nc2        : help variable
+c ic2    : help variable
+c ec2: help variable
+c wo2: help variable
+c jc2: help variable
+c pc2: help variable
+c addnrj    : added energy
 c jfisc2rot  : spin of rotational class2 states
 c pfisc2rot  : parity of rotational class2 states
 c
@@ -148,6 +161,24 @@ c
           tf=tf12*tfb3/tsum123
 c
 c *********** Special treatment for class2 and class3 states ***********
+c
+c Ecut1: cutoff energy
+c Ecut2: cutoff energy
+c term11: help variable
+c term21: help variable
+c term22: help variable
+c damper1 : energy damping function
+c damper2 : energy damping function
+c ec2   : rotational energy
+c diffnrj: energy difference
+c boost: energy boost
+c boostmax: maximum energy boost
+c wo2damp : energy damping function
+c wo2damp1: energy damping function
+c wo2damp2: energy damping function
+c tfii    : help variable
+c tfiii   : help variable
+c tf12    : help variable
 c
           Ecut1=Emaxclass2(Zcomp,Ncomp,1)+0.5*widthc2(Zcomp,Ncomp,1)
           Ecut2=Emaxclass2(Zcomp,Ncomp,2)+0.5*widthc2(Zcomp,Ncomp,2)

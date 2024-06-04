@@ -58,7 +58,9 @@ c Umatch      : Exmatch - pairing
 c aldcrit     : critical level density parameter
 c Tcrit       : critical temperature
 c Ediscrete   : energy of middle of discrete level region
-c s2m,s2d,Ed  : help variables
+c Ed          : energy of middle of discrete level region
+c s2m         : help variable
+c s2d         : help variable
 c scutoffdisc : spin cutoff factor for discrete level region
 c flagcolldamp: flag for damping of collective effects in effective
 c               level density (without explicit collective enhancement)

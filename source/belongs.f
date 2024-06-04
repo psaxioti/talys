@@ -18,6 +18,12 @@ c
 c
 c **********************************************************************
 c
+c epsilon: tolerance
+c x1x2: difference
+c norm12: distance
+c norm1x: distance
+c dnorm: difference in distance
+c
       belongs=.true.
       x1x=x-x1
       x1x2=x2-x1

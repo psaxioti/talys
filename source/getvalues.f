@@ -118,6 +118,9 @@ c igr   : giant resonance
 c
         if (class.eq.5) then
           ch=word(5)(1:1)
+          irad=1
+          lval=1
+          igr=1
           if (ch.eq.'m'.or.ch.eq.'e') then
             if (ch.eq.'m') irad=0
             if (ch.eq.'e') irad=1
@@ -193,6 +196,7 @@ c
 c
 c Local energy-dependent adjustment of parameters
 c
+c adfile    : file with tabulated adjustments
 c numEkey   : number of keywords
 c Ea        : start energy of local adjustment
 c Eb        : end energy of local adjustment
@@ -223,7 +227,7 @@ c
         read(word(i+1),*,end=10,err=100) adfile
         inquire (file=adfile,exist=lexist)
         if (.not.lexist) goto 140
-        open (unit=1,status='unknown',file=adfile)
+        open (unit=1,file=adfile,status='old')
    70   read(1,*,end=80,err=150) Eadj(k),Dadj(k)
         if (Eadj(k).eq.Eadj(k-1)) goto 70
         if (Eadj(k).lt.Eadj(k-1)) goto 160

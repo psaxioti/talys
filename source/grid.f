@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : December 8, 2015
+c | Date  : December 13, 2016
 c | Task  : Energy and angle grid
 c +---------------------------------------------------------------------
 c
@@ -145,6 +145,7 @@ c D0       : s-wave resonance spacing in keV
 c D0theo   : theoretical s-wave resonance spacing
 c E1v      : energy at end of 1/v region
 c eninc    : incident energy in MeV
+c nen0     : energy counter
 c locate   : subroutine to find value in ordered table
 c numinc   : number of incident energies
 c numinclow: number of incident energies below Elow
@@ -161,6 +162,7 @@ c
         endif
       endif
       if (numinc.ge.numenlow-2) eninclow=min(eninclow,eninc(numenlow-2))
+      eninclow=max(eninclow,1.e-11)
       E1v=0.2*eninclow
       if (eninc(1).lt.E1v) then
         call locate(eninc,1,numinc,E1v,nen0)
@@ -190,7 +192,7 @@ c
 c translimit: limit for transmission coefficient
 c transpower: power for transmission coefficient limit
 c
-  400 translimit=1./(10**transpower)
+      translimit=1./(10**transpower)
 c
 c **************************** Basic angle grid ************************
 c
@@ -297,11 +299,11 @@ c
      +      " should always be done with ecissave y and inccalc y")')
           stop
         endif
-        open (unit=13,status='old',file='incident.cs')
-        open (unit=17,status='old',file='incident.tr')
-        open (unit=18,status='old',file='incident.ang')
-        open (unit=19,status='old',file='incident.leg')
-        open (unit=20,status='old',file='incident.in')
+        open (unit=13,file='incident.cs',status='old')
+        open (unit=17,file='incident.tr',status='old')
+        open (unit=18,file='incident.ang',status='old')
+        open (unit=19,file='incident.leg',status='old')
+        open (unit=20,file='incident.in',status='old')
       endif
       if (flagendf.and..not.flagendfecis) then
         inquire (file='endf.cs',exist=lexist)
@@ -310,7 +312,7 @@ c
      +      " should always be done with ecissave y and endfecis y")')
           stop
         endif
-        open (unit=23,status='old',file='endf.cs')
+        open (unit=23,file='endf.cs',status='old')
       endif
 c
 c To fit data very precisely, a "normal" TALYS calculation may not
@@ -336,7 +338,7 @@ c
               frescue(mt,is,nen)=grescue(mt,is)
   530       continue
             if (rescuefile(mt,is)(1:1).ne.' ') then
-              open (unit=2,status='old',file=rescuefile(mt,is))
+              open (unit=2,file=rescuefile(mt,is),status='old')
               nen=1
   540         read(2,*,end=550) Erescue(mt,is,nen),val
               frescue(mt,is,nen)=grescue(mt,is)*val
@@ -362,4 +364,4 @@ c
       endif
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

@@ -64,7 +64,7 @@ c
       if (e.ge.0.01) then
         Eformat='(f5.2,2i2,a1,5f10.5)'
       else
-        Eformat='(f5.2,2i2,a1,1p,e10.3,0p,4f10.5)'
+        Eformat='(f5.2,2i2,a1,es10.3,4f10.5)'
       endif
       write(9,fmt=Eformat) tarspin,idvib(1),1,tarparity,e,spin,
      +  projmass,resmass,prodZ
@@ -113,7 +113,7 @@ c
           eopt=e-real(Elevel(i)*(resmass+projmass)/resmass)
           call optical(Zix,Nix,kopt,eopt)
           if (abs(v).ge.1000.) then
-            write(9,'(1p,e10.3,0p,2f10.5)') v,rv,av
+            write(9,'(es10.3,2f10.5)') v,rv,av
           else
             write(9,'(3f10.5)') v,rv,av
           endif

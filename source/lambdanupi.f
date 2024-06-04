@@ -52,7 +52,8 @@ c preeqpair    : pre-equilibrium pairing energy
 c pairmodel    : model for preequilibrium pairing energy
 c Bfactor,lnupi: help variables
 c twopihbar    : 2*pi/hbar
-c factor1-4    : help variables
+c factor1      : help variable
+c factor23     : help variable
 c Apauli2      : two-component Pauli blocking correction factor
 c M2nupi       : square of neutron-proton matrix element
 c finitewell   : correction function for finite well depth

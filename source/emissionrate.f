@@ -23,7 +23,9 @@ c Ncomp       : neutron number index for compound nucleus
 c p           : particle number
 c h           : hole number
 c n           : exciton number
-c g,gs,gsg    : single-particle level density parameter
+c g           : single-particle level density parameter
+c gs          : single-particle level density parameter
+c gsg         : single-particle level density parameter
 c Atarget     : mass number of target nucleus
 c flaggshell  : flag for energy dependence of single particle level
 c               density parameter g

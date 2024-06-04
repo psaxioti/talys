@@ -156,7 +156,7 @@ c flagmassdis  : flag for calculation of fission fragment mass yields
 c massdis      : subroutine for fission fragment yields
 c massdisout   : subroutine for output of fission fragment yields
 c fymodel      : fission yield model, 1: Brosa 2: GEF
-c nubarout     : subroutine for output of number of fission neutrons 
+c nubarout     : subroutine for output of number of fission neutrons
 c                and spectra
 c residual     : subroutine for residual production cross sections
 c totalrecoil  : subroutine for recoil results

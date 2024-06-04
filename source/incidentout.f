@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 25, 2012
+c | Date  : November 16, 2016
 c | Task  : Reaction output for incident channel
 c +---------------------------------------------------------------------
 c
@@ -21,11 +21,11 @@ c            channel
 c
       write(*,'(/" Optical model results"/)')
       if (k0.eq.1) then
-        write(*,'(" Total cross section   :",1p,e11.4," mb")') xstotinc
+        write(*,'(" Total cross section   :",es11.4," mb")') xstotinc
       endif
-      write(*,'(" Reaction cross section:",1p,e11.4," mb")') xsreacinc
+      write(*,'(" Reaction cross section:",es11.4," mb")') xsreacinc
       if (k0.eq.1) then
-        write(*,'(" Elastic cross section :",1p,e11.4," mb")') xselasinc
+        write(*,'(" Elastic cross section :",es11.4," mb")') xselasinc
       endif
 c
 c For low energy neutrons we give the resonance parameters.
@@ -56,14 +56,14 @@ c          incident channel, averaged over spin
 c
       if (lmaxinc.eq.-1) return
       write(*,'(/" Transmission coefficients for incident ",a8,
-     +  " at ",f7.3," MeV"/)') parname(k0),Einc
+     +  " at ",f8.3," MeV"/)') parname(k0),Einc
 c
 c 1. Spin 1/2 particles: Neutrons, protons, tritons and Helium-3
 c
       if (k0.eq.1.or.k0.eq.2.or.k0.eq.4.or.k0.eq.5) then
         write(*,'("  L    T(L-1/2,L)   T(L+1/2,L)    Tav(L)"/)')
         do 10 l=0,lmaxinc
-          write(*,'(1x,i3,1p,3e13.5)') l,Tjlinc(-1,l),Tjlinc(1,l),
+          write(*,'(1x,i3,3es13.5)') l,Tjlinc(-1,l),Tjlinc(1,l),
      +      Tlinc(l)
    10   continue
       endif
@@ -74,7 +74,7 @@ c
         write(*,'("  L     T(L-1,L)      T(L,L)      T(L+1,L)",
      +    "     Tav(L)"/)')
         do 20 l=0,lmaxinc
-          write(*,'(1x,i3,1p,4e13.5)') l,Tjlinc(-1,l),Tjlinc(0,l),
+          write(*,'(1x,i3,4es13.5)') l,Tjlinc(-1,l),Tjlinc(0,l),
      +      Tjlinc(1,l),Tlinc(l)
    20   continue
       endif
@@ -84,7 +84,7 @@ c
       if (k0.eq.6) then
         write(*,'("  L     T(L)"/)')
         do 30 l=0,lmaxinc
-          write(*,'(1x,i3,1p,e13.5)') l,Tjlinc(0,l)
+          write(*,'(1x,i3,es13.5)') l,Tjlinc(0,l)
    30   continue
       endif
 c
@@ -95,7 +95,7 @@ c
       if (k0.eq.0) then
         write(*,'("  L     T(L)"/)')
         do 40 l=1,gammax
-          write(*,'(1x,i3,1p,e13.5)') l,Tjlinc(0,l)
+          write(*,'(1x,i3,es13.5)') l,Tjlinc(0,l)
    40   continue
       endif
 c
@@ -111,7 +111,7 @@ c
         write(*,'(/" Shape elastic scattering angular distribution"/)')
         write(*,'(" Angle    Cross section"/)')
         do 110 iang=0,nangle
-          write(*,'(1x,f5.1,1p,e16.5)') angle(iang),
+          write(*,'(1x,f5.1,es16.5)') angle(iang),
      +      directad(k0,Ltarget,iang)
   110   continue
       endif

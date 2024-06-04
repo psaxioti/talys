@@ -61,6 +61,8 @@ c nendens      : number of energies for level density grid
 c eb,ee,ldb,lde: help variables
 c ldtable      : level density from table
 c expo         : exponent
+c ct           : constant to adjust tabulated level densities
+c pt           : constant to adjust tabulated level densities
 c cctable      : constant to adjust tabulated level densities
 c
         jj=min(29,int(Rspin))

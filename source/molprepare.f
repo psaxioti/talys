@@ -47,7 +47,8 @@ c
 c
 c Loop over integration points
 c
-c x,expo,capt: help variables
+c x          : help variables
+c capt       : help variables
 c
       do 40 im=1,npmold
         x=xmo(im)
@@ -64,7 +65,10 @@ c
 c Calculation of product over tjl
 c
 c factor,eps,yy,x1   : help variables
-c prod,fxmsqrt,fxmold: help variables
+c prod               : help variable
+c wmo   : help variable
+c fxmold: help variable
+c fxmsqrt: help variable
 c product            : product used in final Moldauer calculation
 c
         factor=0.

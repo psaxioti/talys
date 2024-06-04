@@ -18,6 +18,14 @@ c
 c
 c **********************************************************************
 c
+c vr2: function for volume of the neck
+c z21: asymmetry value
+c z32: asymmetry value
+c zz1: Z value
+c zz2: Z value
+c zz3: Z value
+c vr3: help value
+c
       z21=(zz2-zz1)/aaa
       z32=(zz3-zz2)/aaa
       if (z21.gt.30.) z21=30.

@@ -104,15 +104,30 @@ c
 c B. Numerical solution: Transition rates based on either matrix
 c    element (preeqmode=2) or optical model (preeqmode=3).
 c
-c L1pip,...   : integration limits
+c L1pip       : integration limit
+c L1nuh       : integration limit
+c L1nup       : integration limit
+c L1pih       : integration limit
+c L2pip       : integration limit
+c L2nuh       : integration limit
+c L2nup       : integration limit
+c L1pih       : integration limit
 c nexcbins    : number of integration bins
 c nbins       : number of continuum excitation energy bins
 c dExpip,...  : integration bin width
-c sumpipi1p...: help variables
-c uupip,..... : residual excitation energy
+c sumpipi1p   : help variable
+c sumpipi1h   : help variable
+c sumnupi1p   : help variable
+c sumnupi1h   : help variable
+c uunuh       : residual excitation energy for neutron hole
+c uunup       : residual excitation energy for neutron particle
+c uupih       : residual excitation energy for proton hole
+c uupip       : residual excitation energy for proton particle
+c lambdanupi1h: collision probability for neutron-proton hole
 c lambdapipi1p: collision probability for proton-proton particle
 c lambdapipi1h: collision probability for proton-proton hole
 c phdens2     : two-component particle-hole state density
+c term12      : help variable
 c Zix         : charge number index for residual nucleus
 c Nix         : neutron number index for residual nucleus
 c eopt        : energy for optical model calculation
@@ -124,7 +139,9 @@ c               the volume
 c hbar        : Planck's constant / 2.pi in MeV.s
 c densh,densp : help variables
 c ratio       : state density ratio for hole scattering
-c termpipi1p,.: help variables
+c termpipi1p  : help variable
+c termnupi1h  : help variable
+c termpipi1h  : help variable
 c phtot       : total particle-hole state density
 c
         L1pip=Apauli2(ppi+1,hpi+1,pnu,hnu)-Apauli2(ppi-1,hpi,pnu,hnu)

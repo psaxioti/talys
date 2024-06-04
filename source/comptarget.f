@@ -260,6 +260,7 @@ c tfis         : fission transmission coefficients
 c xsbinary     : cross section from initial compound to residual nucleus
 c CNfactor     : factor for compound nucleus cross section:
 c                pi/[ k**2 (2s+1)(2I+1) ]
+c fisterm      : fission term
 c fisfeedJP    : fission contribution from excitation energy bin per J,P
 c
               fluxsum=0.
@@ -664,8 +665,8 @@ c
               if (flagcheck.and.flagwidth) then
                 if (fluxsum.eq.0.) fluxsum=Tinc
                 write(*,'(" Parity=",a1,"  J=",f4.1,"  j=",f4.1,
-     +            "  l=",i2,"  T(j,l)=",1p,e12.5,
-     +            "  Sum over outgoing channels=",1p,e12.5,0p,
+     +            "  l=",i2,"  T(j,l)=",es12.5,
+     +            "  Sum over outgoing channels=",es12.5,
      +            "  Ratio=",f8.5)') cparity(parity),0.5*J2,0.5*jj2,l,
      +            Tinc,fluxsum,Tinc/fluxsum
               endif

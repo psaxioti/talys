@@ -62,6 +62,8 @@ c
 c
 c Loop over iterations
 c
+c ni: counter
+c
       do 60 ni=1,niter
         sv=0.
 c

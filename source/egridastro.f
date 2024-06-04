@@ -19,6 +19,7 @@ c ******** Set temperature grid for astrophysical calculations *********
 c
 c T9       : Temperature grid in 10**9 K
 c T9max    : Max Temperature in 10**9 K
+c T9min    : Min Temperature in 10**9 K
 c Temp,Teps: temperatures of basic grid in 10**9 K
 c dTgrid   : temperature increment
 c nTmax    : effective number of temperatures for Maxwellian
@@ -56,11 +57,27 @@ c
 c Zix        : charge number index for target nucleus
 c Nix        : neutron number index for target nucleus
 c redumass,am: reduced mass
+c acm        : inverse of reduced mass
+c neg        : number of energies
+c neg1       : number of energies
+c neg2       : number of energies
 c emax,emin  : max and minimum energies
 c eg0        : Gamow energies at T9=1
 c eg1,eg2    : Gamow energies at T9(min) and T9(max)
+c deg        : constant for Gamow energy
+c deg1       : constant for Gamow energy
+c deg2       : constant for Gamow energy
+c de1        : energy increment
+c de2        : energy increment
 c kt         : energy kT expressed in MeV corresponding to a
 c              temperature T9=1
+c b3         : help variable
+c Q0         : Q-value
+c Qa         : Q-value
+c Qn         : Q-value
+c Qp         : Q-value
+c qmax       : maximum Q-value
+c qmin       : maximum Q-value
 c
   100 kt=0.086173d0
       emin=1.d-12

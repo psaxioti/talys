@@ -17,6 +17,9 @@ c
 c
 c **********************************************************************
 c
+c fcoul: Coulomb self energy factor
+c epscloc : Brosa value
+c
       if (epscloc) 10,20,30
  10   fcoul=(1.+epscloc**2)**(1./3.)/epscloc*atan(epscloc)
       return

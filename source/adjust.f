@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 2, 2012
+c | Date  : December 12, 2016
 c | Task  : Energy-dependent parameter adjustment
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       character*80 key
-      integer      Zix,Nix,type,ibar,i,k,lenkey,N,j,npow,nen
+      integer      Zix,Nix,type,ibar,i,N,j,npow,nen
       real         E,factor,Ea,Eb,Em,D,Da,Db,C,Eadj(0:numenadj),
      +             Dadj(0:numenadj)
 c
@@ -30,7 +30,11 @@ c adjustix  : local adjustment index
 c adjustfile: file for local adjustment
 c nenadjust : number of tabulated energies of local adjustment
 c Eadjust   : tabulated energy of local adjustment
+c Eadj      : energy of local adjustment
 c Dadjust   : tabulated depth of local adjustment
+c Da        : depth of local adjustment
+c Dadj      : depth of local adjustment
+c Db        : depth of local adjustment
 c Ea        : start energy of local adjustment
 c Eb        : end energy of local adjustment
 c Em        : intermediate energy of local adjustment
@@ -40,13 +44,7 @@ c
       Eadj(0)=0.
       Dadj(0)=1.
       do 10 i=1,Nadjust
-        do 20 k=1,80
-          if (adjustkey(i)(k:k).eq.' ') then
-            lenkey=k-1
-            goto 30
-          endif
-   20   continue
-   30   if (key(1:lenkey).eq.adjustkey(i)(1:lenkey).and.
+        if (trim(key).eq.trim(adjustkey(i)).and.
      +    Zix.eq.adjustix(i,1).and.Nix.eq.adjustix(i,2).and.
      +    type.eq.adjustix(i,3).and.ibar.eq.adjustix(i,4)) then
           if (adjustfile(i)(1:1).ne.' ') then
@@ -83,4 +81,4 @@ c
    10 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : October 27, 2015
+c | Date  : November 8, 2018
 c | Task  : Read input for third set of variables
 c +---------------------------------------------------------------------
 c
@@ -93,6 +93,9 @@ c flagEchannel: flag for channel energy for emission spectrum
 c flagreaction: flag for calculation of nuclear reactions
 c flagastrogs : flag for calculation of astrophysics reaction rate
 c               with target in ground state only
+c flagastroex : flag for calculation of astrophysics reaction rate
+c               to final long-lived excited states
+c nonthermlev : non-thermalized level in the calculation of astrophysics rate
 c flagexpmass : flag for using experimental nuclear mass if available
 c flagjlm     : flag for using semi-microscopic JLM OMP
 c flagomponly : flag to execute ONLY an optical model calculation
@@ -192,6 +195,8 @@ c
       flagEchannel=.false.
       flagreaction=.true.
       flagastrogs=.false.
+      nonthermlev=-1
+      flagastroex=.false.
       flagexpmass=.true.
       flagjlm=.false.
       if (flagomponly) then
@@ -588,6 +593,16 @@ c
         if (key.eq.'astrogs') then
           if (ch.eq.'n') flagastrogs=.false.
           if (ch.eq.'y') flagastrogs=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
+        if (key.eq.'nonthermlev') then
+          read(value,*,end=300,err=300) nonthermlev
+          goto 110
+        endif
+        if (key.eq.'astroex') then
+          if (ch.eq.'n') flagastroex=.false.
+          if (ch.eq.'y') flagastroex=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif

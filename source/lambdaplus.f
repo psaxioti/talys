@@ -88,11 +88,16 @@ c
 c B. Numerical solution: Transition rates based on either matrix
 c    element (preeqmode=2) or optical model (preeqmode=3).
 c
-c L1p,...      : integration limits
+c L1p          : integration limit
+c L1h          : integration limit
+c L2p          : integration limit
+c L2h          : integration limit
 c nexcbins     : number of integration bins
 c nbins        : number of continuum excitation energy bins
 c dExpp....    : integration bin width
 c sum1p,sum1h  : help variables
+c dExhh        : energy bin for holes
+c dExpp        : energy bin for particles
 c uup,uuh      : residual excitation energy
 c lambda1p     : collision probability for particle
 c lambda1h     : collision probability for hole

@@ -17,6 +17,8 @@ c
 c xselasinc   : total elastic cross section (neutrons only) for incident
 c               channel
 c fourpi      : 4.*pi
+c gJ          : spin factor
+c sumgJ       : sum over J values
 c dtheory     : subroutine for theoretical calculation of average
 c               neutron spacings
 c lurr        : maximal orbital angular momentum for URR calculation
@@ -55,6 +57,10 @@ c
 c Cross section after correction with NJOY formalism (lmaxU=2)
 c
 c flagurrnjoy : normalization of URR parameters with NJOY method
+c istop       : integer to stop
+c Rsig        : factor for URR
+c Rsig0       : factor for URR
+c Rsig1       : factor for URR
 c Rprime(0,U) : potential scattering radius
 c
       if (RprimeU.eq.0.) RprimeU=Rprime

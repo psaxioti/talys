@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 8, 2014
+c | Date  : November 16, 2014
 c | Task  : ECIS calculation of direct cross section
 c +---------------------------------------------------------------------
 c
@@ -12,6 +12,7 @@ c
       logical      rotational,vibrational,jlmloc
       character*13 outfile
       integer      type,Zix,Nix,A,odd,i,l
+      real         vibfactor
 c
 c ********************** Set ECIS input parameters *********************
 c
@@ -51,7 +52,7 @@ c ecis2(9)=T  : output of total, reaction, elastic and inelastic c.s.
 c ecis2(14)=T : output of inelastic angular distribution
 c ecis2(15)=T : output of Legendre coefficients
 c
-      open (unit=9,status='unknown',file='ecisdisc.inp')
+      open (unit=9,file='ecisdisc.inp',status='replace')
       rotational=.false.
       vibrational=.true.
       jlmloc=.false.
@@ -134,6 +135,7 @@ c
 c
 c 1. Direct collective states
 c
+c vibfactor: term to prevent DWBA divergence at very high energy
 c numlev2  : maximum number of levels
 c deform   : deformation parameter
 c eoutdis  : outgoing energy of discrete state reaction
@@ -157,6 +159,7 @@ c iph      : phonon (1 or 2)
 c vibbeta  : vibrational deformation parameter
 c ecisinput: subroutine to create ECIS input file
 c
+        vibfactor=1.-max((Einc-200.)/1600.,0.)
         do 20 i=0,numlev2
           if (i.eq.0.and.type.eq.k0) goto 20
           if (deform(Zix,Nix,i).eq.0.) goto 20
@@ -167,7 +170,8 @@ c
             Jlevel(2)=jdis(Zix,Nix,i)
             Plevel(2)=cparity(parlev(Zix,Nix,i))
           else
-            if (nlev(Zix,Nix).eq.1) then
+            if (nlev(Zix,Nix).eq.1.or.
+     +        (i.eq.1.and.jcore(Zix,Nix,i).eq.0)) then
               Jlevel(2)=2.
               Plevel(2)='+'
             else
@@ -179,7 +183,7 @@ c
           Jband(1)=int(Jlevel(2))
           Kmag(1)=0
           iph(2)=1
-          vibbeta(1)=deform(Zix,Nix,i)
+          vibbeta(1)=deform(Zix,Nix,i)*vibfactor
           flagecisinp=.true.
           call ecisinput(Zix,Nix,type,Einc,rotational,vibrational,
      +      jlmloc)
@@ -195,10 +199,10 @@ c
         if (type.eq.k0) then
           anginc=180./nanglecont
           do 30 l=0,3
-            do 30 i=1,2
-              if (betagr(l,i).eq.0.) goto 30
+            do 40 i=1,2
+              if (betagr(l,i).eq.0.) goto 40
               Elevel(2)=Egrcoll(l,i)
-              if (eninccm.le.Elevel(2)+0.1*parA(type)) goto 30
+              if (eninccm.le.Elevel(2)+0.1*parA(type)) goto 40
               Jlevel(2)=real(l)
               iband(2)=1
               Jband(1)=int(Jlevel(2))
@@ -211,6 +215,7 @@ c
               flagecisinp=.true.
               call ecisinput(Zix,Nix,type,Einc,rotational,vibrational,
      +          jlmloc)
+   40       continue
    30     continue
         endif
    10 continue
@@ -237,7 +242,7 @@ c
       endif
       call ecist('ecisdisc.inp ',outfile,'ecis.dircs   ',
      +  'ecis.dirin   ','null         ','ecis.dirang  ','ecis.dirleg  ')
-      open (unit=9,status='unknown',file='ecisdisc.inp')
+      open (unit=9,file='ecisdisc.inp',status='unknown')
       close (unit=9,status=ecisstatus)
       return
       end

@@ -12,7 +12,7 @@ c
       integer iz,ia,nex,type,nen,npar,in,ih,it,id,ip,
      +        ident,idc,iaa,inn
       real    xsexcpart(0:numpar,numin),sumpost,sumpfns,Esumpfns,E,Eav,
-     +        fiseps,maxwell,summax,dE,xsc,yZA,yA
+     +        maxwell,summax,dE,xsc,yZA,yA
 c
 c ********************** Loop over fission fragments *******************
 c
@@ -43,7 +43,7 @@ c           do 120 Nix=0,maxN
 c             xsfpZApost(iz,in)=xsfpZApost(iz,in)+xspopnuc(Zix,Nix)
 c             xsfpApost(ia)=xsfpApost(ia)+xspopnuc(Zix,Nix)
 c             do 130 nex=0,Nlast(Zix,Nix,0)
-c               if (nex.eq.0.or.tau(Zix,Nix,nex).ne.0.) 
+c               if (nex.eq.0.or.tau(Zix,Nix,nex).ne.0.)
 c    +            xsfpex(iz,in,nex)=xsfpex(iz,in,nex)+
 c    +            xspopex(Zix,Nix,nex)
 c 130         continue
@@ -126,7 +126,7 @@ c       do 296 nen=1,numen2
 c         E=espec(type,nen)
 c         Eav=Eavpfns(type)
 c         maxwell=sqrt(E)*exp(-E/Eav)
-c         if (maxwell.gt.0..and.sumpfns.gt.0.) 
+c         if (maxwell.gt.0..and.sumpfns.gt.0.)
 c    +      maxpfns(type,nen)=pfns(type,nen)/maxwell*summax/sumpfns
 c 296   continue
 c 290 continue
@@ -137,7 +137,7 @@ c 310 continue
 c     sumpost=0.5*sumpost
 c     if (sumpost.gt.0.) then
 c       xsfptotpost=0.
-        yieldtotpost=0.
+c       yieldtotpost=0.
 c       do 320 iz=1,Ztarget0
 c         do 330 ia=iz+1,Atarget0
 c           if (xsfpZApost(iz,ia).eq.0.) goto 330
@@ -170,7 +170,7 @@ c
       if (flagracap) call racapinit
       if (flagcomp) call compoundinit
       if (flagastro) call astroinit
-c 
+c
 c Output
 c
 c     call massdisout

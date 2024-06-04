@@ -163,7 +163,9 @@ c 3. Redistribution of decay from population on emission energy grid.
 c
 c locate       : subroutine to find value in ordered table
 c Ebottom      : bottom of outgoing energy bin
-c xso00,....   : cross section on excitation energy grid
+c xso00        : cross section on excitation energy grid
+c xsop0        : help variable
+c xsomp        : help variable
 c nenbeg,nenend: help variables
 c dE           : emission bin
 c dEhalf       : half of emission bin

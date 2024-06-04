@@ -9,16 +9,18 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      external match
       integer  Zix,Nix,ibar,A,nseg,Nb
       real     Exm,ald,ignatyuk,xacc,x1,x2,match,rtbis,xb1(2),xb2(2),
      +         Exm1,Exm2
+      external match
 c
 c ************************ Search for zeroes ***************************
 c
 c Zix     : charge number index for residual nucleus
 c Nix     : neutron number index for residual nucleus
 c Exm     : matching energy
+c Exm1    : matching energy
+c Exm2    : matching energy
 c ibar    : fission barrier
 c AA,A    : mass number of residual nucleus
 c Exmemp  : empirical estimate for matching point for Ex
@@ -29,7 +31,11 @@ c ignatyuk: function for energy dependent level density parameter a
 c xacc,...: help variables
 c Nb      : number of solutions
 c match   : function to search for zero crossings of the function
+c nseg    : number of segments
 c zbrak   : function to bracket the function
+c rtbis: function to search for zero crossings of the function
+c xb1   : help variable
+c xb2   : help variable
 c
       A=AA(Zix,Nix,0)
       ald=ignatyuk(Zix,Nix,Exmemp,ibar)

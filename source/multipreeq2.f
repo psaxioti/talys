@@ -112,10 +112,10 @@ c lifetime2 : subroutine for calculation of lifetime of two-component
 c             exciton state
 c
       do 110 ipp=0,maxpar
-        do 110 ihp=0,maxpar
-          do 110 ipn=0,maxpar
+        do 112 ihp=0,maxpar
+          do 114 ipn=0,maxpar
             ip=ipp+ipn
-            if (ip.eq.0.or.ip.gt.maxpar) goto 110
+            if (ip.eq.0.or.ip.gt.maxpar) goto 114
             do 120 ihn=0,maxpar
               ih=ihp+ihn
               if (ih.eq.0.or.ih.gt.maxpar) goto 120
@@ -203,6 +203,7 @@ c wemission : two-component emission rate
 c mcontrib  : contribution to emission spectrum
 c mpecontrib: contribution to multiple pre-equilibrium emission spectrum
 c xspopex   : population cross section summed over spin and parity
+c sumterm   : help variable
 c
             do 150 nexout=Nlast(Zix,Nix,0)+1,nexmax(type)
               dEx=deltaEx(Zix,Nix,nexout)
@@ -323,6 +324,7 @@ c
 c 350: Adopt spin distribution from primary pre-equilibrium.
 c
 c parity  : parity
+c Jterm   : term dependent on J
 c maxJ    : maximal J-value
 c xspop   : population cross section
 c preeqpop: pre-equilibrium population cross section
@@ -377,6 +379,8 @@ c
             endif
           endif
   120   continue
+  114 continue
+  112 continue
   110 continue
 c
 c ************************ Normalization *******************************

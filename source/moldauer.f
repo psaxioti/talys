@@ -28,7 +28,8 @@ c res              : width fluctuation factor
 c numtr            : number of transmission coefficients
 c ielas            : designator for elastic channel
 c dab,factor       : help variables
-c factora,factorb,x: help variables
+c factora          : help variable
+c factorb          : help variable
 c
 c Initialization
 c
@@ -40,6 +41,8 @@ c
       factorb=real(2.*tav(nb)/(st*vnu(nb)))
 c
 c Loop over integration points
+c
+c im: counter
 c
       do 10 im=1,npmold
         x=xmo(im)

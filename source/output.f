@@ -58,7 +58,7 @@ c
       if (flagddx) call ddxout
       if (flaggamdis) call gamdisout
       if (flagracap) call racapout
-      if (flagffruns.or.flagrpruns) 
+      if (flagffruns.or.flagrpruns)
      +  write(*,'(/" End of calculation for ",i3,a2/)') Atarget,Starget
       return
       end

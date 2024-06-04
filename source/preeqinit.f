@@ -97,7 +97,8 @@ c gp,gsp         : single-particle proton level density parameter
 c gn,gsn         : single-particle neutron level density parameter
 c ppi,hpi        : proton particle and hole number
 c pnu,hnu        : neutron particle and hole number
-c Eppi,..        : Pauli energy
+c Eppi           : Pauli energy
+c Epnu           : Pauli energy
 c factorp,factorn: help variables
 c Apauli2        : two-component Pauli blocking correction factor
 c

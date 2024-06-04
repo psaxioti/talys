@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 5, 2006
+c | Date  : November 16, 2016
 c | Task  : Output of exciton model parameters
 c +---------------------------------------------------------------------
 c
@@ -29,14 +29,14 @@ c matrix    : subroutine for matrix element for exciton model
 c Ainit     : mass number of initial compound nucleus
 c M2        : square of matrix element
 c
-      write(*,'(/" 1. Matrix element for E= ",f7.3/)') Ecomp
+      write(*,'(/" 1. Matrix element for E= ",f8.3/)') Ecomp
       write(*,'(" Constant for matrix element: ",f7.3/)') M2constant
       write(*,'("  p h       M2"/)')
       do 10 p=p0,maxpar
         h=p-p0
         n=p+h
         call matrix(Ainit,n)
-        write(*,'(1x,2i2,2x,1p,e12.5)') p,h,M2
+        write(*,'(1x,2i2,2x,es12.5)') p,h,M2
    10 continue
 c
 c 2. Output of Q-factors
@@ -62,14 +62,14 @@ c
       write(*,'("  p h",3x,7(a8,4x),"Total"/)') (parname(type),type=0,6)
       do 30 p=p0,maxpar
         h=p-p0
-        write(*,'(1x,2i2,1p,8e12.5)') p,h,
+        write(*,'(1x,2i2,8es12.5)') p,h,
      +    (wemispart(type,p,h),type=0,6),wemistot(p,h)
    30 continue
       write(*,'(/" B. Escape widths (MeV)"/)')
       write(*,'("  p h",2x,7(a8,4x),"Total"/)') (parname(type),type=0,6)
       do 40 p=p0,maxpar
         h=p-p0
-        write(*,'(1x,2i2,1p,8e12.5)') p,h,
+        write(*,'(1x,2i2,8es12.5)') p,h,
      +    (wemispart(type,p,h)*hbar,type=0,6),wemistot(p,h)*hbar
    40 continue
 c
@@ -83,19 +83,19 @@ c
       write(*,'("  p h    lambdaplus"/)')
       do 50 p=p0,maxpar
         h=p-p0
-        write(*,'(1x,2i2,1p,e15.5)') p,h,lambdaplus(0,0,p,h)
+        write(*,'(1x,2i2,es15.5)') p,h,lambdaplus(0,0,p,h)
    50 continue
       write(*,'(/" B. Damping widths (MeV)"/)')
       write(*,'("  p h     gammaplus"/)')
       do 60 p=p0,maxpar
         h=p-p0
-        write(*,'(1x,2i2,1p,e15.5)') p,h,lambdaplus(0,0,p,h)*hbar
+        write(*,'(1x,2i2,es15.5)') p,h,lambdaplus(0,0,p,h)*hbar
    60 continue
       write(*,'(/" C. Total widths (MeV)"/)')
       write(*,'("  p h     gammatot"/)')
       do 70 p=p0,maxpar
         h=p-p0
-        write(*,'(1x,2i2,1p,e15.5)') p,h,
+        write(*,'(1x,2i2,es15.5)') p,h,
      +    (lambdaplus(0,0,p,h)+wemistot(p,h))*hbar
    70 continue
 c
@@ -118,7 +118,7 @@ c
       write(*,'(/"  p h   mean lifetime"/)')
       do 90 p=p0,maxpar
         h=p-p0
-        write(*,'(1x,2i2,1p,e15.5)') p,h,tauexc(p,h)
+        write(*,'(1x,2i2,es15.5)') p,h,tauexc(p,h)
    90 continue
       return
       end

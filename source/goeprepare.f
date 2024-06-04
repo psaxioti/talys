@@ -52,7 +52,8 @@ c
 c
 c Loop over p
 c
-c p1,...: help variables
+c p1    : help variable
+c ds2   : help variable
 c
         do 30 i=1,nweip
           p1=p(i)+1.
@@ -65,7 +66,8 @@ c
 c
 c Special case for capture
 c
-c exc02,...: help variables
+c ex02    : help variable
+c ex2i    : help variable
 c
           if (tgamma.eq.0.) then
             ex02=1.
@@ -77,7 +79,32 @@ c
 c
 c Loop over s
 c
-c s1,...: help variables
+c s1    : help variable
+c pm2ps21: term for GOE
+c pm2s22: term for GOE
+c pms222: term for GOE
+c pums212: term for GOE
+c ps21: term for GOE
+c ps2t21: term for GOE
+c ume  : term for GOE
+c um2s21 : term for GOE
+c umes2: term for GOE
+c umps21: term for GOE
+c ums21: term for GOE
+c ums22: term for GOE
+c umt21: term for GOE
+c umt22: term for GOE
+c upes2: term for GOE
+c uppm2ps2: term for GOE
+c uppm2s2: term for GOE
+c wp1: term for GOE
+c wpspp2: term for GOE
+c wpws1: term for GOE
+c wpws2: term for GOE
+c ws1: term for GOE
+c ws2: term for GOE
+c wt : term for GOE
+c wt2: term for GOE
 c
           do 40 j=1,nweis
             s1=0.25*sqrt(2.)*(s(j)+1.)
@@ -111,10 +138,19 @@ c
 c Loop over t
 c
 c t1,t2,...x2rat: help variables
-c x02,x102,.....: variables for final GOE calculation
-c fpst1,fpst2   : variables for final GOE calculation
-c prodm,prodp   : product functions for GOE
+c x02,x102,.....: variable for final GOE calculation
+c fpst1,fpst2   : variable for final GOE calculation
+c prodm,prodp   : product function for GOE
 c s1,s2,s3,s4,s5: variables for final GOE calculation
+c s21           : variable for final GOE calculation
+c s22           : variable for final GOE calculation
+c t21           : variable for final GOE calculation
+c t22           : variable for final GOE calculation
+c s2t21         : variable for final GOE calculation
+c s2t22         : variable for final GOE calculation
+c wt            : variable for final GOE calculation
+c x1rat         : variable for final GOE calculation
+c x2rat         : variable for final GOE calculation
 c
             do 50 k=1,nweit
               t1=0.5*t(k)+0.5

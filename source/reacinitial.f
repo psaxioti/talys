@@ -130,7 +130,7 @@ c
         do 90 Zix=0,numZ
           Exmax0(Zix,Nix)=0.
           Exmax(Zix,Nix)=0.
-          maxex(Zix,Nix)=0.
+          maxex(Zix,Nix)=0
           do 100 i=0,numex
             Ex(Zix,Nix,i)=0.
   100     continue
@@ -261,6 +261,8 @@ c                 particle-hole configuration
 c xspreeqsum    : total preequilibrium cross section summed over
 c                 particles
 c Esurf         : well depth for surface interaction
+c n3            : counter
+c n4            : counter
 c
       do 210 nen=0,numen
         do 210 n1=1,numparx
@@ -437,7 +439,7 @@ c              and protons interacting with the same Atarget and leading
 c              to the same residual nucleus, (Z,N), populated by the
 c              deuteron interaction process
 c xspopnucT  : total population cross section per nucleus including the
-c              inelastic breakup enhancement             
+c              inelastic breakup enhancement
 c ENHratio   : breakup nucleons enhancing reaction cross
 c              sections, PRC 89,044613 Eq. (7),
 c              n + Atarget  sig(n,Z,A,Eout)/sig_Total(n,Enout);
@@ -535,7 +537,7 @@ c
   540 continue
       do 550 nex=0,numex
         do 550 type=0,numpar
-          lmaxhf(type,nex)=0.
+          lmaxhf(type,nex)=0
           contrib(type,nex)=0.
           feedbinary(type,nex)=0.
   550 continue

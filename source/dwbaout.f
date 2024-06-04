@@ -39,12 +39,12 @@ c
         write(*,fmt=ofor1) (J,J=0,min(maxJmsd,7))
         write(*,'()')
         do 10 iang=0,nanglecont
-          write(*,'(1x,f5.1,1p,8e13.5)') anglecont(iang),
+          write(*,'(1x,f5.1,8es13.5)') anglecont(iang),
      +      (xsdw(nen1,nen2,J,iang,0),J=0,min(maxJmsd,7))
    10   continue
       endif
       write(*,fmt=ofor2) (J,J=0,min(maxJmsd,7))
-      write(*,'(/," Angle",1p,8e13.5)') (xsdwin(nen1,nen2,J,0),
+      write(*,'(/," Angle",8es13.5)') (xsdwin(nen1,nen2,J,0),
      +  J=0,min(maxJmsd,7))
       write(*,'(" integr.")')
       return

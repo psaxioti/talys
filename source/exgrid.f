@@ -90,6 +90,7 @@ c deltaEx,dEx: excitation energy bin for population arrays
 c Qres       : Q-value for residual nucleus
 c targetE    : energy of target
 c Ltarget    : excited level of target
+c Edif       : difference in energy
 c k0         : index of incident particle
 c Etotal     : total energy of compound system (target + projectile)
 c Ethresh    : threshold incident energy for residual nucleus
@@ -145,6 +146,7 @@ c Division of the continuum into bins.
 c
 c Aix          : mass number index for residual nucleus
 c nexbins,nbins: number of continuum excitation energy bins
+c Eup          : upper energy of bin
 c flagequi     : flag to use equidistant excitation bins instead of
 c                logarithmic bins
 c nexmax       : maximum excitation energy bin for residual nucleus
@@ -217,7 +219,8 @@ c energy bin. By default, this maxJ value is set to 3*sigma where
 c sigma is the square root of the spin cut-off parameter of the level
 c density.
 c
-         maxJ(Zix,Nix,nex)=max(3.*sqrt(spincut(Zix,Nix,ald,Exout,0)),5.)
+         maxJ(Zix,Nix,nex)=
+     +     max(3.*sqrt(spincut(Zix,Nix,ald,Exout,0.)),5.)
          maxJ(Zix,Nix,nex)=min(maxJ(Zix,Nix,nex),numJ)
 c
 c In the compound nucleus subroutines, the particle widths are
@@ -231,9 +234,13 @@ c flagparity: flag for non-equal parity distribution
 c Pbeg      : help variable
 c Pprime    : parity
 c Ir,Rspin  : residual spin
-c rho1-3    : help variables
+c rho1      : help variable
+c rho2      : help variable
+c rho3      : help variable
 c density   : level density
-c r1log,..  : help variables
+c r1log     : help variable
+c r2log     : help variable
+c r3log     : help variable
 c rhogrid   : integrated level density
 c
 c For an equiprobable parity distribution for level densities, the loop

@@ -17,10 +17,19 @@ c
 c
 c************************************************************************
 c
+c Acpracap: compound nucleus A
+c Zcpracap: compound nucleus Z
+c partar  : parity of target
+c nracapout : energy index
+c racapfile : file with direct capture cross sections
+c cpar: symbol of parity
+c JJJ : spin
+c spintar: spin of target
+c
       nracapout=nin
       Acpracap=Atarget+parA(k0)
       Zcpracap=ZZ(0,0,0)
-      ecm=real(einc*specmass(parZ(k0),parN(k0),k0))
+      ecm=real(Einc*specmass(parZ(k0),parN(k0),k0))
 
 ctest racapgsspin=jdis(0,0,0)
 ctest racapgsprty=parlev(0,0,0)
@@ -29,8 +38,8 @@ ctest racapgsprty=parlev(0,0,0)
       cpar='+'
       if (partar.eq.-1) cpar='-'
 
-      if (nin.eq.1) then
-        open (unit=2,status='unknown',file='racap.tot')
+      if (nin.eq.numinclow+1) then
+        open (unit=2,file='racap.tot',status='unknown')
         write(2,'("Direct capture reaction on target ",i3,a2," (Z =",
      +    i3,") with projectile ",a1, " (Qvalue=",f7.3," MeV)"/)')
      +    Atarget,Starget,Ztarget,parsym(k0),Q(0)
@@ -58,27 +67,27 @@ ctest racapgsprty=parlev(0,0,0)
         write(2,'(/"  Spectroscopic factors ",/)')
         do i=0,numex
           if (i.eq.0.or.edis(0,0,i).gt.0.) then
-            write(2,'(1p,g12.4,0p,f5.1,1x,a2,1p,g12.4,0p)')
+            write(2,'(1p,g12.4,0p,f5.1,1x,a2,1p,g12.4)')
      +        edis(0,0,i),jdis(0,0,i),cparity(parlev(0,0,i)),
      +        spectfac(0,0,i)
           endif
         enddo
         write(2,*)
       else
-        open (unit=2,status='unknown',file='racap.tot')
+        open (unit=2,file='racap.tot',status='unknown')
    10   read(2,*,end=20,err=20)
         goto 10
       endif
 
    20 backspace 2
       write(2,*)
-      write(2,'("==========  Direct capture at Elab=",1p,e10.3,
-     +  "  ==========")') einc
-      write(2,'("   Ecm =",1p,e10.3," MeV: ",/,
-     +  "   Direct   radiative capture xs =",e12.5," mb",
-     +  "  (Discrete=",e10.3," - Continuum=",e10.3,")",/,
-     +  "   HF+Preeq radiative capture xs =",e12.5," mb",/,
-     +  "   Total    radiative capture xs =",e12.5," mb")')
+      write(2,'("==========  Direct capture at Elab=",es10.3,
+     +  "  ==========")') Einc
+      write(2,'("   Ecm =",es10.3," MeV: ",/,
+     +  "   Direct   radiative capture xs =",es12.5," mb",
+     +  "  (Discrete=",es10.3," - Continuum=",es10.3,")",/,
+     +  "   HF+Preeq radiative capture xs =",es12.5," mb",/,
+     +  "   Total    radiative capture xs =",es12.5," mb")')
      +  ecm,xsracape,xsracapedisc,xsracapecont,
      +  xspopnuc(0,0)-xsracape,xspopnuc(0,0)
 
@@ -112,11 +121,11 @@ c
 c write output racap.out with summary of reaction cross section
 c
       racapfile='racap.out'
-      if (nin.eq.1) then
-        open(unit=1,status='unknown',file=racapfile)
+      if (nin.eq.numinclow+1) then
+        open(unit=1,file=racapfile,status='unknown')
         write(1,'("# ",a1," + ",i3,a2,": Direct Capture to ",i3,a2)')
      +    parsym(k0),Atarget,Starget,Acpracap,nuc(Zcpracap)
-        write(1,'("# Q-value    =",1p,e12.5,0p," mass=",f11.6,
+        write(1,'("# Q-value    =",es12.5," mass=",f11.6,
      +    " Emax=",f11.6)') Qres(0,0,0),nucmass(0,0),
      +    min(S(0,0,1),S(0,0,2))
         write(1,'("# # transitions from ",f5.1,a1,
@@ -127,11 +136,11 @@ c
      +    " xs(E1)      xs(E2)      xs(M1)     xs(tot)")')
         close(1)
       endif
-      open(unit=1,status='unknown',file=racapfile)
-      do 30 nen=1,nin+4
+      open(unit=1,file=racapfile,status='unknown')
+      do 30 nen=numinclow+1,nin+4
         read(1,*,end=40,err=40)
    30 continue
-      write(1,'(1p,2e12.5,12x,4e12.5)') eninc(nin),xsracap(nin),
+      write(1,'(2es12.5,12x,4es12.5)') eninc(nin),xsracap(nin),
      +  xsracapEM(nin,1,1), xsracapEM(nin,1,2),
      +  xsracapEM(nin,0,1),xspopnuc(0,0)
    40 close(1)

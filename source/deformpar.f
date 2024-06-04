@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 14, 2013
+c | Date  : December 12, 2016
 c | Task  : Deformation parameters
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       logical      lexist,first2,first3,first4
       character*1  colltype1,deftype1,leveltype1
-      character*4  defchar
+      character*6  defchar
       character*90 deffile
       integer      Zix,Nix,Z,N,A,ia,ndisc,i,natpar,k,iirot,idef,irot,ii,
      +             nex,distance,k2,odd,vibband1,lband1,Kmag1,iphonon1,
@@ -31,26 +31,24 @@ c defchar   : help variable
 c deffile   : deformation parameter file
 c deformfile: deformation parameter file
 c path      : directory containing structure files to be read
-c lenpath   : length of pathname
 c
       Z=ZZ(Zix,Nix,0)
       N=NN(Zix,Nix,0)
       A=AA(Zix,Nix,0)
       colltype(Zix,Nix)='S'
       if (disctable.eq.3) goto 150
-      defchar='z   '
-      write(defchar(2:4),'(i3.3)') Z
+      defchar=trim(nuc(Z))//'.def'
 c
 c 1. Inquire whether file is present
 c
       if (deformfile(Zix)(1:1).ne.' ') then
         deffile=deformfile(Zix)
       else
-        deffile=path(1:lenpath)//'deformation/'//defchar
+        deffile=trim(path)//'deformation/'//defchar
       endif
       inquire (file=deffile,exist=lexist)
       if (.not.lexist) goto 150
-      open (unit=2,status='old',file=deffile)
+      open (unit=2,file=deffile,status='old')
 c
 c 2. Search for the isotope under consideration
 c
@@ -79,18 +77,27 @@ c 3. Read deformation parameters
 c
 c flagspher : flag to force spherical optical model
 c iirot,....: help variables
+c deftype1  : deformation length (D) or parameter (B)
 c deftype   : deformation length (D) or parameter (B)
 c nex       : level number
 c numlev2   : maximum number of levels
 c indexlevel: level index
 c maxrot    : number of included excited rotational levels
+c leveltype1: type of level (rotational (R) or vibrational (V))
 c leveltype : type of level (rotational (R) or vibrational (V))
 c vibband   : band number of level
+c vibband1  : band number of level
 c maxband   : highest vibrational level added to rotational model
 c iphonon   : phonon (1 or 2)
-c Kmag,Kband: magnetic quantum number
+c iphonon1  : phonon (1 or 2)
+c idef      : counter for deformation
+c irot      : counter for rotational band
+c Kmag      : magnetic quantum number
+c Kmag1     : magnetic quantum number
+c Kband     : magnetic quantum number
 c defpar    : deformation parameter
 c lband     : angular momentum
+c lband1    : angular momentum
 c nrot      : number of deformation parameters for rotational nucleus
 c rotpar    : deformation parameters for rotational nucleus
 c
@@ -177,6 +184,7 @@ c
 c ******************** Default deformation parameters ******************
 c
 c distance: number of nucleons to closest magic number
+c k2      : kounter
 c odd     : odd (1) or even (0) nucleus
 c
 c Automatic assignment of rotational deformation parameters.
@@ -227,7 +235,7 @@ c
         rotpar(Zix,Nix,1)=beta2(Zix,Nix,0)
         rotpar(Zix,Nix,2)=beta4(Zix,Nix)
         deftype(Zix,Nix)='B'
-  200   close (unit=2)
+        close (unit=2)
         if (odd.eq.0) goto 400
       endif
 c
@@ -249,7 +257,9 @@ c Systematics for first 2+, 3- and 4+ vibrational states, derived
 c from individual deformation parameters. Also, we assign small
 c deformation parameter to all remaining discrete levels.
 c
-c first2-4: flag to determine first state of specific spin
+c first2  : flag to determine first state of specific spin
+c first3  : flag to determine first state of specific spin
+c first4  : flag to determine first state of specific spin
 c k0      : index of incident particle
 c edis    : energy of level
 c
@@ -335,4 +345,4 @@ c
   410 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

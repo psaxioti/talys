@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 2, 2014
+c | Date  : December 13, 2016
 c | Task  : Calculate production yields
 c +---------------------------------------------------------------------
 c
@@ -10,9 +10,10 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer          it,Zix,Nix,Z,N,A,is,isob,Zparent,Nparent,Ncool
-      real             rfac,yfac,N0
+      real             rfac,yfac,N0,acmax
       double precision Th,dT,Tc,prate0,pratei,lamD,C1,TT,exp1,denom,
-     +                 prateP,lamPD,CP1,exp2,term,t1,t2,expo1,expo2
+     +                 prateP,lamPD,CP1,exp2,term,t1,t2,expo1,expo2,
+     +                 denomD
 c
 c ************ Initial condition for irradiation ***********************
 c
@@ -28,7 +29,9 @@ c ******************** Set time grid ***********************************
 c
 c Ntime: number of time points
 c dT   : time step
+c Th   : time in hours
 c Tir  : irradiation time
+c Ncool: number of cooling time steps
 c Tgrid: time
 c
       Ntime=numtime/2
@@ -72,8 +75,10 @@ c               irradiation
 c Nisomer     : number of isomers for this nuclide
 c Tmax        : irradiation time with maximal yield
 c Tp          : irradiation time with maximal yield per time unit
+c denomD      : help variable
 c Niso        : number of isotopes produced after irradiation
 c activity    : activity of produced isotope in MBq
+c Tmaxactivity: time of maximum activity
 c yield       : yield of produced isotope in MBq/(mA.h)
 c Nisorel     : fraction of number of produced isotopes per element
 c Yexist      : flag for existence of yield
@@ -89,8 +94,9 @@ c
           do 70 is=-1,numisom
             Yexist(Zix,Nix,is)=.false.
             Tmax(Zix,Nix,is)=0.
+            Tmaxactivity(Zix,Nix,is)=0
             do 80 it=1,5
-              Tp(Zix,Nix,is,it)=0.
+              Tp(Zix,Nix,is,it)=0
    80       continue
             do 90 it=0,numtime
               Niso(Zix,Nix,is,it)=0.
@@ -108,12 +114,14 @@ c
           N=Ninit-Nix
           A=Z+N
           do 140 is=-1,Nisomer(Zix,Nix)
+            pratei=dble(prate(Zix,Nix,is))
+            if (is.ge.0.and.pratei.eq.0.) goto 140
             if (Z.eq.Ztarget.and.A.eq.Atarget.and.is.eq.-1) then
               Niso(Zix,Nix,is,0)=dble(Ntar0)
               Nisotot(Zix,0)=Nisotot(Zix,0)+Niso(Zix,Nix,is,0)
             endif
-            pratei=dble(prate(Zix,Nix,is))
             lamD=dble(lambda(Zix,Nix,is))
+            denomD=lamD-prate0
             C1=dble(Ntar0)*pratei
             do 170 it=1,numtime
               TT=dble(Tgrid(it)*hoursec)
@@ -132,13 +140,12 @@ c Production and decay of other isotopes
 c
 c 1. Production directly from target
 c
-                t1=prate0*TT
-                expo1=exp(-t1)
-                t2=lamD*TT
-                expo2=exp(-t2)
                 if (it.le.Ntime) then
-                  denom=lamD-prate0
-                  exp1=expo1/denom-expo2/denom
+                  t1=prate0*TT
+                  expo1=exp(-t1)
+                  t2=lamD*TT
+                  expo2=exp(-t2)
+                  exp1=expo1/denomD-expo2/denomD
                   Niso(Zix,Nix,is,it)=C1*exp1
                 else
                   t2=lamD*(TT-Tir)
@@ -150,7 +157,17 @@ c
 c 2. Production from decay of other isotope
 c
 c rtyp      : type of beta decay, beta-: 1 , beta+: 2 (from ENDF format)
-c lamP,lamPD: decay rate for parent isotope
+c isob      : counter
+c N0        : number of isotopes
+c lamP      : decay rate for parent isotope
+c lamPD     : decay rate for parent isotope
+c exp1      : exponent
+c exp2      : exponent
+c expo2     : exponent
+c Zparent   : Z of parent isotope
+c Nparent   : N of parent isotope
+c CP1       : constant
+c prateP    : production rate
 c Ibeam     : beam current in mA
 c
                 do 180 isob=-1,1
@@ -159,16 +176,16 @@ c
                   if (Zparent.lt.0.or.Nparent.lt.0) goto 180
                   if ((isob.eq.-1.and.rtyp(Zparent,Nparent,-1).eq.1).or.
      +              (isob.eq.1.and.rtyp(Zparent,Nparent,-1).eq.2)) then
-                    prateP=dble(prate(Zparent,Nparent,is))
                     lamPD=dble(lambda(Zparent,Nparent,is))
                     if (it.le.Ntime) then
+                      prateP=dble(prate(Zparent,Nparent,is))
                       if (prateP.gt.0..and.lamPD.gt.0.) then
                         CP1=dble(Ntar0)*prateP
-                        t1=prateP*TT
+                        t1=lamPD*TT
                         expo1=exp(-t1)
-                        denom=lamD-prateP
+                        denom=lamD-lamPD
                         exp2=expo1/denom-expo2/denom
-                        term=lamPD*CP1/(prateP-prate0)*(exp1-exp2)
+                        term=lamPD*CP1/(lamPD-prate0)*(exp1-exp2)
                         Niso(Zix,Nix,is,it)=Niso(Zix,Nix,is,it)+term
                       endif
                     else
@@ -189,8 +206,8 @@ c
                   endif
   180           continue
                 activity(Zix,Nix,is,it)=lamD*Niso(Zix,Nix,is,it)*1.e-6
-                yield(Zix,Nix,is,it)=abs(activity(Zix,Nix,is,it)-
-     +            activity(Zix,Nix,is,it-1))/
+                if (it.le.Ntime) yield(Zix,Nix,is,it)=
+     +            (activity(Zix,Nix,is,it)-activity(Zix,Nix,is,it-1))/
      +            (Ibeam*dble(Tgrid(it)-Tgrid(it-1)))
               endif
               if (Niso(Zix,Nix,is,it).gt.0.) Yexist(Zix,Nix,is)=.true.
@@ -223,12 +240,13 @@ c
   140     continue
   130   continue
         do 190 Nix=0,maxN
-          do 190 is=-1,Nisomer(Zix,Nix)
-            if (.not.Yexist(Zix,Nix,is)) goto 190
+          do 195 is=-1,Nisomer(Zix,Nix)
+            if (.not.Yexist(Zix,Nix,is)) goto 195
             do 200 it=0,numtime
               if (Nisotot(Zix,it).ne.0.) Nisorel(Zix,Nix,is,it)=
      +          Niso(Zix,Nix,is,it)/Nisotot(Zix,it)
   200       continue
+  195     continue
   190   continue
   110 continue
 c
@@ -240,6 +258,7 @@ c rfac     : conversion factor for radioactivity
 c yieldunit: unit for isotope yield: num (number),
 c            mug (micro-gram), mg, g, or kg
 c yfac     : conversion factor for isotope yield
+c acmax    : maximum activity
 c
       rfac=1.
       yfac=1.
@@ -259,14 +278,19 @@ c
           if (yieldunit.eq.'mg') yfac=real(A)/avogadro*1.e3
           if (yieldunit.eq.'kg') yfac=real(A)/avogadro*1.e-3
           do 230 is=-1,Nisomer(Zix,Nix)
+            acmax=0.
             do 240 it=1,numtime
               activity(Zix,Nix,is,it)=rfac*activity(Zix,Nix,is,it)
               yield(Zix,Nix,is,it)=rfac*yield(Zix,Nix,is,it)
               Niso(Zix,Nix,is,it)=yfac*Niso(Zix,Nix,is,it)
+              if (activity(Zix,Nix,is,it).gt.acmax) then
+                Tmaxactivity(Zix,Nix,is)=it
+                acmax=activity(Zix,Nix,is,it)
+              endif
   240       continue
   230     continue
   220   continue
   210 continue
       return
       end
-Copyright (C) 2010  A.J. Koning
+Copyright (C) 2016  A.J. Koning

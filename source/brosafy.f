@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : August 10, 2015
+c | Date  : December 12, 2016
 c | Task  : Fission fragment yields based on Brosa model
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical          lexist
-      character*4      gschar
+      character*6      gschar
       character*8      filen
       character*90     gsfile,precfile,barfile
       integer          Zix,Nix,Z,A,Zbrosa,amassmax,numoff,k,i,massdif,
@@ -50,9 +50,13 @@ c noff           : number of neutrons away from heaviest isotope given
 c                  in structure data base of a certain element
 c numoff         : number of isotopes for which information is present
 c                  in structure data base for a certain element
-c bf_sl/st/st2   : SL, ST I and ST II outer fission barrier heights
+c bf_sl          : SL outer fission barrier heights
+c bf_st          : ST I outer fission barrier heights
+c bf_st2         : ST II outer fission barrier heights
 c bfsplin        : barrier height splin fit parameters
-c bfsplin_sl,....: SL barrier height splin fit parameters
+c bfsplin_sl     : SL barrier height splin fit parameters
+c bfsplin_st     : ST I barrier height splin fit parameters
+c bfsplin_st2    : ST II barrier height splin fit parameters
 c bindgs         : ground-state binding energy
 c gschar         : structure database ground-state binding energy file
 c gsfile         : full path for structure database file
@@ -105,15 +109,15 @@ c
 c
 c     reading ground state binding energies
 c
-      gschar='z000'
-      write(gschar(2:4),'(i3.3)') Zbrosa
-      gsfile=path(1:lenpath)//'fission/brosa/groundstate/'//gschar
-      open (unit=2,status='old',file=gsfile)
+      gschar=trim(nuc(Zbrosa))//'.fis'
+      gsfile=trim(path)//'fission/brosa/groundstate/'//gschar
+      open (unit=2,file=gsfile,status='old')
 c
 c amassmax: heaviest isotope for which parameters have been calculated
 c amassar : mass array
 c massdif : mass difference between amassmax and the nucleus studied
-c index1,2: denote array elements used to interpolate
+c index1  : denote array elements used to interpolate
+c index2  : denote array elements used to interpolate
 c
 c      determine position nucleus in array
 c
@@ -158,7 +162,7 @@ c bfinter : barrier heights used for interpolation
 c hwinter : barrier widths used for interpolation
 c filen   : file name
 c barfile : path of barrier parameter file in structure data base
-c lexist  : logical to determine existence of barfile
+c lexist  : logical to determine existence
 c numtemp : running variable denoting the numtempth temperature
 c tmpmax  : maximal temperatures for which structure data is available
 c
@@ -204,24 +208,26 @@ c
                hwinter(k,i)=0.
  18      continue
          if(iloop.EQ.1)then
-            filen='z000.sl '
+            filen=trim(nuc(Zbrosa))//'.sl '
          else
             if(iloop.EQ.2)then
-               filen='z000.st '
+               filen=trim(nuc(Zbrosa))//'.st '
             else
-               filen='z000.st2'
+               filen=trim(nuc(Zbrosa))//'.st2'
             endif
          endif
-         write(filen(2:4),'(i3.3)') Zbrosa
-         barfile=path(1:lenpath)//'fission/brosa/barrier/'//filen
+         barfile=trim(path)//'fission/brosa/barrier/'//filen
          inquire (file=barfile,exist=lexist)
          if (lexist)then
-           open (unit=10,status='old',file=barfile)
+           open (unit=10,file=barfile,status='old')
 c
 c     if fission modes exists:
 c     read and calculate barrier parameters height, width, and position
 c     (in calculating the width, the mass at T=0 is used, since
 c     the dependence on T is very small)
+c
+c bar  : fission barrier height
+c rmass: help variable
 c
             i=1
             k=1
@@ -283,6 +289,9 @@ c
 c
 c      fit spline to barrier parameters
 c
+c hw_sl: width opf barrier
+c hw_st: width opf barrier
+c
          if(iloop.EQ.2)then
             bf(numtemp+1)=bf_sl(numtemp+1)
             hw(numtemp+1)=hw_sl(numtemp+1)
@@ -301,12 +310,14 @@ c
 c ald      : level density parameter
 c ignatyuk : function for energy dependent level density parameter
 c Tmp      : temperature
+c Tmpmax   : maximum temperature
 c excfis   : excitation energy at fission
 c trans    : subroutine to determine transmission coefficients
 c            per fission mode
 c trof     : transmission coefficients per fission mode
 c sl,st,st2: SL,ST I, ST II transmission coefficients
 c stot     : sum of sl, st, and st2
+c trcof : transmission coefficient
 c
 c      calculate transmission coefficient trcof
 c
@@ -323,6 +334,10 @@ c
          endif
 c
 c      fill arrays with trcof, bf, bfsplin
+c
+c numtempsl: number of array indices per fission mode
+c numtempst: number of array indices per fission mode
+c numtempst2: number of array indices per fission mode
 c
          if(iloop.EQ.1)then
             sl=trcof
@@ -372,12 +387,32 @@ c crel       : scaling factor for neck curvature
 c dont       : logical for mass yield calculation
 c fmass      : fission fragment mass yield
 c fmasscor   : corrected fission fragment mass yield
+c fmasscor_sl: corrected fission fragment mass yield for SL
+c fmasscor_st: corrected fission fragment mass yield for ST I
+c fmasscor_st2: corrected fission fragment mass yield for ST II
 c fmz        : fission fragment isotope yield
+c fmz_sl     : fission fragment isotope yield for SL
+c fmz_st     : fission fragment isotope yield for ST I
+c fmz_st2    : fission fragment isotope yield for ST II
 c fmzcor     : corrected fission fragment isotope yield
+c fmzcor_sl  : corrected fission fragment isotope yield for SL
+c fmzcor_st  : corrected fission fragment isotope yield for ST
+c fmzcor_st2 : corrected fission fragment isotope yield for ST II
 c hmneck     : mean mass heavy fragment at scission point
+c hmneck_sl  : mean mass heavy fragment at scission point for SL
+c hmneck_st  : mean mass heavy fragment at scission point for ST
+c hmneck_st2 : mean mass heavy fragment at scission point for ST II
 c elneck     : nucleus half length at scission point
+c elneck_sl  : nucleus half length at scission point for SL
+c elneck_st  : nucleus half length at scission point for ST
+c elneck_st2 : nucleus half length at scission point for ST II
 c Eneck      : prescission energy
+c Eneck_sl   : prescission energy for SL
+c Eneck_st   : prescission energy for ST
+c Eneck_st2  : prescission energy for ST II
 c hmneckinter: mean mass heavy fragment at scission point used
+c              for interpolation
+c hm         : mean mass heavy fragment at scission point used
 c              for interpolation
 c elneckinter: nucleus half length at scission point used for
 c              interpolation
@@ -414,7 +449,7 @@ c
                bfsplin(k)=bfsplin_sl(k)
  203        continue
             crel=0.1
-            filen='z000.sl '
+            filen=trim(nuc(Zbrosa))//'.sl '
          else
             if(iloop.EQ.2)then
                dont=.false.
@@ -425,7 +460,7 @@ c
                   bfsplin(k)=bfsplin_st(k)
  204           continue
                crel=0.3
-               filen='z000.st '
+               filen=trim(nuc(Zbrosa))//'.st '
             else
                dont=.false.
                numtemp=numtempst2
@@ -435,10 +470,9 @@ c
                   bfsplin(k)=bfsplin_st2(k)
  206           continue
                crel=0.3
-               filen='z000.st2'
+               filen=trim(nuc(Zbrosa))//'.st2'
             endif
          endif
-         write(filen(2:4),'(i3.3)') Zbrosa
 c
 c      initialize arrays for mass and charge yields
 c
@@ -481,8 +515,12 @@ c  open file with prescission output and read values heavy fragment mass
 c  prescission energy, corresponding nucleus half length, and mass heavy
 c  fragment
 c
-       precfile=path(1:lenpath)//'fission/brosa/prescission/'//filen
-       open (unit=10,status='old',file=precfile)
+c elsc: Brosa prescission parameter
+c ELT: Brosa prescission parameter
+c bindsc: Brosa prescission parameter
+c
+       precfile=trim(path)//'fission/brosa/prescission/'//filen
+       open (unit=10,file=precfile,status='old')
          i=1
          k=1
  310     read(10,'(4x,i4,15x,3f15.5)',end=311) amassdum,hm,elsc,bindsc
@@ -578,6 +616,11 @@ c
 c    check if Tmp(Edefo) does not exceed the highest value for which the
 c    barrier is defined
 c
+c HMT     : help variable
+c fmass_sl: fission fragment mass yield for SL
+c fmass_st: fission fragment mass yield for ST I
+c fmass_st2: fission fragment mass yield for ST II
+c
          ald=ignatyuk(Zix,Nix,Edefo,0)
          Tmp=sqrt(Edefo/ald)
          if(Tmp.GT.temps(numtemp))then
@@ -638,6 +681,7 @@ c      end loop over sl, st and st2 modes
 c
  2000 continue
 c
+c somtot    : help variable
 c disa      : normalised fission fragment mass yield per excitation
 c             energy bin
 c disacor   : normalised fission product mass yield per excitation
@@ -668,4 +712,4 @@ c
          endif
  4000 continue
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

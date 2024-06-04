@@ -197,6 +197,8 @@ c 220: Sum over outgoing excitation energies
 c
 c sumIPE    : compound contribution summed over residual spin and parity
 c             and energy
+c elas1     : logical for elastic channel
+c elas2     : logical for elastic channel
 c elastic   : designator for elastic channel
 c Pprimebeg : start of residual parity summation
 c parlev    : parity of level
@@ -240,6 +242,7 @@ c rho      : integrated level density
 c Tout     : transmission coefficient
 c Tastroout: transmission coefficient for outgoing channel
 c            (Astrophysical case)
+c rhoel : level density
 c
                       do 240 Irspin2=Irspin2beg,Irspin2end,2
                         Ir=Irspin2/2
@@ -270,6 +273,8 @@ c For more explanations, please call 911
 c
 c enumhf    : enumerator for compound nucleus formula
 c compterm  : partial contribution to compound nucleus term
+c suminl   : sum over inelastic channels
+c Wabinelastic : WFC factor
 c xspop     : population cross section
 c xspopex   : population cross section summed over spin and parity
 c xscompcont: compound cross section for continuum
@@ -341,8 +346,8 @@ c calculation.
 c
                 if (flagcheck.and.flagwidth) then
                   if (fluxsum.eq.0.) fluxsum=Tinc
-                  write(*,'(" Parity=",a1,"  J=",f4.1," Tinc",1p,e12.5,
-     +              " Sum over outgoing channels=",1p,e12.5,"  Ratio=",
+                  write(*,'(" Parity=",a1,"  J=",f4.1," Tinc",es12.5,
+     +              " Sum over outgoing channels=",es12.5,"  Ratio=",
      +              f8.5,"  Rho=",2g14.6)') cparity(parity),0.5*J2,
      +              Tinc,fluxsum,Tinc/fluxsum,rhoinc,rhoel
                 endif

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 8, 2015
+c | Date  : December 15, 2016
 c | Task  : Initialization of arrays for various structure parameters
 c +---------------------------------------------------------------------
 c
@@ -155,7 +155,7 @@ c
           deftype(Zix,Nix)='B'
           nlevmax2(Zix,Nix)=0
           ndef(Zix,Nix)=0
-          nrot(Zix,Nix)=0.
+          nrot(Zix,Nix)=0
           do 140 i=0,numex
             deltaEx(Zix,Nix,i)=0.
             do 140 ipar=-1,1,2
@@ -177,23 +177,20 @@ c
 c
 c Resonance parameters
 c
-c gamgamth: theoretical total radiative width
 c swaveth : theoretical strength function for s-wave
 c dD0     : uncertainty in D0
 c dgamgam : uncertainty in gamgam
+c gamgamth: theoretical total radiative width
 c
       do 210 Nix=0,numN
         do 210 Zix=0,numZ
-          gamgamth(Zix,Nix)=0.
           swaveth(Zix,Nix)=0.
           dD0(Zix,Nix)=0.
           dgamgam(Zix,Nix)=0.
+          do 220 l=0,numl
+            gamgamth(Zix,Nix,l)=0.
+  220     continue
   210 continue
-c
-c If no nuclear reaction calculation is requested, we skip a large
-c part of this subroutine to speed up the calculation.
-c
-      if (.not.flagreaction) goto 600
 c
 c Decay data parameters
 c
@@ -211,7 +208,7 @@ c
             rtyp(Zix,Nix,is)=0
             Thalf(Zix,Nix,is)=1.e30
             do 180 it=1,5
-              Td(Zix,Nix,is,it)=0.
+              Td(Zix,Nix,is,it)=0
   180       continue
   170     continue
   160 continue
@@ -224,7 +221,7 @@ c kgr       : constant for gamma-ray strength function
 c qrpaexist : flag for existence of tabulated QRPA strength functions
 c numgamqrpa: number of energies for QRPA strength function
 c eqrpa     : energy grid for QRPA strength function
-c fe1qrpa   : tabulated QRPA strength function
+c fqrpa     : tabulated QRPA strength function
 c xsracap   : direct-semidirect radiative capture cross section
 c xsracapEM : direct-semidirect radiative capture cross section as
 c             function of type
@@ -236,17 +233,21 @@ c
               ngr(Zix,Nix,irad,l)=1
               kgr(Zix,Nix,irad,l)=0.
   310 continue
-      do 320 Nix=0,numN
-        do 320 Zix=0,numZ
-          qrpaexist(Zix,Nix)=.false.
+      do 320 l=1,numgam
+        do 320 irad=0,1
+          do 320 Nix=0,numN
+            do 320 Zix=0,numZ
+              qrpaexist(Zix,Nix,irad,l)=.false.
   320 continue
-      do 330 nen=0,numgamqrpa
-        do 340 Nix=0,numN
-          do 340 Zix=0,numZ
-            eqrpa(Zix,Nix,nen)=0.
-            do 340 it=1,numTqrpa
-              fe1qrpa(Zix,Nix,nen,it)=0.
-  340   continue
+      do 330 l=1,numgam
+        do 330 irad=0,1
+          do 330 nen=0,numgamqrpa
+            do 340 Nix=0,numN
+              do 340 Zix=0,numZ
+                eqrpa(Zix,Nix,nen,irad,l)=0.
+                do 340 it=1,numTqrpa
+                  fqrpa(Zix,Nix,nen,it,irad,l)=0.
+  340       continue
   330 continue
       do 350 nen=1,numenin
         xsracap(nen)=0.
@@ -255,6 +256,11 @@ c
             xsracapEM(nen,irad,l)=0.
   360   continue
   350 continue
+c
+c If no nuclear reaction calculation is requested, we skip a large
+c part of this subroutine to speed up the calculation.
+c
+      if (.not.flagreaction) goto 600
 c
 c Optical model parameters
 c
@@ -332,7 +338,7 @@ c
         do 430 nen=-200,10*numen
           wvol(type,nen)=0.
   430 continue
-      if (flagjlm.or.flagracap.or.(alphaomp.ge.3.and.alphaomp.le.5)) 
+      if (flagjlm.or.flagracap.or.(alphaomp.ge.3.and.alphaomp.le.5))
      +  then
         do 440 k=1,6
           do 440 nen=1,numjlm
@@ -407,8 +413,8 @@ c
               minertia(Zix,Nix,i)=0.
               fecont(Zix,Nix,i)=0.
               minertc2(Zix,Nix,i)=0.
-              nfistrrot(Zix,Nix,i)=0.
-              nfisc2rot(Zix,Nix,i)=0.
+              nfistrrot(Zix,Nix,i)=0
+              nfisc2rot(Zix,Nix,i)=0
               Emaxclass2(Zix,Nix,i)=0.
   520   continue
         do 530 k=0,numlev
@@ -519,7 +525,7 @@ c
       do 680 i=0,numbar
         do 680 Nix=0,numN
           do 680 Zix=0,numZ
-            Nlast(Zix,Nix,i)=0.
+            Nlast(Zix,Nix,i)=0
             Ediscrete(Zix,Nix,i)=0.
             scutoffdisc(Zix,Nix,i)=1.
             delta(Zix,Nix,i)=0.
@@ -529,6 +535,7 @@ c
       do 710 Nix=0,numN
         do 710 Zix=0,numZ
           D0theo(Zix,Nix)=0.
+          D1theo(Zix,Nix)=0.
           if (ldmodel(Zix,Nix).eq.3) then
             Tcrit(Zix,Nix)=0.
             do 715 i=0,numbar
@@ -601,6 +608,7 @@ c Configurations for microscopic particle-hole state densities
 c
 c Nphconf2 : number of 2-component particle-hole configurations
 c Nphconf1 : number of 1-component particle-hole configurations
+c phstring1: help variable
 c phstring2: help variable
 c ppitable : proton particle number from table
 c hpitable : proton hole number from table
@@ -609,12 +617,12 @@ c hnutable : neutron hole number from table
 c pptable  : particle number from table
 c hhtable  : hole number from table
 c
-        denfile=path(1:lenpath)//'density/ph/z026'
+        denfile=trim(path)//'density/ph/Fe.ph'
         inquire (file=denfile,exist=lexist)
         if (lexist) then
           Nphconf2=72
           Nphconf1=14
-          open (unit=2,status='old',file=denfile)
+          open (unit=2,file=denfile,status='old')
           read(2,'(/////,9x,72(a4,5x),1x,14(a2,7x))')
      +      (phstring2(i),i=1,72),(phstring1(k),k=1,14)
           do 770 i=1,Nphconf2
@@ -745,4 +753,4 @@ c
  1090 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

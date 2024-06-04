@@ -23,7 +23,9 @@ c jstart,jstep: help variables
 c jfistrhb    : spin of head band transition states
 c pfistrhb    : parity of head band transition states
 c Erk10       : energy shift between k=0- and k=1-
-c rj,itstot   : help variables
+c rj          : help variables
+c itstot      : help variables
+c its         : counter
 c Erot        : rotational energy
 c minertia    : moment of inertia of fission barrier
 c Eband       : help variable
@@ -64,7 +66,14 @@ c
 c
 c *** Reorganize transition states by increasing excitation energy *****
 c
-c en1,en2,rj1,rj2,pa1,pa2: help variables
+c en1: help variable
+c en2: help variable
+c rj1: help variable
+c rj2: help variable
+c pa1: help variable
+c pa2: help variable
+c nbi : counter
+c jts : counter
 c
       do 110 nbi=1,nfisbar(Zix,Nix)
         do 120 its=1,nfistrrot(Zix,Nix,nbi)-1

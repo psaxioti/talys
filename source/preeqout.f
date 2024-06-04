@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : March 28, 2010
+c | Date  : November 16, 2016
 c | Task  : Output of pre-equilibrium cross sections
 c +---------------------------------------------------------------------
 c
@@ -50,19 +50,19 @@ c
       write(*,'(/" ++++++++++ PARTIAL STATE DENSITIES ++++++++++")')
       if (.not.flag2comp) then
         write(*,'(/" Particle-hole state densities"/)')
-        write(*,'("    Ex   P(n=3)    gs    ",8(i1,"p",i1,"h",6x)/)')
+        write(*,'("     Ex    P(n=3)     gs    ",8(i1,"p",i1,"h",6x)/)')
      +    ((h+k,h,k=0,1),h=1,4)
         do 10 nen=1,int(Etotal)
           Eex=real(nen)
           gs=g(0,0)
           if (flaggshell) gs=gs*ignatyuk(Zix,Nix,Eex,0)/alev(0,0)
-          write(*,'(1x,3f7.3,1p,8e10.3)') Eex,
+          write(*,'(1x,3f8.3,8es10.3)') Eex,
      +      preeqpair(Zix,Nix,3,Eex,pairmodel),gs,
      +      ((phdens(Zix,Nix,h+k,h,gs,Eex,Efermi,surfwell),k=0,1),h=1,4)
    10   continue
       else
         write(*,'(/" Particle-hole state densities",/)')
-        write(*,'("    Ex   P(n=3)   gp     gn  ",26x,
+        write(*,'("     Ex    P(n=3)    gp      gn   ",26x,
      +    "Configuration p(p) h(p) p(n) h(n)")')
         write(*,'(28x,9(2x,4i2)/)') 1,1,0,0, 0,0,1,1, 1,1,1,0, 1,0,1,1,
      +    2,1,0,0, 0,0,2,1, 2,2,0,0, 0,0,2,2, 1,1,1,1
@@ -75,7 +75,7 @@ c
             gsp=gsp*damp
             gsn=gsn*damp
           endif
-          write(*,'(1x,4f7.3,1p,9e10.3)') Eex,
+          write(*,'(1x,4f8.3,9es10.3)') Eex,
      +      preeqpair(Zix,Nix,3,Eex,pairmodel),gsp,gsn,
      +      phdens2(Zix,Nix,1,1,0,0,gsp,gsn,Eex,Efermi,surfwell),
      +      phdens2(Zix,Nix,0,0,1,1,gsp,gsn,Eex,Efermi,surfwell),
@@ -91,7 +91,7 @@ c
       write(*,'(/" Particle-hole spin distributions"/)')
       write(*,'("   n    ",9(" J=",i2,"       ")," Sum"/)') (J,J=0,8)
       do 30 n=1,maxexc
-        write(*,'(1x,i3,1p,10e12.4)') n,(RnJ(n,J),J=0,8),RnJsum(n)
+        write(*,'(1x,i3,10es12.4)') n,(RnJ(n,J),J=0,8),RnJsum(n)
    30 continue
       write(*,'(/" Effective well depth for surface interaction:",f12.5,
      +  " MeV")') Esurf
@@ -137,19 +137,19 @@ c
         if (ebegin(type).ge.eend(type)) goto 110
         write(*,'(/" Pre-equilibrium cross sections for ",a8/)')
      +    parname(type)
-        write(*,'("    E     Total",6("       p=",i1),
+        write(*,'("     E     Total",6("       p=",i1),
      +    "     Total  Pickup/Strip Knockout Breakup",/)')
      +    (p,p=1,maxpar)
         do 120 nen=ebegin(type),eend(type)
           nonpski=xspreeq(type,nen)-xspreeqps(type,nen)-
      +      xspreeqki(type,nen)-xspreeqbu(type,nen)
-          write(*,'(1x,f7.3,1p,11e10.3)') egrid(nen),xspreeq(type,nen),
+          write(*,'(1x,f8.3,11es10.3)') egrid(nen),xspreeq(type,nen),
      +      (xsstep(type,p,nen),p=1,maxpar),nonpski,
      +      xspreeqps(type,nen),xspreeqki(type,nen),xspreeqbu(type,nen)
   120   continue
         nonpski=xspreeqtot(type)-xspreeqtotps(type)-xspreeqtotki(type)-
      +    xspreeqtotbu(type)
-        write(*,'(/8x,1p,11e10.3)') xspreeqtot(type),
+        write(*,'(/9x,11es10.3)') xspreeqtot(type),
      +    (xssteptot(type,p),p=1,maxpar),nonpski,xspreeqtotps(type),
      +    xspreeqtotki(type),xspreeqtotbu(type)
         write(*,'(/" Integrated:",f12.5/)') xspreeqtot(type)

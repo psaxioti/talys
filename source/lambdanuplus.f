@@ -107,9 +107,18 @@ c
 c L1nup,...   : integration limits
 c nexcbins    : number of integration bins
 c nbins       : number of continuum excitation energy bins
-c dExnup,...  : integration bin width
-c sumnunu1p...: help variables
+c dExpih      : integration bin width
+c dExnup      : integration bin width
+c dExnuh      : integration bin width
+c L2pih       : integration limit
+c sumnunu1p   : help variable
+c sumnunu1h   : help variable
+c sumpinu1h   : help variable
+c termpinu1h  : help variable
+c termnunu1h  : help variable
+c termnunu1p  : help variable
 c uunup,..... : residual excitation energy
+c lambdapinu1h: collision probability for proton-neutron hole
 c lambdanunu1p: collision probability for neutron-neutron particle
 c lambdanunu1h: collision probability for neutron-neutron hole
 c phdens2     : two-component particle-hole state density

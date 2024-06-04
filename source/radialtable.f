@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : November 25, 2014
+c | Date  : December 12, 2016
 c | Task  : Tabulated radial matter densities
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical      lexist
-      character*4  radchar
+      character*6  radchar
       character*90 radfile
       integer      Zix,Nix,Z,A,ia,i,nradjlm,j
       real         h,dr,rp0,rp1,rn0,rn1,ap,an,expo
@@ -26,7 +26,6 @@ c radchar    : help variable
 c radialmodel: model for radial matter densities (JLM OMP only)
 c radfile    : radial matter density file
 c path       : directory containing structure files to be read
-c lenpath    : length of pathname
 c ia         : mass number from radial matter density table
 c nradjlm    : number of radial points
 c h          : radial step size
@@ -41,17 +40,16 @@ c
       if (radialfile(Zix)(1:1).ne.' ') then
         radfile=radialfile(Zix)
       else
-        radchar='z   '
-        write(radchar(2:4),'(i3.3)') Z
+        radchar=trim(nuc(Z))//'.rad'
         if (radialmodel.eq.1) then
-          radfile=path(1:lenpath)//'optical/jlm/goriely/'//radchar
+          radfile=trim(path)//'optical/jlm/goriely/'//radchar
         else
-          radfile=path(1:lenpath)//'optical/jlm/hilaire/'//radchar
+          radfile=trim(path)//'optical/jlm/hilaire/'//radchar
         endif
         inquire (file=radfile,exist=lexist)
         if (.not.lexist) return
       endif
-      open (unit=2,status='old',file=radfile)
+      open (unit=2,file=radfile,status='old')
    10 read(2,'(4x,i4,i5,f7.3)',end=60) ia,nradjlm,h
       if (A.ne.ia) then
         do 20 i=1,nradjlm
@@ -72,6 +70,11 @@ c
    30 continue
 c
 c Extrapolate for untabulated values
+c
+c rn0: JLM density
+c rn1: JLM density
+c rp0: JLM density
+c rp1: JLM density
 c
       if (nradjlm.lt.numjlm) then
         do 40 j=1,5
@@ -108,4 +111,4 @@ c           3-5= folding potential, 6,8= Avrigeanu, 7=Nolte)
    60 close (unit=2)
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

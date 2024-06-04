@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : April 4, 2012
+c | Date  : September 16, 2017
 c | Task  : Contribution of breakup reactions
 c +---------------------------------------------------------------------
 c
@@ -11,34 +11,49 @@ c
       include "talys.cmb"
       character*80 key
       integer      type,type2,nen
-      real         Nab(numpar,numpar),r0,Deff,Ca,Cb,Ecent,arg,step,Sab,
-     +             F,H,Feff,width,fac1,Emax,wplus,wmin,Epk,Tpren,factor,
-     +             Ehalf,xsbreakup,Eout,wi,fac2,TE,PE
+      real         Nab(numpar,numpar),Napb(numpar,numpar),r0,Cb,arg,
+     +             step,F,H,Feff,width,fac1,Emax,wplus,wmin,Epk,Tpren,
+     +             factor,Ehalf,xsbreakup,Eout,wi,fac2,TE,Ksig,
+     +             widthsig,PBU(0:numen),PBUint
 c
 c ************************** Kalbach model *****************************
 c
-c Break-up model by Kalbach: FENDL-3 document, unpublished.
+c Break-up model by Kalbach: Phys. Rev. C to be published (2017)
 c
-c Nab    : break-up normalization constants
-c parskip: logical to skip outgoing particle
-c k0     : index of incident particle
+c Nab     : break-up normalization constants
+c Napb    : break-up normalization constants
+c Ksig    : asymptotic potential
+c widthsig: width of barrier
+c parskip : logical to skip outgoing particle
+c k0      : index of incident particle
 c
 c We first determine the possible break-up channels and the other
 c particle resulting from the break-up.
 c
-      Nab(3,1)=5.4
-      Nab(3,2)=5.4
-      Nab(4,1)=5.0
-      Nab(4,2)=1.25
-      Nab(4,3)=1.22
-      Nab(5,1)=1.25
-      Nab(5,2)=5.0
-      Nab(5,3)=1.22
-      Nab(6,1)=1.07
-      Nab(6,2)=1.15
-      Nab(6,3)=0.32
-      Nab(6,4)=0.31
-      Nab(6,5)=0.73
+      do 5 type=1,6
+        do 5 type2=1,6
+          Nab(type,type2)=1.
+          Napb(type,type2)=1.
+    5 continue
+      Nab(3,1)=3.6
+      Nab(3,2)=3.6
+      Nab(4,1)=4.1
+      Nab(4,2)=2.0
+      Nab(4,3)=1.3
+      Nab(5,1)=2.0
+      Nab(5,2)=4.1
+      Nab(5,3)=1.3
+      Nab(6,1)=0.61
+      Nab(6,2)=0.61
+      Nab(6,3)=0.23
+      Nab(6,4)=0.19
+      Nab(6,5)=0.34
+      Napb(6,2)=1.2
+      Napb(6,3)=1.2
+      Napb(5,2)=1.8
+      Napb(5,3)=1.8
+      Ksig=112.
+      widthsig=13.
       do 10 type=1,6
         if (parskip(type)) goto 10
 c
@@ -53,7 +68,7 @@ c
 c (t,d) and (t,p)
 c
         if (k0.eq.4) then
-          if (type.ne.3) goto 10
+          if (type.gt.3) goto 10
           if (type.eq.1) type2=3
           if (type.eq.2) type2=1
           if (type.eq.3) type2=1
@@ -131,7 +146,9 @@ c sqrttwopi : sqrt(2.*pi)
 c Emax      : maximal emission energy for particle channel
 c eninccm   : center-of-mass incident energy in MeV
 c Q         : Q-value
-c wplus,wmin: half widths
+c wplus     : half width
+c wi        : half width
+c wmin      : half width
 c Epk       : peak energy
 c
         H=0.5*F
@@ -157,39 +174,51 @@ c Ehalf    : help variable
 c twothird : 2/3
 c xsbreakup: break-up cross section
 c
-        Ehalf=42.*(parA(k0)-parA(type))**twothird
-        Tpren=1./(1.+exp((Ehalf-Einc)/14.))
+        Ehalf=34.*(parA(k0)-parA(type))**0.84
+        Tpren=1./(1.+exp((Ehalf-Einc)/widthsig))
         key='cbreak'
         call adjust(Einc,key,0,0,type,0,factor)
-        xsbreakup=factor*Cbreak(type)*Nab(k0,type)*Deff*Deff*
-     +    exp(Einc/170.)*Tpren
 c
 c Break-up term that depends on emission energy.
 c
 c ebegin    : first energy point of energy grid
 c eend      : last energy point of energy grid
 c Eout,egrid: outgoing energy
+c PBU       : breakup distribution
+c PBUint    : integral over breakup distribution
 c TE        : barrier penetrability
-c PE        : spectrum function
 c xspreeqbu : preequilibrium cross section per particle type and
 c             outgoing energy for breakup
 c
+c First calculate normalization integral and spectrum function
+c
+        PBUint=0.
         do 110 nen=ebegin(type),eend(type)
           Eout=egrid(nen)
           if (Eout.le.Epk) then
-            wi=max(wmin,0.05*Einc)
+            wi=wmin
           else
-            wi=max(wplus,0.05*Einc)
+            wi=wplus
           endif
-          fac2=1./(2.*(2.*wi)**2)
-          if (type.gt.1) then
-            TE=1./(1.+exp(3.*(Cb-Eout)/Cb))
-          else
-            TE=1.
+          if (wi.gt.0.) then
+            fac2=2.*(2.*wi)**2
+            if (type.gt.1) then
+              TE=1./(1.+exp(3.*(Cb-Eout)/Cb))
+            else
+              TE=1.
+            endif
+            PBU(nen)=fac1*exp(-(Eout-Epk)**2/fac2)*TE
+            PBUint=PBUint+PBU(nen)*deltaE(nen)
           endif
-          PE=fac1*exp(-(Eout-Epk)**2*fac2)*TE
-          xspreeqbu(type,nen)=xsbreakup*PE
   110   continue
+        if (PBUint.gt.0.) then
+          xsbreakup=factor*Cbreak(type)*
+     +      (Nab(k0,type)*Deff*Deff+Napb(k0,type)*Deff)*
+     +      exp(Einc/Ksig)*Tpren
+          do 120 nen=ebegin(type),eend(type)
+            xspreeqbu(type,nen)=xsbreakup*PBU(nen)
+  120     continue
+        endif
    10 continue
       return
       end

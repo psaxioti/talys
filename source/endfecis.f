@@ -54,7 +54,7 @@ c
 c Loop over energies on ENDF-6 energy grid.
 c
       if (flagendfecis)
-     +  open (unit=9,status='unknown',file='ecisendf.inp')
+     +  open (unit=9,file='ecisendf.inp',status='replace')
       Zix=Zindex(0,0,k0)
       Nix=Nindex(0,0,k0)
 c
@@ -303,7 +303,7 @@ c
       endif
       call ecist('ecisendf.inp ',outfile,'ecis.endfcs  ',
      +  'ecis.endfin  ','null         ','null         ','null         ')
-      open (unit=9,status='unknown',file='ecisendf.inp')
+      open (unit=9,file='ecisendf.inp',status='unknown')
       close (unit=9,status=ecisstatus)
       return
       end

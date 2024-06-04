@@ -14,10 +14,15 @@ c by U. Brosa.
 c
 c ****************** Declarations and common blocks ********************
 c
-      external fcoul,fsurf
       real     b,sym,cou,epscloc,zchar,amass,a3w,fcoul,hsc,fsurf
+      external fcoul,fsurf
 c
 c **********************************************************************
+c
+c a3w: mass**1/3
+c cou: Coulomb term
+c hsc: Brosa term
+c sym: symmetry term
 c
       a3w=amass**(1./3.)
       cou=0.7053/a3w*fcoul(epscloc)-1.153/amass

@@ -88,6 +88,7 @@ c
 c 50: Sum over j (jj2) of incident channel
 c
 c jj2beg     : 2 * start of j summation
+c nexastro : energy index for astrophysics
 c targetspin2: 2 * spin of target
 c jj2end     : 2 * end of j summation
 c jj2        : 2 * j

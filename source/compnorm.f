@@ -170,7 +170,7 @@ c
      +    " section ++++++++++"/)')
         write(*,'(2(" J/Pi cross section "))')
         do 110 J2=J2beg,J2end,2
-          write(*,'(2(f4.1,a1,1pe12.5,0p,3x))')
+          write(*,'(2(f4.1,a1,es12.5,3x))')
      +      (0.5*J2,cparity(parity),compterm(parity,J2),parity=-1,1,2)
   110   continue
         write(*,'(/" ++++++++++ Normalization of reaction cross",

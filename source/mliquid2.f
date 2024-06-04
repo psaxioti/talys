@@ -18,7 +18,9 @@ c
 c mliquid2: function for liquid drop mass
 c rZ,Z    : charge number of residual nucleus
 c rA,A    : mass number of residual nucleus
-c avol,as.: Goriely parameters
+c avol    : Goriely parameter
+c as      : Goriely parameter
+c ass     : Goriely parameter
 c Mn,Mh   : mass excess of neutron and hydrogen
 c rN,N    : neutron number of residual nucleus
 c factor  : help variable

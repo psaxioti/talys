@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 5, 2006
+c | Date  : November 16, 2016
 c | Task  : Output of multi-step direct cross sections
 c +---------------------------------------------------------------------
 c
@@ -32,19 +32,19 @@ c
       write(*,'(/" 1. Total multi-step direct cross sections"/)')
       write(*,'(" Step ",2(5x,a8)/)') (parname(type),type=1,2)
       do 10 ns=1,maxmsd
-        write(*,'(1x,i3,1p,3x,2(1x,e12.5))') ns,(msdstepint(type,ns),
+        write(*,'(1x,i3,3x,2(1x,es12.5))') ns,(msdstepint(type,ns),
      +    type=1,2)
    10 continue
-      write(*,'(/" Total ",1p,2(1x,e12.5))') (msdsum(type),type=1,2)
+      write(*,'(/" Total ",2(1x,es12.5))') (msdsum(type),type=1,2)
       write(*,'(/" Total MSD cross section:",f12.5/)') msdall
       write(*,'(" 2. Multi-step direct spectra")')
       do 20 type=1,2
         if (parskip(type)) goto 20
         write(*,'(/," Angle-integrated (",a1,",",a1,") MSD spectra"/)')
      +    parsym(k0),parsym(type)
-        write(*,'("  Energy    Total",4(5x,i2,"-step")/)') (ns,ns=1,4)
+        write(*,'("   Energy    Total",4(5x,i2,"-step")/)') (ns,ns=1,4)
         do 30 nen=ebegin(type),eend(type)
-          write(*,'(1x,f7.3,1p,5e12.5)') egrid(nen),msdtot(type,nen),
+          write(*,'(1x,f8.3,5es12.5)') egrid(nen),msdtot(type,nen),
      +      (msdstep(type,ns,nen),ns=1,4)
    30   continue
    20 continue
@@ -67,10 +67,10 @@ c
         if (parskip(type)) goto 110
         do 120 nen=ebegin(type),eend(type)
           write(*,'(/," (",a1,",",a1,") MSD angular distribution ",
-     +      "for E-out= ",f7.3,/)') parsym(k0),parsym(type),egrid(nen)
+     +      "for E-out= ",f8.3,/)') parsym(k0),parsym(type),egrid(nen)
           write(*,'(" Angle    Total",4(5x,i2,"-step")/)') (ns,ns=1,4)
           do 130 iang=0,nanglecont
-            write(*,'(1x,f5.1,1p,5e12.5)') anglecont(iang),
+            write(*,'(1x,f5.1,5es12.5)') anglecont(iang),
      +        msdtotad(type,nen,iang),(msdstepad(type,ns,nen,iang),
      +        ns=1,4)
   130     continue
@@ -79,7 +79,7 @@ c
      +    "integrated over energy"/)') parsym(k0),parsym(type)
         write(*,'(" Angle    Total",4(5x,i2,"-step")/)') (ns,ns=1,4)
         do 140 iang=0,nanglecont
-          write(*,'(1x,f5.1,1p,5e12.5)') anglecont(iang),
+          write(*,'(1x,f5.1,5es12.5)') anglecont(iang),
      +      msdtotintad(type,iang),(msdstepintad(type,ns,iang),ns=1,4)
   140   continue
   110 continue

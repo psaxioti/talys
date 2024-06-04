@@ -32,6 +32,8 @@ c Ex0min     : lower boundary of entrance bin
 c SS,S       : separation energy
 c Exm        : maximal attainable energy
 c egrid      : outgoing energy grid
+c nexout     : energy index for outgoing energy
+c nexout2    : energy index for outgoing energy
 c ebegin     : first energy point of energy grid
 c Zindex,Zix : charge number index for residual nucleus
 c Nindex,Nix : neutron number index for residual nucleus
@@ -155,12 +157,13 @@ c For the interpolation, we first determine the feeding from adjacent
 c mother bins. Note that we interpolate the whole product of terms
 c from the exclusive cross section that depend on excitation energy.
 c
-c feed0,.......: help variable
+c feed0        : help variable
 c xsexcl       : exclusive cross section per excitation energy
 c xso00,....   : cross section on excitation energy grid
 c feedexcl     : feeding terms from compound excitation energy bin to
 c                residual excitation energy bin
-c feedm,feedp..: help variables
+c feedm        : help variable
+c feedp        : help variable
 c
       feed0=0.
       if (popexcl(Zcomp,Ncomp,nex).ne.0.)
@@ -180,6 +183,13 @@ c Decay from continuum to continuum.
 c We need to interpolate between adjacent residual bins. They are also
 c determined. For the lowest emission energies we ensure that the limit
 c is zero for zero outgoing energy.
+c
+c xso00 : help variable
+c xso0m : help variable
+c xso0p : help variable
+c xsom0 : help variable
+c xsop0 : help variable
+c xsopm : help variable
 c
       if (nexout.gt.NL) then
         xso0m=feedexcl(Zcomp,Ncomp,type,nex,nexout-1)*feed0

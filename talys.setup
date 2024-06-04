@@ -1,12 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 unalias -a
 #
 # This script takes care of the TALYS installation.
 # All you have to do is adapt the next variables to your own situation,
 # and run.....
 #
-compiler='lf95 --staticlink' 
-#compiler='g95'       
+compiler='gfortran'       
+#compiler='lf95 --staticlink' 
 Thome=${HOME}
 bindir=$Thome'/bin'   # destiny directory of the TALYS executable
 #

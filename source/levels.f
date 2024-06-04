@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 8, 2014
+c | Date  : December 12, 2016
 c | Task  : Discrete levels
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       logical      lexist
       character*1  bas(numlev)
-      character*4  levelchar
+      character*6  levelchar
       character*90 levfile
       integer      Zix,Nix,Z,A,nlev2,ia,nlevlines,nnn,i,j,klev(numlev),
      +             ii,nb,Lis,N
@@ -75,23 +75,21 @@ c levelchar: help variable
 c disctable: table with discrete levels
 c levfile  : level file
 c path     : directory containing structure files to be read
-c lenpath  : length of pathname
 c
       if (levelfile(Zix)(1:1).ne.' ') then
         levfile=levelfile(Zix)
       else
-        levelchar='z   '
-        write(levelchar(2:4),'(i3.3)') Z
+        levelchar=trim(nuc(Z))//'.lev'
         if (disctable.eq.1)
-     +    levfile=path(1:lenpath)//'levels/final/'//levelchar
+     +    levfile=trim(path)//'levels/final/'//levelchar
         if (disctable.eq.2)
-     +    levfile=path(1:lenpath)//'levels/exp/'//levelchar
+     +    levfile=trim(path)//'levels/exp/'//levelchar
         if (disctable.eq.3)
-     +    levfile=path(1:lenpath)//'levels/hfb/'//levelchar
+     +    levfile=trim(path)//'levels/hfb/'//levelchar
         inquire (file=levfile,exist=lexist)
         if (.not.lexist) return
       endif
-      open (unit=2,status='unknown',file=levfile)
+      open (unit=2,file=levfile,status='old')
 c
 c 2. Search for the isotope under consideration
 c
@@ -121,7 +119,11 @@ c
 c 3. Read discrete level information
 c
 c branchlevel: level to which branching takes place
+c klev       : level number
+c Lis        : isomer number
 c ENSDF      : string from original ENSDF discrete level file
+c con        : conversion factor
+c bas        : symbol for assignment of branching ratio
 c
       do 30 i=0,nlev2
         read(2,'(4x,f11.6,f6.1,3x,i2,i3,18x,e10.3,1x,2a1,a18)')
@@ -204,7 +206,7 @@ c nlevmax2,numlev2: maximum number of levels
 c
       nlevmax2(Zix,Nix)=min(nnn,numlev2)
       do 80 i=nlev2+1,nlevmax2(Zix,Nix)
-        read(2,'(4x,f11.6,f6.1,3x,i2,i3,18x,e10.3,1x,2a1)') 
+        read(2,'(4x,f11.6,f6.1,3x,i2,i3,18x,e10.3,1x,2a1)')
      +    edis(Zix,Nix,i),jdis(Zix,Nix,i),parlev(Zix,Nix,i),nb,
      +    tau(Zix,Nix,i),jassign(Zix,Nix,i),passign(Zix,Nix,i)
         jdis(Zix,Nix,i)=min(jdis(Zix,Nix,i),real(numJ))
@@ -246,14 +248,14 @@ c Lisomer: level number of isomer
 c Nisomer: number of isomers for this nuclide
 c
       Lis=0
-      do 110 i=1,nlev(Zix,Nix)
-        if (Lis.lt.numisom.and.tau(Zix,Nix,i).ne.0.) then
+      do 110 i=1,nlevmax2(Zix,Nix)
+        if (Lis.lt.numisom.and.tau(Zix,Nix,i).ge.isomer) then
           Lis=Lis+1
           Lisomer(Zix,Nix,Lis)=i
         endif
   110 continue
       Nisomer(Zix,Nix)=Lis
-
+c
 c Determine isomeric number of target
 c
 c Lisoinp: user assignment of target isomer number
@@ -277,19 +279,23 @@ c known isomers whose level number is larger than 30. To avoid
 c wasting too much memory we renumber the isomer in the continuum
 c to the last discrete level taken into account in the calculation.
 c
-      do 210 i=nlev2+1,nlevmax2(Zix,Nix)
+      Lis=Nisomer(Zix,Nix)+1
+      do 210 i=nlevmax2(Zix,Nix),nlev2+1,-1
         if (tau(Zix,Nix,i).ge.isomer) then
-          N=nlev(Zix,Nix)
-          edis(Zix,Nix,N)=edis(Zix,Nix,i)
-          jdis(Zix,Nix,N)=jdis(Zix,Nix,i)
-          parlev(Zix,Nix,N)=parlev(Zix,Nix,i)
-          tau(Zix,Nix,N)=tau(Zix,Nix,i)
-          jassign(Zix,Nix,N)=' '
-          passign(Zix,Nix,N)=' '
-          if (Liso.gt.0.and.Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) 
-     +      Ltarget=N
+          Lis=Lis-1
+          N=nlev(Zix,Nix)-Nisomer(Zix,Nix)+Lis
+          if (Lis.ge.0.and.N.ge.0) then
+            edis(Zix,Nix,N)=edis(Zix,Nix,i)
+            jdis(Zix,Nix,N)=jdis(Zix,Nix,i)
+            parlev(Zix,Nix,N)=parlev(Zix,Nix,i)
+            tau(Zix,Nix,N)=tau(Zix,Nix,i)
+            jassign(Zix,Nix,N)=' '
+            passign(Zix,Nix,N)=' '
+            if (Ltarget0.eq.Lisomer(Zix,Nix,Lis).and.
+     +        Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) Ltarget=N
+          endif
         endif
   210 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

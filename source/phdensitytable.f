@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 17, 2009
+c | Date  : December 12, 2016
 c | Task  : Tabulated particle-hole state densities
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical      lexist
-      character*4  denchar
+      character*5  denchar
       character*90 denfile
       integer      Zix,Nix,Z,A,ia,nex,i,nex2
       real         phden2(0:numdens,numconf),phden(0:numdens,numconf),
@@ -27,21 +27,22 @@ c phexist1   : flag for existence of particle-hole state density table
 c phexist2   : flag for existence of particle-hole state density table
 c denfile    : level density parameter file
 c flag2comp  : flag for two-component pre-equilibrium model
+c phden      : particle-hole density
+c phden2     : particle-hole density
 c phtable2   : particle-hole state density from table
 c edens      : energy grid for tabulated level densities
 c phtable1   : particle-hole state density from table
 c
       Z=ZZ(Zix,Nix,0)
       A=AA(Zix,Nix,0)
-      denchar='z   '
-      write(denchar(2:4),'(i3.3)') Z
-      denfile=path(1:lenpath)//'density/ph/'//denchar
+      denchar=trim(nuc(Z))//'.ld'
+      denfile=trim(path)//'density/ph/'//denchar
 c
 c Check existence of file and read data from the tables.
 c
       inquire (file=denfile,exist=lexist)
       if (.not.lexist) return
-      open (unit=2,status='old',file=denfile)
+      open (unit=2,file=denfile,status='old')
    20 read(2,'(/31x,i3)',end=10) ia
       if (A.ne.ia) then
         do 30 nex=1,nenphdens+5
@@ -97,4 +98,4 @@ c
      +  " Z=",i3," A=",i3)') Z,A
       stop
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

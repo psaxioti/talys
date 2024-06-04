@@ -44,7 +44,7 @@ c
       e6(1)=eninclow
       nen=1
       if (ompenergyfile(1:1).ne.' ') then
-        open (unit=2,status='unknown',file=ompenergyfile)
+        open (unit=2,file=ompenergyfile,status='old')
   10    read(2,*,end=20,err=510) Ein
         if (Ein.le.eninclow) goto 10
         nen=nen+1
@@ -54,6 +54,9 @@ c
   20    close (unit=2)
 c
 c Sort incident energies in ascending order and remove double points
+c
+c e6tmp: help variable
+c Eeps: help variable
 c
         do 30 i=1,nen
           do 40 k=1,i
@@ -101,6 +104,7 @@ c Add possible denser energy point from original energy grid
 c
 c nensub: intermediate number of incident energies
 c numinc: number of incident energies
+c nenint: energy index
 c
   100 nensub=nen
       if (k0.eq.1) then
@@ -173,11 +177,12 @@ c
 c *************************** Sort energies ****************************
 c
       do 310 nen=1,nen6
-        do 310 nen2=nen,nen6
-          if (e6(nen).le.e6(nen2)) goto 310
+        do 320 nen2=nen,nen6
+          if (e6(nen).le.e6(nen2)) goto 320
           e6tmp=e6(nen)
           e6(nen)=e6(nen2)
           e6(nen2)=e6tmp
+  320   continue
   310 continue
 c
 c Remove incident energies above energy given by Estop
@@ -192,7 +197,7 @@ c
   330 continue
   400 return
   510 write(*,'(" TALYS-error: Problem in file ",a73)') ompenergyfile
-      write(*,'(" after E= ",e12.5)') Ein
+      write(*,'(" after E= ",es12.5)') Ein
       stop
   520 write(*,'(" TALYS-error: there are more than",i6,
      +  " incident energies in file ",a73)') numen6,ompenergyfile

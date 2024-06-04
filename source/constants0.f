@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 10, 2015
+c | Date  : September 7, 2016
 c | Task  : Constants and basic properties of particles
 c +---------------------------------------------------------------------
 c
@@ -48,6 +48,7 @@ c
 c nuc    : symbol of nucleus
 c numelem: number of elements
 c magic  : magic numbers
+c isochar: symbol of isomer
 c
       data (nuc(indx),indx=1,numelem) /
      +  'H ','He','Li','Be','B ','C ','N ','O ','F ','Ne',
@@ -61,9 +62,11 @@ c
      +  'Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
      +  'Pa','U ','Np','Pu','Am','Cm','Bk','Cf','Es','Fm',
      +  'Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds',
-     +  'Rg','Cn','B3','Fl','B5','Lv','B7','B8','B9','C0',
+     +  'Rg','Cn','Nh','Fl','Mc','Lv','Ts','Og','B9','C0',
      +  'C1','C2','C3','C4'/
       data (magic(indx),indx=1,8) /2,8,20,28,50,82,126,184/
+      data (isochar(indx),indx=-1,10) /' ', 'g', 'm','n','o','p','q',
+     +  'r', 's','t','u','v'/
 c
 c **************** Set character symbol for parities *******************
 c

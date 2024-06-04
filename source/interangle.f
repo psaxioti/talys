@@ -20,6 +20,8 @@ c iangout       : outgoing angle index
 c angout        : outgoing angle
 c deg2rad       : conversion factor for degrees to radians
 c anglecont     : angle in degrees for continuum
+c iphi          : counter for angle
+c cosgam: cosine of gamma angle
 c iangint       : intermediate angle index
 c angint        : intermediate angle
 c cosine,sine   : help variables

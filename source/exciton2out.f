@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 5, 2006
+c | Date  : November 16, 2016
 c | Task  : Output of two-component exciton model parameters
 c +---------------------------------------------------------------------
 c
@@ -39,7 +39,7 @@ c M2nunu    : square of neutron-neutron matrix element
 c M2pinu    : square of proton-neutron matrix element
 c M2nupi    : square of neutron-proton matrix element
 c
-      write(*,'(/" 1. Matrix element for E= ",f7.3/)') Ecomp
+      write(*,'(/" 1. Matrix element for E= ",f8.3/)') Ecomp
       write(*,'(" Constant for matrix element : ",f7.3)') M2constant
       write(*,'(" p-p ratio for matrix element: ",f7.3)') Rpipi
       write(*,'(" n-n ratio for matrix element: ",f7.3)') Rnunu
@@ -56,7 +56,7 @@ c
               h=hpi+hnu
               n=p+h
               call matrix(Ainit,n)
-              write(*,'(1x,4(i2,3x),1p,4e12.5)') ppi,hpi,pnu,hnu,M2pipi,
+              write(*,'(1x,4(i2,3x),4es12.5)') ppi,hpi,pnu,hnu,M2pipi,
      +          M2nunu,M2pinu,M2nupi
             endif
    10 continue
@@ -78,7 +78,7 @@ c
           do 20 pnu=pnu0,maxpar
             if (ppi+pnu.eq.p) then
               hnu=pnu-pnu0
-              write(*,'(1x,4(i2,3x),1p,8e12.5)') ppi,hpi,pnu,hnu,
+              write(*,'(1x,4(i2,3x),8es12.5)') ppi,hpi,pnu,hnu,
      +        (wemispart2(type,ppi,hpi,pnu,hnu),type=0,6),
      +        wemistot2(ppi,hpi,pnu,hnu)
             endif
@@ -92,7 +92,7 @@ c
           do 30 pnu=pnu0,maxpar
             if (ppi+pnu.eq.p) then
               hnu=pnu-pnu0
-              write(*,'(1x,4(i2,3x),1p,8e12.5)') ppi,hpi,pnu,hnu,
+              write(*,'(1x,4(i2,3x),8es12.5)') ppi,hpi,pnu,hnu,
      +        (wemispart2(type,ppi,hpi,pnu,hnu)*hbar,type=0,6),
      +        wemistot2(ppi,hpi,pnu,hnu)*hbar
             endif
@@ -116,7 +116,7 @@ c
           do 40 pnu=pnu0,maxpar
             if (ppi+pnu.eq.p) then
               hnu=pnu-pnu0
-              write(*,'(1x,4(i2,3x),1p,4e15.5)') ppi,hpi,pnu,hnu,
+              write(*,'(1x,4(i2,3x),4es15.5)') ppi,hpi,pnu,hnu,
      +          lambdapiplus(0,0,ppi,hpi,pnu,hnu),
      +          lambdanuplus(0,0,ppi,hpi,pnu,hnu),
      +          lambdapinu(0,0,ppi,hpi,pnu,hnu),
@@ -132,7 +132,7 @@ c
           do 50 pnu=pnu0,maxpar
             if (ppi+pnu.eq.p) then
               hnu=pnu-pnu0
-              write(*,'(1x,4(i2,3x),1p,4e15.5)') ppi,hpi,pnu,hnu,
+              write(*,'(1x,4(i2,3x),4es15.5)') ppi,hpi,pnu,hnu,
      +          lambdapiplus(0,0,ppi,hpi,pnu,hnu)*hbar,
      +          lambdanuplus(0,0,ppi,hpi,pnu,hnu)*hbar,
      +          lambdapinu(0,0,ppi,hpi,pnu,hnu)*hbar,
@@ -147,7 +147,7 @@ c
           do 60 pnu=pnu0,maxpar
             if (ppi+pnu.eq.p) then
               hnu=pnu-pnu0
-              write(*,'(1x,4(i2,3x),1p,e15.5)') ppi,hpi,pnu,hnu,
+              write(*,'(1x,4(i2,3x),es15.5)') ppi,hpi,pnu,hnu,
      +          hbar*(lambdapiplus(0,0,ppi,hpi,pnu,hnu)+
      +          lambdanuplus(0,0,ppi,hpi,pnu,hnu)+
      +          lambdapinu(0,0,ppi,hpi,pnu,hnu)+
@@ -168,7 +168,7 @@ c
           do 70 pnu=pnu0,maxpar
             if (ppi+pnu.eq.p) then
               hnu=pnu-pnu0
-              write(*,'(1x,4(i2,3x),1p,e15.5)') ppi,hpi,pnu,hnu,
+              write(*,'(1x,4(i2,3x),es15.5)') ppi,hpi,pnu,hnu,
      +          Spre(ppi,hpi,pnu,hnu)
             endif
    70 continue

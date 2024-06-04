@@ -59,6 +59,13 @@ c
 c
 c Test for existence of pre-defined energy grid
 c
+c fname : filename
+c ktype: particle type
+c lenE: length of energy file
+c pos: position
+c iE2: counter for energies
+c Emin: minimum energy
+c
       fexist=.false.
       do 10 type=0,6
         if (fname(1:1).eq.parsym(type)) then
@@ -114,6 +121,7 @@ c Fill energy grid
 c
 c enincmin: minimum incident energy
 c enincmax: maximum incident energy
+c Erest   : help variable
 c numinc  : number of incident energies
 c
       i=0

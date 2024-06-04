@@ -17,6 +17,10 @@ c
 c
 c **********************************************************************
 c
+c fsurf: function for form factor for the surface energy
+c
+c dum: dummy value
+c
       if (epscloc) 10,20,30
  10   dum=sqrt(1.+epscloc**2)
       fsurf=(alog(-epscloc+dum)-epscloc*dum)/(-2.*epscloc*dum**(1./3.))

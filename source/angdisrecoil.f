@@ -111,6 +111,9 @@ c
 c
 c loop over residual nucleus discrete states
 c
+c xsCMlev0: elastic cross section
+c xsCMlev: discrete cross section
+c
         if (type.eq.k0) then
             xsCMlev0=xselastot
           else
@@ -169,6 +172,8 @@ c
 c
 c loop over ejectile angles in the CM frame
 c
+c inorm: counter
+c
           inorm=0
  155      do 160 iang=0,nangle
             cosejcm1=cosangmin(iang)
@@ -178,12 +183,17 @@ c
 c
 c Total flux that must be spread in the LAB frame
 c
+c
+c sumang: integral over angles
+c
             ddxCM=discad(type,nex,iang)
             if (inorm.eq.0) then
               sumang=sumang+ddxCM*abs(cosejcm1-cosejcm2)*twopi
             endif
 c
 c Renormalisation of angular distribution if inorm=1
+c
+c angnorm: angular normalisation
 c
             angnorm=1.
             if (inorm.eq.0) goto 160
@@ -268,6 +278,12 @@ c
               ddxLAB=fluxCM/labsurf
 c
 c store ejectile flux in lab ddx array
+c
+c iymaxp1: maximum y-loop index
+c iymod  : help variable
+c iys    : help variable
+c ddxejlabdis: DDX in lab system for discrete states
+c sumddxrec: sum over DDX for recoils
 c
               iymax=2*nanglecont+1
               iymaxp1=iymax+1
@@ -360,6 +376,12 @@ c
             ddxLAB=fluxCM/labsurf
 c
 c store recoil flux in lab ddx array
+c
+c fluxadd: flux added to recoil bin
+c surfbin: LAB DDX area contribution
+c
+c iarec2: counter
+c inex: counter
 c
             sumddxrec=0.
             iymax=2*nanglerec+1

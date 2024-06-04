@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 10, 2015
+c | Date  : December 12, 2016
 c | Task  : Best set of branching ratios
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical      lexist
-      character*16 branchchar
+      character*10 branchchar
       character*80 line,word(40)
       character*90 branchfile
       integer      Zix,Nix,iz,ia,iword,ilev0,ilev1,nbr,k
@@ -19,25 +19,26 @@ c
 c ******************** Read best branching ratios **********************
 c
 c branchfile : branching ratio file
+c branchchar : part of branching ratio file
 c Ztarget    : charge number of target nucleus
 c Atarget    : mass number of target nucleus
-c ptype0     : type of incident particle
 c Zix        : charge number index for residual nucleus
 c Nix        : neutron number index for residual nucleus
 c Zinit      : charge number of initial compound nucleus
 c Ninit      : neutron number of initial compound nucleus
 c branchratio: gamma-ray branching ratio to level
+c bra        : gamma-ray branching ratio to level
 c branchlevel: level to which branching takes place
 c nbranch    : number of branching levels
+c nbr        : number of branching levels
 c
-      branchchar='z000a000n.branch'
-      write(branchchar(2:4),'(i3.3)') Ztarget
-      write(branchchar(6:8),'(i3.3)') Atarget
-      write(branchchar(9:9),'(a1)') ptype0
-      branchfile=path(1:lenpath)//'levels/branch/'//branchchar
+      branchchar='000.branch'
+      write(branchchar(1:3),'(i3.3)') Atarget
+      branchfile=trim(path)//'levels/branch/'//
+     +  trim(nuc(Ztarget))//branchchar
       inquire (file=branchfile,exist=lexist)
       if (lexist) then
-        open (unit=2,status='unknown',file=branchfile)
+        open (unit=2,file=branchfile,status='old')
    10   read(2,'(a80)',end=100) line
         call getkeywords(line,word)
         read(word(2),*,end=1000,err=1000) iz
@@ -85,4 +86,4 @@ c
      +  ", br index out of range: ",a80)') line
       stop
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

@@ -17,6 +17,7 @@ c
 c ************************** Search ************************************
 c
 c func: function for which zero crossing is searched
+c xmid: middle x value
 c
       fmid=func(x2)
       f=func(x1)

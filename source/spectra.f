@@ -40,7 +40,9 @@ c flagEchannel      : flag for channel energy for emission spectrum
 c Ares              : mass number of residual nucleus
 c Ainit             : mass number of initial compound nucleus
 c parA              : mass number of particle
-c convfac1,.....    : conversion factor for reference system
+c convfac1          : conversion factor for reference system
+c convfac2          : conversion factor for reference system
+c convfac3          : conversion factor for reference system
 c xsdiscout         : total smoothed cross section for discrete state
 c xsgr              : smoothed giant resonance cross section
 c xspreeq,xspreeqout: preequilibrium cross section per particle type

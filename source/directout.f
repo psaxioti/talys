@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 7, 2006
+c | Date  : November 16, 2016
 c | Task  : Output of direct reaction cross sections
 c +---------------------------------------------------------------------
 c
@@ -21,12 +21,15 @@ c numlev2      : maximum number of levels
 c xsdirdisc    : direct cross section for discrete state
 c edis,elev    : energy of level
 c eoutdis      : outgoing energy of discrete state reaction
+c n1           : counter
+c n2           : counter
 c jdis,jlev    : spin of level
 c cparity      : parity of level (character)
 c parlev,plev  : parity of level
 c deftype      : deformation length (D) or parameter (B)
 c deform       : deformation parameter
 c xsdirdisctot : direct cross section summed over discrete states
+c ilev         : counter for discrete levels
 c nlev         : number of levels for nucleus
 c xscollconttot: total collective cross section in the continuum
 c flagang      : flag for output of angular distributions
@@ -75,7 +78,7 @@ c
           write(*,'(4x,10("    JP=",f4.1,a1)/)')
      +      (jlev(i),cparity(plev(i)),i=n2+1,n2+10)
           do 50 iang=0,nangle
-            write(*,'(1x,f5.1,1p,10e12.5)') angle(iang),
+            write(*,'(1x,f5.1,10es12.5)') angle(iang),
      +        (dad(i,iang),i=n2+1,n2+10)
    50     continue
    40   continue
@@ -85,7 +88,7 @@ c
           write(*,'(4x,10("    JP=",f4.1,a1)/)') (jlev(i),
      +      cparity(plev(i)),i=10*nset+1,10*nset+nrest)
           do 60 iang=0,nangle
-            write(*,'(1x,f5.1,1p,10e12.5)') angle(iang),
+            write(*,'(1x,f5.1,10es12.5)') angle(iang),
      +        (dad(i,iang),i=nset+1,nset+nrest)
    60     continue
         endif
@@ -129,17 +132,17 @@ c
         write(*,'(" Average angular distributions",/)')
         write(*,'(" Angle    GMR         GQR         LEOR      HEOR"/)')
         do 110 iang=0,nanglecont
-          write(*,'(1x,f5.1,1p,4e12.5)') anglecont(iang),
+          write(*,'(1x,f5.1,4es12.5)') anglecont(iang),
      +      grcollad(k0,0,1,iang),grcollad(k0,2,1,iang),
      +      grcollad(k0,3,1,iang),grcollad(k0,3,2,iang)
   110   continue
       endif
       if (flagspec) then
         write(*,'(/" Giant resonance spectra",/)')
-        write(*,'("  Energy   Total       GMR        GQR       ",
+        write(*,'("   Energy   Total       GMR        GQR       ",
      +    "LEOR       HEOR     Collective"/)')
         do 120 nen=ebegin(k0),eend(k0)
-          write(*,'(1x,f7.3,1p,6e11.4)') egrid(nen),xsgr(k0,nen),
+          write(*,'(1x,f8.3,6es11.4)') egrid(nen),xsgr(k0,nen),
      +      xsgrstate(k0,0,1,nen),xsgrstate(k0,2,1,nen),
      +      xsgrstate(k0,3,1,nen),xsgrstate(k0,3,2,nen),xscollcont(nen)
   120   continue

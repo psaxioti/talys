@@ -43,7 +43,7 @@ c
       Sstrength(2)=Tlinc(2)*Efac*(9.+3.*r2k2+r2k2*r2k2)/(r2k2*r2k2)
       if (flagendf.and.flagendfdet.and.
      +  (Einc.le.0.1.or.nin.eq.numinclow+1)) then
-        open (unit=1,status='unknown',file='spr.opt')
+        open (unit=1,file='spr.opt',status='replace')
         write(1,'(2i4,3f8.4)') Atarget,Ztarget,Sstrength(0)*1.e4,
      +    Sstrength(1)*1.e4,Rprime
         close (unit=1)

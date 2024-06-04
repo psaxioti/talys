@@ -26,7 +26,7 @@ c npp        : number of optical potentials
 c hint       : integration step size h
 c rmatch     : matching radius
 c
-      open (unit=9,status='unknown',file='ecisdwba.inp')
+      open (unit=9,file='ecisdwba.inp',status='replace')
       title='DWBA cross sections for MSD                       '
       ecis1='FFFFFFFFFFFTFFFFFFFFFFFFFFFTFTFFFFFFFFFFFFFFFFFFFF'
       ecis2='FFFFFFFFTFFFFTFFTTTFTTTFTFFFFFFFFFFFFFFFFFFFTFFFFF'
@@ -109,8 +109,8 @@ c
      +        " should always be done with ecissave y and ecisdwba y")')
             stop
           endif
-          open (unit=8,status='unknown',file='ecis.msdang')
-          open (unit=10,status='unknown',file='ecis.msdin')
+          open (unit=8,file='ecis.msdang',status='unknown')
+          open (unit=10,file='ecis.msdin',status='unknown')
         endif
         itype=k0
         do 20 type=1,2
@@ -218,7 +218,7 @@ c
           call ecist('ecisdwba.inp ',outfile,
      +      'ecis.msdcs   ','ecis.msdin   ','null         ',
      +      'ecis.msdang  ','null         ')
-          open (unit=9,status='unknown',file='ecisdwba.inp')
+          open (unit=9,file='ecisdwba.inp',status='unknown')
           close (unit=9,status=ecisstatus)
         endif
         if (ii.eq.2) then

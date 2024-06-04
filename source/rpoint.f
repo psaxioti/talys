@@ -20,6 +20,8 @@ c
 c
 c **********************************************************************
 c
+c rpoint: function for rupture point
+c
       rpoint=di*vr2(z1,z2,z)+rest
       return
       end

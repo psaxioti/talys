@@ -17,7 +17,8 @@ c
 c Zcomp      : charge number index for compound nucleus
 c Ncomp      : neutron number index for compound nucleus
 c nex        : excitation energy bin of compound nucleus
-c jdis,J,Jres: spin of level
+c jdis,J     : spin of level
+c Jres       : spin of level
 c parity,Pres: parity
 c parlev     : parity of level
 c xsJP,xspop : population cross section for spin and parity

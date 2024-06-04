@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 27, 2014
+c | Date  : December 12, 2016
 c | Task  : Nuclear masses
 c +---------------------------------------------------------------------
 c
@@ -10,9 +10,10 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical          lexist,flagduflo
-      character*4      masschar
+      character*7      masschar
       character*90     massfile
-      integer          Zix,Z,Nbegin,Nend,Abegin,Aend,ia,N,Nix,A,p,type
+      integer          Zix,Z,Nbegin,Nend,Abegin,Aend,ia,N,Nix,A,p,type,
+     +                 i,L
       real             exc,b2,b4,gs
       double precision expmass1,expmexc1,thmass1,thmexc1
 c
@@ -33,7 +34,6 @@ c Aend       : last A to be included
 c masschar   : help variable
 c massfile   : mass file
 c path       : directory containing structure files to be read
-c lenpath    : length of pathname
 c ia         : mass number from mass table
 c expmass    : experimental mass
 c thmass     : theoretical mass
@@ -47,13 +47,20 @@ c amu        : atomic mass unit in MeV
 c nucmass    : mass of nucleus
 c massmodel  : model for theoretical nuclear mass
 c flagexpmass: flag for using experimental nuclear mass if available
-c beta2,beta4: deformation parameters
+c beta2      : deformation parameter
+c beta4      : deformation parameter
 c gsspin     : ground state spin
 c gsparity   : ground state parity
+c expmass1   : experimental mass
+c expmexc1   : experimental mass excess
+c thmass1    : theoretical mass
+c thmexc1    : theoretical mass excess
 c flagduflo  : flag to check whether Duflo-Zuker calculation is
 c              required
 c A          : mass number of residual nucleus
 c Ainit      : mass number of initial compound nucleus
+c b2         : beta2
+c b4         : beta4
 c
 c We read both the experimental masses, from Audi-Wapstra (1995), and
 c the theoretical masses from the masstable.
@@ -75,17 +82,17 @@ c masses can be disabled.
 c
       do 10 Zix=0,maxZ+4
         Z=Zinit-Zix
+        if (Z.le.0) goto 10
         Nbegin=Ninit-maxN-4
         Nend=Ninit
         Abegin=Z+Nbegin
         Aend=Z+Nend
-        masschar='z   '
-        write(masschar(2:4),'(i3.3)') Z
+        masschar=trim(nuc(Z))//'.mass'
         if (flagexpmass) then
-          massfile=path(1:lenpath)//'masses/audi/'//masschar
+          massfile=trim(path)//'masses/audi/'//masschar
           inquire (file=massfile,exist=lexist)
           if (lexist) then
-            open (unit=1,status='old',file=massfile)
+            open (unit=1,file=massfile,status='old')
    20       read(1,'(4x,i4,2f12.6)',end=30) ia,expmass1,expmexc1
             if (ia.lt.Abegin) goto 20
             if (ia.gt.Aend) goto 30
@@ -98,14 +105,22 @@ c
           endif
         endif
         if (massmodel.eq.1)
-     +    massfile=path(1:lenpath)//'masses/moller/'//masschar
+     +    massfile=trim(path)//'masses/moller/'//masschar
         if (massmodel.eq.0.or.massmodel.eq.2)
-     +    massfile=path(1:lenpath)//'masses/hfb/'//masschar
+     +    massfile=trim(path)//'masses/hfb/'//masschar
         if (massmodel.eq.3)
-     +    massfile=path(1:lenpath)//'masses/hfbd1m/'//masschar
+     +    massfile=trim(path)//'masses/hfbd1m/'//masschar
+        if (massdir(1:1).ne.' ') then
+          L=0
+          do 35 i=1,72
+            if (massdir(i:i).eq.' ') goto 37
+            L=L+1
+   35     continue
+   37     massfile=massdir(1:L)//'/'//masschar
+        endif
         inquire (file=massfile,exist=lexist)
         if (lexist) then
-          open (unit=1,status='old',file=massfile)
+          open (unit=1,file=massfile,status='old')
    40     read(1,'(4x,i4,2f12.6,2f8.4,20x,f4.1,i2)',end=50)
      +      ia,thmass1,thmexc1,b2,b4,gs,p
           if (ia.lt.Abegin) goto 40
@@ -213,4 +228,4 @@ c
   210 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

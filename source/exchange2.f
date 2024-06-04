@@ -29,7 +29,11 @@ c hnu            : neutron hole number
 c hnu0           : initial neutron hole number
 c p              : particle number
 c h              : hole number
-c tpiplus,....   : help variables
+c tpiplus        : help variable
+c tnuplus        : help variable
+c tpinu          : help variable
+c tnupi          : help variable
+c texchange      : help variable
 c lambdapiplus   : proton transition rate for n --> n+2
 c lambdanuplus   : neutron transition rate for n --> n+2
 c lambdapinu     : proton-neutron transition rate for n --> n
@@ -38,6 +42,7 @@ c n              : exciton number
 c emissionrate2  : subroutine for two-component emission rate
 c wemistot2,wemis: total two-component emission rate per exciton number
 c tauexc2        : lifetime of two-component exciton state
+c tauinv         : inverse of time
 c tauinvp        : help variable
 c tauexc2p       : lifetime for creation and emission only
 c Lexc           : exchange term

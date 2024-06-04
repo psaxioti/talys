@@ -10,15 +10,19 @@ c ****************** Declarations and common blocks ********************
 c
       implicit none
       integer zproj,aproj,iz,ia,xzt,xat
-      real    tripathi,e,pi,onethird,fourthird,rp,radius,rt,vp,vt,
+      real    tripathi,e,pi,onethird,fourthird,radius,rp,rt,vp,vt,
      +        dens,const,const1,t1,gcm,bcm,plab,ecmp,ecmt,rela,ecm,
      +        bigr,bigb,xm,x1,sl,ce,term1,delta,beta,twxsec,xabs,expo,
      +        expo1
+      external radius
 c
 c ******************* Reaction cross section calculation ***************
 c
 c zproj         : charge number of projectile
+c xzt           : charge number of projectile
 c aproj         : mass number of projectile
+c xat           : mass number of projectile
+c radius : radius function
 c iz            : charge number of target nucleus
 c ia            : mass number of target nucleus
 c e             : incident energy in MeV per nucleon
@@ -28,6 +32,11 @@ c fourthird     : 4/3
 c rp            : projectile radius
 c rt            : target radius
 c all other var.: ask Tripathi
+c twxsec        : cross section
+c vt            : help variable
+c xabs          : cross section
+c xm            : help variable
+c gcm : help variable
 c
       data pi /3.14159265358979323/
       onethird=1./3.
@@ -61,6 +70,18 @@ c
      +  sqrt(aproj**2+ia**2+2.*aproj*(e+938.)*ia/938.)
 c
 c A. Koning: Safety
+c
+c bcm : relativistic factor
+c plab : momentum in LAB framce
+c rela : relativistic energy
+c bigb: help variable
+c bigr: help variable
+c const: constant
+c const1: constant
+c ecm: energy in C.M. frame
+c ecmp: energy in C.M. frame of particle
+c ecmt: energy in C.M. frame of target
+c expo1: exponent
 c
       if (gcm.le.1.) return
       bcm=sqrt(1.-1./gcm**2)

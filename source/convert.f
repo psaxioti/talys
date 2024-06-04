@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 14, 2014
+c | Date  : May 26, 2016
 c | Task  : Convert input line from upper case to lowercase
 c +---------------------------------------------------------------------
 c
@@ -23,10 +23,14 @@ c
       str(1:80)=inline(i)(1:80)
       do 10 k=1,80
         if (inline(i)(k:k).ge.'A'.and.inline(i)(k:k).le.'Z')
-     +    inline(i)(k:k)=char(ichar(inline(i)(k:k))+32)
+     +    inline(i)(k:k)=achar(iachar(inline(i)(k:k))+32)
   10  continue
       do 20 k=0,60
         if (inline(i)(k+1:k+6).eq.'e1file') then
+          inline(i)(k+7:80)=str(k+7:80)
+          return
+        endif
+        if (inline(i)(k+1:k+6).eq.'m1file') then
           inline(i)(k+7:80)=str(k+7:80)
           return
         endif

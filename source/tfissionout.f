@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 30, 2013
+c | Date  : November 16, 2016
 c | Task  : Output of fission transmission coefficients
 c +---------------------------------------------------------------------
 c
@@ -30,13 +30,13 @@ c
       N=NN(Zcomp,Ncomp,0)
       A=AA(Zcomp,Ncomp,0)
       write(*,'(/" Fission transmission coefficients for Z=",i3,
-     +  " N=",i3," (",i3,a2,") and an excitation energy of ",f7.3,
+     +  " N=",i3," (",i3,a2,") and an excitation energy of ",f8.3,
      +  " MeV"/)') Z,N,A,nuc(Z),Exinc
       write(*,'("   J      T(J,-)      T(J,+)"/)')
       odd=mod(A,2)
       do 10 J=0,maxJ(Zcomp,Ncomp,nex)
         J2=2*J+odd
-        write(*,'(1x,f4.1,2x,1p,2e12.5)') 0.5*J2,tfis(J,-1),tfis(J,1)
+        write(*,'(1x,f4.1,2x,2es12.5)') 0.5*J2,tfis(J,-1),tfis(J,1)
    10 continue
       write(*,*)
       return

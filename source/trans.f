@@ -15,6 +15,12 @@ c
 c
 c **********************************************************************
 c
+c icount: counter
+c funcfismode: function for transmission coefficient per fission mode
+c transm: function for transmission coefficient per fission mode
+c sold: new trial value
+c snew: new trial value
+c
       xa=0.0
       xb=excfis
       if (excfis.eq.0) then

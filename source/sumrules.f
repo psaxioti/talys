@@ -51,10 +51,13 @@ c Zindex : charge number index for residual nucleus
 c Nindex : neutron number index for residual nucleus
 c k0     : index of incident particle
 c numlev2: maximum number of levels
+c betasq : square of deformation parameter
 c deform : deformation parameter
 c deftype: deformation length (D) or parameter (B)
 c edis   : energy of level
 c jdis   : spin of level
+c edis1  : energy of level
+c jdis1  : spin of level
 c
       Zcomp=0
       Ncomp=0

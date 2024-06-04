@@ -18,6 +18,8 @@ c
 c
 c **********************************************************************
 c
+c vr1: function for volume of the projectile-like section
+c
       vr1=pi*((2.*r1**3-z**3)/3.+r1**2*z)
       return
       end

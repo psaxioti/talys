@@ -2,17 +2,17 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 18, 2012
+c | Date  : December 15, 2016
 c | Task  : Theoretical calculation of total radiative width
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer          Zcomp,Ncomp,NL,nex,l,nexgam,J2b,J2e,ldmod,J2,
+      integer          Zcomp,Ncomp,NL,nex,l,nexgam,J2b,J2e,ldmod,J2,ll,
      +                 nexout,Pprimebeg,Pprimeend,Irspin2beg,Irspin2end,
-     +                 Pprime,Irspin2,l2beg,l2end,l2,modl,irad
-      real             E,Sn,Exgam(0:10*numex),dEx,tspin,tpar,Sgamsum,
+     +                 Pprime,Irspin2,l2beg,l2end,l2,modl,tpar,irad
+      real             E,Sn,Exgam(0:10*numex),dEx,tspin,Sgamsum,
      +                 Exmid,Egamma,Exmin,Explus,dE1,dE2,Rspin,Sgamma,
      +                 fstrength
       double precision density,rho1,rho2,rho3,r1log,r2log,r3log,rho
@@ -71,39 +71,51 @@ c Specify the summation boundaries for the neutron channel.
 c
    30 if (.not.strucexist(Zcomp,Ncomp+1)) call levels(Zcomp,Ncomp+1)
       tspin=jdis(Zcomp,Ncomp+1,0)
-      tpar=parlev(Zcomp,Ncomp+1,0)
-      J2b=int(abs(2.*(tspin-parspin(1))))
-      J2e=int(2.*(tspin+parspin(1)))
-      Sgamsum=0.
-      ldmod=ldmodel(Zcomp,Ncomp)
+      do 40 ll=0,1
+        if (ll.eq.0) then
+          tpar=parlev(Zcomp,Ncomp+1,0)
+          J2b=int(abs(2.*(tspin-parspin(1))))
+          J2e=int(2.*(tspin+parspin(1)))
+        else
+c
+c Change of parity for p-wave
+c
+          tpar=-parlev(Zcomp,Ncomp+1,0)
+          J2b=int(2.*(tspin-1.5))
+          if (J2b.lt.0) J2b=J2b+2
+          if (J2b.lt.0) J2b=J2b+2
+          J2e=int(2.*(tspin+1.5))
+        endif
+        Sgamsum=0.
+        ldmod=ldmodel(Zcomp,Ncomp)
 c
 c 110: Sum over total angular momentum J (J2) of compound nucleus
 c
 c J2: 2 * J
 c
-      do 110 J2=J2b,J2e,2
+        do 110 J2=J2b,J2e,2
 c
 c 120: Sum over outgoing excitation energies
 c
 c Exmid : help variable
 c Egamma: gamma energy
 c
-        do 120 nexout=0,nexgam
-          Exmid=Exgam(nexout)
-          Egamma=Sn-Exmid
-          if (Egamma.le.0.) goto 120
+          do 120 nexout=0,nexgam
+            Exmid=Exgam(nexout)
+            Egamma=Sn-Exmid
+            if (Egamma.le.0.) goto 120
 c
 c Set begin and end energies for level density integration
 c
 c Exmin,Explus: help variables
 c dE1,dE2     : help variables
 c
-          if (nexout.gt.NL) then
-            Exmin=max(Exmid-0.5*dEx,0.)
-            Explus=Exmid+0.5*dEx
-            dE1=Exmid-Exmin
-            dE2=Explus-Exmid
-          endif
+            if (nexout.gt.NL) then
+              Exmin=max(Exmid-0.5*dEx,0.)
+              Explus=Exmid+0.5*dEx
+              dE1=Exmid-Exmin
+              dE2=Explus-Exmid
+            endif
 c
 c Initialization of summations
 c
@@ -121,30 +133,30 @@ c For discrete states, the begin and end points of the residual
 c spin/parity summation are both set equal to the residual discrete
 c level spin/parity.
 c
-          if (nexout.le.NL) then
-            Pprimebeg=parlev(Zcomp,Ncomp,nexout)
-            Pprimeend=Pprimebeg
-            Irspin2beg=int(2.*jdis(Zcomp,Ncomp,nexout))
-            Irspin2end=Irspin2beg
-            rho=1.
-          else
+            if (nexout.le.NL) then
+              Pprimebeg=parlev(Zcomp,Ncomp,nexout)
+              Pprimeend=Pprimebeg
+              Irspin2beg=int(2.*jdis(Zcomp,Ncomp,nexout))
+              Irspin2end=Irspin2beg
+              rho=1.
+            else
 c
 c For the continuum, the begin and end points of the residual
 c spin/parity summation are set to the maximally accessible values.
 c
-            Pprimebeg=-1
-            Pprimeend=1
-            Irspin2beg=mod(J2,2)
-            Irspin2end=J2+2*gammax
-            Irspin2end=min(Irspin2end,2*numJ)
-          endif
+              Pprimebeg=-1
+              Pprimeend=1
+              Irspin2beg=mod(J2,2)
+              Irspin2end=J2+2*gammax
+              Irspin2end=min(Irspin2end,2*numJ)
+            endif
 c
 c 130: Sum over residual parity
 c
 c pardif: difference between residual and compound nucleus parity
 c
-          do 130 Pprime=Pprimebeg,Pprimeend,2
-            pardif=abs(tpar-Pprime)/2
+            do 130 Pprime=Pprimebeg,Pprimeend,2
+              pardif=abs(tpar-Pprime)/2
 c
 c 140: Sum over residual spin
 c
@@ -157,34 +169,34 @@ c
 c rho is the level density integrated over the bin (Explus - Exmin).
 c Note that we use logarithmic integration for more precision.
 c
-            do 140 Irspin2=Irspin2beg,Irspin2end,2
-              Rspin=0.5*Irspin2
-              if (nexout.gt.NL) then
-                rho1=real(density(Zcomp,Ncomp,Exmin,Rspin,Pprime,0,
-     +            ldmod))*(1.+1.d-10)
-                rho2=real(density(Zcomp,Ncomp,Exmid,Rspin,Pprime,0,
-     +            ldmod))
-                rho3=real(density(Zcomp,Ncomp,Explus,Rspin,Pprime,0,
-     +            ldmod))*(1.+1.d-10)
-                r1log=log(rho1)
-                r2log=log(rho2)
-                r3log=log(rho3)
-                if (r2log.ne.r1log.and.r2log.ne.r3log) then
-                  rho=(rho1-rho2)/(r1log-r2log)*dE1
-     +              +(rho2-rho3)/(r2log-r3log)*dE2
-                else
-                  rho=rho2*(dE1+dE2)
+              do 140 Irspin2=Irspin2beg,Irspin2end,2
+                Rspin=0.5*Irspin2
+                if (nexout.gt.NL) then
+                  rho1=real(density(Zcomp,Ncomp,Exmin,Rspin,Pprime,0,
+     +              ldmod))*(1.+1.d-10)
+                  rho2=real(density(Zcomp,Ncomp,Exmid,Rspin,Pprime,0,
+     +              ldmod))
+                  rho3=real(density(Zcomp,Ncomp,Explus,Rspin,Pprime,0,
+     +              ldmod))*(1.+1.d-10)
+                  r1log=log(rho1)
+                  r2log=log(rho2)
+                  r3log=log(rho3)
+                  if (r2log.ne.r1log.and.r2log.ne.r3log) then
+                    rho=(rho1-rho2)/(r1log-r2log)*dE1
+     +                +(rho2-rho3)/(r2log-r3log)*dE2
+                  else
+                    rho=rho2*(dE1+dE2)
+                  endif
                 endif
-              endif
 c
 c 150: Sum over l of outgoing channel
 c
 c l2beg: 2 * start of l-summation
 c l2end: 2 * end l-summation
 c
-              l2beg=max(abs(J2-Irspin2),2)
-              l2end=min(J2+Irspin2,2*gammax)
-              do 150 l2=l2beg,l2end,2
+                l2beg=max(abs(J2-Irspin2),2)
+                l2end=min(J2+Irspin2,2*gammax)
+                do 150 l2=l2beg,l2end,2
 c
 c modl: help variable
 c irad: variable to indicate M(=0) or E(=1) radiation
@@ -192,27 +204,27 @@ c
 c Multipole radiation selection rules
 c (irad=0: M-transition, irad=1: E-transition)
 c
-                l=l2/2
-                modl=mod(l,2)
-                if (pardif.eq.modl) then
-                  irad=1
-                else
-                  irad=0
-                endif
+                  l=l2/2
+                  modl=mod(l,2)
+                  if (pardif.eq.modl) then
+                    irad=1
+                  else
+                    irad=0
+                  endif
 c
 c Create sum for normalization
 c
 c Sgamma   : gamma transmission coefficient/2 pi
 c fstrength: gamma ray strength function
 c
-                Sgamma=(Egamma**(l2+1))*
-     +            fstrength(Zcomp,Ncomp,E,Egamma,irad,l)
-                Sgamsum=Sgamsum+rho*Sgamma
-  150         continue
-  140       continue
-  130     continue
-  120   continue
-  110 continue
+                  Sgamma=(Egamma**(l2+1))*
+     +              fstrength(Zcomp,Ncomp,E,Egamma,irad,l)
+                  Sgamsum=Sgamsum+rho*Sgamma
+  150           continue
+  140         continue
+  130       continue
+  120     continue
+  110   continue
 c
 c ************** Calculation of theoretical values ********************
 c
@@ -220,10 +232,15 @@ c gamgamth: theoretical total radiative width
 c D0theo  : theoretical s-wave resonance spacing
 c swaveth : theoretical strength function for s-wave
 c
-      if (E.eq.0.) then
-        gamgamth(Zcomp,Ncomp)=Sgamsum*D0theo(Zcomp,Ncomp)
-        swaveth(Zcomp,Ncomp)=Sgamsum
-      endif
+        if (E.eq.0.) then
+          if (ll.eq.0) then
+            gamgamth(Zcomp,Ncomp,0)=Sgamsum*D0theo(Zcomp,Ncomp)
+            swaveth(Zcomp,Ncomp)=Sgamsum
+          else
+            gamgamth(Zcomp,Ncomp,1)=Sgamsum*D1theo(Zcomp,Ncomp)
+          endif
+        endif
+   40 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

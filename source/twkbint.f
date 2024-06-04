@@ -14,6 +14,10 @@ c
 c
 c ************************* Interpolation ******************************
 c
+c Ewkb : energy
+c Ta   : transmission coefficient
+c Tb   : transmission coefficient
+c
       do nen=0,nbinswkb
         Ewkb(nen)=Uwkb(Zix,Nix,nen)
       enddo

@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 10, 2012
+c | Date  : November 16, 2016
 c | Task  : Output of discrete angular distributions
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*20 discfile
+      character*21 discfile
       integer      LL,iang,Zix,Nix,i,type
 c
 c **************** Elastic scattering angular distribution *************
@@ -20,6 +20,7 @@ c flaglegendre: flag for output of Legendre coefficients
 c J2end       : 2 * end of J summation
 c tleg        : total Legendre coefficient
 c k0          : index of incident particle
+c LL          : counter for l value
 c Ltarget     : excited level of target
 c dleg        : direct reaction Legendre coefficient
 c cleg        : compound nucleus Legendre coefficient
@@ -39,7 +40,7 @@ c
         write(*,'("   L       Total           Direct",
      +    "         Compound       Normalized"/)')
         do 10 LL=0,J2end
-          write(*,'(1x,i3,1p,4e16.5)') LL,tleg(k0,Ltarget,LL),
+          write(*,'(1x,i3,4es16.5)') LL,tleg(k0,Ltarget,LL),
      +      dleg(k0,Ltarget,LL),cleg(k0,Ltarget,LL),
      +      tlegnor(k0,Ltarget,LL)
    10   continue
@@ -47,22 +48,22 @@ c
 c Write results to separate file
 c
         if (fileelastic) then
-          discfile='         leg.L00'
+          discfile='          leg.L00'
           write(discfile(1:2),'(2a1)') parsym(k0),parsym(k0)
-          write(discfile(3:9),'(f7.3)') Einc
-          write(discfile(3:5),'(i3.3)') int(Einc)
-          write(discfile(15:16),'(i2.2)') Ltarget
-          open (unit=1,status='unknown',file=discfile)
+          write(discfile(3:10),'(f8.3)') Einc
+          write(discfile(3:6),'(i4.4)') int(Einc)
+          write(discfile(16:17),'(i2.2)') Ltarget
+          open (unit=1,file=discfile,status='replace')
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering Legendre coefficients")') parsym(k0),
      +      Atarget,Starget
-          write(1,'("# E-incident = ",f7.3)') Einc
+          write(1,'("# E-incident = ",f8.3)') Einc
           write(1,'("# ")')
           write(1,'("# # coeff.   =",i4)') J2end+1
           write(1,'("#  L       Total           Direct",
      +      "        Compound       Normalized    ENDF-6")')
           do 20 LL=0,J2end
-            write(1,'(i3,1p,5e16.5)') LL,tleg(k0,Ltarget,LL),
+            write(1,'(i3,5es16.5)') LL,tleg(k0,Ltarget,LL),
      +        dleg(k0,Ltarget,LL),cleg(k0,Ltarget,LL),
      +        tlegnor(k0,Ltarget,LL),cleg0(k0,Ltarget,LL)
    20     continue
@@ -86,7 +87,7 @@ c
         write(*,'(" Angle        Total          Direct",
      +    "         Compound"/)')
         do 30 iang=0,nangle
-          write(*,'(1x,f5.1,1p,3e16.5)') angle(iang),
+          write(*,'(1x,f5.1,3es16.5)') angle(iang),
      +      discad(k0,Ltarget,iang),directad(k0,Ltarget,iang),
      +      compad(k0,Ltarget,iang)
    30   continue
@@ -94,21 +95,21 @@ c
 c Write results to separate file
 c
         if (fileelastic) then
-          discfile='nn       ang.L00'//natstring(iso)
-          write(discfile(3:9),'(f7.3)') Einc
-          write(discfile(3:5),'(i3.3)') int(Einc)
-          write(discfile(15:16),'(i2.2)') Ltarget
-          open (unit=1,status='unknown',file=discfile)
+          discfile='nn        ang.L00'//natstring(iso)
+          write(discfile(3:10),'(f8.3)') Einc
+          write(discfile(3:6),'(i4.4)') int(Einc)
+          write(discfile(16:17),'(i2.2)') Ltarget
+          open (unit=1,file=discfile,status='replace')
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering angular distribution")') parsym(k0),
      +      Atarget,Starget
-          write(1,'("# E-incident = ",f7.3)') Einc
+          write(1,'("# E-incident = ",f8.3)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i4)') nangle+1
           write(1,'("# Angle       xs            Direct",
      +      "         Compound")')
           do 40 iang=0,nangle
-            write(1,'(f5.1,1p,3e16.5)') angle(iang),
+            write(1,'(f5.1,3es16.5)') angle(iang),
      +        discad(k0,Ltarget,iang),directad(k0,Ltarget,iang),
      +        compad(k0,Ltarget,iang)
    40     continue
@@ -118,7 +119,7 @@ c
         write(*,'(" Angle        Total            Direct",
      +    "       Compound       c.s/Rutherford"/)')
         do 50 iang=0,nangle
-          write(*,'(1x,f5.1,1p,4e16.5)') angle(iang),
+          write(*,'(1x,f5.1,4es16.5)') angle(iang),
      +      max(discad(k0,Ltarget,iang),directad(k0,Ltarget,iang)),
      +      directad(k0,Ltarget,iang),compad(k0,Ltarget,iang),ruth(iang)
    50   continue
@@ -126,22 +127,22 @@ c
 c Write results to separate file
 c
         if (fileelastic) then
-          discfile='         ang.L00'//natstring(iso)
+          discfile='          ang.L00'//natstring(iso)
           write(discfile(1:2),'(2a1)') parsym(k0),parsym(k0)
-          write(discfile(3:9),'(f7.3)') Einc
-          write(discfile(3:5),'(i3.3)') int(Einc)
-          write(discfile(15:16),'(i2.2)') Ltarget
-          open (unit=1,status='unknown',file=discfile)
+          write(discfile(3:10),'(f8.3)') Einc
+          write(discfile(3:6),'(i4.4)') int(Einc)
+          write(discfile(16:17),'(i2.2)') Ltarget
+          open (unit=1,file=discfile,status='replace')
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering angular distribution")') parsym(k0),
      +      Atarget,Starget
-          write(1,'("# E-incident = ",f7.3)') Einc
+          write(1,'("# E-incident = ",f8.3)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i4)') nangle+1
           write(1,'("# Angle       xs            Direct",
      +      "         Compound    c.s./Rutherford")')
           do 60 iang=0,nangle
-            write(1,'(f5.1,1p,4e16.5)') angle(iang),
+            write(1,'(f5.1,4es16.5)') angle(iang),
      +        max(discad(k0,Ltarget,iang),directad(k0,Ltarget,iang)),
      +        directad(k0,Ltarget,iang),compad(k0,Ltarget,iang),
      +        ruth(iang)
@@ -173,29 +174,29 @@ c
           write(*,'("   L       Total           Direct",
      +      "         Compound       Normalized"/)')
           do 120 LL=0,J2end
-            write(*,'(1x,i3,1p,4e16.5)') LL,tleg(k0,i,LL),dleg(k0,i,LL),
+            write(*,'(1x,i3,4es16.5)') LL,tleg(k0,i,LL),dleg(k0,i,LL),
      +        cleg(k0,i,LL),tlegnor(k0,i,LL)
   120     continue
 c
 c Write results to separate file
 c
           if (fileangle(i)) then
-            discfile='         leg.L00'
+            discfile='          leg.L00'
             write(discfile(1:2),'(2a1)') parsym(k0),parsym(k0)
-            write(discfile(3:9),'(f7.3)') Einc
-            write(discfile(3:5),'(i3.3)') int(Einc)
-            write(discfile(15:16),'(i2.2)') i
-            open (unit=1,status='unknown',file=discfile)
+            write(discfile(3:10),'(f8.3)') Einc
+            write(discfile(3:6),'(i4.4)') int(Einc)
+            write(discfile(16:17),'(i2.2)') i
+            open (unit=1,file=discfile,status='replace')
             write(1,'("# ",a1," + ",i3,a2,
      +        " Inelastic scattering Legendre coefficients"," - Level",
      +        i3)')  parsym(k0),Atarget,Starget,i
-            write(1,'("# E-incident = ",f7.3)') Einc
+            write(1,'("# E-incident = ",f8.3)') Einc
             write(1,'("# ")')
             write(1,'("# # coeff.   =",i4)') J2end+1
             write(1,'("#  L       Total           Direct",
      +        "        Compound       Normalized    ENDF-6")')
             do 130 LL=0,J2end
-              write(1,'(i3,1p,5e16.5)') LL,tleg(k0,i,LL),dleg(k0,i,LL),
+              write(1,'(i3,5es16.5)') LL,tleg(k0,i,LL),dleg(k0,i,LL),
      +          cleg(k0,i,LL),tlegnor(k0,i,LL),cleg0(k0,i,LL)
   130       continue
             close (unit=1)
@@ -212,28 +213,28 @@ c
         write(*,'(/"    Level ",i2/)') i
         write(*,'(" Angle       Total         Direct       Compound"/)')
         do 150 iang=0,nangle
-          write(*,'(1x,f5.1,1p,3e15.5)') angle(iang),discad(k0,i,iang),
+          write(*,'(1x,f5.1,3es15.5)') angle(iang),discad(k0,i,iang),
      +      directad(k0,i,iang),compad(k0,i,iang)
   150   continue
 c
 c Write results to separate file
 c
         if (fileangle(i)) then
-          discfile='         ang.L00'
+          discfile='          ang.L00'
           write(discfile(1:2),'(2a1)') parsym(k0),parsym(k0)
-          write(discfile(3:9),'(f7.3)') Einc
-          write(discfile(3:5),'(i3.3)') int(Einc)
-          write(discfile(15:16),'(i2.2)') i
-          open (unit=1,status='unknown',file=discfile)
+          write(discfile(3:10),'(f8.3)') Einc
+          write(discfile(3:6),'(i4.4)') int(Einc)
+          write(discfile(16:17),'(i2.2)') i
+          open (unit=1,file=discfile,status='replace')
           write(1,'("# ",a1," + ",i3,a2,
      +      " Inelastic scattering angular distribution",
      +      " - Level",i3)') parsym(k0),Atarget,Starget,i
-          write(1,'("# E-incident = ",f7.3)') Einc
+          write(1,'("# E-incident = ",f8.3)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i4)') nangle+1
           write(1,'("# Angle      xs           Direct       Compound")')
           do 160 iang=0,nangle
-            write(1,'(f5.1,1p,3e15.5)') angle(iang),discad(k0,i,iang),
+            write(1,'(f5.1,3es15.5)') angle(iang),discad(k0,i,iang),
      +        directad(k0,i,iang),compad(k0,i,iang)
   160     continue
           close (unit=1)
@@ -264,29 +265,29 @@ c
             write(*,'("   L       Total           Direct         ",
      +        "Compound       Normalized"/)')
             do 230 LL=0,J2end
-              write(*,'(1x,i3,1p,4e16.5)') LL,tleg(type,i,LL),
+              write(*,'(1x,i3,4es16.5)') LL,tleg(type,i,LL),
      +          dleg(type,i,LL),cleg(type,i,LL),tlegnor(type,i,LL)
   230       continue
 c
 c Write results to separate file
 c
             if (fileangle(i)) then
-              discfile='         leg.L00'
+              discfile='          leg.L00'
               write(discfile(1:2),'(2a1)') parsym(k0),parsym(type)
-              write(discfile(3:9),'(f7.3)') Einc
-              write(discfile(3:5),'(i3.3)') int(Einc)
-              write(discfile(15:16),'(i2.2)') i
-              open (unit=1,status='unknown',file=discfile)
+              write(discfile(3:10),'(f8.3)') Einc
+              write(discfile(3:6),'(i4.4)') int(Einc)
+              write(discfile(16:17),'(i2.2)') i
+              open (unit=1,file=discfile,status='replace')
               write(1,'("# ",a1," + ",i3,a2," (",a1,",",a1,
      +          ") Legendre coefficients"," - Level",i3)') parsym(k0),
      +          Atarget,Starget,parsym(k0),parsym(type),i
-              write(1,'("# E-incident = ",f7.3)') Einc
+              write(1,'("# E-incident = ",f8.3)') Einc
               write(1,'("# ")')
               write(1,'("# # coeff.   =",i4)') J2end+1
               write(1,'("#  L       Total           Direct",
      +          "        Compound       Normalized    ENDF-6")')
               do 240 LL=0,J2end
-                write(1,'(i3,1p,5e16.5)') LL,tleg(type,i,LL),
+                write(1,'(i3,5es16.5)') LL,tleg(type,i,LL),
      +            dleg(type,i,LL),cleg(type,i,LL),tlegnor(type,i,LL),
      +            cleg0(type,i,LL)
   240       continue
@@ -305,7 +306,7 @@ c
           write(*,'(" Angle      Total          Direct",
      +      "        Compound"/)')
           do 260 iang=0,nangle
-            write(*,'(1x,f5.1,1p,3e15.5)') angle(iang),
+            write(*,'(1x,f5.1,3es15.5)') angle(iang),
      +        discad(type,i,iang),directad(type,i,iang),
      +        compad(type,i,iang)
   260     continue
@@ -313,22 +314,22 @@ c
 c Write results to separate file
 c
           if (fileangle(i)) then
-            discfile='         ang.L00'
+            discfile='          ang.L00'
             write(discfile(1:2),'(2a1)') parsym(k0),parsym(type)
-            write(discfile(3:9),'(f7.3)') Einc
-            write(discfile(3:5),'(i3.3)') int(Einc)
-            write(discfile(15:16),'(i2.2)') i
-            open (unit=1,status='unknown',file=discfile)
+            write(discfile(3:10),'(f8.3)') Einc
+            write(discfile(3:6),'(i4.4)') int(Einc)
+            write(discfile(16:17),'(i2.2)') i
+            open (unit=1,file=discfile,status='replace')
             write(1,'("# ",a1," + ",i3,a2," (",a1,",",a1,
      +        ") angular distributions - Level",i3)') parsym(k0),
      +        Atarget,Starget,parsym(k0),parsym(type),i
-            write(1,'("# E-incident = ",f7.3)') Einc
+            write(1,'("# E-incident = ",f8.3)') Einc
             write(1,'("# ")')
             write(1,'("# # angles   =",i4)') nangle+1
             write(1,'("# Angle      xs           Direct",
      +        "        Compound")')
             do 270 iang=0,nangle
-              write(1,'(f5.1,1p,3e15.5)') angle(iang),
+              write(1,'(f5.1,3es15.5)') angle(iang),
      +          discad(type,i,iang),directad(type,i,iang),
      +          compad(type,i,iang)
   270       continue

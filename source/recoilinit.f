@@ -185,6 +185,11 @@ c
 c
 c ********** Creation of the lab energy grid for the ejectiles *********
 c
+c nl        : last discrete level
+c maxentype : maximum energy per particle type
+c ehigh     : highest energy
+c iejmax    : maximum energy index
+c
       Emaxinc=Einc+S(0,0,k0)+targetE
       do 50 type=0,6
         if (parskip(type)) goto 50
@@ -243,6 +248,10 @@ c
 c
 c ************ Creation of the area array for the ejectiles ************
 c
+c numres: number of residual bins
+c iej : counter
+c wcos: width of cosine bin
+c
       do 110 type=0,6
         if (parskip(type)) goto 110
         do iang=0,2*nanglecont+1
@@ -256,6 +265,15 @@ c
 c
 c *************** Calculate maximum excitation energies ****************
 c ***************   for all possible residual nuclei    ****************
+c
+c ekinprojlab: incident energy
+c numZN : number of ZN combinations
+c PCM   : momentum in C.M. frame
+c EexCM   : energy in C.M. frame
+c ECMbin   : energy of C.M. bin
+c EexCMmax: maximum energy in C.M. frame
+c EexCMloc: maximum energy in C.M. frame
+c numrestot: number of residual bins
 c
       projectmass=parmass(k0)*amu
       ekinprojlab=Einc
@@ -279,6 +297,19 @@ c from a previous emission. If not the number a new residual is reached
 c and we have to loop again. If yes, we compare the maximum excitation
 c energy obtained from the previous emission with that of the current
 c emission and keep the highest.
+c
+c if1: help variable
+c if2: help variable
+c if3: help variable
+c if4: help variable
+c if5: help variable
+c if6: help variable
+c numZcomp: number of protons
+c numNcomp: number of neutrons
+c numZres: number of protons
+c numNres: number of neutrons
+c numZk: number of protons
+c numNk: number of neutrons
 c
   120 do 130 ires=1,numrestot
         iloop=1
@@ -338,6 +369,9 @@ c A new residual is reached
 c
 c ******** Define excitation energy bins for all residual nuclei *******
 c
+c dEexCM: width of energy bin
+c vCMbin: velocity of C.M. bin
+c
       do ires=1,numrestot
         dEexCM=EexCMmax(ires)/nbbins
         do iex=0,nbbins
@@ -396,10 +430,15 @@ c If the residual nucleus is not among the considered ones it means
 c that it cannot be obtained because all possible residuals have been
 c defined in loop 130. We thus consider another ejectile.
 c
+c ifinal: help variable
+c iexfinal: counter
+c
             goto 200
 c
 c Loop over the various excitation energies bins of the residual
 c nucleus to deduce the lab recoil energy for these bins
+c
+c recoilGSmass: mass
 c
   220       recoilGSmass=nucmass(numZres,numNres)*amu
             do 230 iexfinal=nbbins,0,-1
@@ -409,6 +448,19 @@ c
               endif
 c
 c Determine ejectile energy to check if emission can occur
+c
+c EejCM: ejectile C.M. energy
+c PrecCM: C.M. recoil momentum 
+c vrecCM: C.M. recoil velocity 
+c vejeccm: C.M. ejectile velocity 
+c eejeclab: LAB ejectile energy 
+c vejeclab: LAB ejectile velocity 
+c Erecbin: recoil energy in bin
+c Erecamxloc: maximum recoil energy
+c derec: help variable
+c irecmaxmax: counter
+c preclab: momentum of recoil in LAB frame
+c vreclab: velocity of recoil in LAB frame
 c
               EejCM=ECMbin-EexCM(ifinal,iexfinal)
               EejCM=EejCM-S(numZcomp,numNcomp,type)
@@ -439,6 +491,9 @@ c
 c
 c Maximum recoil energy for each residual
 c
+c iexc: counter
+c Erecmaxloc: maximum recoil energy
+c
       do 240 ires=1,numrestot
         Erecmaxloc(ires)=0.
         numZres=numZN(ires,2)+numZN(ires,3)+numZN(ires,4)+
@@ -457,13 +512,14 @@ c
 c Finally the recoils energy grids are defined and maximum excitation
 c energies are stored
 c
+c io1: help variable
+c io2: help variable
+c io3: help variable
+c io4: help variable
+c io5: help variable
+c io6: help variable
+c
       do ires=1,numrestot
-        io1=numZN(ires,1)
-        io2=numZN(ires,2)
-        io3=numZN(ires,3)
-        io4=numZN(ires,4)
-        io5=numZN(ires,5)
-        io6=numZN(ires,6)
         numZres=numZN(ires,2)+numZN(ires,3)+numZN(ires,4)+
      +        2*(numZN(ires,5)+numZN(ires,6))
         numNres=numZN(ires,1)+numZN(ires,3)+numZN(ires,5)+
@@ -486,6 +542,8 @@ c
  460  continue
 c
 c ************* Creation of the area array for the recoils *************
+c
+c wnrj: width of recoil energy bin
 c
       do 500 iz=0,maxZ+2
         do 510 in=0,maxN+2

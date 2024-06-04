@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       character*72     line
       integer          infilecs,infiletr,infileang,infileleg,infilein,
-     +                 Zix,Nix,i,nJ,k,nS,lev,l,ispin,nSt,nL,ii,iSt,iang,
+     +                 Zix,Nix,i,nJ,k,nS,lev,l,ispin,nSt,nL,ii,ist,iang,
      +                 itype,istat
       real             groundspin2,rj,jres,factor,xsr,eps
       double precision xs,Tcoef,ddl,teps
@@ -21,6 +21,7 @@ c
 c flaginccalc: flag for new ECIS calculation for incident channel
 c infilecs   : file with total cross sections
 c infiletr   : file with transmission coefficients
+c infilein   : file with inelastic cross sections 
 c infileang  : file with angular distributions
 c infileleg  : file with Legendre coefficients
 c line       : line of ECIS-output
@@ -93,20 +94,20 @@ c
       eps=-1.e-3
       if (xselasinc.lt.eps.or.xsreacinc.lt.eps.or.xstotinc.lt.eps) then
         write(*,'(" TALYS-warning: Negative OMP cross section")')
-        write(*,'(" Elastic : ",1p,e12.5)') xselasinc
-        write(*,'(" Reaction: ",1p,e12.5)') xsreacinc
-        write(*,'(" Total   : ",1p,e12.5)') xstotinc
+        write(*,'(" Elastic : ",es12.5)') xselasinc
+        write(*,'(" Reaction: ",es12.5)') xsreacinc
+        write(*,'(" Total   : ",es12.5)') xstotinc
         if (xselasinc.lt.eps) then
           xselasinc=0.
-          write(*,'(" --> Elastic : ",1p,e12.5)') xselasinc
+          write(*,'(" --> Elastic : ",es12.5)') xselasinc
         endif
         if (xsreacinc.lt.eps) then
           xsreacinc=0.
-          write(*,'(" --> Reaction: ",1p,e12.5)') xsreacinc
+          write(*,'(" --> Reaction: ",es12.5)') xsreacinc
         endif
         if (xstotinc.lt.eps) then
           xstotinc=xselasinc+xsreacinc
-          write(*,'(" --> Total   : ",1p,e12.5)') xstotinc
+          write(*,'(" --> Total   : ",es12.5)') xstotinc
         endif
         xsoptinc=xsreacinc
       endif
@@ -247,6 +248,7 @@ c Legendre coefficients are also read.
 c
 c nSt     : number of states
 c nL      : number of Legendre coefficients
+c ist     : counter
 c i       : level number
 c l       : l-value
 c indexcc : level index for coupled channel
@@ -278,13 +280,14 @@ c
       read(infileang,'(55x,i5)') nSt
       read(infileang,'(12x,i3)') nS
       do 410 iang=0,nangle
-        do 410 k=1,nS
+        do 420 k=1,nS
           read(infileang,'(i3,12x,e12.5)',iostat=istat) itype,xs
-          if (istat.ne.0) goto 410
+          if (istat.ne.0) goto 420
           xsr=1.e38
           if (xs.le.1.e38) xsr=real(xs)
           if (itype.eq.0) directad(k0,Ltarget,iang)=xsr
           if (itype.eq.1) ruth(iang)=xsr
+  420   continue
   410 continue
 c
 c For coupled-channels calculations, we also read the discrete inelastic

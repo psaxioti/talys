@@ -11,8 +11,11 @@ c
 c ****************** Declarations and common blocks ********************
 c
 c x,y  : coordinates of the point to test
+c sideline: function to indicate if (x,y) is on one side of the segment
 c xs,ys: coordinates of the 1st point of the segment
 c xe,ye: coordinates of the 2nd point of the segment
+c xdlim: tolerance
+c ydlim: tolerance
 c a    : help variable
 c b    : help variable
 c

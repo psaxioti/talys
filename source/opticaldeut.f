@@ -49,6 +49,8 @@ c
 c deuteronomp=2 --> Global OMP of W.W. Daehnick, J.D. Childs, Z. Vrcelj,
 c Phys. Rev C21, 2253 (1980): relativistic case
 c
+c summu: sum over mu
+c
       if (deuteronomp.eq.2) then
         v=88.0+0.88*Z/A13-0.283*eopt
         rv=1.17

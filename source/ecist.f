@@ -45,18 +45,18 @@ c     parameter (idmx=600000)                                           ecis-027
 c     mr=5                                                              ecis-037
 c     mw=6                                                              ecis-038
       ms=8                                                              ecis-039
-      open(unit=1,status='unknown',file=ecisinp)                        ak000000
-      open(unit=2,status='unknown',file=ecisout)                        ak000000
+      open(unit=1,file=ecisinp,status='unknown')                        ak000000
+      open(unit=2,file=ecisout,status='unknown')                        ak000000
       if (eciscs.ne.'null         ')                                    ak000000
-     +  open(unit=58,status='unknown',file=eciscs)                      ak000000
+     +  open(unit=58,file=eciscs,status='unknown')                      ak000000
       if (ecisin.ne.'null         ')                                    ak000000
-     +  open(unit=59,status='unknown',file=ecisin)                      ak000000
+     +  open(unit=59,file=ecisin,status='unknown')                      ak000000
       if (ecistr.ne.'null         ')                                    ak000000
-     +  open(unit=63,status='unknown',file=ecistr)                      ak000000
+     +  open(unit=63,file=ecistr,status='unknown')                      ak000000
       if (ecisang.ne.'null         ')                                   ak000000
-     +  open(unit=66,status='unknown',file=ecisang)                     ak000000
+     +  open(unit=66,file=ecisang,status='unknown')                     ak000000
       if (ecisleg.ne.'null         ')                                   ak000000
-     +  open(unit=65,status='unknown',file=ecisleg)                     ak000000
+     +  open(unit=65,file=ecisleg,status='unknown')                     ak000000
       call calc(nw,cw,dw,idmx)                                          ecis-040
       close (unit=1)                                                    ak000000
       close (unit=2)                                                    ak000000

@@ -100,7 +100,7 @@ c flaginverse: flag for output of transmission coefficients and inverse
 c              reaction cross sections
 c inverseout : subroutine for reaction output for outgoing channels
 c
-      if (flagecisinp.and.invexist(Zcomp,Ncomp)) 
+      if (flagecisinp.and.invexist(Zcomp,Ncomp))
      +  call inverseread(Zcomp,Ncomp)
       call inversenorm(Zcomp,Ncomp)
       if (flaginverse) call inverseout(Zcomp,Ncomp)

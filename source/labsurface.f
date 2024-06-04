@@ -33,16 +33,38 @@ c ************************** Local variables ***************************
 c
 c recoilmode     : type of recoil calculation (1=most exact,2=simplest)
 c yy1,yy2,yy3    : help variables
-c yc1,yc2,yc3    : cosine of yy1,yy2,yy3
+c yc1            : cosine of yy1
+c yc2            : cosine of yy2
+c yc3            : cosine of yy3
 c sumsurf        : sum of partial surfaces
+c ixmin          : minimum x-loop index
 c ixmax          : maximum x-loop index
+c iymin          : minimum y-loop index
+c iymax          : maximum y-loop index
 c ix             : x-loop counter
-c xl,xu          : lower and upper x-bin coordinates
-c ix1,ix2,ix3    : index locating the summits in the x-axis grid
+c xl             : lower x-bin coordinates
+c xu             : upper x-bin coordinates
+c xl1            : lower x-bin coordinates
+c xu1            : upper x-bin coordinates
+c xl2            : lower x-bin coordinates
+c xu2            : upper x-bin coordinates
+c xl3            : lower x-bin coordinates
+c xu3            : upper x-bin coordinates
+c yl1            : lower y-bin coordinates
+c yu1            : upper y-bin coordinates
+c yl2            : lower y-bin coordinates
+c yu2            : upper y-bin coordinates
+c yl3            : lower y-bin coordinates
+c yu3            : upper y-bin coordinates
+c ix1            : index locating the summits in the x-axis grid
+c ix2            : index locating the summits in the x-axis grid
+c ix3            : index locating the summits in the x-axis grid
 c iymax          : maximum y-loop index
 c iy             : y-loop counter
 c yl,yu          : lower and upper y-bin coordinates
-c iy1,iy2,iy3    : index locating the summits in the y-axis grid
+c iy1            : index locating the summits in the y-axis grid
+c iy2            : index locating the summits in the y-axis grid
+c iy3            : index locating the summits in the y-axis grid
 c numbinscovered : total number of covered bins
 c oneovernumbins : help variable to improve speed
 c surfloc        : help variable to improve speed
@@ -91,6 +113,27 @@ c
 c We here calculate the lab angle resulting from the coupling
 c of the angle of the considered CM with respect to the beam axis
 c (angcm) with the emission angles in this CM.
+c
+c cos1: cos of angle
+c cos2: cos of angle
+c cos3: cos of angle
+c sin1: sin of angle
+c sin2: sin of angle
+c sin3: sin of angle
+c angle1: angle
+c angle2: angle
+c angle3: angle
+c yy2: help variable
+c yy3: help variable
+c is1: help variable
+c is2: help variable
+c is3: help variable
+c nt1: help variable
+c nt2: help variable
+c nt3: help variable
+c add1: help variable
+c add2: help variable
+c add3: help variable
 c
       ix1=1
       ix2=1
@@ -192,6 +235,17 @@ c
 c
 c yloop
 c
+c yl1: help variable
+c yl2: help variable
+c yu3: help variable
+c yu1: help variable
+c yu2: help variable
+c yl3: help variable
+c iy1: help variable
+c iy2: help variable
+c iy3: help variable
+c iysup: maximum y index
+c
    31   iymax=2*nanglecont+1
         do 40 iy=0,iymax
           yl1=-4.*nt1
@@ -263,6 +317,8 @@ c
 c
 c simplest approximation
 c
+c iystore: help variable
+c
         if (recoilmode.eq.2) then
           numbinscovered=(ixmax-ixmin+1)*(iysup-iymin+1)
           oneovernumbins=1./float(numbinscovered)
@@ -277,6 +333,8 @@ c
         endif
 c
 c GENERAL CASE
+c
+c nturn: general case
 c
         sumsurf=0.
         do 100 ix=ixmin,ixmax

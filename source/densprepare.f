@@ -238,6 +238,7 @@ c gamadjust: logical for energy-dependent gamma adjustment
 c adjust   : subroutine for energy-dependent parameter adjustment
 c factor   : multiplication factor
 c gnorm    : gamma normalization factor
+c gn0      : gamma normalization factor
 c fstrength: gamma ray strength function
 c
           if (type.eq.0) then
@@ -273,7 +274,10 @@ c egrid     : outgoing energy grid
 c ebegin    : first energy point of energy grid
 c eend      : last energy point of energy grid
 c locate    : subroutine to find value in ordered table
-c na,Ea,ta,.: help variables
+c na        : help variable
+c ta        : transmission coefficient
+c tb        : transmission coefficient
+c tc        : transmission coefficient
 c pol2      : subroutine for interpolation of second order
 c tint      : help variable
 c transeps  : absolute limit for transmission coefficient
@@ -355,6 +359,8 @@ c dExmin,dEx        : energy bin
 c elowest,elow,emid : help variables
 c dExhalf           : help variable
 c eintfis           : excitation energy for fission
+c ibin              : counter
+c ibk               : counter
 c parity            : parity
 c numJ              : maximal J-value
 c rhofis            : integrated level density

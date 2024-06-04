@@ -38,7 +38,7 @@ c
      +    " eciscalc y. Non-existent file: ",a13)') csfile
         stop
       endif
-      open (unit=3,status='unknown',file=csfile)
+      open (unit=3,file=csfile,status='unknown')
       do 10 type=1,6
         if (parskip(type)) goto 10
         do 20 nen=ebegin(type),eendmax(type)
@@ -89,7 +89,7 @@ c
 c For rotational nuclei, the rotational transmission
 c coefficients are transformed into into spherical equivalents.
 c
-      open (unit=7,status='unknown',file=transfile)
+      open (unit=7,file=transfile,status='unknown')
       do 110 type=1,6
         if (parskip(type)) goto 110
         Zix=Zindex(Zcomp,Ncomp,type)
@@ -208,7 +208,7 @@ c
         endif
   210 continue
       close (unit=7,status=ecisstatus)
-      open (unit=10,status='unknown',file='ecis.invin')
+      open (unit=10,file='ecis.invin',status='unknown')
       close (unit=10,status=ecisstatus)
       return
       end

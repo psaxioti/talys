@@ -18,6 +18,12 @@ c
 c
 c **********************************************************************
 c
+c tnm: help variable
+c bend: end of loop
+c nk  : help variable
+c jk  : help variable
+c del : difference
+c
       snew=0.0
       if (nk.eq.1) then
         snew=0.5*(bend-abeg)*(funcfismode(Zix,Nix,abeg)+

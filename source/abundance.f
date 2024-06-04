@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 10, 2012
+c | Date  : December 12, 2016
 c | Task  : Natural abundances
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       logical      lexist
       character*1  ch
-      character*4  abchar
+      character*7  abchar
       character*90 abfile
       integer      i,i2,ia
       real         ab,abtot
@@ -26,7 +26,6 @@ c abchar : help variable
 c Ztarget: charge number of target nucleus
 c Starget: symbol of target nucleus
 c path   : directory containing structure files to be read
-c lenpath: length of pathname
 c ia     : mass number from abundance table
 c abun,ab: isotopic abundance
 c isotope: isotope number of residual nucleus
@@ -54,15 +53,14 @@ c
 c
 c 2. Isotopic abundances from abundance directory
 c
-      abchar='z   '
-      write(abchar(2:4),'(i3.3)') Ztarget
-      abfile=path(1:lenpath)//'abundance/'//abchar
+      abchar=trim(nuc(Ztarget))//'.abun'
+      abfile=trim(path)//'abundance/'//abchar
       inquire (file=abfile,exist=lexist)
       if (.not.lexist) goto 200
 c
 c Read abundances from file
 c
-  100 open (unit=2,status='old',file=abfile)
+  100 open (unit=2,file=abfile,status='old')
       i=1
   110 read(2,'(4x,i4,f11.6)',end=120,err=210) ia,ab
       isotope(i)=ia
@@ -103,4 +101,4 @@ c
      +  abfile
       stop
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

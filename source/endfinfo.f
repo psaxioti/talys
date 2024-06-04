@@ -33,8 +33,10 @@ c flagendfdet: flag for detailed ENDF-6 information per channel
 c Nrescue    : number of energies for adjustment factors
 c flagrecoil : flag for calculation of recoils
 c flagurrendf: flag for URR info to ENDF
+c endfenergyfile: file with energies for ENDF file
+c flagel     : flag for elastic scattering
 c
-      open (unit=1,status='unknown',file='tefal.inf')
+      open (unit=1,file='tefal.inf',status='replace')
       write(1,'(i3,"       : projectile type")') k0
       write(1,'(i3,"       : Z of target")') Ztarget
       write(1,'(i3,"       : A of target")') Atarget
@@ -44,9 +46,9 @@ c
       write(1,'(2i4,"  : level and isomeric number of target")')
      +  Ltarget,Liso
       endfenergyfile='energies.endf'
-      open (unit=2,status='unknown',file=endfenergyfile)
+      open (unit=2,file=endfenergyfile,status='replace')
       do 10 nen=1,numinc
-        write(2,'(1pe12.5)') eninc(nen)
+        write(2,'(es12.5)') eninc(nen)
    10 continue
       close (unit=2)
       write(1,'(i3,"       : number of incident energies")') numinc

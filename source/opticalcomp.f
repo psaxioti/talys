@@ -198,6 +198,56 @@ c
 c altomp     : flag for alternative optical model
 c deuteronomp: deuteron optical model
 c alphaomp   : alpha optical model
+c rvdkd: optical model parameter
+c rvdn : optical model parameter
+c rvdp : optical model parameter
+c rvsokd: optical model parameter
+c rvson : optical model parameter
+c rvsop : optical model parameter
+c rvn : optical model parameter
+c rvp : optical model parameter
+c rwn : optical model parameter
+c rwp : optical model parameter
+c rwsokd : optical model parameter
+c rwdkd : optical model parameter
+c rwkd : optical model parameter
+c rwsokd : optical model parameter
+c rvdkd: optical model parameter
+c avdn : optical model parameter
+c avdp : optical model parameter
+c avsokd: optical model parameter
+c avson : optical model parameter
+c avsop : optical model parameter
+c avn : optical model parameter
+c avp : optical model parameter
+c awn : optical model parameter
+c awp : optical model parameter
+c awsokd : optical model parameter
+c awdkd : optical model parameter
+c awkd : optical model parameter
+c awsokd : optical model parameter
+c vdkd: optical model parameter
+c vdn : optical model parameter
+c vdp : optical model parameter
+c vsokd: optical model parameter
+c vson : optical model parameter
+c vsop : optical model parameter
+c vn : optical model parameter
+c vp : optical model parameter
+c wn : optical model parameter
+c wp : optical model parameter
+c wdn : optical model parameter
+c wdp : optical model parameter
+c vkd : optical model parameter
+c rvkd : optical model parameter
+c avkd : optical model parameter
+c avdkd : optical model parameter
+c wsokd : optical model parameter
+c wdkd : optical model parameter
+c wkd : optical model parameter
+c wsokd : optical model parameter
+c rckd  : optical model parameter
+c Efrac : fractional energy
 c
       if (altomp(k)) then
         vkd=v

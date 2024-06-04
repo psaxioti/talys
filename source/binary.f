@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : July 17, 2014
+c | Date  : December 13, 2016
 c | Task  : Binary reaction results
 c +---------------------------------------------------------------------
 c
@@ -116,8 +116,8 @@ c
           do 50 nex=NL+1,maxex(Zix,Nix)
             xspopex(Zix,Nix,nex)=xspopex(Zix,Nix,nex)+
      +        preeqpopex(Zix,Nix,nex)
-            do 50 parity=-1,1,2
-              do 50 J=0,maxJph
+            do 60 parity=-1,1,2
+              do 60 J=0,maxJph
                 xspop(Zix,Nix,nex,J,parity)=
      +            xspop(Zix,Nix,nex,J,parity)+
      +            preeqpop(Zix,Nix,nex,J,parity)
@@ -299,7 +299,7 @@ c
         write(*,'(/" ########## BINARY CHANNELS ###########")')
         write(*,'(/" ++++++++++ BINARY CROSS SECTIONS ++++++++++"/)')
         if (flagfission)
-     +    write(*,'(" fission  channel",23x,":",1p,e12.5)')
+     +    write(*,'(" fission  channel",23x,":",es12.5)')
      +    xsbinary(-1)
         do 310 type=0,6
           if (parskip(type)) goto 310
@@ -307,13 +307,13 @@ c
           N=NN(0,0,type)
           A=AA(0,0,type)
           write(*,'(1x,a8," channel to Z=",i3," N=",i3," (",i3,a2,
-     +      "):",1p,e12.5)') parname(type),Z,N,A,nuc(Z),xsbinary(type)
+     +      "):",es12.5)') parname(type),Z,N,A,nuc(Z),xsbinary(type)
   310   continue
         if (flagspec) then
           write(*,'(/" Binary emission spectra"/)')
           write(*,'("  Energy ",7(2x,a8,2x)/)') (parname(type),type=0,6)
           do 320 nen=ebegin(0),eendhigh
-            write(*,'(1x,f8.3,1p,7e12.5)') egrid(nen),
+            write(*,'(1x,f8.3,7es12.5)') egrid(nen),
      +        (xsbinemis(type,nen),type=0,6)
   320     continue
         endif
@@ -325,7 +325,7 @@ c
      +      " Average emission energy"/)')
           do 330 type=0,6
             if (parskip(type)) goto 330
-            write(*,'(1x,a8,1p,3(10x,e12.5),0p,10x,f8.3)')
+            write(*,'(1x,a8,3(10x,es12.5),10x,f8.3)')
      +        parname(type),
      +        xscompcont(type)+xspreeqtot(type)+xsgrtot(type),
      +        binemissum(type),binnorm(type),Eaverage(type)
@@ -344,7 +344,7 @@ c
           if (xspopnuc(Zix,Nix).eq.0.) goto 340
           odd=mod(A,2)
           write(*,'(/" Population of Z=",i3," N=",i3,
-     +      " (",i3,a2,") after binary ",a8," emission:",1p,e12.5)')
+     +      " (",i3,a2,") after binary ",a8," emission:",es12.5)')
      +      Z,N,A,nuc(Z),parname(type),xspopnuc(Zix,Nix)
           if (maxex(Zix,Nix).gt.NL) then
             write(*,'(" Maximum excitation energy:",f8.3,
@@ -358,7 +358,7 @@ c
           write(*,'(" bin    Ex    Popul. ",5("   J=",f4.1,"-   J=",
      +      f4.1,"+")/)') (J+0.5*odd,J+0.5*odd,J=0,4)
           do 350 nex=0,maxex(Zix,Nix)
-            write(*,'(1x,i3,f8.3,1p,11e10.3)') nex,Ex(Zix,Nix,nex),
+            write(*,'(1x,i3,f8.3,11es10.3)') nex,Ex(Zix,Nix,nex),
      +        xspopex(Zix,Nix,nex),((xspop(Zix,Nix,nex,J,parity),
      +        parity=-1,1,2),J=0,4)
   350     continue
@@ -385,4 +385,4 @@ c
       if (flagrecoil) call binaryrecoil
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

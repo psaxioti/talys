@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : October 10, 2014
+c | Date  : December 12, 2016
 c | Task  : Level density parameters
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical          lexist,inpalev,inpdeltaW,inpalimit,inpgammald
-      character*4      denchar
+      character*5      denchar
       character*22     denformat
       character*90     denfile
       integer          Zix,Nix,Z,N,A,ldmod,ia,Nlow0,Ntop0,ibar,imax,
@@ -47,18 +47,22 @@ c denfile     : level density parameter file
 c path        : directory containing structure files to be read
 c flagcol     : flag for collective enhancement of level density
 c ia          : mass number from level density table
-c Nlow0,..    : help variables
+c Nlow0       : help variables
 c ldparexist  : flag for existence of tabulated level density parameters
 c Nlow        : lowest discrete level for temperature matching
 c Ntop        : highest discrete level for temperature matching
+c Ntop0       : highest discrete level for temperature matching
 c flagasys    : flag for all level density parameters a from systematics
 c alev        : level density parameter
+c ald0        : level density parameter
 c aadjust...  : adjustable factors for level density parameters
 c               (default 1.)
 c Pshift      : adjustable pairing shift
+c pshift0     : adjustable pairing shift
 c Pshiftadjust: adjustable correction to pairing shift
 c ctable      : constant to adjust tabulated level densities
 c ptable      : constant to adjust tabulated level densities
+c denformat   : format specifier
 c
 c Level density parameters from the table can always be overruled
 c by values given in the input file. With flagasys, all experimental
@@ -66,20 +70,16 @@ c level density parameters a from the table can be overruled by the
 c systematics.
 c We allow a maximum of Ntop=50
 c
-      denchar='z   '
-      write(denchar(2:4),'(i3.3)') Z
-      if (ldmod.eq.1)
-     +  denfile=path(1:lenpath)//'density/ground/ctm/'//denchar
-      if (ldmod.eq.2)
-     +  denfile=path(1:lenpath)//'density/ground/bfm/'//denchar
-      if (ldmod.eq.3)
-     +  denfile=path(1:lenpath)//'density/ground/gsm/'//denchar
+      denchar=trim(nuc(Z))//'.ld'
+      if (ldmod.eq.1) denfile=trim(path)//'density/ground/ctm/'//denchar
+      if (ldmod.eq.2) denfile=trim(path)//'density/ground/bfm/'//denchar
+      if (ldmod.eq.3) denfile=trim(path)//'density/ground/gsm/'//denchar
       if (ldmod.eq.4)
-     +  denfile=path(1:lenpath)//'density/ground/goriely/'//denchar
+     +  denfile=trim(path)//'density/ground/goriely/'//denchar
       if (ldmod.eq.5)
-     +  denfile=path(1:lenpath)//'density/ground/hilaire/'//denchar
+     +  denfile=trim(path)//'density/ground/hilaire/'//denchar
       if (ldmod.eq.6)
-     +  denfile=path(1:lenpath)//'density/ground/hilaireD1M/'//denchar
+     +  denfile=trim(path)//'density/ground/hilaireD1M/'//denchar
       inquire (file=denfile,exist=lexist)
       if (.not.lexist) goto 30
       if (flagcol(Zix,Nix).and.ldmod.le.3) then
@@ -87,7 +87,7 @@ c
       else
         denformat='(4x,3i4,2f12.5)'
       endif
-      open (unit=2,status='old',file=denfile)
+      open (unit=2,file=denfile,status='old')
    10 read(2,fmt=denformat,end=30) ia,Nlow0,Ntop0,ald0,pshift0
       if (A.ne.ia) goto 10
       ldparexist(Zix,Nix)=.true.
@@ -131,6 +131,7 @@ c Determine spin cut-off parameter for discrete level region
 c
 c scutoffsys  : spin cutoff factor for discrete level from systematics
 c scutoffdisc : spin cutoff factor for discrete level region
+c sd          : spin cutoff factor for discrete level region
 c imin,imax   : help variables
 c Ediscrete   : energy of middle of discrete level region
 c edis        : energy of level
@@ -203,7 +204,7 @@ c
         inpalev=.false.
       else
         inpalev=.true.
-        if (ldmod.eq.3.and.alimit(Zix,Nix).eq.0.) 
+        if (ldmod.eq.3.and.alimit(Zix,Nix).eq.0.)
      +    alimit(Zix,Nix)=alev(Zix,Nix)
       endif
       inpdeltaW=.true.
@@ -313,6 +314,7 @@ c factor   : help variable
 c aldcrit  : critical level density parameter
 c S        : separation energy per particle
 c fU,factor: help variables
+c difprev  : difference with previous result
 c Econd    : condensation energy
 c Ucrit    : critical U
 c Scrit    : critical entropy
@@ -438,4 +440,4 @@ c
       gp(Zix,Nix)=gpadjust(Zix,Nix)*gp(Zix,Nix)
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

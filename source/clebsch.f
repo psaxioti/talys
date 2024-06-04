@@ -29,6 +29,17 @@ c
 c
 c Convert the arguments to integer
 c
+c numfac: number of terms for factorial logarithm
+c aj1: J value
+c aj2: J value
+c aj3: J value
+c j1: J value
+c j2: J value
+c j3: J value
+c m1: m value
+c m2: m value
+c m3: m value
+c
       j1 = int(2.*aj1 + eps)
       j2 = int(2.*aj2 + eps)
       j3 = int(2.*aj3 + eps)
@@ -58,6 +69,9 @@ c
 c
 c Check i(j) = even, triangular inequality, m less than j,
 c find number of terms
+c
+c la: help variable
+c lb: help variable
 c
       do j=1,9
         k = i(j)/2
@@ -100,6 +114,11 @@ c
         else
 c
 c Form sum
+c
+c h: help variable
+c q: help variable
+c t: help variable
+c s: help variable
 c
           a = j1 - 1
           b = j2 - 1

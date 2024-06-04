@@ -18,12 +18,15 @@ c
 c We use the model of HRTW (1975), revised in 1980.
 c
 c tjl             : transmission coefficients
-c na,nb           : counters for width fluctuation calculation
+c na              : counter for width fluctuation calculation
+c nb              : counter for width fluctuation calculation
 c st              : denominator of compound nucleus formula
+c sv              : variable for width fluctuation
 c res             : width fluctuation factor
 c numtr           : number of transmission coefficients
 c ielas           : designator for elastic channel
 c dab,tt,sv,w,res1: help variables
+c tt              : term with transmission coefficients
 c
       dab=0.
       if (ielas.eq.1) dab=1.

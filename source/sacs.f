@@ -32,29 +32,32 @@ c Ethrexc   : threshold incident energy for exclusive channel
 c Emax      : energy at maximum
 c xsmax     : maximum cross sections
 c Ea,Eb,....: help variables
+c Eh1       : help variable
+c Eh2       : help variable
+c xshalf    : cross section at half maximum
 c Ewidth    : full width at half maximum
 c
-      open (unit=1,status='unknown',file='sacs.dat')
+      open (unit=1,file='sacs.dat',status='replace')
       write(1,'("# ",a1," + ",i3,a2,
      +  ": Statistical analysis of cross sections")')
      +  parsym(k0),Atarget,Starget
       write(1,'("# Z   A     channel    E-thresh.   Emax    ",
      +  " xsmax    width ")')
       do 10 npart=0,maxchannel
-      do 10 ia=0,numia
-      do 10 ih=0,numih
-      do 10 it=0,numit
-      do 10 id=0,numid
-      do 10 ip=0,numip
-      do 10 in=0,numin
-        if (in+ip+id+it+ih+ia.ne.npart) goto 10
-        if (.not.chanopen(in,ip,id,it,ih,ia)) goto 10
+      do 11 ia=0,numia
+      do 12 ih=0,numih
+      do 13 it=0,numit
+      do 14 id=0,numid
+      do 15 ip=0,numip
+      do 16 in=0,numin
+        if (in+ip+id+it+ih+ia.ne.npart) goto 16
+        if (.not.chanopen(in,ip,id,it,ih,ia)) goto 16
         ident=100000*in+10000*ip+1000*id+100*it+10*ih+ia
         do 20 idc=0,idnum
           if (idchannel(idc).eq.ident) then
             xsfile='xs000000.tot'
             write(xsfile(3:8),'(6i1)') in,ip,id,it,ih,ia
-            open (unit=3,status='old',file=xsfile,iostat=istat)
+            open (unit=3,file=xsfile,status='old',iostat=istat)
             if (istat.eq.0) then
               Exs(0)=0.
               xs(0)=0.
@@ -93,11 +96,17 @@ c
                 endif
    50         continue
    60         if (Eh1.gt.0..and.Eh2.gt.0.) Ewidth=Eh2-Eh1
-              write(1,'(2i4,1x,a15,2f8.3,1p,e12.5,0p,f10.3)') 
+              write(1,'(2i4,1x,a15,2f8.3,es12.5,f10.3)')
      +          Ztarget,Atarget,xsfile,Ethrexcl(idc,0),Emax,xsmax,Ewidth
             endif
           endif
    20   continue
+   16 continue
+   15 continue
+   14 continue
+   13 continue
+   12 continue
+   11 continue
    10 continue
       close (unit=1)
       return

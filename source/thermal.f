@@ -35,7 +35,12 @@ c ratio        : ratio thermal/first energy for gamma capture
 c xscaptherm   : thermal capture cross section
 c xsptherm     : thermal (n,p) cross section
 c xsalphatherm : thermal (n,a) cross section
+c xsp1     : (n,p) cross section
+c xspres   : (n,p) cross section in resonance region
+c xsalpha1     : (n,a) cross section
+c xsalphares   : (n,a) cross section in resonance region
 c ratiores     : ratio start of resonance region/first energy
+c Rres     : ratio start of resonance region/first energy
 c ratiop       : ratio thermal/first energy for proton
 c ratioresp    : ratio start of resonance region/first energy
 c ratioalpha   : ratio thermal/first energy for proton
@@ -134,6 +139,7 @@ c Ethrexc      : threshold incident energy for exclusive channel
 c idchannel    : identifier for exclusive channel
 c xseps        : limit for cross sections
 c xsalog       : help variable
+c xsres        : cross section at start of resonance region
 c xsreslog     : cross section at start of resonance region
 c pol1         : subroutine for interpolation of first order
 c fxsratio     : ratio of exclusive cross section over residual
@@ -210,12 +216,12 @@ c
               fxsgamchannel(nen,idc)=xs
             endif
             do 150 i1=1,numlev
-              do 150 i2=0,i1
+              do 155 i2=0,i1
                 xsa=xsgamdischan(idc,i1,i2)
-                if (xsa.lt.xseps) goto 150
+                if (xsa.lt.xseps) goto 155
                 if (eninc(nen).gt.E1v) then
                   xsres=xsa*Rres
-                  if (xsres.le.0..or.xsa.le.0.) goto 150
+                  if (xsres.le.0..or.xsa.le.0.) goto 155
                   xsalog=log(xsa)
                   xsreslog=log(xsres)
                   call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -224,6 +230,7 @@ c
                   xs=xsa*R*Eratio
                   fxsgamdischan(nen,idc,i1,i2)=xs
                 endif
+  155         continue
   150       continue
   120     continue
         endif
@@ -277,12 +284,12 @@ c fxsbranch: branching ratio for isomeric cross section
 c flagastro: flag for calculation of astrophysics reaction rate
 c
         do 310 Zcomp=0,maxZ
-          do 310 Ncomp=0,maxN
+          do 315 Ncomp=0,maxN
             fxspopnuc(nen,Zcomp,Ncomp)=0.
-            if (eninc(nen).le.Ethresh(Zcomp,Ncomp,0)) goto 310
-            if (Zcomp.eq.parZ(k0).and.Ncomp.eq.parN(k0)) goto 310
+            if (eninc(nen).le.Ethresh(Zcomp,Ncomp,0)) goto 315
+            if (Zcomp.eq.parZ(k0).and.Ncomp.eq.parN(k0)) goto 315
             xsa=xspopnuc(Zcomp,Ncomp)
-            if (xsa.lt.xseps) goto 310
+            if (xsa.lt.xseps) goto 315
             R=ratio
             Rres=ratiores
             if (Zcomp.eq.1.and.Ncomp.eq.0) then
@@ -295,7 +302,7 @@ c
             endif
             if (eninc(nen).gt.E1v) then
               xsres=xsa*Rres
-              if (xsres.le.0..or.xsa.le.0.) goto 310
+              if (xsres.le.0..or.xsa.le.0.) goto 315
               xsalog=log(xsa)
               xsreslog=log(xsres)
               call pol1(Ereslog,ealog,xsreslog,xsalog,elog,xs)
@@ -324,8 +331,9 @@ c
               endif
               fxsbranch(nen,Zcomp,Ncomp,nex)=xsbranch(Zcomp,Ncomp,nex)
   320       continue
-            if (flagastro) xsastro(Zcomp,Ncomp,nen)=
-     +        fxspopnuc(nen,Zcomp,Ncomp)
+            if (flagastro.and.Zcomp.le.numZastro.and.Ncomp.le.numNastro)
+     +        xsastro(Zcomp,Ncomp,nen)=fxspopnuc(nen,Zcomp,Ncomp)
+  315     continue
   310   continue
 c
 c Reactions to discrete states

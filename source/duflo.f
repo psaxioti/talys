@@ -23,6 +23,18 @@ c Calculation of binding energy E (nx neutrons,nz protons)
       data b/0.7043,17.7418,16.2562,37.5562,53.9017,0.4711,2.1307,
      &       0.0210,40.5356,6.0632/
 c*********
+c
+c dei: Duflo-Zuker parameter
+c dyda: Duflo-Zuker parameter
+c oei: Duflo-Zuker parameter
+c omp: Duflo-Zuker parameter
+c op: Duflo-Zuker parameter
+c onp: Duflo-Zuker parameter
+c os: Duflo-Zuker parameter
+c pp: Duflo-Zuker parameter
+c qx: Duflo-Zuker parameter
+c noc: Duflo-Zuker parameter
+c 
       nn(1)=nx
       nn(2)=nz
       a=nx+nz
@@ -101,7 +113,7 @@ c--------
           pi=ip
           den=((pi+1)*(pi+2))**(3./2.)
           op(j)=op(j)+onp(ip,1,j)                                ! FM
-          os(j)=os(j)+onp(ip,2,j)*(1.+onp(ip,1,j))*(pi*pi/den)   
+          os(j)=os(j)+onp(ip,2,j)*(1.+onp(ip,1,j))*(pi*pi/den)
      &               +onp(ip,2,j)*(1.-onp(ip,1,j))*((4*pi-5)/den) ! SO
         enddo
         op(j)=op(j)*op(j)

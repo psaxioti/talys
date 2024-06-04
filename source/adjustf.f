@@ -23,7 +23,9 @@ c en2        : end energy of local adjustment
 c Dr         : depth of local adjustment
 c sr         : variance of local adjustment
 c offset     : offset to guarantee continuity
-c elow,eup,..: help variables
+c elow       : help variable
+c emid       : help variable
+c eup        : help variable
 c
       factor=1.
       do 10 nr=1,nrange

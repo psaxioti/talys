@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Arjan Koning
-c | Date  : March 5, 2014
+c | Date  : December 15, 2016
 c | Task  : Normalization of gamma ray strength functions
 c +---------------------------------------------------------------------
 c
@@ -24,6 +24,7 @@ c
 c Zcomp       : charge number index for compound nucleus
 c Ncomp       : neutron number index for compound nucleus
 c gnorm       : gamma normalization factor
+c gn          : gamma normalization factor
 c gamgamadjust: adjustable factor for radiative parameters
 c gamgam      : total radiative width
 c gamgamth    : theoretical total radiative width
@@ -41,12 +42,12 @@ c gammax      : number of l-values for gamma multipolarity
 c Tgamma      : gamma transmission coefficient
 c twopi       : 2.*pi
 c fstrength   : gamma ray strength function
-c Tjl         : transmission coefficients as a function of 
+c Tjl         : transmission coefficients as a function of
 c               particle type, energy, spin and l-value
 c
       if (gnorm.eq.-1.) then
-        if (gamgamth(Zcomp,Ncomp).ne.0.) then
-          gnorm=gamgam(Zcomp,Ncomp)/gamgamth(Zcomp,Ncomp)
+        if (gamgamth(Zcomp,Ncomp,0).ne.0.) then
+          gnorm=gamgam(Zcomp,Ncomp)/gamgamth(Zcomp,Ncomp,0)
         else
           gnorm=1.
         endif
@@ -77,4 +78,4 @@ c
    10 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

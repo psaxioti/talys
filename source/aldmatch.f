@@ -63,11 +63,18 @@ c
 c aldacc      : accuracy
 c ald1,ald2   : boundary values for search
 c ald         : level density parameter
+c dald        : difference in level density parameter
+c fdiff       : difference in level density
 c spincut     : spin cutoff factor
 c sigma,rhonew: help variables
-c rfit,isgn   : help variables
+c rfit        : help variable
+c aldmid      : help variable
+c fmid        : help variable
+c sigmamid    : help variable
+c isgn        : help variable
 c sqrttwopi   : sqrt(2.*pi)
 c aldmatch    : function to determine effective level density parameter
+c jmax        : maximum j-value
 c
       aldacc=0.001
       ald1=0.5*aldref

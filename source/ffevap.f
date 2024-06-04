@@ -2,17 +2,18 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 1, 2015
+c | Date  : December 16, 2016
 c | Task  : Evaporation of fission fragments
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer iz,ia,Zix,Nix,nex,type,nen,npar,in,ih,it,id,ip,
-     +        ident,idc,iaa,inn
+      integer iz,ia,Zix,Nix,izp,inp,iap,nex,nex0,type,nen,npar,in,ih,it,
+     +        id,ip,ident,idc,iaa,inn,nen2
       real    xsexcpart(0:numpar,numin),sumpost,sumpfns,Esumpfns,E,Eav,
-     +        fiseps,maxwell,summax,dE,xsc,yZA,yA
+     +        fiseps,maxwell,summax,dE,xsc,yZA,yA,spec,sum,fac,Ecm,
+     +        Ekintot,Ekinff,Eb,Ee,sqrtEkinff,sqrtE
 c
 c ********************** Loop over fission fragments *******************
 c
@@ -28,46 +29,71 @@ c
       enddo
       fiseps=Rfiseps*xsfistot
       write(*,'(/" ########## Start of loop over fission fragments"/)')
+c
+c Use Viola systematics for first order guess of kinetic energy of FF
+c
+      Ekintot=0.1189*Ztarget0*Ztarget0/((Atarget0+1)**onethird)+7.3
       do 20 ia=1,Atarget0
         do 30 iz=1,Ztarget0
           in=ia-iz
           if (in.lt.1.or.in.gt.numneu) goto 30
           if (xsfpZApre(iz,in).lt.fiseps.and..not.fpexist(iz,in))
      +      goto 30
+          Ekinff=real(ia)/(Atarget0-ia)*Ekintot/Atarget0
+          sqrtEkinff=sqrt(Ekinff)
           Aff=ia
           Zff=iz
           call evaptalys
 c
 c Add fission product cross sections
 c
+c iap: mass number
+c izp: chanrge number
+c inn: neutron number
+c Eav: average energy
+c Ecm: C.M. energy
+c Ee: energy
+c Ekinff: kinetic energy of F.F.
+c
           do 110 Zix=0,maxZ
             do 120 Nix=0,maxN
-              xsfpZApost(iz,in)=xsfpZApost(iz,in)+xspopnuc(Zix,Nix)
-              xsfpApost(ia)=xsfpApost(ia)+xspopnuc(Zix,Nix)
+              izp=iz-Zix
+              inp=in-Nix
+              iap=izp+inp
+              xsfpZApost(izp,inp)=xsfpZApost(izp,inp)+xspopnuc(Zix,Nix)
+              xsfpApost(iap)=xsfpApost(iap)+xspopnuc(Zix,Nix)
               do 130 nex=0,Nlast(Zix,Nix,0)
-                if (nex.eq.0.or.tau(Zix,Nix,nex).ne.0.) 
-     +            xsfpex(iz,in,nex)=xsfpex(iz,in,nex)+
+                if (nex.eq.0.or.tau(Zix,Nix,nex).ne.0.) then
+                  nex0=min(nex,1)
+                  xsfpex(izp,inp,nex0)=xsfpex(izp,inp,nex0)+
      +            xspopex(Zix,Nix,nex)
+                endif
   130         continue
   120       continue
   110     continue
 c
 c Add prompt fission particle and gamma production and spectra
 c
+c npar: counter
+c iaa: counter
+c yA : pre-neutron emission mass yield
+c xsexcpart: partial cross section
+c yZA : pre-neutron emission isotopic yield
+c
           if (xsinitpop.gt.0.) then
-            do 202 npar=1,numin
-              do 204 type=0,6
+            do 201 npar=1,numin
+              do 202 type=0,6
                 xsexcpart(type,npar)=0.
-  204         continue
-              do 206 iaa=0,numia
-              do 206 ih=0,numih
-              do 206 it=0,numit
+  202         continue
+              do 203 iaa=0,numia
+              do 204 ih=0,numih
+              do 205 it=0,numit
               do 206 id=0,numid
-              do 206 ip=0,numip
-              do 206 inn=0,numin
-                if (inn+ip+id+it+ih+iaa.ne.npar) goto 206
+              do 207 ip=0,numip
+              do 208 inn=0,numin
+                if (inn+ip+id+it+ih+iaa.ne.npar) goto 208
                 ident=100000*inn+10000*ip+1000*id+100*it+10*ih+iaa
-                do 208 idc=0,idnum
+                do 209 idc=0,idnum
                   if (idchannel(idc).eq.ident) then
                     xsc=xschannel(idc)
                     if (inn.gt.0) xsexcpart(1,inn)=xsexcpart(1,inn)+xsc
@@ -77,9 +103,14 @@ c
                     if (ih.gt.0) xsexcpart(5,ih)=xsexcpart(5,ih)+xsc
                     if (iaa.gt.0) xsexcpart(6,iaa)=xsexcpart(6,iaa)+xsc
                   endif
-  208           continue
+  209           continue
+  208         continue
+  207         continue
   206         continue
-  202       continue
+  205         continue
+  204         continue
+  203         continue
+  201       continue
             yA=yieldApre(ia)
             yZA=yieldZApre(iz,in)
             do 210 type=0,6
@@ -91,7 +122,24 @@ c
      +              xsexcpart(type,npar)/xsinitpop
   220           continue
                 do 230 nen=0,numen2
-                  pfns(type,nen)=pfns(type,nen)+yZA*xssumout(type,nen)
+                  if (type.eq.0) then
+                    spec=xssumout(type,nen)
+                  else
+                    sum=0.
+                    E=espec(type,nen)
+                    sqrtE=sqrt(E)
+                    Eb=(sqrtE-sqrtEkinff)**2
+                    Ee=(sqrtE+sqrtEkinff)**2
+                    fac=1./(4.*sqrtEkinff)
+                    do 240 nen2=1,numen2
+                      Ecm=espec(type,nen2)
+                      if (Ecm.le.Eb.or.Ecm.ge.Ee) goto 240
+                      dE=espec(type,nen2)-espec(type,nen2-1)
+                      sum=sum+xssumout(type,nen2)/sqrt(Ecm)*dE
+  240               continue
+                    spec=sum*fac
+                  endif
+                  pfns(type,nen)=pfns(type,nen)+yZA*spec
   230           continue
               endif
   210       continue
@@ -101,6 +149,16 @@ c
       write(*,'(/" ########## End of loop over fission fragments"/)')
 c
 c Average energy and relation to Maxwellian
+c
+c Ekintot: total kinetic energy
+c Esumpfns: integrated PFNS
+c maxwell: Maxwell distribution
+c sumpfns: integrated PFNS
+c sumpost: sum over post-neutron FP's
+c sqrtE: square root of energy
+c sqrtEkinff: square root of kinetic energy of FF's
+c summax : integral over Maxwellian
+c spec  : spectrum
 c
       do 290 type=0,6
         sumpfns=0.
@@ -128,7 +186,7 @@ c
           E=espec(type,nen)
           Eav=Eavpfns(type)
           maxwell=sqrt(E)*exp(-E/Eav)
-          if (maxwell.gt.0..and.sumpfns.gt.0.) 
+          if (maxwell.gt.0..and.sumpfns.gt.0.)
      +      maxpfns(type,nen)=pfns(type,nen)/maxwell*summax/sumpfns
   296   continue
   290 continue
@@ -147,9 +205,16 @@ c
             if (xsfpZApost(iz,in).eq.0.) goto 330
             yieldZApost(iz,in)=xsfpZApost(iz,in)/sumpost
             yieldApost(ia)=yieldApost(ia)+yieldZApost(iz,in)
-            yieldnpost(in)=yieldnpost(in)+yieldZApost(iz,in)
+            yieldNpost(in)=yieldNpost(in)+yieldZApost(iz,in)
             xsfptotpost=xsfptotpost+xsfpZApost(iz,in)
             yieldtotpost=yieldtotpost+yieldZApost(iz,in)
+            if (xsfpex(iz,in,1).gt.0.) then
+              do 340 nex=0,1
+                yieldfpex(iz,in,nex)=xsfpex(iz,in,nex)/sumpost
+                if (yieldZApost(iz,in).gt.0.) fpratio(iz,in,nex)=
+     +            yieldfpex(iz,in,nex)/yieldZApost(iz,in)
+  340         continue
+            endif
   330     continue
   320   continue
       endif
@@ -172,11 +237,11 @@ c
       if (flagracap) call racapinit
       if (flagcomp) call compoundinit
       if (flagastro) call astroinit
-c 
+c
 c Output
 c
       call massdisout
       call nubarout
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

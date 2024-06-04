@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 1, 2012
+c | Date  : December 15, 2016
 c | Task  : Theoretical calculation of average neutron spacings
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,8 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer          Zix,Nix,l,J,Nres,L0,tspin2,tpar,parspin2i,J2b,
-     +                 J2e,parity,J2,jj2beg,jj2end,jj2,l2beg,l2end,l2
+     +                 J2e,parity,J2,jj2beg,jj2end,jj2,l2beg,l2end,l2,
+     +                 lmaxdth
       real             E,tspin
       double precision rho(0:numl,0:numJ),rhosum,density
 c
@@ -30,12 +31,15 @@ c tspin    : target spin
 c jdis     : spin of level
 c tspin2   : 2 * target spin
 c tpar     : target parity
+c L0       : excited level of target
 c parlev   : parity of level
 c parspin2i: 2 * particle spin for incident channel
 c parspin  : spin of incident particle
 c k0       : index of incident particle
 c J2b      : 2 * start of J summation
 c J2e      : 2 * end of J summation
+c lmaxdth  : maximal l-value for transmission coefficients for
+c            incident channel
 c lmaxinc  : maximal l-value for transmission coefficients for
 c            incident channel
 c parity   : parity
@@ -68,8 +72,9 @@ c
       tspin2=int(2.*jdis(Zix,Nres,L0))
       tpar=parlev(Zix,Nres,L0)
       parspin2i=1
+      lmaxdth=max(lmaxinc,5)
       J2b=mod(int(2.*(tspin+0.5)),2)
-      J2e=int(2*(lmaxinc+0.5+tspin))
+      J2e=int(2*(lmaxdth+0.5+tspin))
       J2e=min(J2e,2*numJ)
       do 110 parity=-1,1,2
         pardif=abs(tpar-parity)/2
@@ -80,7 +85,7 @@ c
           do 130 jj2=jj2beg,jj2end,2
             l2beg=abs(jj2-parspin2i)
             l2end=jj2+parspin2i
-            l2end=min(l2end,2*lmaxinc)
+            l2end=min(l2end,2*lmaxdth)
             do 140 l2=l2beg,l2end,2
               l=l2/2
               if (mod(l,2).ne.pardif) goto 140
@@ -100,4 +105,4 @@ c
   150 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,14 +2,15 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 18, 2014
+c | Date  : May 23, 2017
 c | Task  : Decay data
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*4  decaychar
+      logical      lexist
+      character*8  decaychar
       character*80 decayfile,string
       integer      Zix,Z,Nbegin,Nend,Abegin,Aend,N,Nix,ia,is,NC,iline,i
       real         TT,rrt
@@ -42,9 +43,10 @@ c Abegin   : first A to be included
 c Aend     : last A to be included
 c decaychar: help variable
 c decayfile: decay data file
-c lenpath  : length of pathname
 c lambda   : decay rate per isotope
+c iline    : number of lines
 c rtyp     : type of beta decay, beta-: 1 , beta+: 2 (from ENDF format)
+c rrt      : type of beta decay, beta-: 1 , beta+: 2 (from ENDF format)
 c Thalf    : half life of nuclide in sec.
 c Td       : half life per time unit
 c A        : mass number of nucleus
@@ -53,14 +55,16 @@ c Read decay constants from JEFF-3.1.1 radioactive decay data library
 c
       do 10 Zix=-1,maxZ
         Z=Zinit-Zix
+        Z=min(Z,numelem)
         Nbegin=Ninit-maxN
         Nend=Ninit
         Abegin=Z+Nbegin
         Aend=Z+Nend
-        decaychar='z   '
-        write(decaychar(2:4),'(i3.3)') Z
-        decayfile=path(1:lenpath)//'decay/'//decaychar
-        open (unit=1,status='unknown',file=decayfile)
+        decaychar=trim(nuc(Z))//'.decay'
+        decayfile=trim(path)//'decay/'//decaychar
+        inquire (file=decayfile,exist=lexist)
+        if (.not.lexist) goto 10
+        open (unit=1,file=decayfile,status='old')
   100   read(1,'(a80)',end=200) string
         if (string(72:80).ne.'1451    5') goto 100
         read(string(8:10),'(i3)') ia
@@ -83,7 +87,6 @@ c
         read(1,'(a80)',end=200) string
         read(string(1:11),*) rrt
         rtyp(Zix,Nix,is)=int(rrt)
-        if (is.eq.-1) rtyp(Zix,Nix,0)=rtyp(Zix,Nix,-1)
         if (Thalf(Zix,Nix,is).eq.0.) Thalf(Zix,Nix,is)=1.e30
 c
 c Write half life in years, days, etc.
@@ -112,9 +115,29 @@ c
         else
           lambda(Zix,Nix,is)=log(2.)/Thalf(Zix,Nix,is)
         endif
+        if (is.eq.-1) then
+          rtyp(Zix,Nix,0)=rtyp(Zix,Nix,-1)
+          lambda(Zix,Nix,0)=lambda(Zix,Nix,-1)
+          Thalf(Zix,Nix,0)=Thalf(Zix,Nix,-1)
+          do i=1,5
+            Td(Zix,Nix,0,i)=Td(Zix,Nix,-1,i)
+          enddo
+        endif
         goto 100
   200   close (unit=1)
+        do ia=Abegin,Aend
+          N=ia-Z
+          Nix=Ninit-N
+          if (Thalf(Zix,Nix,1).gt.1.e17) then
+            rtyp(Zix,Nix,1)=rtyp(Zix,Nix,-1)
+            lambda(Zix,Nix,1)=lambda(Zix,Nix,-1)
+            Thalf(Zix,Nix,1)=Thalf(Zix,Nix,-1)
+            do i=1,5
+              Td(Zix,Nix,1,i)=Td(Zix,Nix,-1,i)
+            enddo
+          endif
+        enddo
    10 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

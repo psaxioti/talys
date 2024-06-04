@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 17, 2011
+c | Date  : November 15, 2017
 c | Task  : Hauser-Feshbach model for multiple emission
 c +---------------------------------------------------------------------
 c
@@ -16,8 +16,9 @@ c
      +                 lprimeend,lb,lprime,irad,l2prime,
      +                 jj2primebeg,jj2primeend,jj2prime,updown2
       real             Explus,Exmin,dE1,dE2,fisfeed,s2plus1
-      double precision tfd,tf,tfu,fiscontr1,fiscontr2,fiscontr,sumIPE,
-     +                 sumIP,rho,total,totalrho,factor,leftover
+      double precision tfd,tf,tfu,logdtfd,logdtfu,fiscontr1,fiscontr2,
+     +                 fiscontr,sumIPE,sumIP,rho,total,totalrho,factor,
+     +                 leftover
 c
 c **************************** Initialization **************************
 c
@@ -47,7 +48,8 @@ c
 c
 c flagfission : flag for fission
 c nfisbar     : number of fission barrier parameters
-c tfd,tf,tfu  : help variables
+c tfd         : help variable
+c tfu         : help variable
 c tfisdown    : fission transmission coefficients
 c transeps    : absolute limit for transmission coefficient
 c tfis,tfisup : fission transmission coefficients
@@ -57,6 +59,8 @@ c Exinc       : excitation energy of entrance bin
 c dExinc      : excitation energy bin for mother nucleus
 c dE1,dE2     : help variables
 c fiscontr    : fission contribution
+c fiscontr1   : fission contribution
+c fiscontr2   : fission contribution
 c fisfeed     : cross section from compound nucleus to fission
 c feed        : feeding term for compound nucleus, created during
 c               iloop=1
@@ -80,15 +84,17 @@ c
             Exmin=max(Exinc-0.5*dExinc,0.)
             dE1=Exinc-Exmin
             dE2=Explus-Exinc
-            if (tfd.eq.tf) then
+            logdtfd=log(tf)-log(tfd)
+            logdtfu=log(tfu)-log(tf)
+            if (logdtfd.eq.0.) then
               fiscontr1=tf*dE1
             else
-              fiscontr1=(tf-tfd)/(log(tf)-log(tfd))*dE1
+              fiscontr1=(tf-tfd)/logdtfd*dE1
             endif
-            if (tfu.eq.tf) then
+            if (logdtfu.eq.0.) then
               fiscontr2=tf*dE2
             else
-              fiscontr2=(tfu-tf)/(log(tfu)-log(tf))*dE2
+              fiscontr2=(tfu-tf)/logdtfu*dE2
             endif
             if (Explus.gt.Exmin) then
               fiscontr=(fiscontr1+fiscontr2)/(Explus-Exmin)
@@ -115,7 +121,9 @@ c
 c
 c 20: Photon and particle channels
 c
+c iloop       : loop counter
 c parskip     : logical to skip outgoing particle
+c s2plus1     : 2 * particle spin + 1
 c parspin2    : 2 * particle spin
 c parspin     : spin of particle
 c pspin2,spin2: 2 * spin of particle
@@ -225,7 +233,8 @@ c
 c 70,80: Sum over l of outgoing channel
 c
 c total      : help variable
-c J2minI2,...: help variables
+c J2minI2    : help variable
+c J2plusI2   : help variable
 c lprimebeg  : start of l summation
 c lprimeend  : end of l summation
 c
@@ -256,6 +265,7 @@ c 2. Particles
 c
 c 70: Sum over j (jj2) of outgoing channel
 c
+c lb         : starting l-value
 c flagfullhf : flag for full spin dependence of transmission
 c              coefficients
 c jj2primebeg: 2 * start of j' summation

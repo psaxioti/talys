@@ -65,7 +65,13 @@ c
             is=-1
             prodexist(Zix,Nix,is)=.true.
             nonfile='nonelastic.tot'//natstring(iso)
-            open (unit=1,status='unknown',file=nonfile)
+            inquire (file=nonfile,exist=lexist)
+            if (.not.lexist) then
+              write(*,'(" TALYS-error: non-elastic cross section file ",
+     +          " nonelastic.tot does not exist")')
+              stop
+            endif
+            open (unit=1,file=nonfile,status='old')
             iE=0
   150       read(1,'(a80)',end=160) string
             if (string(1:1).eq.'#') goto 150
@@ -79,7 +85,9 @@ c
             Nenrp(Zix,Nix,is)=iE
             goto 120
           endif
+          if (Zix.eq.-1) goto 120
           if (Nix.eq.-1) goto 120
+          if (.not.strucexist(Zix,Nix)) call levels(Zix,Nix)
 c
 c Residual production cross sections
 c
@@ -105,7 +113,7 @@ c
               prodexist(Zix,Nix,is)=.true.
               flagpositive=.false.
               iE=0
-              open (unit=1,status='unknown',file=rpfile)
+              open (unit=1,file=rpfile,status='old')
   180         read(1,'(a80)',end=190) string
               if (string(1:1).eq.'#') goto 180
               read(string,*,err=200) E,xs

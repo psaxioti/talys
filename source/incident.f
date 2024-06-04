@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 27, 2011
+c | Date  : November 16, 2016
 c | Task  : Main settings and basic cross sections for incident energy
 c +---------------------------------------------------------------------
 c
@@ -31,10 +31,10 @@ c Write the energy dependent flags to the output file.
 c
       if (flagmain) then
         if (Einc.ge.0.001) then
-          write(*,'(/," ########## RESULTS FOR E=",f9.5,
+          write(*,'(/," ########## RESULTS FOR E=",f10.5,
      +      " ##########"/)') Einc
         else
-          write(*,'(/," ########## RESULTS FOR E=",1p,e12.5,
+          write(*,'(/," ########## RESULTS FOR E=",es12.5,
      +      " ##########"/)') Einc
         endif
         write(*,'(" Energy dependent input flags"/)')

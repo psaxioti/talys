@@ -60,6 +60,11 @@ c locate       : subroutine to find value in ordered table
 c edens        : energy grid for tabulated level densities
 c phtable1     : particle-hole state density from table
 c eb,ee,ldb,...: help variables
+c ldb          : level density
+c lde          : level density
+c ldtab        : tabulated level density
+c lldb         : log of level density
+c llde         : log of level density
 c
         if (Eex.le.0.) return
         if (Eex.le.Ephdensmax) then

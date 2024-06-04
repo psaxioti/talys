@@ -16,6 +16,11 @@ c
 c
 c **********************************************************************
 c
+c temps: temperature
+c bft: barrier
+c Epar: energy
+c hwt: width
+c
       ald=ignatyuk(Zix,Nix,Epar,0)
       tmp=sqrt(Epar/ald)
       call splint(temps,bf,bfsplin,numtemp,tmp,bft)

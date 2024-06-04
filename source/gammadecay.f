@@ -20,10 +20,12 @@ c
 c
 c ********************* Construct gamma decay scheme *******************
 c
+c numgamdisc: number of discrete gamma ray transitions
 c Zix         : charge number index for residual nucleus
 c Nix         : neutron number index for residual nucleus
 c nlev        : number of excited levels for nucleus
 c flux        : flux in level (normalized to 1)
+c ng          : number of gamma lines
 c tau         : lifetime of state in seconds
 c branchratio : gamma-ray branching ratio to level
 c egam        : gamma energy
@@ -72,6 +74,9 @@ c
 c
 c Sort discrete gamma ray lines in descending order
 c
+c brtmp: help variable
+c egamtmp: help variable
+c
         do 60 j=1,ng
           do 70 k=1,j
             if (egam(i,j).gt.egam(i,k)) then
@@ -99,7 +104,7 @@ c
       type=2*Zix+Nix
       decayfile='decay. '
       write(decayfile(7:7),'(a1)') parsym(type)
-      open (unit=1,status='unknown',file=decayfile)
+      open (unit=1,file=decayfile,status='replace')
       write(1,'("# ",i3,a2," Discrete gamma decay")') A,nuc(Z)
       write(1,'("# ")')
       write(1,'("# ")')
@@ -108,7 +113,7 @@ c
       do 110 i=1,nlev(Zix,Nix)
         write(1,'(2i4,f10.6)') i,Ngam(i),yieldg(i)
         do 120 j=1,Ngam(i)
-          write(1,'(f11.6,1p,e12.5)') egam(i,j),br(i,j)
+          write(1,'(f11.6,es12.5)') egam(i,j),br(i,j)
   120   continue
   110 continue
       close (unit=1)
@@ -131,7 +136,7 @@ c
       N=A-Z
       discretefile='discrete. '
       write(discretefile(10:10),'(a1)') parsym(type)
-      open (unit=1,status='unknown',file=discretefile)
+      open (unit=1,file=discretefile,status='replace')
       write(1,'("# Discrete levels for Z=",i3," N=",i3,
      +  " (",i3,a2,")")')  Z,N,A,nuc(Z)
       write(1,'("# ")')
@@ -141,13 +146,13 @@ c
      +  "Ratio (%) Lifetime(sec) Assignment        ENSDF")')
       do 130 i=0,nlev(Zix,Nix)
         if (tau(Zix,Nix,i).ne.0.) then
-          write(1,'(1x,i3,1x,1p,e12.5,0p,1x,f4.1,3x,a1,9x,i2,15x,1p,
-     +      e10.3,7x,2a1,a18)') i,edis(Zix,Nix,i),jdis(Zix,Nix,i),
+          write(1,'(1x,i3,1x,es12.5,1x,f4.1,3x,a1,9x,i2,15x,
+     +      es10.3,7x,2a1,a18)') i,edis(Zix,Nix,i),jdis(Zix,Nix,i),
      +      cparity(parlev(Zix,Nix,i)),nbranch(Zix,Nix,i),
      +      tau(Zix,Nix,i),jassign(Zix,Nix,i),passign(Zix,Nix,i),
      +      ENSDF(Zix,Nix,i)
         else
-          write(1,'(1x,i3,1x,1p,e12.5,0p,1x,f4.1,3x,a1,9x,i2,32x,2a1,
+          write(1,'(1x,i3,1x,es12.5,1x,f4.1,3x,a1,9x,i2,32x,2a1,
      +      a18)') i,edis(Zix,Nix,i),jdis(Zix,Nix,i),
      +      cparity(parlev(Zix,Nix,i)),nbranch(Zix,Nix,i),
      +      jassign(Zix,Nix,i),passign(Zix,Nix,i),ENSDF(Zix,Nix,i)

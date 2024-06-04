@@ -72,6 +72,7 @@ c k0        : index of incident particle
 c leveltype : type of level (rotational (R) or vibrational (V))
 c deform    : deformation parameter
 c edis      : energy of level
+c middle    : help variable
 c
       do 10 i=0,numlev2
         if (i.eq.0.and.type.eq.k0) goto 10
@@ -109,6 +110,7 @@ c deftype : deformation length (D) or parameter (B)
 c jcore   : spin of level of core nucleus
 c pcore   : parity of level of core nucleus
 c factor  : help variable
+c i5 : help variable
 c
             do 50 i3=0,numlev2
               do 60 i4=1,-1,-2

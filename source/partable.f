@@ -21,8 +21,8 @@ c nuc : symbol of nucleus
 c
       Z=ZZ(Zix,Nix,0)
       A=AA(Zix,Nix,0)
-      write(11,'("##")')
-      write(11,'("## Parameters for ",i3,a2)')  A,nuc(Z)
+      write(51,'("##")')
+      write(51,'("## Parameters for ",i3,a2)')  A,nuc(Z)
 c
 c ********************** Level density parameters **********************
 c
@@ -53,56 +53,56 @@ c g            : single-particle level density parameter
 c gp           : single-particle proton level density parameter
 c gn           : single-particle neutron level density parameter
 c
-      write(11,'("##")')
-      write(11,'("## Level density")')
-      write(11,'("##")')
-      write(11,'("a              ",2i4,f10.5)') Z,A,alev(Zix,Nix)
-      write(11,'("aadjust        ",2i4,f10.5)') Z,A,aadjust(Zix,Nix)
-      write(11,'("gammald        ",2i4,f10.5)') Z,A,gammald(Zix,Nix)
-      write(11,'("pair           ",2i4,f10.5)') Z,A,pair(Zix,Nix)
+      write(51,'("##")')
+      write(51,'("## Level density")')
+      write(51,'("##")')
+      write(51,'("a              ",2i4,f10.5)') Z,A,alev(Zix,Nix)
+      write(51,'("aadjust        ",2i4,f10.5)') Z,A,aadjust(Zix,Nix)
+      write(51,'("gammald        ",2i4,f10.5)') Z,A,gammald(Zix,Nix)
+      write(51,'("pair           ",2i4,f10.5)') Z,A,pair(Zix,Nix)
       do 10 ibar=0,nfisbar(Zix,Nix)
-        write(11,'("Pshift         ",2i4,f10.5,i4)') Z,A,
+        write(51,'("Pshift         ",2i4,f10.5,i4)') Z,A,
      +    Pshift(Zix,Nix,ibar),ibar
-        write(11,'("Pshiftadjust   ",2i4,f10.5,i4)') Z,A,
+        write(51,'("Pshiftadjust   ",2i4,f10.5,i4)') Z,A,
      +    pshiftadjust(Zix,Nix,ibar),ibar
-        write(11,'("deltaW         ",2i4,f10.5,i4)') Z,A,
+        write(51,'("deltaW         ",2i4,f10.5,i4)') Z,A,
      +    deltaW(Zix,Nix,ibar),ibar
         if (ldmodel(Zix,Nix).eq.1) then
-          write(11,'("T              ",2i4,f10.5,i4)') Z,A,
+          write(51,'("T              ",2i4,f10.5,i4)') Z,A,
      +      T(Zix,Nix,ibar),ibar
-          write(11,'("E0             ",2i4,f10.5,i4)') Z,A,
+          write(51,'("E0             ",2i4,f10.5,i4)') Z,A,
      +      E0(Zix,Nix,ibar),ibar
-          write(11,'("Exmatch        ",2i4,f10.5,i4)') Z,A,
+          write(51,'("Exmatch        ",2i4,f10.5,i4)') Z,A,
      +      Exmatch(Zix,Nix,ibar),ibar
-          write(11,'("Tadjust        ",2i4,f10.5,i4)') Z,A,
+          write(51,'("Tadjust        ",2i4,f10.5,i4)') Z,A,
      +      Tadjust(Zix,Nix,ibar),ibar
-          write(11,'("E0adjust       ",2i4,f10.5,i4)') Z,A,
+          write(51,'("E0adjust       ",2i4,f10.5,i4)') Z,A,
      +      E0adjust(Zix,Nix,ibar),ibar
-          write(11,'("Exmatchadjust  ",2i4,f10.5,i4)') Z,A,
+          write(51,'("Exmatchadjust  ",2i4,f10.5,i4)') Z,A,
      +      Exmatchadjust(Zix,Nix,ibar),ibar
         endif
-        write(11,'("Ntop           ",2i4,2i4)') Z,A,Ntop(Zix,Nix,ibar),
+        write(51,'("Ntop           ",2i4,2i4)') Z,A,Ntop(Zix,Nix,ibar),
      +   ibar
-        write(11,'("Nlow           ",2i4,2i4)') Z,A,Nlow(Zix,Nix,ibar),
+        write(51,'("Nlow           ",2i4,2i4)') Z,A,Nlow(Zix,Nix,ibar),
      +   ibar
-        write(11,'("s2adjust       ",2i4,f10.5,i4)') Z,A,
+        write(51,'("s2adjust       ",2i4,f10.5,i4)') Z,A,
      +    s2adjust(Zix,Nix,ibar),ibar
-        write(11,'("ctable         ",2i4,f10.5)') Z,A,
+        write(51,'("ctable         ",2i4,f10.5)') Z,A,
      +    ctable(Zix,Nix,ibar)
-        write(11,'("ptable         ",2i4,f10.5)') Z,A,
+        write(51,'("ptable         ",2i4,f10.5)') Z,A,
      +    ptable(Zix,Nix,ibar)
-        if (flagcolall) write(11,'("Krotconstant   ",2i4,f10.5,i4)')
+        if (flagcolall) write(51,'("Krotconstant   ",2i4,f10.5,i4)')
      +    Z,A,Krotconstant(Zix,Nix,ibar),ibar
    10 continue
       if (D0(Zix,Nix).ne.0.)
-     +   write(11,'("D0             ",2i4,1p,e12.5)') Z,A,
+     +   write(51,'("D0             ",2i4,es12.5)') Z,A,
      +   D0(Zix,Nix)*0.001
       if (phmodel.eq.1) then
-        write(11,'("g              ",2i4,f10.5)') Z,A,g(Zix,Nix)
-        write(11,'("gp             ",2i4,f10.5)') Z,A,gp(Zix,Nix)
-        write(11,'("gn             ",2i4,f10.5)') Z,A,gn(Zix,Nix)
-        write(11,'("gnadjust       ",2i4,f10.5)') Z,A,gnadjust(Zix,Nix)
-        write(11,'("gpadjust       ",2i4,f10.5)') Z,A,gpadjust(Zix,Nix)
+        write(51,'("g              ",2i4,f10.5)') Z,A,g(Zix,Nix)
+        write(51,'("gp             ",2i4,f10.5)') Z,A,gp(Zix,Nix)
+        write(51,'("gn             ",2i4,f10.5)') Z,A,gn(Zix,Nix)
+        write(51,'("gnadjust       ",2i4,f10.5)') Z,A,gnadjust(Zix,Nix)
+        write(51,'("gpadjust       ",2i4,f10.5)') Z,A,gpadjust(Zix,Nix)
       endif
 c
 c ************************ Gamma-ray parameters ************************
@@ -117,55 +117,63 @@ c strength     : model for E1 gamma-ray strength function
 c etable,ftable: constant to adjust tabulated strength functions
 c ngr          : number of GR
 c
-      write(11,'("##")')
-      write(11,'("## Gamma-ray")')
-      write(11,'("##")')
-      write(11,'("gamgam         ",2i4,f10.5)') Z,A,gamgam(Zix,Nix)
-      write(11,'("gamgamadjust   ",2i4,f10.5)') Z,A,
+      write(51,'("##")')
+      write(51,'("## Gamma-ray")')
+      write(51,'("##")')
+      write(51,'("gamgam         ",2i4,f10.5)') Z,A,gamgam(Zix,Nix)
+      write(51,'("gamgamadjust   ",2i4,f10.5)') Z,A,
      +  gamgamadjust(Zix,Nix)
       do 110 l=1,gammax
         if (strength.le.2.or.strength.eq.5) then
-          write(11,'("sgr            ",2i4,f8.3," E",i1)') Z,A,
+          write(51,'("sgr            ",2i4,f8.3," E",i1)') Z,A,
      +      sgr(Zix,Nix,1,l,1),l
-          write(11,'("egr            ",2i4,f8.3," E",i1)') Z,A,
+          write(51,'("egr            ",2i4,f8.3," E",i1)') Z,A,
      +      egr(Zix,Nix,1,l,1),l
-          write(11,'("ggr            ",2i4,f8.3," E",i1)') Z,A,
+          write(51,'("ggr            ",2i4,f8.3," E",i1)') Z,A,
      +      ggr(Zix,Nix,1,l,1),l
-          write(11,'("sgradjust      ",2i4,f8.3," E",i1)') Z,A,
+          write(51,'("sgradjust      ",2i4,f8.3," E",i1)') Z,A,
      +      sgradjust(Zix,Nix,1,l,1),l
-          write(11,'("egradjust      ",2i4,f8.3," E",i1)') Z,A,
+          write(51,'("egradjust      ",2i4,f8.3," E",i1)') Z,A,
      +      egradjust(Zix,Nix,1,l,1),l
-          write(11,'("ggradjust      ",2i4,f8.3," E",i1)') Z,A,
+          write(51,'("ggradjust      ",2i4,f8.3," E",i1)') Z,A,
      +      ggradjust(Zix,Nix,1,l,1),l
         else
-          write(11,'("etable         ",2i4,f10.5)') Z,A,etable(Zix,Nix)
-          write(11,'("ftable         ",2i4,f10.5)') Z,A,ftable(Zix,Nix)
+          write(51,'("etable         ",2i4,f10.5," E",i1)') Z,A,
+     +      etable(Zix,Nix,1,l),l
+          write(51,'("ftable         ",2i4,f10.5," E",i1)') Z,A,
+     +      ftable(Zix,Nix,1,l),l
+        endif
+        if (strengthM1.eq.8) then
+          write(51,'("etable         ",2i4,f10.5," M",i1)') Z,A,
+     +      etable(Zix,Nix,0,l),l
+          write(51,'("ftable         ",2i4,f10.5," M",i1)') Z,A,
+     +      ftable(Zix,Nix,0,l),l
         endif
         if (ngr(Zix,Nix,1,l).eq.2) then
-          write(11,'("sgr            ",2i4,f8.3," E",i1," 2")') Z,A,
+          write(51,'("sgr            ",2i4,f8.3," E",i1," 2")') Z,A,
      +      sgr(Zix,Nix,1,l,2),l
-          write(11,'("egr            ",2i4,f8.3," E",i1," 2")') Z,A,
+          write(51,'("egr            ",2i4,f8.3," E",i1," 2")') Z,A,
      +      egr(Zix,Nix,1,l,2),l
-          write(11,'("ggr            ",2i4,f8.3," E",i1," 2")') Z,A,
+          write(51,'("ggr            ",2i4,f8.3," E",i1," 2")') Z,A,
      +      ggr(Zix,Nix,1,l,2),l
-          write(11,'("sgradjust      ",2i4,f8.3," E",i1," 2")') Z,A,
+          write(51,'("sgradjust      ",2i4,f8.3," E",i1," 2")') Z,A,
      +      sgradjust(Zix,Nix,1,l,2),l
-          write(11,'("egradjust      ",2i4,f8.3," E",i1," 2")') Z,A,
+          write(51,'("egradjust      ",2i4,f8.3," E",i1," 2")') Z,A,
      +      egradjust(Zix,Nix,1,l,2),l
-          write(11,'("ggradjust      ",2i4,f8.3," E",i1," 2")') Z,A,
+          write(51,'("ggradjust      ",2i4,f8.3," E",i1," 2")') Z,A,
      +      ggradjust(Zix,Nix,1,l,2),l
         endif
-        write(11,'("sgr            ",2i4,f8.3," M",i1)') Z,A,
+        write(51,'("sgr            ",2i4,f8.3," M",i1)') Z,A,
      +    sgr(Zix,Nix,0,l,1),l
-        write(11,'("egr            ",2i4,f8.3," M",i1)') Z,A,
+        write(51,'("egr            ",2i4,f8.3," M",i1)') Z,A,
      +    egr(Zix,Nix,0,l,1),l
-        write(11,'("ggr            ",2i4,f8.3," M",i1)') Z,A,
+        write(51,'("ggr            ",2i4,f8.3," M",i1)') Z,A,
      +    ggr(Zix,Nix,0,l,1),l
-        write(11,'("sgradjust      ",2i4,f8.3," M",i1)') Z,A,
+        write(51,'("sgradjust      ",2i4,f8.3," M",i1)') Z,A,
      +    sgradjust(Zix,Nix,0,l,1),l
-        write(11,'("egradjust      ",2i4,f8.3," M",i1)') Z,A,
+        write(51,'("egradjust      ",2i4,f8.3," M",i1)') Z,A,
      +    egradjust(Zix,Nix,0,l,1),l
-        write(11,'("ggradjust      ",2i4,f8.3," M",i1)') Z,A,
+        write(51,'("ggradjust      ",2i4,f8.3," M",i1)') Z,A,
      +    ggradjust(Zix,Nix,0,l,1),l
   110 continue
 c
@@ -184,36 +192,36 @@ c Rclass2mom : normalization constant for moment of inertia for
 c              class 2 states
 c
       if (flagfission) then
-        write(11,'("##")')
-        write(11,'("## Fission parameters")')
-        write(11,'("##")')
+        write(51,'("##")')
+        write(51,'("## Fission parameters")')
+        write(51,'("##")')
         do 210 ibar=1,nfisbar(Zix,Nix)
           if (fismodelx(Zix,Nix).ne.5) then
-            write(11,'("fisbar         ",2i4,f10.5,i3)') Z,A,
+            write(51,'("fisbar         ",2i4,f10.5,i3)') Z,A,
      +        fbarrier(Zix,Nix,ibar),ibar
-            write(11,'("fishw          ",2i4,f10.5,i3)') Z,A,
+            write(51,'("fishw          ",2i4,f10.5,i3)') Z,A,
      +        fwidth(Zix,Nix,ibar),ibar
-            write(11,'("fisbaradjust   ",2i4,f10.5,i3)') Z,A,
+            write(51,'("fisbaradjust   ",2i4,f10.5,i3)') Z,A,
      +        fbaradjust(Zix,Nix,ibar),ibar
-            write(11,'("fishwadjust    ",2i4,f10.5,i3)') Z,A,
+            write(51,'("fishwadjust    ",2i4,f10.5,i3)') Z,A,
      +        fwidthadjust(Zix,Nix,ibar),ibar
           endif
           if (fismodelx(Zix,Nix).eq.5.and.ibar.eq.1) then
-            write(11,'("betafiscor     ",2i4,f10.5)') Z,A,
+            write(51,'("betafiscor     ",2i4,f10.5)') Z,A,
      +        betafiscor(Zix,Nix)
-            write(11,'("vfiscor        ",2i4,f10.5)') Z,A,
+            write(51,'("vfiscor        ",2i4,f10.5)') Z,A,
      +        vfiscor(Zix,Nix)
           endif
           if (ibar.lt.nfisbar(Zix,Nix))
-     +      write(11,'("class2width    ",2i4,f10.5,i3)') Z,A,
+     +      write(51,'("class2width    ",2i4,f10.5,i3)') Z,A,
      +      widthc2(Zix,Nix,ibar),ibar
-          write(11,'("Rtransmom      ",2i4,f10.5,i3)') Z,A,
+          write(51,'("Rtransmom      ",2i4,f10.5,i3)') Z,A,
      +      Rtransmom(Zix,Nix,ibar),ibar
-          write(11,'("Rclass2mom     ",2i4,f10.5,i3)') Z,A,
+          write(51,'("Rclass2mom     ",2i4,f10.5,i3)') Z,A,
      +      Rclass2mom(Zix,Nix,ibar),ibar
   210   continue
       endif
-      write(11,'("##--------------------------------------------")')
+      write(51,'("##--------------------------------------------")')
       return
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

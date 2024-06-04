@@ -106,9 +106,10 @@ c
         if (nlev(Zix,Nix).eq.0) nlev(Zix,Nix)=nlevbin(type)
    30 continue
       do 40 Zix=0,numZ
-        do 40 Nix=0,numN
-          if (Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) goto 40
+        do 45 Nix=0,numN
+          if (Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) goto 45
           if (nlev(Zix,Nix).eq.0) nlev(Zix,Nix)=nlevmaxres
+   45   continue
    40 continue
       nlev(parZ(k0),parN(k0))=nlevmax
 c
@@ -158,7 +159,8 @@ c
       call masses
       call separation
       primary=.true.
-      if (flagpartable) open (11,status='unknown',file='parameters.dat')
+      if (flagpartable) open (unit=51,file='parameters.dat',
+     +  status='unknown')
       if (flagbestbr) call branching
       Einc=enincmin
       do 110 type=0,6

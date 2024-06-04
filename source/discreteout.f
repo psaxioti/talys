@@ -129,30 +129,30 @@ c
             write(discfile(1:2),'(2a1)') parsym(k0),parsym(type)
             write(discfile(5:6),'(i2.2)') nex
             if (nin.eq.numinclow+1) then
-              open (unit=1,status='unknown',file=discfile)
+              open (unit=1,file=discfile,status='replace')
               write(1,'("# ",a1," + ",i3,a2,": Discrete ",a9,
      +          " cross section - Level",i3)') parsym(k0),Atarget,
      +          Starget,reactionstring(type),nex
-              write(1,'("# Q-value    =",1p,e12.5,0p," Spin=",f5.1,
+              write(1,'("# Q-value    =",es12.5," Spin=",f5.1,
      +          " Parity= ",a1)') Qres(Zix,Nix,nex),jdis(Zix,Nix,nex),
      +          cparity(parlev(Zix,Nix,nex))
-              write(1,'("# E-threshold=",1p,e12.5)')
+              write(1,'("# E-threshold=",es12.5)')
      +          Ethresh(Zix,Nix,nex)
               write(1,'("# # energies =",i6)') numinc
               write(1,'("#     E          xs        Direct",
      +          "     Compound")')
               do 150 nen=1,numinclow
-                write(1,'(1p,43e12.5)') eninc(nen),
+                write(1,'(4es12.5)') eninc(nen),
      +            fxsdisc(nen,type,nex),fxsdirdisc(nen,type,nex),
      +            fxscompdisc(nen,type,nex)
   150         continue
             else
-              open (unit=1,status='old',file=discfile)
+              open (unit=1,file=discfile,status='old')
               do 160 nen=1,nin+4
                 read(1,*)
   160         continue
             endif
-            write(1,'(1p,4e12.5)') Einc,xsdisc(type,nex),
+            write(1,'(4es12.5)') Einc,xsdisc(type,nex),
      +        xsdirdisc(type,nex),xscompdisc(type,nex)
             close (unit=1)
           endif
@@ -177,27 +177,27 @@ c
           contfile='  .con'
           write(contfile(1:2),'(2a1)') parsym(k0),parsym(type)
           if (nin.eq.numinclow+1) then
-            open (unit=1,status='unknown',file=contfile)
+            open (unit=1,file=contfile,status='replace')
             write(1,'("# ",a1," + ",i3,a2,": Continuum ",a9,
      +        " cross section")') parsym(k0),Atarget,Starget,
      +        reactionstring(type)
-            write(1,'("# Q-value    =",1p,e12.5)') Qres(Zix,Nix,NL)
-            write(1,'("# E-threshold=",1p,e12.5)') Ethresh(Zix,Nix,NL)
+            write(1,'("# Q-value    =",es12.5)') Qres(Zix,Nix,NL)
+            write(1,'("# E-threshold=",es12.5)') Ethresh(Zix,Nix,NL)
             write(1,'("# # energies =",i6)') numinc
             write(1,'("#     E          xs       Continuum      (",a1,
      +        ",g",a1,")")') parsym(k0),parsym(type)
             do 220 nen=1,numinclow
-              write(1,'(1p,4e12.5)') eninc(nen),
+              write(1,'(4es12.5)') eninc(nen),
      +          fxsexclcont(nen,type)+fxsngn(nen,type),
      +          fxsexclcont(nen,type),fxsngn(nen,type)
   220       continue
           else
-            open (unit=1,status='old',file=contfile)
+            open (unit=1,file=contfile,status='old')
             do 230 nen=1,nin+4
               read(1,*)
   230       continue
           endif
-          write(1,'(1p,4e12.5)') Einc,
+          write(1,'(4es12.5)') Einc,
      +      xsexclcont(type)+xsngn(type),xsexclcont(type),xsngn(type)
           close (unit=1)
   210   continue
@@ -211,7 +211,7 @@ c
           totfile='  .tot'
           write(totfile(1:2),'(2a1)') parsym(k0),parsym(type)
           if (nin.eq.numinclow+1) then
-            open (unit=1,status='unknown',file=totfile)
+            open (unit=1,file=totfile,status='replace')
             write(1,'("# ",a1," + ",i3,a2,": Total exclusive ",a9,
      +        " cross section")') parsym(k0),Atarget,Starget,
      +        reactionstring(type)
@@ -221,17 +221,17 @@ c
             write(1,'("#    E       Total     Discrete     ",
      +        "  Continuum  (",a1,",g",a1,")")') parsym(k0),parsym(type)
             do 320 nen=1,numinclow
-              write(1,'(1p,5e12.5)') eninc(nen),
+              write(1,'(5es12.5)') eninc(nen),
      +          fxsexclusive(nen,type),fxsdisctot(nen,type),
      +          fxsexclcont(nen,type),fxsngn(nen,type)
   320       continue
           else
-            open (unit=1,status='old',file=totfile)
+            open (unit=1,file=totfile,status='old')
             do 330 nen=1,nin+4
               read(1,*)
   330       continue
           endif
-          write(1,'(1p,5e12.5)') Einc,xsexclusive(type),
+          write(1,'(5es12.5)') Einc,xsexclusive(type),
      +      xsdisctot(type),xsexclcont(type),xsngn(type)
           close (unit=1)
   310   continue

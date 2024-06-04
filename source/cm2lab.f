@@ -80,10 +80,12 @@ c
 c The Recoil LAB angles and energies corresponding to the CM points
 c are deduced
 c
+c coeff      : help variable
 c vlabx      : LAB recoil velocity projection on x-axis // to CM
 c              velocity
 c vlaby      : LAB recoil velocity projection on y-axis
 c vlab       : LAB recoil velocity
+c vlab2      : square of LAB recoil velocity
 c cosreclab11: LAB recoil angle cosine corresponding to
 c              (Eejcm1,angejcm1)
 c Ereclab11  : LAB recoil energy corresponding to (Eejcm1,angejcm1)

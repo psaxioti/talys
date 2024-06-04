@@ -42,6 +42,8 @@ c Sideline for each point
 c
 c first segment (x1,y1) --> (x2,y2)
 c
+c sideline: function to indicate if (x,y) is on one side of the segment 
+c
       sign1=sideline(x,y,x1,y1,x2,y2)
       signg1=sideline(xg,yg,x1,y1,x2,y2)
 c

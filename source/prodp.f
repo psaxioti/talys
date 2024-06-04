@@ -18,6 +18,7 @@ c
 c prodp : product function for GOE
 c numtjl: number of transmission coefficients
 c tav   : average transmission coefficients
+c sx    : help variable
 c
       prodp=1.
       do 10 i=numinc+1,numtjl

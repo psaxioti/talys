@@ -18,6 +18,8 @@ c
 c
 c **********************************************************************
 c
+c rhodi: function that returns the shape of the dinuclear system
+c
       d=totl-r1-r3
       if (z.lt.-r1.or.z.gt.d+r3) goto 3
       if (z.gt.z1) goto 1

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 10, 2015
+c | Date  : December 15, 2016
 c | Task  : Output of level density
 c +---------------------------------------------------------------------
 c
@@ -35,6 +35,8 @@ c ibar       : fission barrier
 c nfisbar    : number of fission barrier parameters
 c alev       : level density parameter
 c aldmatch   : function to determine effective level density parameter
+c ldfile     : level density file
+c ldstring   : string for level density file
 c
       Z=ZZ(Zix,Nix,0)
       N=NN(Zix,Nix,0)
@@ -75,6 +77,7 @@ c
       write(*,'(" Experimental D0 :",f18.2," eV +- ",f15.5)')
      +  D0(Zix,Nix),dD0(Zix,Nix)
       write(*,'(" Theoretical D0  :",f18.2," eV")') D0theo(Zix,Nix)
+      write(*,'(" Theoretical D1  :",f18.2," eV")') D1theo(Zix,Nix)
 c
 c Other parameters
 c
@@ -198,7 +201,7 @@ c
             if (parity.eq.-1) write(*,'(/" Negative parity"/)')
             do 130 nex=1,nendens(Zix,Nix)
               Eex=edens(nex)
-              write(*,'(1x,f6.2,14x,1p,11e10.3)') Eex,
+              write(*,'(1x,f6.2,14x,11es10.3)') Eex,
      +          ldtottableP(Zix,Nix,nex,parity,ibar),
      +          (ldtable(Zix,Nix,nex,J,parity,ibar),J=0,8)
   130     continue
@@ -228,13 +231,13 @@ c
      +        P-Pshift(Zix,Nix,ibar)) ald=aldcrit(Zix,Nix,ibar)
             call colenhance(Zix,Nix,Eex,ald,ibar,Krot,Kvib,Kcoll)
             if (flagcol(Zix,Nix).and..not.ldexist(Zix,Nix,ibar)) then
-              write(*,'(1x,f6.2,2f7.3,1p,13e10.3)') Eex,ald,
+              write(*,'(1x,f6.2,2f7.3,13es10.3)') Eex,ald,
      +          sqrt(spincut(Zix,Nix,ald,Eex,ibar)),
      +          densitytot(Zix,Nix,Eex,ibar,ldmod)*pardis,
      +          (density(Zix,Nix,Eex,real(J+0.5*odd),1,ibar,ldmod),
      +          J=0,8),Krot,Kvib,Kcoll
             else
-              write(*,'(1x,f6.2,2f7.3,1p,10e10.3)') Eex,ald,
+              write(*,'(1x,f6.2,2f7.3,10es10.3)') Eex,ald,
      +          sqrt(spincut(Zix,Nix,ald,Eex,ibar)),
      +          densitytot(Zix,Nix,Eex,ibar,ldmod)*pardis,
      +          (density(Zix,Nix,Eex,real(J+0.5*odd),1,ibar,ldmod),
@@ -273,7 +276,7 @@ c
           ldfile='ld000000.tot'
           if (ibar.gt.0) write(ldfile(10:12),'(i3.3)') ibar
           write(ldfile(3:8),'(2i3.3)') Z,A
-          open (unit=1,status='unknown',file=ldfile)
+          open (unit=1,file=ldfile,status='replace')
           if (ibar.gt.0) then
             ldstring=' Barrier    '
             write(ldstring(10:10),'(i1)') ibar
@@ -301,8 +304,8 @@ c
           else
             Dratio=D0theo(Zix,Nix)/D0(Zix,Nix)
           endif
-          write(1,'("# Theoretical D0  :",f18.2," eV Chi2:",1p,e12.5,
-     +      0p," Dtheo/Dexp: ",f9.5)') D0theo(Zix,Nix),chi2D0,Dratio
+          write(1,'("# Theoretical D0  :",f18.2," eV Chi2:",es12.5,
+     +      " Dtheo/Dexp: ",f9.5)') D0theo(Zix,Nix),chi2D0,Dratio
           write(1,'("# Nlow: ",i3," Ntop: ",i3,
      +      "           Mass in a.m.u.  : ",f10.6)') Nlow(Zix,Nix,ibar),
      +      Ntop(Zix,Nix,ibar),nucmass(Zix,Nix)
@@ -316,7 +319,7 @@ c
             write(1,'("# Pairing energy  :",f10.5,
      +        "   Separation en.  :",f10.5)') P,SS
             write(1,'("# Disc. sigma     :",f10.5,
-     +        "   Sigma (Sn)      :",f10.5)') 
+     +        "   Sigma (Sn)      :",f10.5)')
      +        sqrt(scutoffdisc(Zix,Nix,ibar)),
      +        sqrt(spincut(Zix,Nix,ignatyuk(Zix,Nix,SS,ibar),SS,ibar))
             if (ldmod.eq.3) then
@@ -325,7 +328,7 @@ c
      +          Pshift(Zix,Nix,ibar),delta0(Zix,Nix),
      +          aldcrit(Zix,Nix,ibar)
             else
-              write(1,'("# Adj. pair shift :",f10.5)') 
+              write(1,'("# Adj. pair shift :",f10.5)')
      +          Pshift(Zix,Nix,ibar)
             endif
             if (ldmod.eq.1) then
@@ -340,9 +343,9 @@ c
      +          Ucrit(Zix,Nix,ibar),Econd(Zix,Nix,ibar),Tcrit(Zix,Nix)
             endif
           else
-            write(1,'("# ctable          :",f10.5)') 
+            write(1,'("# ctable          :",f10.5)')
      +        ctable(Zix,Nix,ibar)
-            write(1,'("# ptable          :",f10.5)') 
+            write(1,'("# ptable          :",f10.5)')
      +        ptable(Zix,Nix,ibar)
             write(1,'("#")')
             write(1,'("#")')
@@ -384,11 +387,11 @@ c
   220   continue
         if (filedensity) then
           write(1,'("# Chi-square per point for levels between ",
-     +      "Nlow and Ntop: ",1p,e12.5," Average deviation: ",e12.5)')
+     +      "Nlow and Ntop: ",es12.5," Average deviation: ",es12.5)')
      +      chi2,avdev
           close (1)
         endif
   210 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

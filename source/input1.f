@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 14, 2015
+c | Date  : December 12, 2016
 c | Task  : Read input for first set of variables
 c +---------------------------------------------------------------------
 c
@@ -11,11 +11,12 @@ c
       include "talys.cmb"
       logical      projexist,massexist,elemexist,enerexist,lexist,fexist
       character*1  ch
+      character*10 afile
       character*15 bestchar
       character*40 bestpath
       character*80 word(40),key,value,bestfile
-      integer      i,i2,inull,type,iz,nbest,J,k,nen,pbeg,parity,inum,
-     +             negrid,lenbest,istat
+      integer      i,i2,inull,ipath,type,iz,nbest,J,k,nen,pbeg,parity,
+     +             inum,negrid,lenbest,istat
       real         Ein,etmp,enincF,deninc,E
 c
 c ************ Read first set of variables from input lines ************
@@ -129,7 +130,7 @@ c
             goto 10
           else
             read(value,'(a2)',end=500,err=500) Starget
-            Starget(1:1)=char(ichar(Starget(1:1))-32)
+            Starget(1:1)=achar(iachar(Starget(1:1))-32)
             goto 10
           endif
         endif
@@ -226,7 +227,7 @@ c
 c Manual input of structure path and null device.
 c
 c path   : directory containing structure files to be read
-c lenpath: length of pathname
+c inull  : counter for null device
 c nulldev: null device
 c
       do 50 i=1,nlines
@@ -234,13 +235,13 @@ c
         key=word(1)
         value=word(2)
         ch=word(2)(1:1)
+        ipath=0
         if (key.eq.'strucpath') then
-          lenpath=0
           do 60 i2=11,80
             ch=inline(i)(i2:i2)
             if (ch.ne.' ') then
-              lenpath=lenpath+1
-              path(lenpath:lenpath)=ch
+              ipath=ipath+1
+              path(ipath:ipath)=ch
             endif
    60     continue
         endif
@@ -259,15 +260,12 @@ c
 c
 c Test to check accessibility of structure files and null device
 c
-      if (path(lenpath:lenpath).ne.'/') then
-        lenpath=lenpath+1
-        path(lenpath:lenpath)='/'
+      ipath=len_trim(path)
+      if (path(ipath:ipath).ne.'/') then
+        ipath=ipath+1
+        path(ipath:ipath)='/'
       endif
-      if (lenpath.gt.60) then
-        write(*,'(" TALYS-warning: path name should contain 60",
-     +    " characters or less")')
-      endif
-      inquire (file=path(1:lenpath)//'abundance/z001',exist=lexist)
+      inquire (file=trim(path)//'abundance/H.abun',exist=lexist)
       if (.not.lexist) then
         write(*,'(" TALYS-error: Structure database not installed:",
      +    " change path in machine.f or strucpath keyword",
@@ -384,6 +382,7 @@ c 3. Determine incident energies
 c
 c Ein: incident energy
 c nin: counter for incident energies
+c fexist: flag for energy grid
 c
 c 1. Normal case of a projectile with a target nucleus
 c
@@ -414,7 +413,7 @@ c
             endif
           endif
           nen=0
-          open (unit=2,status='old',file=energyfile)
+          open (unit=2,file=energyfile,status='old')
   310     read(2,*,end=320,err=510) Ein
           if (Ein.ne.0.) then
             nen=nen+1
@@ -485,6 +484,8 @@ c
 c
 c B2. Energy grid based on input values E1, E2, dE
 c
+c negrid: number of grid points
+c
             if (enincF.le.eninc(1)) then
               write(*,'(" TALYS-error: final incident energy should",
      +          " be larger than the first ",a80)') inline(i)
@@ -544,7 +545,7 @@ c
      +        " of excitation energies in a file ",a73)') energyfile
           stop
         endif
-        open (unit=2,status='old',file=energyfile)
+        open (unit=2,file=energyfile,status='old')
         read(2,*,end=510,err=510) npopE,npopJ,npopP
         if (npopE.lt.2.or.npopE.gt.numpop) then
           write(*,'(" TALYS-error: 2 <= bins <=",i4," in population ",
@@ -609,7 +610,7 @@ c
 c In case of built-in energy range, write an explicit 'energies' file
 c
   300 if (enincF.gt.0..or.fexist) then
-        open (unit=2,status='unknown',file='energies')
+        open (unit=2,file='energies',status='replace')
         do 385 nen=1,numinc
           write(2,'(1p,g12.4)') eninc(nen)
   385   continue
@@ -618,15 +619,18 @@ c
 c
 c If requested by input: retrieve best set of adjusted input parameters
 c
+c afile   : TALYS file with mass number
 c bestchar: help variable
+c inum    : counter
+c ipath   : counter
+c lenbest : length of best file
 c bestfile: adjusted "best" parameter file
 c convert : subroutine to convert input line from upper case to lowercase
 c
       if (flagbest) then
-        bestchar='z000a000x.talys'
-        write(bestchar(2:4),'(i3.3)') Ztarget
-        write(bestchar(6:8),'(i3.3)') Atarget
-        write(bestchar(9:9),'(a1)') ptype0
+        afile='000.talys'
+        write(afile(1:3),'(i3.3)') Atarget
+        bestchar=ptype0//'-'//trim(nuc(Ztarget))//afile
         if (bestpath(1:1).eq.' ')
      +    bestpath='best/                                   '
         do 390 i=1,40
@@ -661,10 +665,14 @@ c
             write(bestpath(lenbest+8:lenbest+22),'(a15)') bestchar
           endif
         endif
-        bestfile=path(1:lenpath)//bestpath
+        bestfile=trim(path)//bestpath
         inquire (file=bestfile,exist=lexist)
-        if (.not.lexist) return
-        open (unit=3,status='old',file=bestfile)
+        if (.not.lexist) then
+          write(*,'(" TALYS-warning: best file does not exist: ",a)')
+     +      trim(bestfile)
+          return
+        endif
+        open (unit=3,file=bestfile,status='old')
         inum=0
   410   read(3,'(a80)',end=420) key
         inum=inum+1
@@ -693,7 +701,7 @@ c
   500 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
       stop
   510 write(*,'(" TALYS-error: Problem in file ",a73)') energyfile
-      write(*,'(" after E= ",e12.5)') Ein
+      write(*,'(" after E= ",es12.5)') Ein
       stop
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

@@ -23,6 +23,16 @@ c
 c
 c ph. quentin, j. de physique 30 (1969) 497.
 c
+c sform : function for Form factor for the Coulomb interaction energy 
+c         between two spheroids
+c z1loc: help variable
+c z2loc: help variable
+c zm    : help variable
+c zn    : help variable
+c sm    : help variable
+c sn    : help variable
+c cnm   : help variable
+c
         z1loc=x
         z2loc=y
       else

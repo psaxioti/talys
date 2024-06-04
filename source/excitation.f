@@ -52,7 +52,7 @@ c            residual excitation energy bin
 c xsinitpop: initial population cross section
 c popexcl  : population cross section of bin just before decay
 c
-c Write initial population by summing the bins of the input energy 
+c Write initial population by summing the bins of the input energy
 c grid.
 c
       if (.not.flagpopMeV) then
@@ -71,7 +71,7 @@ c
           enddo
         endif
         write(*,'(/" Total population of input excitation energy grid:",
-     +        1p,e12.5/)') xsinputpop
+     +    es12.5/)') xsinputpop
       endif
 c
 c Set population bins on basis of input
@@ -106,6 +106,13 @@ c
 c
 c Set boundaries of excitation energy bins
 c
+c dElow: energy increment at lower bound
+c dEup : energy increment at upper bound
+c Eexmin: minimal excitation energy
+c Exlow: lower bound excitation energy
+c Eexlow: lower bound excitation energy
+c Exup : upper bound excitation energy
+c
       do 80 nex=0,maxex(Zcomp,Ncomp)
         Eex=Ex(Zcomp,Ncomp,nex)
         Eexmin=Ex(Zcomp,Ncomp,max(nex-1,0))
@@ -113,6 +120,15 @@ c
    80 continue
 c
 c Redistribute bins
+c
+c Pa: probability distribution value
+c Pb: probability distribution value
+c Edlow: help variable
+c Edup: help variable
+c Pex: probability at excitation energy
+c PexJP: probability at excitation energy, J and P
+c Prob : probability
+c Probex : probability
 c
       A=AA(Zcomp,Ncomp,0)
       odd=mod(A,2)

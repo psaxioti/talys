@@ -26,6 +26,7 @@ c Eex      : excitation energy
 c ald,aldgs: level density parameter
 c ibar     : fission barrier number, zero for states on ground state
 c Krot     : rotational enhancement factor
+c Kr       : rotational enhancement factor
 c Krot0    : rotational enhancement factor (undamped)
 c Kvib     : vibrational enhancement
 c Kvib0    : vibrational enhancement factor (undamped)
@@ -148,6 +149,9 @@ c Kvibmodel 2: Bose gas
 c
 c In this case, Kvib is automatically damped at high energies
 c
+c gammavib : constant for vibrational enhancement
+c
+c
             deltaS=0.
             deltaU=0.
             Cvib=0.0075*(A**onethird)
@@ -191,6 +195,7 @@ c
 c
 c Fission barrier
 c
+c aldf     : level density parameter
 c Ufermibf : energy of Fermi distribution for damping of barrier
 c          : rotational effects
 c cfermibf : width of Fermi distribution for damping of barrier

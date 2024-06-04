@@ -186,6 +186,7 @@ c
 c Test for keywords
 c
 c parsym: symbol of particle
+c ivalue: counter
 c
        if (key.eq.'transpower') then
           read(value,*,end=300,err=300) transpower

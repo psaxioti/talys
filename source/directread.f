@@ -34,9 +34,9 @@ c dorigin         : origin of direct cross section (Direct or Preeq)
 c
       inquire (file='ecis.dirang',exist=lexist)
       if (.not.lexist) return
-      open (unit=8,status='unknown',file='ecis.dirang')
-      open (unit=9,status='unknown',file='ecis.dirleg')
-      open (unit=10,status='unknown',file='ecis.dirin')
+      open (unit=8,file='ecis.dirang',status='unknown')
+      open (unit=9,file='ecis.dirleg',status='unknown')
+      open (unit=10,file='ecis.dirin',status='unknown')
       do 10 type=k0,k0
         if (parskip(type)) goto 10
         Zix=Zindex(0,0,type)
@@ -62,6 +62,7 @@ c We read the Legendre coefficients for the direct component of the
 c reaction only, the compound nucleus coefficients are calculated by
 c TALYS later on.
 c
+c iS      : counter
 c nS      : number of states
 c nleg    : number of Legendre coefficients
 c i       : level
@@ -118,10 +119,10 @@ c Egrcoll: energy of giant resonance
 c
         if (type.eq.k0) then
           do 310 l=0,3
-            do 310 i=1,2
-              if (betagr(l,i).eq.0.) goto 310
+            do 320 i=1,2
+              if (betagr(l,i).eq.0.) goto 320
               levelenergy=Egrcoll(l,i)
-              if (eninccm.le.levelenergy+0.1*parA(type)) goto 310
+              if (eninccm.le.levelenergy+0.1*parA(type)) goto 320
 c
 c Giant resonance cross section
 c
@@ -144,11 +145,13 @@ c
   330         continue
               read(8,'(12x,i3)') nS
               do 340 iang=0,nanglecont
-                do 340 k=1,nS
+                do 350 k=1,nS
                   read(8,'(i3,12x,e12.5)',iostat=istat) itype,xs
-                  if (istat.ne.0) goto 340
+                  if (istat.ne.0) goto 350
                   if (itype.eq.0) grcollad(k0,l,i,iang)=real(xs)
+  350           continue
   340         continue
+  320       continue
   310     continue
         endif
 c
@@ -177,7 +180,7 @@ c
       close (unit=8,status=ecisstatus)
       close (unit=9,status=ecisstatus)
       close (unit=10,status=ecisstatus)
-      open (unit=3,status='unknown',file='ecis.dircs')
+      open (unit=3,file='ecis.dircs',status='unknown')
       close (unit=3,status=ecisstatus)
       return
       end

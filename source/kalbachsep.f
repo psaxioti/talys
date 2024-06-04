@@ -18,7 +18,11 @@ c ZZ,Z    : charge number of residual nucleus
 c AA,A    : mass number of residual nucleus
 c Ainit   : mass number of initial compound nucleus
 c Zinit   : charge number of initial compound nucleus
-c Ac,.... : help variables
+c Zb      : help variable
+c Zc      : help variable
+c Ab      : help variable
+c Ac      : help variable
+c Nc      : help variable
 c Ib      : energy required for breakup
 c parsym  : symbol of particle
 c Smyers  : Myers-Swiatecki separation energy

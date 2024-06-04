@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Goriely, Xu Yi, and Arjan Koning
-c | Date  : December 13, 2013
+c | Date  : December 12, 2016
 c | Task  : Initialization of radiative capture model
 c +---------------------------------------------------------------------
 c
@@ -96,6 +96,18 @@ c     and talys.cmb should be changed accordingly.
 c
 c ldmodelracap may have been changed in phdensitytablejp
 c
+c nexphjp: energy index
+c ldbneg: lower level density
+c ldbpos: upper level density
+c ldeneg: lower level density
+c ldepos: upper level density
+c lldbneg: lower level density
+c lldbpos: upper level density
+c lldeneg: lower level density
+c lldepos: upper level density
+c ldtabneg: lower level density
+c ldtabpos: upper level density
+c
       if (ldmodelracap.eq.1) then
         do nex=1,nendens(0,0)
           Egridphjp(nex)=real(edensphjp(0,0,nex))
@@ -159,6 +171,12 @@ c     begin to prepare the input parameters for the function "phdens2" (phmodel=
 c
 c     define the particle-hole numbers for proton and neutron in the function "phdens2"
 c
+c phnumracap: number of particle-holes
+c holen: neutron hole number
+c holep: proton hole number
+c ptcln: neutron particle number
+c ptclp: proton particle number
+c
         phnumracap=k0
         if (phnumracap.eq.1) then
           ptclp=0
@@ -199,6 +217,13 @@ c
 c
 c     define the other parameters in the function "phdens2"
 c
+c sigparleldenn: neutron ph density
+c sigparleldenp: proton ph density
+c racapdamp: shell damping
+c surfwellE: energy well depth for surface damping
+c surfwellgo: flag for surface damping
+c Ephracap: particle-hole energy
+c
         sigparleldenp=real(gp(0,0))
         sigparleldenn=real(gn(0,0))
         Ephracap=Etotal
@@ -235,6 +260,24 @@ c
       if (ldmodelracap.eq.3) then
 c
 c     calculation of spin-dependent NLD with ldmodel=5
+c
+c wprty: parity
+c xprty: parity
+c ldmdpos : upper level density
+c ldmdneg : lower level density
+c ldmdposj: upper level density
+c ldmdnegj: lower level density
+c phmdpos : upper particle-hole density
+c phmdneg : lower particle-hole density
+c phmdposj: upper particle-hole density
+c phmdnegj: lower particle-hole density
+c phjpmdpos: upper particle-hole density
+c phjpmdneg: lower particle-hole density
+c phjpmdposj: upper particle-hole density
+c phjpmdnegj: lower particle-hole density
+c Egridphjp: energy of particle-hole pair
+c Eldpd: energy of particle-hole pair
+c Sldpd: spin of particle-hole pair
 c
         xprty=-1
         wprty=1
@@ -309,6 +352,8 @@ c++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 c
 c     calculation the final wood saxon potential parameter
 c
+c i0: particle type
+c
       vncap2=0.
       rvncap2=0.
       avncap2=0.
@@ -366,6 +411,12 @@ c     Note that compared to ispect=3, only theoretical transition schemes deduce
 c     parity dependent NLDs are take into account for ispect=2, i.e., the allowed transitions to all
 c     discrete experimental known final states are replaced in the energy range from zero to $E_{x}$.
 c
+c ka: spectroscopic index
+c acp: mass number
+c filespec: spectrum file
+c spinf: spin
+c sf: parameter
+c
       do nex=0,numex
         if (nex.le.nlevexpracap-1) then
           spectfac(0,0,nex)=spectfacexp(0,0,nex)
@@ -378,7 +429,7 @@ c
       write(filespec,'("levels/spect",a1,"/z",i3.3)') parsym(k0),
      +  ZZ(0,0,0)
       acp=AA(0,0,0)
-      filespec=path(1:lenpath)//filespec
+      filespec=trim(path)//filespec
       inquire (file=filespec,exist=lexist)
       if (.not.lexist) return
       open(unit=10,file=filespec,status='old')
@@ -404,4 +455,4 @@ c
       endif
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

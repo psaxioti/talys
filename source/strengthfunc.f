@@ -21,7 +21,7 @@ c tarmass   : mass of target nucleus
 c onethird  : 1/3
 c wavenum   : wave number
 c P(0)      : neutron penetrability factor for s-wave
-c Shift(0)  : hard sphere shift factor for s-wave
+c Shift     : hard sphere shift factor for s-wave
 c
       ac=1.23*tarmass**onethird+0.8
       P(0)=wavenum*ac
@@ -29,7 +29,8 @@ c
 c
 c *********************  Penetrability factor **************************
 c
-c num,den : help variables
+c num,den : help variable
+c ri      : help variable
 c P(l)    : l-dependent penetrability factor
 c Shift(l): l-dependent hard sphere shift factor
 c

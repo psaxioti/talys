@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 14, 2015
+c | Date  : December 12, 2016
 c | Task  : Fission fragment yields
 c +---------------------------------------------------------------------
 c
@@ -14,7 +14,7 @@ c
       parameter (numZff=80,numNff=150)
       character*13 fffile
       character*90 gefpath
-      real         fiseps,Exfis(1000),xsfis(1000),Jfis,fisepsA,fisepsB,
+      real         Exfis(1000),xsfis(1000),Jfis,fisepsA,fisepsB,
      +             partfisxs,sumpre,sumpost,Fmulti,beldm1(136,203),
      +             ushell1(136,203),xstabtot(numZff,numNff),
      +             xstabcomp(0:numZ,0:numN,numZff,numNff),
@@ -24,7 +24,7 @@ c
      +             Jtabtot(numZff,numNff,100),sumJ,sumxs,sumE,
      +             xsfisFF,Ytabtot(numZff,numNff)
       integer      iz,ia,in,i,j,gefwrite,Zcomp,Ncomp,Z,A,odd,Zix,Nix,
-     +             nexend,iskip,istep,nex,nen,lengefpath,type,iza,
+     +             nexend,iskip,istep,nex,nen,type,iza,
      +             nexgef,Jgef,nb,parity
 c
 c ************************** Mass yields *******************************
@@ -36,6 +36,9 @@ c xsfpApost  : post-neutron emission corrected cross section
 c yieldApre  : pre-neutron emission fission yield
 c yieldApost : post-neutron emission corrected fission yield
 c numelem    : number of elements
+c numZff: number of Z of fission fragments
+c numNff: number of N of fission fragments
+c fffile     : fission fragment file
 c xsfpZApre  : pre-neutron emission isotopic cross section
 c xsfpZApost : post-neutron emission corrected isotopic cross section
 c yieldZApre : pre-neutron emission isotopic yield
@@ -43,7 +46,8 @@ c yieldZApost: post-neutron emission corrected isotopic yield
 c fymodel    : fission yield model, 1: Brosa 2: GEF
 c path       : directory containing structure files to be read
 c gefpath    : path for GEF files
-c lengefpath : character length of path for GEF files
+c popfpEx    : energy population of FF
+c popfpJ     : spin population of FF
 c flagoutfy  : flag for output detailed fission yield calculation
 c gefwrite   : integer for output detailed fission yield calculation
 c Rfiseps    : ratio for limit for fission cross section per nucleus
@@ -56,7 +60,7 @@ c
         xsfpApost(ia)=0.
         yieldApre(ia)=0.
         yieldApost(ia)=0.
-        do type=0,numpar 
+        do type=0,numpar
           nupre(type,ia)=0.
           nupost(type,ia)=0.
         enddo
@@ -69,8 +73,10 @@ c
           xsfpZApost(iz,in)=0.
           yieldZApre(iz,in)=0.
           yieldZApost(iz,in)=0.
-          do nex=0,numlev
+          do nex=0,1
             xsfpex(iz,in,nex)=0.
+            yieldfpex(iz,in,nex)=0.
+            fpratio(iz,in,nex)=0.
           enddo
         enddo
       enddo
@@ -78,7 +84,7 @@ c
       xsfptotpre=0.
       yieldtotpost=0.
       xsfptotpost=0.
-      do type=0,6  
+      do type=0,6
         do i=1,numnu
           Pdisnu(type,i)=0.
         enddo
@@ -106,11 +112,10 @@ c
           enddo
         enddo
       enddo
-      fiseps=Rfiseps*xsfistot
-      if (fiseps.eq.0.) return
+      fpeps=Rfiseps*xsfistot
+      if (fpeps.eq.0.) return
       if (fymodel.ge.2) then
-        gefpath=path(1:lenpath)//'fission/gef/'
-        lengefpath=lenpath+12
+        gefpath=trim(path)//'fission/gef/'
         if (flagoutfy) then
           gefwrite=1
         else
@@ -119,8 +124,12 @@ c
 c
 c Read nuclear structure information for GEF
 c
-        open (unit=4,status='unknown',
-     +    file=gefpath(1:lengefpath)//'beldm.dat')
+c beldm1: binding energy from liquid drop model
+c fisepsA : fission tolerance
+c fisepsB : fission tolerance
+c ushell1: shell correction
+c
+        open (unit=4,file=trim(gefpath)//'beldm.dat',status='old')
         read(4,*) beldm1
         close(4)
         do i=1,203
@@ -128,8 +137,7 @@ c
            beldm(i,j)=beldm1(j,i)
           end do
         end do
-        open (unit=4,status='unknown',
-     +    file=gefpath(1:lengefpath)//'ushell.dat')
+        open (unit=4,file=trim(gefpath)//'ushell.dat',status='old')
         read(4,*) ushell1
         close(4)
         do i=1,203
@@ -137,8 +145,7 @@ c
            ushel(i,j)=ushell1(j,i)
           end do
         end do
-        open (unit=4,status='unknown',
-     +    file=gefpath(1:lengefpath)//'nucprop.dat')
+        open (unit=4,file=trim(gefpath)//'nucprop.dat',status='old')
         do i=1,3885
           read(4,*) (RNucTab(i,j),j=1,8)
         end do
@@ -174,21 +181,22 @@ c              per excitation energy bin
 c disazcor   : normalised fission product isotope yield
 c              per excitation energy bin
 c gefran     : number of random events for GEF calculation
+c Exfis: excitation energy for fission
 c
       do 20 Zcomp=0,maxZ
-        do 20 Ncomp=0,maxN
+        do 25 Ncomp=0,maxN
           Z=ZZ(Zcomp,Ncomp,0)
           A=AA(Zcomp,Ncomp,0)
           odd=mod(A,2)
           Zix=Zindex(Zcomp,Ncomp,0)
           Nix=Nindex(Zcomp,Ncomp,0)
-          if (xsfeed(Zcomp,Ncomp,-1).le.fiseps) goto 20
+          if (xsfeed(Zcomp,Ncomp,-1).le.fpeps) goto 25
           if (Zcomp.eq.0.and.Ncomp.eq.0) then
             nexend=maxex(Zcomp,Ncomp)+1
           else
             nexend=maxex(Zcomp,Ncomp)
           endif
-          fisepsA=fiseps/max(3*maxex(Zcomp,Ncomp),1)
+          fisepsA=fpeps/max(3*maxex(Zcomp,Ncomp),1)
           iskip=0
           istep=4
           if (fymodel.eq.2) then
@@ -261,17 +269,21 @@ c
                 do 70 ia=1,A
                   xsfpApre(ia)=xsfpApre(ia)+0.5*disa(ia)*partfisxs
                   xsfpApost(ia)=xsfpApost(ia)+0.5*disacor(ia)*partfisxs
-                  do 70 iz=1,Z
+                  do 72 iz=1,Z
                     in=ia-iz
-                    if (in.lt.1.or.in.gt.numneu) goto 70
+                    if (in.lt.1.or.in.gt.numneu) goto 72
                     xsfpZApre(iz,in)=xsfpZApre(iz,in)+
      +                0.5*disaz(ia,iz)*partfisxs
                     xsfpZApost(iz,in)=xsfpZApost(iz,in)+
      +                0.5*disazcor(ia,iz)*partfisxs
-   70             continue
+   72             continue
+   70           continue
               endif
 c
 c GEF
+c
+c xsfis: fission cross section
+c xsfisFF: fission cross section per FF
 c
               if (fymodel.eq.2) then
                 nen=nen+1
@@ -283,6 +295,12 @@ c GEF + TALYS evaporation
 c Normalization: sum over Ytab, Etab, Jtab = 1
 c
 c flagfisout   : flag for output of fission information
+c Jfis    : spin of fissioning system
+c partfisJ : partial fission spin distribution
+c xstabtot: total cross section from GEF
+c Jtabtot: total spin from GEF
+c xstabcomp: Z, N cross section from GEF
+c Ytabtot: yield from GEF
 c
               if (fymodel.eq.3.and.A.le.350) then
                 fisepsB=fisepsA/(5*maxJ(Zcomp,Ncomp,nex))*0.5
@@ -319,6 +337,7 @@ c GEF
 c Normalization: sum over ysum,yAz= 2. * sigma_fission
 c
 c flagffspin: flag to use spin distribution in initial population
+c Fmulti: factor for multi-chance fission
 c
           if (fymodel.eq.2.and.A.le.350) then
             call geftalys(real(Z),real(A),nen,Exfis,xsfis,gefwrite,
@@ -341,7 +360,7 @@ c
               do i=1,numnu
                 if (ann_sum(i).gt.0.)
      +            Pdisnu(1,i)=Pdisnu(1,i)+(Fmulti+ann_sum(i))/xsfistot
-              enddo    
+              enddo
               do ia=1,A
                 if (anpre_sum(ia).gt.0.)
      +            nupre(1,ia)=nupre(1,ia)+(Fmulti+anpre_sum(ia))/
@@ -349,13 +368,22 @@ c
                 if (anpost_sum(ia).gt.0.)
      +            nupost(1,ia)=nupost(1,ia)+(Fmulti+anpost_sum(ia))/
      +            xsfistot
-              enddo    
+              enddo
               nubar(1)=nubar(1)+(Fmulti+anMean_sum)/xsfistot
             endif
           endif
+   25   continue
    20 continue
 c
 c GEF + TALYS evaporation
+c
+c Ebin: energy of bin
+c Etabtot: tabulated energy
+c sumJ: sum over spin distribution
+c Jgef: counter
+c nexbeg: first energy index
+c nexend: last energy index
+c nexgef: counter
 c
       if (fymodel.eq.3) then
         Ebin(0)=0.
@@ -370,20 +398,20 @@ c
             sumE=0.
             do nexgef=1,1000
               sumE=sumE+Etabtot(iz,in,nexgef)
-            enddo       
+            enddo
             if (sumE.gt.0.) then
               do nexgef=1,1000
                 Etabtot(iz,in,nexgef)=Etabtot(iz,in,nexgef)/sumE
-              enddo       
+              enddo
             endif
             sumJ=0.
             do Jgef=1,100
               sumJ=sumJ+Jtabtot(iz,in,Jgef)
-            enddo       
+            enddo
             if (sumJ.gt.0.) then
               do Jgef=1,100
                 Jtabtot(iz,in,Jgef)=Jtabtot(iz,in,Jgef)/sumJ
-              enddo       
+              enddo
             endif
   132     continue
   131   continue
@@ -391,8 +419,8 @@ c
           do iz=1,numZff
             do in=1,numNff
               Ytabtot(iz,in)=xstabtot(iz,in)/sumxs
-            enddo         
-          enddo         
+            enddo
+          enddo
         endif
         do iz=1,numZff
           do in=1,numNff
@@ -406,9 +434,9 @@ c
             enddo
             do J=1,30
               popfpJ(iz,in,J)=Jtabtot(iz,in,J)
-            enddo     
-          enddo     
-        enddo     
+            enddo
+          enddo
+        enddo
         do 160 iz=1,Z
           do 170 ia=1,A
             in=ia-iz
@@ -434,18 +462,18 @@ c
             fffile='ff000000.ex'
             write(fffile(3:5),'(i3.3)') iz
             write(fffile(6:8),'(i3.3)') ia
-            open (unit=1,status='unknown',file=fffile)
+            open (unit=1,file=fffile,status='replace')
             if (flagffspin) then
               write(1,*) nb+1,30,1," xs= ",xsfpZApre(iz,in)
               do nex=0,nb
-                write(1,'(f10.5,1p,30e12.5)') Ebin(nex),
+                write(1,'(f10.5,30es12.5)') Ebin(nex),
      +            (0.5*popfpEx(iz,in,nex)*popfpJ(iz,in,J),
      +            J=1,30)
               enddo
             else
               write(1,*) nb+1,0,1," xs= ",xsfpZApre(iz,in)
               do nex=0,nb
-                write(1,'(f10.5,1pe12.5)') Ebin(nex),popfpEx(iz,in,nex)
+                write(1,'(f10.5,es12.5)') Ebin(nex),popfpEx(iz,in,nex)
               enddo
             endif
             close(1)
@@ -454,6 +482,8 @@ c
       endif
 c
 c Normalization to fission yields (sum = 2)
+c
+c sumpre: sum over pre-neutron FP's
 c
       sumpre=0.
       sumpost=0.
@@ -483,4 +513,4 @@ c
   220 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

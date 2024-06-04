@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 31, 2014
+c | Date  : November 16, 2016
 c | Task  : Output of recoils
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*28     recfile
+      character*29     recfile
       integer          Zcomp,Ncomp,Z,A,nen
       double precision sumcm
 c
@@ -42,46 +42,47 @@ c Einc      : incident energy in MeV
 c
       write(*,'(/" 8. Recoil spectra")')
       do 10 Zcomp=0,maxZ
-        do 10 Ncomp=0,maxN
-          if (xspopnuc(Zcomp,Ncomp).lt.xseps) goto 10
+        do 15 Ncomp=0,maxN
+          if (xspopnuc(Zcomp,Ncomp).lt.xseps) goto 15
           Z=ZZ(Zcomp,Ncomp,0)
           A=AA(Zcomp,Ncomp,0)
           write(*,'(/" Recoil Spectrum for ",i3,a2/)') A,nuc(Z)
-          write(*,'("  Energy   Cross section"/)')
+          write(*,'("   Energy   Cross section"/)')
           do 20 nen=0,maxenrec
-            write(*,'(1x,f7.3,1p,e12.5)') Erec(Zcomp,Ncomp,nen),
+            write(*,'(1x,f8.3,es12.5)') Erec(Zcomp,Ncomp,nen),
      +        specrecoil(Zcomp,Ncomp,nen)
    20   continue
-        write(*,'(/" Integrated recoil spectrum       : ",1p,e12.5)')
+        write(*,'(/" Integrated recoil spectrum       : ",es12.5)')
      +    recoilint(Zcomp,Ncomp)
         if (Zcomp.eq.parZ(k0).and.Ncomp.eq.parN(k0)) then
           sumcm=xspopnuc(Zcomp,Ncomp)+xselasinc
         else
           sumcm=xspopnuc(Zcomp,Ncomp)
         endif
-        write(*,'(" Residual production cross section: ",1p,e12.5)')
+        write(*,'(" Residual production cross section: ",es12.5)')
      +    sumcm
 c
 c Write results to separate file
 c
         if (filerecoil) then
-          recfile='rec000000spec000.000.tot'//natstring(iso)
+          recfile='rec000000spec0000.000.tot'//natstring(iso)
           write(recfile(4:9),'(2i3.3)') Z,A
-          write(recfile(14:20),'(f7.3)') Einc
-          write(recfile(14:16),'(i3.3)') int(Einc)
-          open (unit=1,status='unknown',file=recfile)
+          write(recfile(14:21),'(f8.3)') Einc
+          write(recfile(14:17),'(i4.4)') int(Einc)
+          open (unit=1,file=recfile,status='replace')
           write(1,'("# ",a1," + ",i3,a2,": Recoil spectrum for ",
      +      i3,a2)') parsym(k0),Atarget,Starget,A,nuc(Z)
-          write(1,'("# E-incident = ",f7.3)') Einc
+          write(1,'("# E-incident = ",f8.3)') Einc
           write(1,'("# ")')
           write(1,'("# # energies =",i6)') maxenrec+1
-          write(1,'("# E-out   Cross section")')
+          write(1,'("#  E-out   Cross section")')
           do 30 nen=0,maxenrec
-            write(1,'(f7.3,1p,e12.5)') Erec(Zcomp,Ncomp,nen),
+            write(1,'(f8.3,es12.5)') Erec(Zcomp,Ncomp,nen),
      +        specrecoil(Zcomp,Ncomp,nen)
    30     continue
           close (unit=1)
         endif
+   15 continue
    10 continue
       return
       end

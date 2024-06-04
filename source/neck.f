@@ -32,6 +32,11 @@ c
 c determine mass and charge grid (depending whether evaporation
 c correction is required)
 c
+c xnu: power
+c izstepnum: counter
+c rayl : Brosa constant
+c atot : mass number
+c
       r0=1.15
       xnu=1.0
       rayl=11.00
@@ -56,6 +61,7 @@ c vtot : total volume of the complex
 c rp,rt: radii of projectile and target
 c c    : curvature of neck
 c r    : ratio of neck contribution
+c at : mass of residual nucleus
 c tmp  : temperature
 c zda  : charge over mass ratio
 c gam  : surface tension
@@ -71,6 +77,8 @@ c
       rp=r0*ap**(1./3.)
 c
 c fission option
+c
+c bcom: help variable
 c
       call bdef(atot,ztot,0.,dum,dumm,bcom)
       d=totl-rt-rp
@@ -115,6 +123,10 @@ c
 c
 c fmin needs a few starts to find the right values.
 c
+c fimin: fucntion value of fmin
+c delt: help variable
+c
+c
       do 102 k=1,15
       if (k.LT.2) goto 100
       delt=.2**((k+1)/2)
@@ -130,12 +142,22 @@ c
 c
 c graphical discussion of the rupture shape.
 c
+c astepnum: help variable
+c astepsize: help variable
+c es1: help variable
+c es2: help variable
+c elt: help variable
+c eob: help variable
+c edefo: deformation energy
+c
       amin=di*vr1(z1)
-      imax=di*vr2(z1,z2,z3)*astepnum
+      imax=int(di*vr2(z1,z2,z3)*astepnum)
 c
 c In this loop the properties of the different fragmentations are
 c calculated, as tke(a,z), neutron number rn(a,z), and yield wgt(a),
 c zdis(a,z).
+c
+c aloop: help variable
 c
       jmx=0
       do 3 i=0,imax
@@ -150,6 +172,19 @@ c
 c
 c calculation of the equivalent ellipsoidal shapes and the
 c Coulomb and nuclear proximity repulsion energies
+c
+c izloop: counter
+c izmax: maximum Z value
+c ve1: potential
+c ve2: potential
+c vnel: help variable
+c ze1: help variable
+c ze2: help variable
+c zo: help variable
+c zu: help variable
+c ztot: help variable
+c zriss: help variable
+c zstepsize: help variable
 c
       a1=.5*(zriss+r1)
       a2=.5*(d+r3-zriss)
@@ -178,14 +213,26 @@ c
       am2=atot-am1
       jmx=jmx+1
       mcount=1
-      do 3 izloop=1,2*izstepnum+1
+      do 4 izloop=1,2*izstepnum+1
       ze1=zda*am1+(izloop-izstepnum-1)*zstepsize
       ze2=ztot-ze1
-      if(ze1.lt.0..or.ze2.lt.0.)goto 3
+      if(ze1.lt.0..or.ze2.lt.0.)goto 4
 c
 c excess internal energy of ruptures nucleus es. es1 and es2
 c excitation energies of separated fragments, rn1 and rn2 number of
 c evaporated neutrons from light and heavy fragments.
+c
+c rn1: number of evaporated neutrons from light fragment
+c rn2: number of evaporated neutrons from heavy fragment
+c wlog : help variable
+c bind01: binding energy
+c bind02: binding energy
+c bind1: binding energy
+c bind2: binding energy
+c coul12: Coulomb energy
+c coulel: Coulomb energy
+c rnma: help variable
+c rnmi: help variable
 c
       call bdef(am1,ze1,x1,dum,dumm,bind1)
       call bdef(am2,ze2,x2,dum,dumm,bind2)
@@ -216,6 +263,11 @@ c
 c
 c charge distribution
 c
+c zdis: charge distribution
+c mcount: counter
+c ezdis: energy
+c ezdisnorm: normalized energy
+c
       zdis(jmx,izloop)=0.
       vnel=4.*pi*gam*(b1*b2)**2/(a1*b2*b2+a2*b1*b1)*(-1.7817)
       coulel=coul12*ze1*ze2
@@ -227,6 +279,14 @@ c
 c
 c total kinetic energy tke, mass probability distribution wgt(a).
 c
+c jimax: help variable
+c wgt : mass probability distribution
+c jmx: help variable
+c af1: help variable
+c af2: help variable
+c zf1: help variable
+c zf2: help variable
+c
       eob=2.*pi*gam*(rhodi(zriss)**2-rhodi(z2)**2)
       wgt(jmx)=0.
       expo=eob/tmp
@@ -235,11 +295,20 @@ c
       zf1(jmx,izloop)=ze1
       af2(jmx)=am2
       zf2(jmx,izloop)=ze2
+ 4    continue
  3    continue
       jimax=jmx
 c
 c mass and charge distributions, with(out) corrections for evaporated
 c neutrons
+c
+c izf1: help variable
+c izf2: help variable
+c iaf1: help variable
+c iaf2: help variable
+c irn1: help variable
+c irn2: help variable
+c sumtmp: help variable
 c
       sumw=0.
       izmax=izstepnum*2+1

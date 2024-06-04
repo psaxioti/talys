@@ -14,6 +14,10 @@ c
 c
 c **********************************************************************
 c
+c amun: number of degrees of freedom for l,j
+c ps : phase shift
+c rhoc: help variable
+c
       vl=1.
       ps=1.
       r2=rho*rho

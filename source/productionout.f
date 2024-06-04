@@ -23,7 +23,7 @@ c
       write(*,'(/" 3. Total particle production cross sections"/)')
       do 10 type=0,6
         if (parskip(type)) goto 10
-        write(*,'(1x,a8,"=",1p,e12.5,"    Multiplicity=",e12.5)')
+        write(*,'(1x,a8,"=",es12.5,"    Multiplicity=",es12.5)')
      +    parname(type),xsparticle(type),multiplicity(type)
 c
 c Write results to separate file
@@ -44,23 +44,23 @@ c
           totfile=' prod.tot'//natstring(iso)
           write(totfile(1:1),'(a1)') parsym(type)
           if (nin.eq.numinclow+1) then
-            open (unit=1,status='unknown',file=totfile)
+            open (unit=1,file=totfile,status='replace')
             write(1,'("# ",a1," + ",i3,a2," Total ",a8," production")')
      +        parsym(k0),Atarget,Starget,parname(type)
-            write(1,'("# Q-value    =",1p,e12.5)') Q(type)
+            write(1,'("# Q-value    =",es12.5)') Q(type)
             write(1,'("# ")')
             write(1,'("# # energies =",i6)') numinc
             write(1,'("#    E         xs         Yield")')
             do 20 nen=1,numinclow
-              write(1,'(1p,3e12.5)') eninc(nen),0.,0.
+              write(1,'(3es12.5)') eninc(nen),0.,0.
    20       continue
           else
-            open (unit=1,status='old',file=totfile)
+            open (unit=1,file=totfile,status='old')
             do 30 nen=1,nin+4
               read(1,*,end=40,err=40)
    30       continue
           endif
-          write(1,'(1p,3e12.5)') Einc,xsparticle(type),
+          write(1,'(3es12.5)') Einc,xsparticle(type),
      +      multiplicity(type)
    40     close (unit=1)
         endif
@@ -72,7 +72,7 @@ c flagfission : flag for fission
 c xsfistot    : total fission cross section
 c
       if (flagfission) then
-        write(*,'(" fission =",1p,e12.5)') xsfistot
+        write(*,'(" fission =",es12.5)') xsfistot
 c
 c Write results to separate file
 c
@@ -81,7 +81,7 @@ c
         if (filefission) then
           fisfile='fission.tot'//natstring(iso)
           if (nin.eq.numinclow+1) then
-            open (unit=1,status='unknown',file=fisfile)
+            open (unit=1,file=fisfile,status='replace')
             write(1,'("# ",a1," + ",i3,a2,"   : (",a1,",f)        ",
      +        "  Total")') parsym(k0),Atarget,Starget,parsym(k0)
             write(1,'("# ")')
@@ -89,15 +89,15 @@ c
             write(1,'("# # energies =",i6)') numinc
             write(1,'("#    E         xs")')
             do 110 nen=1,numinclow
-              write(1,'(1p,2e12.5)') eninc(nen),0.
+              write(1,'(2es12.5)') eninc(nen),0.
   110       continue
           else
-            open (unit=1,status='old',file=fisfile)
+            open (unit=1,file=fisfile,status='old')
             do 120 nen=1,nin+4
               read(1,*,end=130,err=130)
   120       continue
           endif
-          write(1,'(1p,2e12.5)') Einc,xsfistot
+          write(1,'(2es12.5)') Einc,xsfistot
   130     close (unit=1)
         endif
       endif

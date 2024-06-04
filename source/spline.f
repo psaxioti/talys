@@ -19,6 +19,17 @@ c
 c
 c **********************************************************************
 c
+c yp1: y value
+c ypn: y value
+c psp: help variable
+c qn : help variable
+c sig: help variable
+c un : help variable
+c khi: help variable
+c klo: help variable
+c hsp: help variable
+c y2a: chelp variable
+c
       if (yp1.gt.0.99e30) then
         y2(1)=0.
         u(1)=0.

@@ -31,10 +31,19 @@ c numZph       : maximal number of protons away from the initial
 c                compound nucleus for multiple pre-equilibrium emission
 c eomp         : energies on optical model file
 c omplines     : number of lines on optical model file
-c elow,eup,eint: help variables
+c elow         : help variable
+c eup          : help variable
+c eint         : help variable
 c v1adjust..   : adjustable factors for OMP (default 1.)
 c vloc         : interpolated optical model parameters
 c vomp         : optical model parameters from file
+c d3loc        : help variable
+c v1loc        : help variable
+c v2loc        : help variable
+c v3loc        : help variable
+c v4loc        : help variable
+c w3loc        : help variable
+c w4loc        : help variable
 c v,rv,av      : real volume potential, radius, diffuseness
 c vd,rvd,avd   : real surface potential, radius, diffuseness
 c w,rw,aw      : imaginary volume potential, radius, diffuseness
@@ -131,6 +140,10 @@ c Extension up to 1 GeV.
 c
 c Ejoin     : joining energy for high energy OMP
 c fjoin     : help variable
+c Vterm     : high energy V term
+c V0term    : high energy V term
+c Vcoul     : Coulomb term
+c Vc        : Coulomb term
 c Vinfadjust: adjustable factor for high energy limit of
 c             real central potential
 c Vinf      : high energy limit for real central potential

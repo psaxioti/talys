@@ -267,6 +267,7 @@ c Irspin2    : 2 * residual spin
 c Ir         : residual spin
 c rho,rho0   : integrated level density
 c flagastro  : flag for calculation of astrophysics reaction rate
+c J2maxastro: maximum J value for astro
 c flagastrogs: flag for calculation of astrophysics reaction rate
 c              with target in ground state only
 c

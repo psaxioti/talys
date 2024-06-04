@@ -401,6 +401,9 @@ c
 c
 c Integrate the recoil and ejectile spectra in the LAB
 c
+c sumenej: sum over energies
+c sumenrec: sum over energies
+c
          if (flaglabddx) then
            sumenej=0.
            do nen=1,iejlab(type)

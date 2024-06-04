@@ -16,6 +16,21 @@ c
 c
 c      link with NJOY parameters
 c
+c lamda: number of degress of freedom per l,j
+c gxx: URR width
+c ggx: URR width
+c gfx: URR width
+c gnox: URR width
+c gnx: URR width
+c galpha: URR width
+c gbeta: URR width
+c ay : help variable
+c spot: potential scattering S
+c spi: spin
+c aj: spin
+c gj: spin factor
+c sqrte: square root of energy
+c
       spot(l)=0.
       gnox=urrwidth(3,l,j)
       gxx=urrwidth(1,l,j)
@@ -50,6 +65,14 @@ c
       spot(l)=2.*twopi*(2.*ll+1.)*(sin(ps)/k)**2
 c
 c      compute cross section contributions
+c
+c terg: help variable
+c terf: help variable
+c ters: help variable
+c gff : help variable
+c gc  : help variable
+c diff: difference
+c add : help variable
 c
       gnx=gnox*vl
       gam=ggx

@@ -11,8 +11,12 @@ c
       implicit none
       real             func1,a,b,c,dab
       double precision t1,t2,f1,f2
-
+c
 c ****************** Calculation of the x,x1,x2 terms ******************
+c
+c f1: help variable
+c f2: help variable
+c t2: help variable
 c
       f1=dab*(1.-t1)*((a/(1.+t1*a)+b/(1.+t1*b)+2*c/(1.-t1*c))**2)
       f2=(1.+dab)*(a*(1.+a)/((1.+t1*a)*(1.+t2*a))+

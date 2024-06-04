@@ -2,15 +2,16 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 30, 2006
+c | Date  : January 2, 2017
 c | Task  : Retrieve keywords and values from input line
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
-      character*1  chprev,ch
-      character*80 line,word(40)
-      integer      i,nkey,ibeg,iend
+      character*1   chprev,ch
+      character*80  word(40)
+      character*80  line
+      integer       i,nkey,ibeg,iend
 c
 c **************** Read keywords and values from input line ************
 c
@@ -44,4 +45,4 @@ c
    20 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2017 A.J. Koning, S. Hilaire and S. Goriely

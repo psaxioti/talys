@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : January 10, 2014
+c | Date  : December 12, 2016
 c | Task  : Tabulated level densities
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical          lexist
-      character*4      denchar
+      character*2      denchar
       character*90     denfile
       integer          Zix,Nix,Z,A,ibar,nloop,ldmod,ploop,ia,parity,
      +                 nex,J
@@ -38,8 +38,7 @@ c ldtottable : total level density from table
 c
       Z=ZZ(Zix,Nix,0)
       A=AA(Zix,Nix,0)
-      denchar='z   '
-      write(denchar(2:4),'(i3.3)') Z
+      denchar=trim(nuc(Z))
       nloop=0
       if (flagfission) nloop=nfisbar(Zix,Nix)
       ldmod=ldmodel(Zix,Nix)
@@ -59,14 +58,14 @@ c
         if (ibar.eq.0) then
           if (ldmod.eq.4) then
             denfile=
-     +       path(1:lenpath)//'density/ground/goriely/'//denchar//'.tab'
+     +       trim(path)//'density/ground/goriely/'//denchar//'.tab'
           endif
           if (ldmod.eq.5) then
             denfile=
-     +       path(1:lenpath)//'density/ground/hilaire/'//denchar//'.tab'
+     +       trim(path)//'density/ground/hilaire/'//denchar//'.tab'
           endif
           if (ldmod.eq.6) then
-            denfile=path(1:lenpath)//'density/ground/hilaireD1M/'//
+            denfile=trim(path)//'density/ground/hilaireD1M/'//
      +        denchar//'.tab'
           endif
         endif
@@ -75,11 +74,11 @@ c First barrier
 c
         if (ibar.eq.1) then
           if (ldmod.eq.4) then
-            denfile=path(1:lenpath)//'density/fission/goriely/inner/'
-     +        //denchar
+            denfile=trim(path)//'density/fission/goriely/inner/'
+     +        //denchar//'.ld'
           else
-            denfile=path(1:lenpath)//'density/fission/hilaire/Max1/'
-     +        //denchar
+            denfile=trim(path)//'density/fission/hilaire/Max1/'
+     +        //denchar//'.ld'
           endif
         endif
 c
@@ -87,11 +86,11 @@ c Second barrier
 c
         if (ibar.eq.2) then
           if (ldmod.eq.4) then
-            denfile=path(1:lenpath)//'density/fission/goriely/outer/'
-     +        //denchar
+            denfile=trim(path)//'density/fission/goriely/outer/'
+     +        //denchar//'.ld'
           else
-            denfile=path(1:lenpath)//'density/fission/hilaire/Max2/'
-     +        //denchar
+            denfile=trim(path)//'density/fission/hilaire/Max2/'
+     +        //denchar//'.ld'
           endif
         endif
 c
@@ -99,8 +98,8 @@ c Third barrier
 c
         if (ibar.eq.3) then
           if (ldmod.eq.5) then
-            denfile=path(1:lenpath)//'density/fission/hilaire/Max3/'
-     +        //denchar
+            denfile=trim(path)//'density/fission/hilaire/Max3/'
+     +        //denchar//'.ld'
           else
             goto 10
           endif
@@ -110,7 +109,7 @@ c Check existence of file and read data from the tables.
 c
         inquire (file=denfile,exist=lexist)
         if (lexist) then
-          open (unit=2,status='old',file=denfile)
+          open (unit=2,file=denfile,status='old')
           do 20 parity=1,ploop,-2
    30       read(2,'(/31x,i3//)',end=80) ia
             if (A.ne.ia) then
@@ -194,4 +193,4 @@ c
      +  " Z=",i3," A=",i3)') Z,A
       stop
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

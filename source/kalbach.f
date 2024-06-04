@@ -19,7 +19,17 @@ c kalbach   : Kalbach function
 c Ein       : incident energy
 c Eout      : outgoing energy
 c ang       : angle
-c Et1,c1,...: constants of Kalbach systematics
+c Et1       : constant of Kalbach systematics
+c Et3       : constant of Kalbach systematics
+c Cmin      : constant of Kalbach systematics
+c Cmout     : constant of Kalbach systematics
+c C1        : constant
+c C2        : constant
+c X1        : energy
+c X3        : energy
+c Ek1       : energy
+c Ek3       : energy
+c C3        : constant
 c Smyers    : Myers-Swiatecki separation energy
 c k0        : index of incident particle
 c akal      : Kalbach 'a' parameter

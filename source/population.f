@@ -31,12 +31,15 @@ c Eout       : outgoing energy
 c Etotal     : total energy of compound system (target + projectile)
 c Ex         : excitation energy
 c egrid      : outgoing energy grid
-c Elow,Ehigh : help variables
+c Elow,Ehigh : help variable
 c deltaEx    : excitation energy bin for population arrays
 c locate     : subroutine to find value in ordered table
-c na1,nb1    : help variables
-c Ea1,Eb1    : help variables
-c xsa,xsb,xs : help variables
+c na1        : help variable
+c nb1        : help variable
+c na2        : help variable
+c nb2        : help variable
+c Ea1,Eb1    : help variable
+c xsa,xsb,xs : help variable
 c xspreeq    : preequilibrium cross section per particle type and
 c              outgoing energy
 c

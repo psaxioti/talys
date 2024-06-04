@@ -24,9 +24,33 @@ c eopt      : incident energy
 c asym      : asymmetry parameter
 c eferm     : Fermi energy
 c f         : eopt-efer
-c Cviso,....: optical potential parameters
-c w1loc.....: help variables
-c Fv1,......: adjustable factors for OMP
+c Cviso     : optical potential parameter
+c Ccoul     : optical potential parameter
+c Cwiso     : optical potential parameter
+c Crr       : optical potential parameter
+c w1loc     : help variable
+c d1loc     : help variable
+c d2loc     : help variable
+c d2loc     : help variable
+c vso1loc   : help variable
+c vso2loc   : help variable
+c wso1loc   : help variable
+c wso2loc   : help variable
+c w1loc     : help variable
+c w2loc     : help variable
+c Wad       : Soukhovitskii OMP parameter
+c wddisp    : Soukhovitskii OMP parameter
+c widr      : Soukhovitskii OMP parameter
+c vrdisp    : Soukhovitskii OMP parameter
+c viso      : Soukhovitskii OMP parameter
+c Wad       : Soukhovitskii OMP parameter
+c Var       : Soukhovitskii OMP parameter
+c V0r       : Soukhovitskii OMP parameter
+c v1r       : Soukhovitskii OMP parameter
+c v2r       : Soukhovitskii OMP parameter
+c phicoul   : Soukhovitskii OMP parameter
+c lambdaR   : Soukhovitskii OMP parameter
+c Fv1       : adjustable factors for OMP
 c v1,v2,v3  : components for V
 c w1,w2     : components for W
 c d1,d2,d3  : components for Wd
@@ -36,9 +60,9 @@ c wso1,wso2 : components for Wso
 
       asym=(A-2.*Z)/real(A)
       if (k.eq.1) then
-        eferm=-11.2814+0.02646*A
+        eferm=-0.5*(S(0,1,1)+S(0,0,1))
       else
-        eferm=-8.4075+0.01378*A
+        eferm=-0.5*(S(1,0,2)+S(0,0,2))
       endif
       f=eopt-eferm
       Cviso=10.5

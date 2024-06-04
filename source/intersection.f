@@ -37,6 +37,9 @@ c
 c
 c **************************** Initialisation **************************
 c
+c xdlim: tolerance
+c ydlim: tolerance
+c
       ir=0
       xdlim=min(abs(xs),abs(xe))/1.e14
       ydlim=min(abs(ys),abs(ye))/1.e14

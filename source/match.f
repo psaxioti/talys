@@ -20,6 +20,7 @@ c Eex         : excitation energy
 c pol1        : subroutine for interpolation of first order
 c temp,temprho: nuclear temperature
 c rhof        : value for total level density
+c logrhof     : log of value for total level density
 c E0save      : E0 value saved for matching routine
 c NLo,EL,NP,EP: matching level numbers and energies
 c factor1,2   : help variables

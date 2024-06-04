@@ -20,6 +20,18 @@ c
 c
 c **********************************************************************
 c
+c fidi: function for dinuclear shape
+c al: help variable
+c be: help variable
+c epsc: help variable
+c eq: help variable
+c ga: help variable
+c ds: help variable
+c sq1: help variable
+c sq3: help variable
+c wu1: help variable
+c wu3: help variable
+c
       d=totl-r1-r3
       aaa=.8+x(1)*2.
       z2=d*(.5-x(2))

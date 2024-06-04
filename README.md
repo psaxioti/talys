@@ -1,7 +1,7 @@
-     TALYS-1.8 (Version: December 30, 2015)
+     TALYS-1.9 (Version: December 21, 2017)
 
- Copyright (C) 2015  A.J. Koning, S. Hilaire and S. Goriely        
-                         NRG          CEA              ULB
+ Copyright (C) 2017 A.J. Koning, S. Hilaire and S. Goriely        
+                         IAEA         CEA              ULB
 
 The TALYS package
 -----------------

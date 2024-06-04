@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 10, 2004
+c | Date  : January 6, 2017
 c | Task  : Pre-equilibrium angular distribution
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer type,nen,iang,NL,i
-      real    Eout,ang,kalbach,xs
+      real    Eout,xspe,xsbu,ang,kalbach,kalbachBU,xs
 c
 c ************** Kalbach angular distribution for exciton model ********
 c
@@ -28,6 +28,11 @@ c anglecont : angle in degrees for continuum
 c deg2rad   : conversion factor for degrees to radians
 c xspreeqad : preequilibrium angular distribution per particle type
 c kalbach   : Kalbach function
+c xspe      : help variable
+c xsbu      : help variable
+c xspreeqbu : preequilibrium cross section per particle type and
+c             outgoing energy for breakup
+c kalbachBU : Kalbach function for break-up
 c Einc      : incident energy in MeV
 c
       do 10 type=0,6
@@ -37,10 +42,13 @@ c
         do 20 nen=ebegin(type),eend(type)
           if (xspreeq(type,nen).eq.0.) goto 20
           Eout=egrid(nen)
+          xspe=xspreeq(type,nen)-xspreeqbu(type,nen)
+          xsbu=xspreeqbu(type,nen)
           do 30 iang=0,nanglecont
             ang=anglecont(iang)*deg2rad
-            xspreeqad(type,nen,iang)=xspreeq(type,nen)*
-     +        kalbach(type,Einc,Eout,ang)
+            xspreeqad(type,nen,iang)=xspe*kalbach(type,Einc,Eout,ang)
+            if (xsbu.gt.0.) xspreeqad(type,nen,iang)=
+     +        xspreeqad(type,nen,iang)+xsbu*kalbachBU(type,Einc,ang)
    30     continue
    20   continue
    10 continue

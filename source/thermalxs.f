@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 17, 2008
+c | Date  : December 12, 2016
 c | Task  : Cross sections at thermal energies
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical      lexist
-      character*4  thchar
+      character*8  thchar
       character*90 thfile
       integer      Z,A,ia
       real         xs,xsp,xsalpha,ald,Spair
@@ -22,7 +22,6 @@ c AA,A   : mass number of residual nucleus
 c thchar : help variable
 c thfile : thermal cross section file
 c path   : directory containing structure files to be read
-c lenpath: length of pathname
 c
 c Read experimental values from thermal cross section file
 c Values from the table can always be overruled by values given in the
@@ -32,12 +31,11 @@ c 1. Inquire whether file is present
 c
       Z=ZZ(0,0,1)
       A=AA(0,0,1)
-      thchar='z   '
-      write(thchar(2:4),'(i3.3)') Z
-      thfile=path(1:lenpath)//'thermal/'//thchar
+      thchar=trim(nuc(Z))//'.therm'
+      thfile=trim(path)//'thermal/'//thchar
       inquire (file=thfile,exist=lexist)
       if (.not.lexist) goto 30
-      open (unit=2,status='old',file=thfile)
+      open (unit=2,file=thfile,status='old')
 c
 c 2. Search for the isotope under consideration and read information
 c
@@ -45,6 +43,8 @@ c ia          : mass number from resonance table
 c xscaptherm  : thermal capture cross section
 c xsptherm    : thermal (n,p) cross section
 c xsalphatherm: thermal (n,a) cross section
+c xsalpha : (n,a) cross section
+c xsp   : (n,p) cross section
 c xs,....     : help variables
 c
       xs=0.
@@ -77,4 +77,4 @@ c
       endif
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

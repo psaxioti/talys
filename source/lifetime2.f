@@ -24,7 +24,14 @@ c ppi0        : initial proton number
 c hpi0        : initial proton hole number
 c pnu0        : initial neutron number
 c hnu0        : initial neutron hole number
-c term1,......: help variables
+c term1       : help variable
+c term2       : help variable
+c term3       : help variable
+c term4       : help variable
+c term5       : help variable
+c term6       : help variable
+c term7       : help variable
+c term8       : help variable
 c Gpiplus,... : two-component branching ratios
 c maxpar      : maximal particle number
 c Lexc        : exchange term

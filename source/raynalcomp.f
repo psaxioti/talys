@@ -34,7 +34,7 @@ c Nindex,Nix : neutron number index for residual nucleus
 c disp       : flag for dispersive optical model
 c k0         : index of incident particle
 c
-      open (unit=1,status='unknown',file='eciscomp.inp')
+      open (unit=1,file='eciscomp.inp',status='replace')
       title='Compound cross sections by ECIS                   '
       ecis1='FFTFFTFFFFFFFFTFFFFFFFFFFFFTFFFFFFFFFFFFFFFFFFFFFF'
       ecis2='FFFFFFFFTFFFFTTFTTTFTTTFTFFFFFTFTTFFFFFFFFFFTFFFFF'

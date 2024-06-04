@@ -136,7 +136,8 @@ c
 c 1. Gamma emission rates
 c
 c surfgam   : flag for surface effects for photons (always false)
-c phres1-2  : particle-hole state density for residual system
+c phres1    : particle-hole state density for residual system
+c phres2    : particle-hole state density for residual system
 c g2E       : help variable
 c branchplus: branching ratio for n-2 --> n
 c branchzero: branching ratio for n --> n

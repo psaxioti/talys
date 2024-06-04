@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 14, 2014
+c | Date  : December 15, 2016
 c | Task  : Output of gamma-ray strength functions, transmission
 c |         coefficients and cross sections
 c +---------------------------------------------------------------------
@@ -35,6 +35,7 @@ c model     : string for gamma-ray strength function
 c strengthM1: model for M1 gamma-ray strength function
 c etable    : constant to adjust tabulated strength functions
 c ftable    : constant to adjust tabulated strength functions
+c upbend    : properties of the low-energy upbend of given multipolarity
 c nTqrpa    : number of temperatures for QRPA
 c gammax    : number of l-values for gamma multipolarity
 c sgr       : strength of GR
@@ -61,11 +62,15 @@ c
      +  " (",i3,a2,") "/)') Z,N,A,nuc(Z)
       write(*,'(" S-wave strength function parameters:"/)')
       write(*,'(" Exp. total radiative width=",f10.5," eV +/-",f8.5,
-     +  " Theor. total radiative width=",f15.2," eV")')
-     +  gamgam(Zcomp,Ncomp),dgamgam(Zcomp,Ncomp),gamgamth(Zcomp,Ncomp)
+     +  " Theor. total radiative width for l=0:",f15.5," eV")')
+     +  gamgam(Zcomp,Ncomp),dgamgam(Zcomp,Ncomp),gamgamth(Zcomp,Ncomp,0)
+      write(*,'(53x," Theor. total radiative width for l=1:",f15.5,
+     +  " eV")') gamgamth(Zcomp,Ncomp,1)
       write(*,'(" Exp. D0                   =",f10.2," eV +/-",f8.2,
-     +  " Theor. D0                   =",f15.2," eV")')
+     +  " Theor. D0                   =",f15.5," eV")')
      +  D0(Zcomp,Ncomp),dD0(Zcomp,Ncomp),D0theo(Zcomp,Ncomp)
+      write(*,'(53x," Theor. D1                   =",f15.5," eV")')
+     +  D1theo(Zcomp,Ncomp)
       write(*,'(" Theor. S-wave strength f. =",f10.5,"E-4")')
      +  1.e4*swaveth(Zcomp,Ncomp)
       write(*,'(" Normalization factor      =",f10.5)') gnorm
@@ -83,13 +88,31 @@ c
       if (strengthM1.eq.2) model="RIPL-2                   "
       write(*,'(/" Gamma-ray strength function model for M1: ",a25)')
      +  model
+      if (strengthM1.eq.8) model="Gogny D1M HFB+QRPA Tables"
+      write(*,'(/" Gamma-ray strength function model for M1: ",a25)')
+     +  model
       if (Z.eq.N)
      +  write(*,'(/" Isospin effect on g-strength for incident ",a1,
      +  ": fiso=",f5.2)') parsym(k0),fiso(Zcomp,Ncomp,k0)
-      if (strength.eq.3.or.strength.eq.4) then
-        write(*,'(/" Adjustable parameters: etable=",f10.5," ftable=",
-     +    f10.5," number of T=",i3)') etable(Zcomp,Ncomp),
-     +    ftable(Zcomp,Ncomp),nTqrpa
+      if (strength.eq.3.or.strength.eq.4.or.strength.ge.6) then
+        write(*,'(/" Adjustable parameters for E1 : etable=",f10.5,
+     +    " ftable=",f10.5," number of T=",i3)')
+     +    etable(Zcomp,Ncomp,1,1),ftable(Zcomp,Ncomp,1,1),nTqrpa
+      endif
+      if (strengthM1.eq.8) then
+        write(*,'(/" Adjustable parameters for M1 : etable=",f10.5,
+     +    " ftable=",f10.5)')
+     +    etable(Zcomp,Ncomp,0,1),ftable(Zcomp,Ncomp,0,1)
+      endif
+      if (upbend(Zcomp,Ncomp,1,1,1).ne.0.) then
+        write(*,'(/" Inclusion of an E1 upbend C exp(-eta*E) with C=",
+     +    es10.2," eta=",f8.2)')
+     +    upbend(Zcomp,Ncomp,1,1,1),upbend(Zcomp,Ncomp,1,1,2)
+      endif
+      if (upbend(Zcomp,Ncomp,0,1,1).ne.0.) then
+        write(*,'(/" Inclusion of an M1 upbend C exp(-eta*E) with C=",
+     +    es10.2," eta=",f8.2)')
+     +    upbend(Zcomp,Ncomp,0,1,1),upbend(Zcomp,Ncomp,0,1,2)
       endif
       do 10 l=1,gammax
         write(*,'(/" Normalized gamma-ray strength functions and ",
@@ -143,13 +166,13 @@ c
      +      l,ggr(Zcomp,Ncomp,0,l,1),l,ggr(Zcomp,Ncomp,1,l,1),
      +      l,gpr(Zcomp,Ncomp,0,l,1),l,gpr(Zcomp,Ncomp,1,l,1)
         endif
-        write(*,'("      k(M",i1,") =",1p,e14.5,"      k(E",i1,") =",
-     +    1p,e14.5/)') l,kgr(Zcomp,Ncomp,0,l),l,kgr(Zcomp,Ncomp,1,l)
-        write(*,'("     E       f(M",i1,")        f(E",i1,")",
+        write(*,'("      k(M",i1,") =",es14.5,"      k(E",i1,") =",
+     +    es14.5/)') l,kgr(Zcomp,Ncomp,0,l),l,kgr(Zcomp,Ncomp,1,l)
+        write(*,'("      E       f(M",i1,")        f(E",i1,")",
      +    "        T(M",i1,")        T(E",i1,")"/)')  l,l,l,l
         do 20 nen=ebegin(0),eend(0)
           e=egrid(nen)
-          write(*,'(1x,f7.3,1p,4e13.5)') e,
+          write(*,'(1x,f8.3,4es13.5)') e,
      +      fstrength(Zcomp,Ncomp,0.,e,0,l)*gnorm,
      +      fstrength(Zcomp,Ncomp,0.,e,1,l)*gnorm,Tjl(0,nen,0,l),
      +      Tjl(0,nen,1,l)
@@ -161,10 +184,10 @@ c
 c xsreac: reaction cross section
 c
       write(*,'(/" Photoabsorption cross sections"/)')
-      write(*,'("    E      reaction"/)')
+      write(*,'("     E      reaction"/)')
       do 110 nen=ebegin(0),eend(0)
-        write(*,'(1x,f7.3,1p,e12.4)') egrid(nen),xsreac(0,nen)
+        write(*,'(1x,f8.3,es12.4)') egrid(nen),xsreac(0,nen)
   110 continue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

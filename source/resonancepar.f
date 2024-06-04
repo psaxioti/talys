@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : March 5, 2014
+c | Date  : December 12, 2016
 c | Task  : S-wave resonance parameters
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical      lexist
-      character*4  reschar
+      character*6  reschar
       character*90 resfile
       integer      Zix,Nix,Z,A,ia
       real         D0f,dD0f,gamgamf,dgamgamf
@@ -24,7 +24,6 @@ c AA,A   : mass number of residual nucleus
 c reschar: help variable
 c resfile: resonance parameter file
 c path   : directory containing structure files to be read
-c lenpath: length of pathname
 c
 c Read experimental values from resonance parameter file
 c Resonance parameters from the table can always be overruled
@@ -34,12 +33,11 @@ c 1. Inquire whether file is present
 c
       Z=ZZ(Zix,Nix,0)
       A=AA(Zix,Nix,0)
-      reschar='z   '
-      write(reschar(2:4),'(i3.3)') Z
-      resfile=path(1:lenpath)//'resonances/'//reschar
+      reschar=trim(nuc(Z))//'.res'
+      resfile=trim(path)//'resonances/'//reschar
       inquire (file=resfile,exist=lexist)
       if (.not.lexist) goto 30
-      open (unit=2,status='old',file=resfile)
+      open (unit=2,file=resfile,status='old')
 c
 c 2. Search for the isotope under consideration and read information
 c
@@ -48,7 +46,10 @@ c D0     : experimental s-wave resonance spacing in eV
 c dD0    : uncertainty in D0
 c gamgam : experimental total radiative width in eV
 c dgamgam: uncertainty in gamgam
-c D0f,...: help variables
+c D0f    : help variable
+c dD0f   : help variable
+c gamgamf: experimental total radiative width in eV
+c dgamgamf: uncertainty in gamgam
 c
    10 read(2,'(4x,i4,2e9.2,10x,2f9.5)',end=20) ia,D0f,dD0f,gamgamf,
      +  dgamgamf
@@ -76,8 +77,8 @@ c
         endif
       endif
       gamgam(Zix,Nix)=gamgamadjust(Zix,Nix)*gamgam(Zix,Nix)
-      if (Zix.eq.0.and.Nix.eq.0.and.gnorm.ne.-1.) 
+      if (Zix.eq.0.and.Nix.eq.0.and.gnorm.ne.-1.)
      +  gnorm=gamgamadjust(Zix,Nix)*gnorm
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

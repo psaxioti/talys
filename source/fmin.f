@@ -24,6 +24,28 @@ c
 c
 c **********************************************************************
 c
+c extern: external function
+c mmax: maximum number of points
+c nmaxp1: maximum number of points
+c alpha: Brosa parameter
+c betap: Brosa parameter
+c gam: Brosa parameter
+c fmin: minimum function value
+c fmax: maximum function value
+c fmax2: maximum function value
+c fn   : help variable
+c fr   : help variable
+c pa   : Brosa parameter
+c pc   : Brosa parameter
+c pd   : Brosa parameter
+c pe   : Brosa parameter
+c pex  : Brosa parameter
+c pr   : Brosa parameter
+c psh  : Brosa parameter
+c pmax : Brosa parameter
+c ssh  : Brosa parameter
+c std  : Brosa parameter
+c
       alpha=1.
       betap=0.5
       gam=2.

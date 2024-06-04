@@ -212,7 +212,7 @@ c
         minbins=30
         maxbins=numbins
         b=60.
-        nbins=minbins+(maxbins-minbins)*Einc*Einc/(Einc*Einc+b*b)
+        nbins=minbins+int((maxbins-minbins)*Einc*Einc/(Einc*Einc+b*b))
       else
         nbins=nbins0
       endif

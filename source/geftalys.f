@@ -87,7 +87,7 @@ c   MODEC=2 - Monte Carlo calculations
          anMean_sum=0.0
 
 c   27.09.2013
-	   do i=1,350
+        do i=1,350
           do j=1,150
             yAZ(i,j)=0.0
             yAZp(i,j)=0.0
@@ -713,7 +713,7 @@ c      write(*,*) 'test1'
          end do
 
 c   27.09.2013
-	   do i=1,350
+        do i=1,350
           do j=1,150
             yAZ_temp(i,j)=0.0
             yAZp_temp(i,j)=0.0
@@ -1670,6 +1670,7 @@ c      Case 2
 900     continue
         RAheavy = PGauss(ACMode2,SigAMode2)
         RAheavy = PBox(ACMode2,SigAMOde2,PAWidthS2)
+        RAheavy = max(RAheavy,1.)
         RZpol = Zshift(2,2,nInt(RAheavy))
         RZ = RAheavy * ZCN / ACN + RZpol
         Rtest = RNDM(-1.)
@@ -2075,7 +2076,8 @@ c    /'** Neutron evaporation **'/
       Egtot10 = 0
 
 c     ' Pre-scission kinetic energy
-      Epre = Epotscission - Ecoll - Eintrlight - Eintrheavy - Erotlight - Erotheavy
+      Epre = Epotscission - Ecoll - Eintrlight - Eintrheavy -
+     +  Erotlight - Erotheavy
       If(Epre.lt.0) Then
         Epre = 0
       end if

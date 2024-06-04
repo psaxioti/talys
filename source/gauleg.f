@@ -15,6 +15,9 @@ c
 c ****************** Calculation of Gauss-Legendre arrays **************
 c
 c ngl: number of points for Gauss-Legendre integration
+c ns2: half of number of points for Gauss-Legendre integration
+c oi: cosine term
+c ti: help variable
 c tgl: points for Gauss-Legendre integration
 c wgl: weights for Gauss-Legendre integration
 c

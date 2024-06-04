@@ -71,9 +71,12 @@ c ddxrectot(Zcomp,Ncomp,nex,ierec,iarec)
 c
 c Loop over the compound nucleus kinetic energies
 c
-c vcm      : mean center of mass velocity for a bin
+c vcmav    : mean center of mass velocity for a bin
 c vcmmin   : minimum center of mass velocity for a bin
 c vcm      : maximum center of mass velocity for a bin
+c xsgridad: angular distribution
+c iy : help variable
+c
 c
       do 10 nen=nenbeg,nenend
         Eout=egrid(nen)
@@ -95,6 +98,14 @@ c
 c
 c loop over recoil angles and velocities to calculate the fraction of
 c the bin population with a given angle-velocity direction
+c
+c ierec: counter
+c ierecbeg: begin of energy count
+c ierecend: begin of energy count
+c iarec: counter
+c fracCM: fraction
+c fracCMloc: fraction
+c vcmloc: C.M. velocity
 c
       angcm=0.
       vcmav=0.
@@ -210,6 +221,8 @@ c calculate lab bins occupation for the ejectile in the LAB
 c We assume the image in the LAB of a CM triangle is a triangle
 c This is theoretically wrong but should be a good approximation
 c
+c labs1      : recoil energy
+c labs2      : recoil energy
 c labsurf1   : total surface covered in the LAB by the ejectile image
 c              in the LAB of the first CM triangle (Eejcm1,angejcm1),
 c              (Eejcm1,angejcm2),(Eejcm2,angejcm1)
@@ -224,6 +237,7 @@ c ylim2      : limits in the LAB ejectile angular grid
 c scovej2    : surface covered for each LAB energy-angle bin
 c labsurf    : Total covered surface in the LAB
 c
+c ddxejadd   : addition to double differential cross section for the LAB
 c ddxLAB     : Eejectile double differential cross section for the LAB
 c              energy-angular bin corresponding to binddx
 c
@@ -328,6 +342,7 @@ c store recoil flux in lab ddx array
 c
 c ixl,iyl    : help variables
 c ddxrec     : LAB ddx array
+c sumddxr: help variable
 c areareclab : Total surface of LAB ddx bins
 c
 c Deduce the real ejectile angles by coupling with

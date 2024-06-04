@@ -17,7 +17,8 @@ c
 c x           : cosine of the angle
 c plegendre,pl: legendre polynomial
 c l           : l-value
-c pl0, pl1    : help variables
+c pl0         : help variable
+c pl1         : help variable
 c
       pl0=1.
       pl1=x

@@ -44,24 +44,24 @@ c numinc     : number of incident energies
 c
       if (nin.eq.numinclow+1) then
         flagurrendf=.true.
-        open (unit=21,status='unknown',file='urr.dat')
+        open (unit=21,file='urr.dat',status='unknown')
         write(21,'("#")')
         write(21,'("# Resonance parameters for Z=",i4," A=",i4," (",
      +    i3,a2,") Target spin=",f4.1)') Ztarget,Atarget,Atarget,
      +    Starget,jdis(0,1,Ltarget)
-        write(21,'("# Thermal capture cross section=",1pe12.5," mb",
-     +    "   Sn=",e12.5," MeV")') xscaptherm,S(0,0,1)
+        write(21,'("# Thermal capture cross section=",es12.5," mb",
+     +    "   Sn=",es12.5," MeV")') xscaptherm,S(0,0,1)
         write(21,'("#")')
       endif
-      write(21,'("#  Einc[MeV]=",1pe12.5)') Einc
-      write(21,'("# Rprime[fm]=",1pe12.5)') Rprime
+      write(21,'("#  Einc[MeV]=",es12.5)') Einc
+      write(21,'("# Rprime[fm]=",es12.5)') Rprime
       write(21,'("# l   J  P   D(l)[eV]   D(l,J)[eV]    S(l)        ",
      +  "S(l,J)   Gx(l,J)[eV] Gn(l,J)[eV] Gg(l,J)[eV] Gf(l,J)[eV]",
      +  " Gp(l,J)[eV] Ga(l,J)[eV]")')
       odd=mod(Atarget+1,2)
       do 10 l=0,lurr
         do 20 J=JminU(l),JmaxU(l)
-          write(21,'(i3,f5.1,1x,a1,1p,10e12.5)') l,J+0.5*odd,
+          write(21,'(i3,f5.1,1x,a1,10es12.5)') l,J+0.5*odd,
      +      cparity(Purrlj(l,J)),Dl(l),Dlj(l,J),strengthl(l),
      +      strengthlj(l,J),urrwidth(1,l,J),urrwidth(3,l,J),
      +      urrwidth(0,l,J),urrwidth(-1,l,J),urrwidth(2,l,J),
@@ -79,6 +79,9 @@ c numl   : maximal number of l-values
 c nulj   : (l,j) degree of freedom
 c x,y    : help variables
 c Q      : Q-value
+c lstring: string for l value
+c ufor1  : format
+c ufor2  : format
 c
       do 110 type=-1,6
         if (type.eq.5.and.Q(2).le.0.) goto 110
@@ -113,11 +116,11 @@ c
           k=1+JmaxU(l)-JminU(l)
           ufor1='("# E [MeV]   ",nn(" J      nu        width     "))'
           write(ufor1(17:18),'(i2)') k
-          ufor2='(1p,e11.3,0p,nn(f4.1,1p,2e12.5,0p))'
-          write(ufor2(14:15),'(i2)') k
+          ufor2='(es11.3,nn(f4.1,2es12.5))'
+          write(ufor2(9:10),'(i2)') k
           if (.not.urrexist(type,l)) then
             urrexist(type,l)=.true.
-            open (unit=1,status='unknown',file=urrfile)
+            open (unit=1,file=urrfile,status='replace')
             write(1,'("# ",a1," + ",i3,a2," l-value:",i2)')
      +        parsym(k0),Atarget,Starget,l
             write(1,'("# URR parameters for ENDF-6 format")')
@@ -138,10 +141,10 @@ c
      +          (J+0.5*odd,x(l,J),y(l,J),J=JminU(l),JmaxU(l))
   150       continue
             do 160 nen=numinclow+1,nin-1
-              write(1,'(1p,e11.3," !!! not calculated")') eninc(nen)
+              write(1,'(es11.3," !!! not calculated")') eninc(nen)
   160       continue
           else
-            open (unit=1,status='old',file=urrfile)
+            open (unit=1,file=urrfile,status='old')
             do 170 nen=1,nin+4
               read(1,*,end=200,err=200)
   170       continue
@@ -169,7 +172,7 @@ c
           endif
           if (.not.urrexist(type,l)) then
             urrexist(type,l)=.true.
-            open (unit=1,status='unknown',file=urrfile)
+            open (unit=1,file=urrfile,status='replace')
             write(1,'("# ",a1," + ",i3,a2," l-value:",i2)')
      +        parsym(k0),Atarget,Starget,l
             write(1,'("# URR parameters for ENDF-6 format")')
@@ -185,18 +188,18 @@ c
               write(1,'("# E [MeV]     strength")')
             endif
             do 230 nen=1,numinclow
-              write(1,'(1p,e11.3,e12.5)') eninc(nen),xx(1)
+              write(1,'(es11.3,es12.5)') eninc(nen),xx(1)
   230       continue
             do 240 nen=numinclow+1,nin-1
-              write(1,'(1p,e11.3," !!! not calculated")') eninc(nen)
+              write(1,'(es11.3," !!! not calculated")') eninc(nen)
   240       continue
           else
-            open (unit=1,status='old',file=urrfile)
+            open (unit=1,file=urrfile,status='old')
             do 250 nen=1,nin+4
               read(1,*,end=300,err=300)
   250       continue
           endif
-          write(1,'(1p,e11.3,e12.5)') Einc,xx(1)
+          write(1,'(es11.3,es12.5)') Einc,xx(1)
   300     close (unit=1)
   220   continue
   210 continue
@@ -232,37 +235,37 @@ c
         endif
         if (.not.urrexist(type,0)) then
           urrexist(type,0)=.true.
-          open (unit=1,status='unknown',file=urrfile)
+          open (unit=1,file=urrfile,status='replace')
           write(1,'("# ",a1," + ",i3,a2)') parsym(k0),Atarget,Starget
           if (type.eq.9) then
             write(1,'("# URR cross section with formalism from NJOY")')
-            write(1,'("# Rprime[fm] = ",1pe12.5)') RprimeU
+            write(1,'("# Rprime[fm] = ",es12.5)') RprimeU
           endif
           if (type.eq.10) then
             write(1,'("# URR cross section with formalism from TALYS")')
-            write(1,'("# Rprime[fm] = ",1pe12.5)') Rprime
+            write(1,'("# Rprime[fm] = ",es12.5)') Rprime
           endif
           if (type.eq.11) then
             write(1,'("# URR cross section ratio TALYS:NJOY")')
-            write(1,'("# R ratio    = ",1pe12.5)') Rprime/RprimeU
+            write(1,'("# R ratio    = ",es12.5)') Rprime/RprimeU
           endif
           write(1,'("# energies   = ",i6)') numinc
           write(1,'("# E [MeV]   total       elastic    ",
      +      " capture     fission")')
           do 350 nen=1,numinclow
-            write(1,'(1p,e11.3,4e12.5)') eninc(nen),xx(1),xx(2),xx(4),
+            write(1,'(es11.3,4es12.5)') eninc(nen),xx(1),xx(2),xx(4),
      +        xx(3)
   350     continue
           do 360 nen=numinclow+1,nin-1
-            write(1,'(1p,e11.3," !!! not calculated")') eninc(nen)
+            write(1,'(es11.3," !!! not calculated")') eninc(nen)
   360     continue
         else
-          open (unit=1,status='old',file=urrfile)
+          open (unit=1,file=urrfile,status='old')
           do 370 nen=1,nin+4
             read(1,*,end=400,err=400)
   370     continue
         endif
-        write(1,'(1p,e11.3,4e12.5)') Einc,xx(1),xx(2),xx(4),xx(3)
+        write(1,'(es11.3,4es12.5)') Einc,xx(1),xx(2),xx(4),xx(3)
   400   close (unit=1)
   310 continue
       return

@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 17, 2014
+c | Date  : November 16, 2016
 c | Task  : Output of particle spectra
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*20 specfile
+      character*21 specfile
       integer      type,nen
 c
 c ***************************** Spectra ********************************
@@ -42,7 +42,7 @@ c
           write(*,'("  Energy   Total       Direct    Pre-equil.",
      +      "  Mult. preeq  Compound"/)')
           do 20 nen=ebegin(type),eendout(type)
-            write(*,'(1x,f7.3,1p,5e12.5)') espec(type,nen),
+            write(*,'(f8.3,5es12.5)') espec(type,nen),
      +        xssumout(type,nen),xsdiscout(type,nen),
      +        xspreeqout(type,nen),xsmpreeqout(type,nen),
      +        xscompout(type,nen)
@@ -52,7 +52,7 @@ c
      +      "  Mult. preeq  Compound    Stripping   Knock-out",
      +      "   Break-up"/)')
           do 25 nen=ebegin(type),eendout(type)
-            write(*,'(1x,f7.3,1p,8e12.5)') espec(type,nen),
+            write(*,'(f8.3,8es12.5)') espec(type,nen),
      +        xssumout(type,nen),xsdiscout(type,nen),
      +        xspreeqout(type,nen),xsmpreeqout(type,nen),
      +        xscompout(type,nen),xspreeqpsout(type,nen),
@@ -63,10 +63,10 @@ c
           write(*,'(/" LAB spectra for outgoing ",a8/)') parname(type)
           write(*,'("  Energy   Cross section"/)')
           do 30 nen=1,iejlab(type)
-            write(*,'(1x,f7.3,1p,e12.5)') Eejlab(type,nen),
+            write(*,'(f8.3,es12.5)') Eejlab(type,nen),
      +        xsejlab(type,nen)
    30     continue
-          write(*,'(/" Energy-integrated cross section:",1p,e12.5/)')
+          write(*,'(/" Energy-integrated cross section:",es12.5/)')
      +      xsejlabint(type)
         endif
 c
@@ -81,21 +81,21 @@ c parsym      : symbol of particle
 c preeqratio  : pre-equilibrium ratio
 c
         if (filespectrum(type)) then
-          specfile=' spec000.000.tot'//natstring(iso)
+          specfile=' spec0000.000.tot'//natstring(iso)
           write(specfile(1:1),'(a1)') parsym(type)
-          write(specfile(6:12),'(f7.3)') Einc
-          write(specfile(6:8),'(i3.3)') int(Einc)
-          open (unit=1,status='unknown',file=specfile)
+          write(specfile(6:13),'(f8.3)') Einc
+          write(specfile(6:9),'(i4.4)') int(Einc)
+          open (unit=1,file=specfile,status='replace')
           write(1,'("# ",a1," + ",i3,a2,": ",a8," spectrum")')
      +      parsym(k0),Atarget,Starget,parname(type)
-          write(1,'("# E-incident = ",f7.3)') Einc
+          write(1,'("# E-incident = ",f8.3)') Einc
           write(1,'("# ")')
           write(1,'("# # energies =",i6)') eendout(type)-ebegin(type)+1
           if (k0.le.2.and.type.le.2) then
             write(1,'("# E-out    Total       Direct    Pre-equil.",
      +        "  Mult. preeq  Compound   PE ratio   ")')
             do 40 nen=ebegin(type),eendout(type)
-              write(1,'(f7.3,1p,6e12.5)')
+              write(1,'(f8.3,6es12.5)')
      +          espec(type,nen),xssumout(type,nen),xsdiscout(type,nen),
      +          xspreeqout(type,nen),xsmpreeqout(type,nen),
      +          xscompout(type,nen),preeqratio(type,nen)
@@ -105,7 +105,7 @@ c
      +        "  Mult. preeq  Compound    PE ratio   BU ratio   ",
      +        " Stripping   Knock-out   Break-up")')
             do 45 nen=ebegin(type),eendout(type)
-              write(1,'(f7.3,1p,10e12.5)')
+              write(1,'(f8.3,10es12.5)')
      +          espec(type,nen),xssumout(type,nen),xsdiscout(type,nen),
      +          xspreeqout(type,nen),xsmpreeqout(type,nen),
      +          xscompout(type,nen),preeqratio(type,nen),
@@ -116,16 +116,16 @@ c
           close (unit=1)
           if (flagrecoil.and.flaglabddx) then
             specfile(14:16)='lab'
-            open (unit=1,status='unknown',file=specfile)
+            open (unit=1,file=specfile,status='replace')
             write(1,'("# ",a1," + ",i3,a2,": ",a8,
      +        " spectrum in LAB frame")') parsym(k0),Atarget,
      +        Starget,parname(type)
-            write(1,'("# E-incident = ",f7.3)') Einc
+            write(1,'("# E-incident = ",f8.3)') Einc
             write(1,'("# ")')
             write(1,'("# # energies =",i6)') iejlab(type)
             write(1,'("# E-out    Total")')
             do 50 nen=1,iejlab(type)
-              write(1,'(f7.3,1p,e12.5)') Eejlab(type,nen),
+              write(1,'(f8.3,es12.5)') Eejlab(type,nen),
      +          xsejlab(type,nen)
    50       continue
             close (unit=1)

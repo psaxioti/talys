@@ -47,8 +47,8 @@ c xsbranch: branching ratio for isomeric cross section
 c
           Z=ZZ(Zcomp,Ncomp,0)
           A=AA(Zcomp,Ncomp,0)
-          write(*,'(1x,2i4," (",i3,a2,")",1p,e12.5,"    0   ",
-     +      1p,e12.5,0p,f9.5)') Z,A,A,nuc(Z),xspopnuc(Zcomp,Ncomp),
+          write(*,'(1x,2i4," (",i3,a2,")",es12.5,"    0   ",
+     +      es12.5,f9.5)') Z,A,A,nuc(Z),xspopnuc(Zcomp,Ncomp),
      +      xspopex(Zcomp,Ncomp,0),xsbranch(Zcomp,Ncomp,0)
 c
 c B. Per isomer
@@ -60,7 +60,7 @@ c Ares      : mass number of residual nucleus
 c
           do 30 nex=1,Nlast(Zcomp,Ncomp,0)
             if (tau(Zcomp,Ncomp,nex).ne.0.) then
-              write(*,'(31x,i3,3x,1p,e12.5,0p,f9.5,2x,1p,e12.5,
+              write(*,'(31x,i3,3x,es12.5,f9.5,2x,es12.5,
      +          " sec. ")') nex,xspopex(Zcomp,Ncomp,nex),
      +          xsbranch(Zcomp,Ncomp,nex),tau(Zcomp,Ncomp,nex)
             endif
@@ -72,7 +72,7 @@ c
       do 40 Acomp=0,maxA
         if (xsmassprod(Acomp).gt.xseps) then
           Ares=Ainit-Acomp
-          write(*,'(1x,i4,1p,e12.5)') Ares,xsmassprod(Acomp)
+          write(*,'(1x,i4,es12.5)') Ares,xsmassprod(Acomp)
         endif
    40 continue
 c
@@ -149,48 +149,48 @@ c
             write(rpfile(3:8),'(2i3.3)') Z,A
             if (.not.rpexist(Zcomp,Ncomp)) then
               rpexist(Zcomp,Ncomp)=.true.
-              open (unit=1,status='unknown',file=rpfile)
+              open (unit=1,file=rpfile,status='replace')
               write(1,'("# ",a1," + ",i3,a2,": Production of ",i3,a2,
      +          " - Total")') parsym(k0),Atarget,Starget,A,nuc(Z)
-              write(1,'("# Q-value    =",1p,e12.5,0p," mass=",f11.6)')
+              write(1,'("# Q-value    =",es12.5," mass=",f11.6)')
      +          Qres(Zcomp,Ncomp,nex),nucmass(Zcomp,Ncomp)
-              write(1,'("# E-threshold=",1p,e12.5)')
+              write(1,'("# E-threshold=",es12.5)')
      +          Ethresh(Zcomp,Ncomp,nex)
               write(1,'("# # energies =",i6)') numinc
               if (flagcompo) then
                 write(1,'("#     E         xs                     ",
      +            " Direct  Preequilibrium Compound")')
                 do 130 nen=1,numinclow
-                  write(1,'(1p,2e12.5,12x,3e12.5)') eninc(nen),
+                  write(1,'(2es12.5,12x,3es12.5)') eninc(nen),
      +              fxspopnuc(nen,Zcomp,Ncomp),0.,0.,
      +              fxspopnuc(nen,Zcomp,Ncomp)
   130           continue
                 do 140 nen=numinclow+1,nin-1
-                  write(1,'(1p,2e12.5,12x,3e12.5)') eninc(nen),
+                  write(1,'(2es12.5,12x,3es12.5)') eninc(nen),
      +              0.,0.,0.,0.
   140           continue
               else
                 write(1,'("#     E          xs")')
                 do 150 nen=1,numinclow
-                  write(1,'(1p,2e12.5)') eninc(nen),
+                  write(1,'(2es12.5)') eninc(nen),
      +              fxspopnuc(nen,Zcomp,Ncomp)
   150           continue
                 do 160 nen=numinclow+1,nin-1
-                  write(1,'(1p,2e12.5)') eninc(nen),0.
+                  write(1,'(2es12.5)') eninc(nen),0.
   160           continue
               endif
             else
-              open (unit=1,status='old',file=rpfile)
+              open (unit=1,file=rpfile,status='old')
               do 170 nen=1,nin+4
                 read(1,*,end=200,err=200)
   170         continue
             endif
             if (flagcompo) then
-              write(1,'(1p,2e12.5,12x,3e12.5)') Einc,
+              write(1,'(2es12.5,12x,3es12.5)') Einc,
      +          xspopnuc(Zcomp,Ncomp),xspopdir(Zcomp,Ncomp),
      +          xspoppreeq(Zcomp,Ncomp),xspopcomp(Zcomp,Ncomp)
             else
-              write(1,'(1p,2e12.5)') Einc,xspopnuc(Zcomp,Ncomp)
+              write(1,'(2es12.5)') Einc,xspopnuc(Zcomp,Ncomp)
             endif
   200       close (unit=1)
 c
@@ -207,7 +207,7 @@ c
                 write(isofile(11:12),'(i2.2)') nex
                 if (.not.rpisoexist(Zcomp,Ncomp,nex)) then
                   rpisoexist(Zcomp,Ncomp,nex)=.true.
-                  open (unit=1,status='unknown',file=isofile)
+                  open (unit=1,file=isofile,status='unknown')
                   if (nex.eq.0) then
                     write(1,'("# ",a1," + ",i3,a2,": Production of ",
      +                i3,a2," - Ground state")') parsym(k0),Atarget,
@@ -217,28 +217,28 @@ c
      +                i3,a2," - Level",i3,f12.5," MeV")') parsym(k0),
      +                Atarget,Starget,A,nuc(Z),nex,edis(Zcomp,Ncomp,nex)
                   endif
-                  write(1,'("# Q-value    =",1p,e12.5,0p," mass=",
+                  write(1,'("# Q-value    =",es12.5," mass=",
      +              f11.6)') Qres(Zcomp,Ncomp,nex),nucmass(Zcomp,Ncomp)
-                  write(1,'("# E-threshold=",1p,e12.5)')
+                  write(1,'("# E-threshold=",es12.5)')
      +              Ethresh(Zcomp,Ncomp,nex)
                   write(1,'("# # energies =",i6)') numinc
                   write(1,'("#     E          xs      Branching")')
                   do 240 nen=1,numinclow
-                    write(1,'(1p,3e12.5)') eninc(nen),
+                    write(1,'(3es12.5)') eninc(nen),
      +                fxspopex(nen,Zcomp,Ncomp,nex),
      +                fxsbranch(nen,Zcomp,Ncomp,nex)
   240             continue
                   do 250 nen=numinclow+1,nin-1
-                    write(1,'(1p,3e12.5)') eninc(nen),0.,
+                    write(1,'(3es12.5)') eninc(nen),0.,
      +                fxsbranch(max(numinclow,1),Zcomp,Ncomp,nex)
   250             continue
                 else
-                  open (unit=1,status='old',file=isofile)
+                  open (unit=1,file=isofile,status='old')
                   do 260 nen=1,nin+4
                     read(1,*,end=270,err=270)
   260             continue
                 endif
-                write(1,'(1p,3e12.5)') Einc,
+                write(1,'(3es12.5)') Einc,
      +            xspopex(Zcomp,Ncomp,nex),xsbranch(Zcomp,Ncomp,nex)
   270           close (unit=1)
               endif

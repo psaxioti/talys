@@ -17,6 +17,10 @@ c
 c The function has a zero between xb1 and xb2.
 c
 c func: function
+c nbb: help variable
+c dx: increment
+c fc: function value
+c fp: function value
 c
       nbb=0
       x=x1

@@ -17,6 +17,7 @@ c isurf          : number of points limiting the surface in the bin
 c xsurf,ysurf    : arrays containing the coordinates of the points
 c                  defining the covered surface in the bin.
 c surfloc        : surface to calculate
+c surfbin        : surface to calculate
 c
       implicit  none
       real      x1,y1,x2,y2,x3,y3
@@ -93,6 +94,9 @@ c
 c
 c segment coordinates definition
 c
+c intri: function to test if (x,y) belongs to the triangle
+c invect: function to test if (x,y) belongs to the segment
+c
       ipts=0
       call intersection(x1,y1,x2,y2,xl,yl,xu,yu,xr,yr,nr)
       do ir=1,nr
@@ -148,6 +152,8 @@ c intersection analysis : eliminate redundancies
 c
 c eliminate redundant points
 c
+c ydiff : difference in y
+c
       if (isurf.eq.0.and.npts.gt.0) then
         isurf=1
         xsurf(1)=xpts(1)
@@ -168,6 +174,10 @@ c
 c
 c calculation of the surface defined by the intersection points
 c
+c yr2: help variable
+c xr3: help variable
+c yr3: help variable
+c
       if (isurf.le.2) then
         surfloc=0.
         return
@@ -186,6 +196,12 @@ c
 c if we have more than 4 points defining the covered surface we have
 c to order these points using (xg,yg) as origin and xsurf(1),ysurf(1)
 c as (1,0) point
+c
+c angsurf: angular surface
+c cos12 : cosine
+c ang12 : angle
+c deter12 : determinant
+c ang1 : angle
 c
       xg=0.
       yg=0.
@@ -224,20 +240,21 @@ c
         angsurf(ipts)=ang12
       enddo
       do 30 ipts=1,isurf-1
-        do 30 ir=ipts+1,isurf
+        do 35 ir=ipts+1,isurf
           xr1=xsurf(ipts)
           yr1=ysurf(ipts)
           ang1=angsurf(ipts)
           xr2=xsurf(ir)
           yr2=ysurf(ir)
           ang2=angsurf(ir)
-          if (ang2.gt.ang1) goto 30
+          if (ang2.gt.ang1) goto 35
           xsurf(ipts)=xr2
           ysurf(ipts)=yr2
           angsurf(ipts)=ang2
           xsurf(ir)=xr1
           ysurf(ir)=yr1
           angsurf(ir)=ang1
+ 35     continue
  30   continue
 c
 c Determine the covered surface by summing all the sub-triangles

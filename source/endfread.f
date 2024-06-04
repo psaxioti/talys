@@ -19,6 +19,7 @@ c
 c ************ Read total, reaction and elastic cross section **********
 c
 c flagendfecis: flag for new ECIS calculation for ENDF-6 files
+c infileendf: file with cross sections for ENDF file
 c nen6        : total number of energies
 c e6,e        : energies of ENDF-6 energy grid in MeV
 c k0          : index of incident particle
@@ -31,9 +32,9 @@ c xselassh6   : shape elastic cross section (neutrons only) for ENDF-6
 c               file
 c
       if (flagendfecis) then
-        open (unit=3,status='unknown',file='ecis.endfcs')
+        open (unit=3,file='ecis.endfcs',status='unknown')
         infileendf=3
-        open (unit=23,status='unknown',file='endf.cs')
+        open (unit=23,file='endf.cs',status='unknown')
    10   read(3,'(a72)',end=20) line
         write(23,'(a72)') line
         goto 10
@@ -59,7 +60,7 @@ c
    30 continue
       close (unit=3,status=ecisstatus)
       close (unit=23,status=ecisstatus)
-      open (unit=10,status='unknown',file='ecis.endfin')
+      open (unit=10,file='ecis.endfin',status='unknown')
       close (unit=10,status=ecisstatus)
 c
 c ********** Compound elastic contribution and normalization ***********
@@ -71,6 +72,7 @@ c xselas6    : total elastic cross section (neutrons only) for ENDF-6
 c              file
 c xsnon6     : non-elastic cross section for ENDF-6 file
 c flagrescue : flag for final rescue: normalization to data
+c xsd : help variable
 c
         if (k0.ge.1) then
           do 110 nen=1,nen6
@@ -133,6 +135,9 @@ c
 c
 c Put difference in the elastic (or total) cross section
 c
+c xsdift: difference in total cross section
+c xsdife: difference in elastic cross section
+c
               if (Crescue(1,-1).ne.1..and.Crescue(1,-1).ne.0.)
      +          xsdift=xstot6(nen)*(1./Crescue(1,-1)-1.)
               if (Crescue(2,-1).ne.1..and.Crescue(2,-1).ne.0.)
@@ -190,7 +195,7 @@ c fxselastot: total elastic cross section (neutrons only) for
 c             incident channel
 c fxstotinc : total cross section (neutrons only) for incident channel
 c
-      open (unit=1,status='unknown',file='endf.tot')
+      open (unit=1,file='endf.tot',status='replace')
       write(1,'("# ",a1," + ",i3,a2," Total cross sections")')
      +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
@@ -198,18 +203,18 @@ c
       write(1,'("# # energies =",i6)') nen6+numinclow
       write(1,'("#    E        Non-elastic Elastic     Total")')
       do 310 nen=1,numinclow
-        write(1,'(1p,4e12.5)') eninc(nen),fxsnonel(nen),
+        write(1,'(4es12.5)') eninc(nen),fxsnonel(nen),
      +    fxselastot(nen),fxstotinc(nen)
   310 continue
       do 320 nen=1,nen6
-        write(1,'(1p,4e12.5)') e6(nen),xsnon6(nen),
+        write(1,'(4es12.5)') e6(nen),xsnon6(nen),
      +    xselas6(nen),xstot6(nen)
   320 continue
       close (unit=1)
 c
 c Total cross sections only
 c
-      open (unit=1,status='unknown',file='endftot.tot')
+      open (unit=1,file='endftot.tot',status='replace')
       write(1,'("# ",a1," + ",i3,a2," Total cross sections")')
      +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
@@ -217,16 +222,16 @@ c
       write(1,'("# # energies =",i6)') nen6+numinclow
       write(1,'("#    E      Cross section")')
       do 410 nen=1,numinclow
-        write(1,'(1p,2e12.5)') eninc(nen),fxstotinc(nen)
+        write(1,'(2es12.5)') eninc(nen),fxstotinc(nen)
   410 continue
       do 420 nen=1,nen6
-        write(1,'(1p,2e12.5)') e6(nen),xstot6(nen)
+        write(1,'(2es12.5)') e6(nen),xstot6(nen)
   420 continue
       close (unit=1)
 c
 c Elastic cross sections only
 c
-      open (unit=1,status='unknown',file='endfel.tot')
+      open (unit=1,file='endfel.tot',status='replace')
       write(1,'("# ",a1," + ",i3,a2," Elastic cross sections")')
      +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
@@ -234,16 +239,16 @@ c
       write(1,'("# # energies =",i6)') nen6+numinclow
       write(1,'("#    E      Cross section")')
       do 510 nen=1,numinclow
-        write(1,'(1p,2e12.5)') eninc(nen),fxselastot(nen)
+        write(1,'(2es12.5)') eninc(nen),fxselastot(nen)
   510 continue
       do 520 nen=1,nen6
-        write(1,'(1p,2e12.5)') e6(nen),xselas6(nen)
+        write(1,'(2es12.5)') e6(nen),xselas6(nen)
   520 continue
       close (unit=1)
 c
 c Nonelastic cross sections only
 c
-      open (unit=1,status='unknown',file='endfnon.tot')
+      open (unit=1,file='endfnon.tot',status='replace')
       write(1,'("# ",a1," + ",i3,a2," Nonelastic cross sections")')
      +  parsym(k0),Atarget,Starget
       write(1,'("# ")')
@@ -251,10 +256,10 @@ c
       write(1,'("# # energies =",i6)') nen6+numinclow
       write(1,'("#    E      Cross section")')
       do 610 nen=1,numinclow
-        write(1,'(1p,2e12.5)') eninc(nen),fxsnonel(nen)
+        write(1,'(2es12.5)') eninc(nen),fxsnonel(nen)
   610 continue
       do 620 nen=1,nen6
-        write(1,'(1p,2e12.5)') e6(nen),xsnon6(nen)
+        write(1,'(2es12.5)') e6(nen),xsnon6(nen)
   620 continue
       close (unit=1)
       return

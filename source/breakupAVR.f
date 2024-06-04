@@ -1,17 +1,17 @@
       subroutine breakupAVR
-c      
+c
 c +---------------------------------------------------------------------
 c | Author: Marilena Avrigeanu
 c | Date  : October 10 2015
 c | Task  : Deuteron breakup fractions, Avrigeanu model
 c +---------------------------------------------------------------------
 c
-c This model is based on  Eqs. (1-3), PRC 88,014612(2013) 
-c            and cross sections, Eqs. (2-5), PRC 89,044613 (2014) 
+c This model is based on  Eqs. (1-3), PRC 88,014612(2013)
+c            and cross sections, Eqs. (2-5), PRC 89,044613 (2014)
 c This module includes also subroutine checkBU and function GAUSS
 c
 c ****************** Declarations and common blocks ********************
-c  
+c
       include "talys.cmb"
       integer type,nen
       real    fracBUp,fracBUE,fracBUBF,fracBUT,EnormEB,RnormEB,TnormBU
@@ -23,21 +23,22 @@ c
      +        BCin,Bdeut,AT13,arg,arg2,argcm
 c
 c ************************** Avrigeanu model ***************************
-c 
-      write(8,*)"    "  
+c
+      write(8,*)"    "
       write(8,*)'  DEUTERON break-up Parameterization, Avrigeanu',
      1   'et al., PRC88,014612, PRC89,044613, and Refs. therein'
-c      
+c
 c DEUTERON Break-up model, Avrigeanu et al., PRC88,014612 & PRC89,044613
-c 
+c
 c Calculation of terms independent of emission energy.
 c
 c Einc            : incident energy in MeV
 c Atarget         : mass number of target nucleus
 c BCin,BCout      : effective incident/outgoing Coulomb barrier
 c Ztarget         : charge number of target nucleus
-c xsreacinc, Sigr : reaction cross section for incident channel 
+c xsreacinc, Sigr : reaction cross section for incident channel
 c Bdeut           : deuteon binding energy
+c AT13            : A**1/3
 c EmaxnCM         : maximum breakup nucleons energy, C.M. System
 c EmaxnLS         : maximum breakup nucleons energy, Lab. System
 c fracBUE         : elastic breakup fraction
@@ -47,6 +48,8 @@ c xsEB            : elastic breakup cross section
 c xsBF            : nucleon inelastic breakup cross section
 c xsBUnuc         : nucleon breakup cross section
 c xsBUT           : TOTAL breakup cross section
+c Gauss           : function for Gaussian
+c xsaBU           : breakup cross section
 c
 c       xsBUnuc = xsEB + xsBF,  Eq. 4  PRC89, 044613.
 c
@@ -57,11 +60,11 @@ c
       Bdeut=2.225
       BCin=Ztarget/9.5
       BCout(1)=0.
-      BCout(2)=BCin    
+      BCout(2)=BCin
       AT13=Atarget**onethird
 c
 c maximum breakup nucleon energy:
-c Laboratory System 
+c Laboratory System
 c
       EmaxnLS=Einc*(Atarget+1.)/(Atarget+2.)-Bdeut*(Atarget+1.)/Atarget
 c
@@ -74,7 +77,7 @@ c
          write(*,*)" deuteron energy lower than Bd, no breakup"
          go to 399
       endif
-c   
+c
       write(8,*)"    "
       write(8,*)" deuteron energy & maximum outgoing fragments energy"
       write(8,*)"    Einc   EmaxnLS   EmaxnCM  "
@@ -97,11 +100,15 @@ c
           xspreeqbu(type,nen)=0.
 103   continue
 c
-      call checkBU(ENORMEB,RnormEB,TnormBU)
+      call checkBU(EnormEB,RnormEB,TnormBU)
 c
       write(8,*)" Ei_EB_norm   EB_norm ","  total_BU_norm "
       write(8,889)EnormEB,RnormEB,TnormBU
-c      
+c
+c arg2: squre of energy
+c argcm: C.M. energy
+c Tnorm: normalization factor
+c
       arg=Einc
       arg2=arg*arg
       argcm=arg*Atarget/(Atarget+2)
@@ -111,7 +118,7 @@ c
 c       NUCLEON TOTAL breakup fraction, PRC88,014612, Eq. 1
        fracBUp=0.087-0.0066*Ztarget+0.00163*Ztarget*AT13
      +        +0.0017*AT13*arg-0.000002*Ztarget*arg2
-      fracBUp = TnormBU*fracBUp   
+      fracBUp = TnormBU*fracBUp
 c
       if (fracBUp.le.0.) then
          fracBUp = 0.
@@ -120,7 +127,7 @@ c
 c
 c       ELASTIC breakup fraction, PRC88,014612, Eq. 2
         fracBUE=0.031-0.0028*Ztarget+0.00051*Ztarget*AT13
-     1        +0.0005*AT13*arg-0.000001*Ztarget*arg2                  
+     1        +0.0005*AT13*arg-0.000001*Ztarget*arg2
 c
       if(Einc.lt.EnormEB) then
          fracBUE=TnormBU*fracBUE
@@ -132,9 +139,11 @@ c       nucleon INELASTIC breakup fraction, PRC88,014612, Eq. 3
       fracBUBF = fracBUp-fracBUE
 c
 c       TOTAL breakup fraction,  PRC89,044613, Eq. 5
+c fracBUT: total breakup fraction
+c
       fracBUT = 2.D+00*fracBUBF+fracBUE
 c
-c      ********     end    breakup fractions       ********      
+c      ********     end    breakup fractions       ********
 c
 c   ******************************
 c    TOTAL BREAKUP cross section
@@ -143,7 +152,7 @@ c    crossafterbreakup  xsaBU
       xsaBU=Sigr-xsBUT
 c   ******************************
 c
-c       
+c
 c-------------           deuteron fragments   loop         --------
 c
       do 301, type=1,2
@@ -164,26 +173,26 @@ c   ******************************
 c
       if(type.eq.1) then
          write(8,*)" breakup fractions, equal for neutron and",
-     1      "  protons, and the corresponding cross sections"     
+     1      "  protons, and the corresponding cross sections"
             write(8,*)"   Einc    fracBUp   fracBUE",
      1      "   fracBUBF xsBUnuc       xsEB      xsBF"
             write(8,889)Einc,fracBUp,fracBUE,fracBUBF,
      1            xsBUnuc(1),xsEB(1),xsBF(1)
           write(8,*)" Total nucleon(n/p) emission break-up",
-     1      " xsBUnucc, sum of inelastic (BF) & elastic (EB)", 
-     2      " break-up components:" 
+     1      " xsBUnucc, sum of inelastic (BF) & elastic (EB)",
+     2      " break-up components:"
           write(8,*)"    xsBUnuc = xsEB + xsBF = ",xsBUnuc(Type),
      1       ",   PRC89, 044613, Eq. 4. "
           write(8,*)" Avoiding to count xsEB twice, TOTAL  ",
-     1      " breakup cross section is:"      
+     1      " breakup cross section is:"
           write(8,*)"    xsBUT = xsEB + 2*xsBF = ", xsBUT,
      1      ",   PRC89, 044613, Eq. 5."
       endif
 c
-c  ebreakLS, ebreakCM  : Centroid energy of the breakup nucleon energy 
-c                        distributions, Kalbach 2003 in Laboratory, and 
+c  ebreakLS, ebreakCM  : Centroid energy of the breakup nucleon energy
+c                        distributions, Kalbach 2003 in Laboratory, and
 c                        respectively Center of Mass Systems
-c   width              : Full width at half maximum of the breakup nucleon 
+c   width              : Full width at half maximum of the breakup nucleon
 c                        energy distribution, Kalbach 2003
 c
       ebreakCM(type) = (0.5*(argcm - Bdeut - BCin) + BCout(type))
@@ -199,6 +208,12 @@ c
       if (ebreakLS(type).le.0.) ebreakLS(type)=0.01
       if (ebreakCM(type).le.0.) ebreakCM(type)=0.01
 c
+c ebreakLS: LAB break-up energy
+c ebreakCM: C.M. break-up energy
+c E0n03: break-up energy
+c E0n03CM: C.M. break-up energy
+c w03    : width
+c
       E0n03=ebreakLS(type)
       E0n03CM=ebreakCM(type)
       w03=width
@@ -210,16 +225,20 @@ c------------------    breakup nucleon energy   loop   -----------------
 c
 c ebegin               : first energy point of energy grid
 c eend                 : last energy point of energy grid
-c Eout,egrid           : outgoing energy
-c xspreeqbu, spec03CM  : nucleon breakup spectrum in Center of Mass System
+c Eout                 : outgoing energy
+c egrid                : outgoing energy
+c EnCM                 : C.M. energy
+c xspreeqbu            : nucleon breakup spectrum in Center of Mass System
+c spec03CM             : nucleon breakup spectrum in Center of Mass System
 c spec03LS             : nucleon breakup spectrum in Laboratory System
-c speccorCM, speccorLS : correction factors for breakup spectra
-c sumtest              : check of breakup spectrum 
+c speccorCM            : correction factors for breakup spectra
+c speccorLS            : correction factors for breakup spectra
+c sumtest              : check of breakup spectrum
 c
 c
       DO 501, nen=ebegin(type),eend(type)
 c
-c 
+c
         Eout=egrid(nen)   !ine breakup
         En=Eout
         EnCM=Eout
@@ -229,7 +248,7 @@ c
         if (Eout.le.EmaxnLS) then
           spec03LS(type,nen) = GAUSS(En,E0n03,w03)
 c
-c   BREAKUP THRESHOLD:  En>Emax BU   
+c   BREAKUP THRESHOLD:  En>Emax BU
 c
         else
           spec03LS(type,nen) = 0.D+00
@@ -240,7 +259,7 @@ c
         if  (Eout.le.EmaxnCM) then
           spec03CM(type,nen) = GAUSS(EnCM,E0n03CM,w03)
 c
-c   BREAKUP THRESHOLD: EnCM>Emax BU   
+c   BREAKUP THRESHOLD: EnCM>Emax BU
 c
         else
           spec03CM(type,nen) = 0.D+00
@@ -251,7 +270,7 @@ c
 c
 501   continue
 c
-c-------------------  END   breakup nucleon energy  loop --------------- 
+c-------------------  END   breakup nucleon energy  loop ---------------
 c
 299   continue
 c
@@ -263,7 +282,7 @@ c
 ccc            write(8,*)"#  breakup nucleon spectra:"
 ccc            write(8,*)"#   Eout    spec_CM "
       do 505 type=1,2
-        if(type.eq.1) then 
+        if(type.eq.1) then
 ccc       write(8,*)"# breakup NEUTRON"
         else
 ccc           write(8,*)"   "
@@ -273,11 +292,11 @@ ccc    write(8,*)"# breakup PROTON"
         sumtest(type)=0.D+00
         do 504 nen=ebegin(type),eend(type)
           Eout=egrid(nen)
-          spec03LS(type,nen) = 
+          spec03LS(type,nen) =
      1         xsBUnuc(type)*spec03LS(type,nen)/speccorLS(type)
-          spec03CM(type,nen )= 
+          spec03CM(type,nen )=
      1         xsBUnuc(type)*spec03CM(type,nen)/speccorCM(type)
-            sumtest(type) = 
+            sumtest(type) =
      1   sumtest(type)+spec03CM(type,nen)*deltaE(nen)
 c
 c   ******************************
@@ -301,23 +320,16 @@ c
       write(8,*)'  end ..ine breakupAVR'
 c
 889     FORMAT(3x,f6.3,2x,f8.4,2x,f8.4,2x,f8.4,2x,f8.4,3x,f8.2,
-     1         3x,f8.2,3x,f8.2,3x,f8.2,3x,f8.2,3x,f8.2,3x,f8.2)  
+     1         3x,f8.2,3x,f8.2,3x,f8.2,3x,f8.2,3x,f8.2,3x,f8.2)
 c
 c
       return
       end
+      subroutine checkBU(EnormEB,RnormEB,TnormBU)
 c
-c
-c-----------------------------------------------------------------------
-c-----------------------------------------------------------------------
-c-----------------------------------------------------------------------
-c
-c
-      subroutine CHeckBU(ENORMEB,RnormEB,TnormBU)
-c      
 c +---------------------------------------------------------------------
 c | Author: Marilena Avrigeanu
-c | Date  : August 10, 2015   
+c | Date  : August 10, 2015
 c | Task  : check the elastic and nucleon breakup fraction
 c +---------------------------------------------------------------------
 c
@@ -328,29 +340,34 @@ c
       parameter (IRDIM=6001)
       integer Inorm,I
 c
-      real ENORMEB,RnormEB,TnormBU,bind,arg,arg2,AT13
+      real EnormEB,RnormEB,TnormBU,bind,arg,arg2,AT13
       real Edi(IRDIM),Tnorm(0:IRDIM),fBUT(IRDIM),fBUE(0:IRDIM)
       real FEDrat(IRDIM),fBUBF(IRDIM),fBU(IRDIM)
 c
 c   ***  Deuteron breakup fractions, Eqs.(1-3), PRC 88,014612(2013)  ***
 c
 c fBUE               : elastic breakup fraction
+c IRDIM              : dimension fo breakup subroutine
 c fBUBF              : nucleon inelastic breakup fraction
 c fBUT               : nucleon breakup fraction
 c fBU                : total breakup fraction
 c RnormEB            : normalization factor for elastic breakup fraction
-c Tnormbu            : normalization factor for total breakup fraction
-c     
-c  According to the CDCC predictions for the elastic breakup cross 
-c  section behavior(PRC 82, 037601 (2010)), for higher energy than the  
-c  energetic domain (~30 MeV) where the parametrization was obtained,  
-c  the elastic breakup fraction is mentained constant, through the  
+c EnormEB            : energy for elastic breakup fraction
+c TnormBU            : normalization factor for total breakup fraction
+c
+c  According to the CDCC predictions for the elastic breakup cross
+c  section behavior(PRC 82, 037601 (2010)), for higher energy than the
+c  energetic domain (~30 MeV) where the parametrization was obtained,
+c  the elastic breakup fraction is mentained constant, through the
 c  RnormEB factor,    fBUE=RnormEB*fBUT.
 c
-c  Mainly for heavy nuclei, A~200, and  for Einc~Coulomb barrier, the 
-c  normalization constant TnormBu prevents the total breakup cross 
+c  Mainly for heavy nuclei, A~200, and  for Einc~Coulomb barrier, the
+c  normalization constant TnormBu prevents the total breakup cross
 c  section to exceed the reaction cross section.
 c
+c bind: energy bin
+c I : counter
+c Inorm: help variable
 c
       AT13=Atarget**onethird
       RnormEB=1.
@@ -374,6 +391,8 @@ c----------------------     deuteron incident energy   -----------------
 c
       do 31, i=1,Inorm
 c
+c Edi: energy
+c
       Edi(I)=i*bind
       arg=Edi(I)
       arg2=arg*arg
@@ -389,6 +408,8 @@ c
 c
         fBUE(I)=0.031-0.0028*Ztarget+0.00051*Ztarget*AT13+
      1          0.0005*AT13*arg-0.000001*Ztarget*arg2
+c
+c FEDrat: ratio for breakup calculation
 c
       FEDrat(I) = fBUE(I)/fBUT(I)
 c
@@ -425,6 +446,10 @@ c
 c
 c     ********     end PRC 89,044613 (2014)... parametrization    *******
 c
+c w0: width
+c XG : term
+c E0n : help variable
+c
       return
       end
       FUNCTION GAUSS(En,E0n,w0)
@@ -435,5 +460,5 @@ c
       arg=-(En-E0n)*(En-E0n)/(2.D+00*w0*w0)
       XG=term1*exp(-arg)
       GAUSS=term1*exp(arg)
-      return 
+      return
       end

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 27, 2014
+c | Date  : November 8, 2016
 c | Task  : Residual production cross sections
 c +---------------------------------------------------------------------
 c
@@ -58,11 +58,20 @@ c Qres     : Q-value for residual nucleus
 c xseps    : limit for cross sections
 c flagastro: flag for calculation of astrophysics reaction rate
 c xsastro  : cross section for astrophysical calculation
+c xsastroex: cross section for astrophysical calculation to a given
+c            excited state
 c nin      : counter for incident energy
 c
    40     if (Qres(Zcomp,Ncomp,0).gt.0..and.
      +      xspopnuc(Zcomp,Ncomp).le.xseps) xspopnuc(Zcomp,Ncomp)=xseps
-          if (flagastro) xsastro(Zcomp,Ncomp,nin)=xspopnuc(Zcomp,Ncomp)
+           if (flagastro.and.Zcomp.le.numZastro.and.Ncomp.le.numNastro)
+     +       then
+             xsastro(Zcomp,Ncomp,nin)=xspopnuc(Zcomp,Ncomp)
+             do 50 nex=0,Nlast(Zcomp,Ncomp,0)
+               if (nex.eq.0.or.tau(Zcomp,Ncomp,nex).ne.0.)
+     +           xsastroex(Zcomp,Ncomp,nin,nex)=xspopex(Zcomp,Ncomp,nex)
+   50        continue
+           endif
    20   continue
    10 continue
       return

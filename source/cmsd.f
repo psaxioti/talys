@@ -21,6 +21,8 @@ c adjust     : subroutine for energy-dependent parameter adjustment
 c factor     : multiplication factor
 c M2constant : constant for matrix element in exciton model (here used
 c              for MSD model)
+c M2c        : constant for matrix element in exciton model (here used
+c              for MSD model)
 c Atarget    : mass number of target nucleus
 c
       if (preeqadjust) then

@@ -77,6 +77,8 @@ c
 c
 c 1. Discrete states
 c
+c itr           : counter
+c fbar          : fission barrier
 c nfistrrot     : number of rotational transition states for barrier
 c etrans,j2trans: help variables
 c efistrrot     : energy of rotational transition states
@@ -124,6 +126,7 @@ c eintfis      : excitation energy for fission
 c dE1,dE2      : help variables
 c rho1-3       : help variables
 c r1log,...    : help variables
+c rhotr        : level density x transmission coefficient
 c rhofis       : integrated level density
 c rho          : integrated level density
 c

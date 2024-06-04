@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 11, 2015
+c | Date  : December 12, 2016
 c | Task  : Gamma ray parameters
 c +---------------------------------------------------------------------
 c
@@ -10,12 +10,12 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical      lexist
-      character*4  gamchar
+      character*6  gamchar
       character*80 key
       character*90 gamfile
       integer      Zix,Nix,Z,A,N,ia,irad,l,nen,it
       real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom,ee,et,ft,
-     +             factor,fe1(numTqrpa),fstrength,temp,dtemp,fe1t
+     +             factor,fe1(numTqrpa),fstrength,temp,dtemp,fe1t,fm1
 c
 c ***************** Default giant resonance parameters *****************
 c
@@ -34,12 +34,15 @@ c N      : neutron number of residual nucleus
 c gamchar: help variable
 c gamfile: giant resonance parameter file
 c path   : directory containing structure files to be read
-c lenpath: length of pathname
 c ia     : mass number from GR table
 c eg1,...: help variables
 c egr    : energy of GR
 c ggr    : width of GR
+c gg1    : width of GR
+c gg2    : width of GR
 c sgr    : strength of GR
+c sg1    : strength of GR
+c sg2    : strength of GR
 c
 c GDR parameters from the table can always be overruled by a value
 c given in the input file.
@@ -47,12 +50,11 @@ c
       Z=ZZ(Zix,Nix,0)
       A=AA(Zix,Nix,0)
       N=A-Z
-      gamchar='z   '
-      write(gamchar(2:4),'(i3.3)') Z
-      gamfile=path(1:lenpath)//'gamma/gdr/'//gamchar
+      gamchar=trim(nuc(Z))//'.gdr'
+      gamfile=trim(path)//'gamma/gdr/'//gamchar
       inquire (file=gamfile,exist=lexist)
       if (.not.lexist) goto 20
-      open (unit=2,status='old',file=gamfile)
+      open (unit=2,file=gamfile,status='old')
    10 read(2,'(4x,i4,6f8.2)',end=20) ia,eg1,sg1,gg1,eg2,sg2,gg2
       if (A.ne.ia) goto 10
       if (egr(Zix,Nix,1,1,1).eq.0.) egr(Zix,Nix,1,1,1)=eg1
@@ -129,30 +131,27 @@ c E1 strength function with tabulated results, if available.
 c
 c numgamqrpa   : number of energies for QRPA strength function
 c eqrpa        : energy grid for QRPA strength function
-c fe1qrpa,fe1  : tabulated QRPA strength function
+c fqrpa,fe1    : tabulated QRPA strength function
 c adjust       : subroutine for energy-dependent parameter adjustment
 c factor       : multiplication factor
 c gamadjust    : logical for energy-dependent gamma adjustment
 c etable,ftable: constant to adjust tabulated strength functions
 c nTqrpa       : number of temperatures for QRPA
 c Tqrpa        : temperature for QRPA
+c dtemp        : temperature increment
 c qrpaexist    : flag for existence of tabulated QRPA strength functions
 c
       nTqrpa=1
-      if (strength.eq.3)
-     +  gamfile=path(1:lenpath)//'gamma/hfbcs/'//gamchar
-      if (strength.eq.4)
-     +  gamfile=path(1:lenpath)//'gamma/hfb/'//gamchar
-      if (strength.eq.6)
-     +  gamfile=path(1:lenpath)//'gamma/hfbt/'//gamchar
-      if (strength.eq.7)
-     +  gamfile=path(1:lenpath)//'gamma/rmf/'//gamchar
-      if (strength.eq.8)
-     +  gamfile=path(1:lenpath)//'gamma/gogny/'//gamchar
+      gamchar=trim(nuc(Z))//'.psf'
+      if (strength.eq.3) gamfile=trim(path)//'gamma/hfbcs/'//gamchar
+      if (strength.eq.4) gamfile=trim(path)//'gamma/hfb/'//gamchar
+      if (strength.eq.6) gamfile=trim(path)//'gamma/hfbt/'//gamchar
+      if (strength.eq.7) gamfile=trim(path)//'gamma/rmf/'//gamchar
+      if (strength.eq.8) gamfile=trim(path)//'gamma/gogny/'//gamchar
       inquire (file=gamfile,exist=lexist)
       if (.not.lexist) goto 210
-      open (unit=2,status='old',file=gamfile)
-  220 read(2,'(10x,i4)',end=210) ia
+      open (unit=2,file=gamfile,status='old')
+  220 read(2,'(10x,i4)',err=210,end=210) ia
       read(2,*)
       if (ia.ne.A) then
         do 230 nen=1,numgamqrpa+1
@@ -162,21 +161,21 @@ c
       endif
       if (strength.eq.6.or.strength.eq.7) nTqrpa=11
       do 240 nen=1,numgamqrpa
-        read(2,'(f9.3,1p,20e12.3)') ee,(fe1(it),it=1,nTqrpa)
+        read(2,'(f9.3,20es12.3)') ee,(fe1(it),it=1,nTqrpa)
         if (gamadjust(Zix,Nix)) then
           key='etable'
           call adjust(ee,key,Zix,Nix,0,0,factor)
-          et=etable(Zix,Nix)+factor-1.
+          et=etable(Zix,Nix,1,1)+factor-1.
           key='ftable'
           call adjust(ee,key,Zix,Nix,0,0,factor)
-          ft=ftable(Zix,Nix)+factor-1.
+          ft=ftable(Zix,Nix,1,1)+factor-1.
         else
-          et=etable(Zix,Nix)
-          ft=ftable(Zix,Nix)
+          et=etable(Zix,Nix,1,1)
+          ft=ftable(Zix,Nix,1,1)
         endif
-        eqrpa(Zix,Nix,nen)=ee+et
+        eqrpa(Zix,Nix,nen,1,1)=ee+et
         do 250 it=1,nTqrpa
-          fe1qrpa(Zix,Nix,nen,it)=onethird*pi2h2c2*fe1(it)*ft
+          fqrpa(Zix,Nix,nen,it,1,1)=onethird*pi2h2c2*fe1(it)*ft
   250   continue
   240 continue
       if (nTqrpa.gt.1) then
@@ -187,7 +186,7 @@ c
           Tqrpa(it)=temp
   260   continue
       endif
-      qrpaexist(Zix,Nix)=.true.
+      qrpaexist(Zix,Nix,1,1)=.true.
   210 close (unit=2)
 c
 c ############################# M radiation ############################
@@ -215,9 +214,54 @@ c
         sgr(Zix,Nix,0,1,1)=factor*denom/enum
       endif
 c
+c Tabulated M1 strength
+c
+c fm1: tabulated M1 strength function
+c ft: tabulated strength function
+c
+      if (strengthM1.eq.8) then
+        gamfile=trim(path)//'gamma/gognyM1/'//gamchar
+        inquire (file=gamfile,exist=lexist)
+        if (.not.lexist) goto 350
+        open (unit=2,file=gamfile,status='old')
+  320   read(2,'(10x,i4)',end=310) ia
+        read(2,*)
+        if (ia.ne.A) then
+          do 330 nen=1,numgamqrpa+1
+            read(2,*)
+  330     continue
+          goto 320
+        endif
+        do 340 nen=1,numgamqrpa
+          read(2,'(f9.3,20es12.3)') ee,fm1
+          if (gamadjust(Zix,Nix)) then
+            key='etable'
+            call adjust(ee,key,Zix,Nix,0,0,factor)
+            et=etable(Zix,Nix,0,1)+factor-1.
+            key='ftable'
+            call adjust(ee,key,Zix,Nix,0,0,factor)
+            ft=ftable(Zix,Nix,0,1)+factor-1.
+          else
+            et=etable(Zix,Nix,0,1)
+            ft=ftable(Zix,Nix,0,1)
+          endif
+          eqrpa(Zix,Nix,nen,0,1)=ee+et
+          fqrpa(Zix,Nix,nen,1,0,1)=onethird*pi2h2c2*fm1*ft
+  340   continue
+c
+c Avoid having an increasing function for extrapolation purposes
+c
+        if (fqrpa(Zix,Nix,numgamqrpa,1,0,1).gt.
+     +    fqrpa(Zix,Nix,numgamqrpa-1,1,0,1))
+     +  fqrpa(Zix,Nix,numgamqrpa,1,0,1)=
+     +  fqrpa(Zix,Nix,numgamqrpa-1,1,0,1)
+        qrpaexist(Zix,Nix,0,1)=.true.
+  310   close (unit=2)
+      endif
+c
 c M2-6 radiation
 c
-      do 310 l=2,gammax
+  350 do 360 l=2,gammax
         if (egr(Zix,Nix,0,l,1).eq.0.) egr(Zix,Nix,0,l,1)=
      +    egr(Zix,Nix,0,l-1,1)
         if (ggr(Zix,Nix,0,l,1).eq.0.) ggr(Zix,Nix,0,l,1)=
@@ -225,21 +269,38 @@ c
         if (sgr(Zix,Nix,0,l,1).eq.0.) sgr(Zix,Nix,0,l,1)=
      +    sgr(Zix,Nix,0,l-1,1)*8.e-4
         kgr(Zix,Nix,0,l)=pi2h2c2/(2*l+1.)
-  310 continue
+  360 continue
 c
 c External strength functions
 c
-      if (E1file(Zix,Nix)(1:1).ne.' ') then
-        nen=0
-        open (unit=2,status='old',file=E1file(Zix,Nix))
-  400   read(2,*,err=410,end=500) ee,fe1t
-        nen=nen+1
-        eqrpa(Zix,Nix,nen)=ee
-        fe1qrpa(Zix,Nix,nen,1)=onethird*pi2h2c2*fe1t
-  410   if (nen.lt.numgamqrpa) goto 400
-  500   if (nen.gt.0) qrpaexist(Zix,Nix)=.true.
-        close (unit=2)
-      endif
+c fe1t: tabulated strength function
+c
+      do 410 irad=0,1
+        do 420 l=1,gammax
+          if (Exlfile(Zix,Nix,irad,l)(1:1).ne.' ') then
+            nen=0
+            open (unit=2,file=Exlfile(Zix,Nix,irad,l),status='old')
+  430       read(2,*,err=440,end=500) ee,fe1t
+            if (gamadjust(Zix,Nix)) then
+              key='etable'
+              call adjust(ee,key,Zix,Nix,0,0,factor)
+              et=etable(Zix,Nix,irad,l)+factor-1.
+              key='ftable'
+              call adjust(ee,key,Zix,Nix,0,0,factor)
+              ft=ftable(Zix,Nix,irad,l)+factor-1.
+            else
+              et=etable(Zix,Nix,irad,l)
+              ft=ftable(Zix,Nix,irad,l)
+            endif
+            nen=nen+1
+            eqrpa(Zix,Nix,nen,irad,l)=ee+et
+            fqrpa(Zix,Nix,nen,1,irad,l)=onethird*pi2h2c2*fe1t*ft
+  440       if (nen.lt.numgamqrpa) goto 430
+  500       if (nen.gt.0) qrpaexist(Zix,Nix,irad,l)=.true.
+            close (unit=2)
+          endif
+  420   continue
+  410 continue
       return
       end
-Copyright (C)  2012 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

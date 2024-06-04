@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : April 27, 2013
+c | Date  : November 16, 2016
 c | Task  : ECIS calculation for incident energy
 c +---------------------------------------------------------------------
 c
@@ -47,7 +47,7 @@ c ecis2(14)=T : output of elastic angular distribution
 c ecis2(15)=T : output of Legendre coefficients
 c
       if (flaginccalc)
-     +  open (unit=9,status='unknown',file='ecisinc.inp')
+     +  open (unit=9,file='ecisinc.inp',status='unknown')
       legendre=.true.
       Ein=Einc
       hint=0.
@@ -301,11 +301,11 @@ c
           write(*,'(/" +++++++++ OPTICAL MODEL PARAMETERS FOR ",
      +      "INCIDENT CHANNEL ++++++++++")')
           write(*,'(/11x,a8," on ",i3,a2/)') parname(k0),A,nuc(Z)
-          write(*,'("  Energy",4x,"V",5x,"rv",4x,"av",4x,"W",5x,"rw",
+          write(*,'("  Energy",5x,"V",5x,"rv",4x,"av",4x,"W",5x,"rw",
      +      4x,"aw",4x,"Vd",3x,"rvd",3x,"avd",4x,"Wd",
      +      3x,"rwd",3x,"awd",3x,"Vso",3x,"rvso",2x,"avso",
      +      2x,"Wso",3x,"rwso",2x,"awso",2x,"rc",/)')
-          write(*,'(1x,f7.3,1x,6(f6.2,f6.3,f6.3),f6.3)')
+          write(*,'(1x,f8.3,1x,6(f6.2,f6.3,f6.3),f6.3)')
      +      Ein,v,rv,av,w,rw,aw,vd,rvd,avd,wd,rwd,awd,vso,rvso,
      +      avso,wso,rwso,awso,rc
         endif
@@ -336,7 +336,7 @@ c
       endif
       call ecist('ecisinc.inp  ',outfile,'ecis.inccs   ',inelfile,
      +  'ecis.inctr   ','ecis.incang  ','ecis.incleg  ')
-      open (unit=9,status='unknown',file='ecisinc.inp')
+      open (unit=9,file='ecisinc.inp',status='unknown')
       close (unit=9,status=ecisstatus)
       return
       end

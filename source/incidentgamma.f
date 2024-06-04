@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 5, 2009
+c | Date  : September 22, 2017
 c | Task  : Incident photons
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer irad,l
-      real    gammaxs,fstrength,Tgamma
+      real    gammaxs,xsqd,xsgdr,quasideuteron,factor,fstrength,Tgamma
 c
 c **** Photo-absorption cross section and transmission coefficients ****
 c
@@ -32,10 +32,17 @@ c instead of the particle spin index.
 c
       lmaxinc=gammax
       xsreacinc=gammaxs(0,0,Einc)
+      xsqd=quasideuteron(Einc)
+      xsgdr=xsreacinc-quasideuteron(Einc)
+      if (xsgdr.gt.0.) then
+        factor=xsreacinc/xsgdr
+      else
+        factor=1.
+      endif
       do 10 irad=0,1
         do 10 l=1,gammax
           Tgamma=twopi*(Einc**(2*l+1))*fstrength(0,0,Einc,Einc,irad,l)
-          Tjlinc(irad,l)=Tgamma
+          Tjlinc(irad,l)=Tgamma*factor
    10 continue
       return
       end

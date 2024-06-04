@@ -79,142 +79,141 @@ c Sstrength     : s,p,d,etc-wave strength function
 c D0theo        : theoretical s-wave resonance spacing
 c
       if (flagpartable) then
-        write(11,'("##")')
-        write(11,'("## General parameters")')
-        write(11,'("##")')
-        write(11,'("## Level density")')
-        write(11,'("##")')
+        write(51,'("##")')
+        write(51,'("## General parameters")')
+        write(51,'("##")')
+        write(51,'("## Level density")')
+        write(51,'("##")')
         if (ldmodel(0,0).le.3) then
-          write(11,'("alphald        ",f10.5)') alphald(0,0)
-          write(11,'("betald         ",f10.5)') betald(0,0)
-          write(11,'("gammashell1    ",f10.5)') gammashell1(0,0)
-          write(11,'("gammashell2    ",f10.5)') gammashell2
-          write(11,'("pairconstant   ",f10.5)') pairconstant
-          write(11,'("pshiftconstant ",f10.5)') Pshiftconstant(0,0)
-          write(11,'("Rspincut       ",f10.5)') Rspincut
+          write(51,'("alphald        ",f10.5)') alphald(0,0)
+          write(51,'("betald         ",f10.5)') betald(0,0)
+          write(51,'("gammashell1    ",f10.5)') gammashell1(0,0)
+          write(51,'("gammashell2    ",f10.5)') gammashell2
+          write(51,'("pairconstant   ",f10.5)') pairconstant
+          write(51,'("pshiftconstant ",f10.5)') Pshiftconstant(0,0)
+          write(51,'("Rspincut       ",f10.5)') Rspincut
         endif
-        write(11,'("cglobal        ",1p,e12.5)') cglobal
-        write(11,'("pglobal        ",1p,e12.5)') pglobal
+        write(51,'("cglobal        ",es12.5)') cglobal
+        write(51,'("pglobal        ",es12.5)') pglobal
         if (flagcolall) then
-          write(11,'("Ufermi         ",f10.5)') Ufermi
-          write(11,'("cfermi         ",f10.5)') cfermi
-          write(11,'("Ufermibf       ",f10.5)') Ufermibf
-          write(11,'("cfermibf       ",f10.5)') cfermibf
+          write(51,'("Ufermi         ",f10.5)') Ufermi
+          write(51,'("cfermi         ",f10.5)') cfermi
+          write(51,'("Ufermibf       ",f10.5)') Ufermibf
+          write(51,'("cfermibf       ",f10.5)') cfermibf
         endif
-        if (phmodel.eq.1) write(11,'("Kph            ",f10.5)') Kph
-        write(11,'("##")')
-        write(11,'("## Gamma-ray")')
-        write(11,'("##")')
-        write(11,'("gnorm          ",f10.5)') gnorm
-        write(11,'("xscaptherm     ",1p,e12.5)') xscaptherm
-        write(11,'("##")')
-        write(11,'("## Pre-equilibrium")')
-        write(11,'("##")')
-        write(11,'("M2constant     ",f10.5)') M2constant
-        write(11,'("M2limit        ",f10.5)') M2limit
-        write(11,'("M2shift        ",f10.5)') M2shift
-        write(11,'("Rpipi          ",f10.5)') Rpipi
-        write(11,'("Rnunu          ",f10.5)') Rnunu
-        write(11,'("Rpinu          ",f10.5)') Rpinu
-        write(11,'("Rnupi          ",f10.5)') Rnupi
-        write(11,'("Rgamma         ",f10.5)') Rgamma
-        write(11,'("Esurf          ",f10.5)') Esurf
+        if (phmodel.eq.1) write(51,'("Kph            ",f10.5)') Kph
+        write(51,'("##")')
+        write(51,'("## Gamma-ray")')
+        write(51,'("##")')
+        write(51,'("gnorm          ",f10.5)') gnorm
+        write(51,'("xscaptherm     ",es12.5)') xscaptherm
+        write(51,'("##")')
+        write(51,'("## Pre-equilibrium")')
+        write(51,'("##")')
+        write(51,'("M2constant     ",f10.5)') M2constant
+        write(51,'("M2limit        ",f10.5)') M2limit
+        write(51,'("M2shift        ",f10.5)') M2shift
+        write(51,'("Rpipi          ",f10.5)') Rpipi
+        write(51,'("Rnunu          ",f10.5)') Rnunu
+        write(51,'("Rpinu          ",f10.5)') Rpinu
+        write(51,'("Rnupi          ",f10.5)') Rnupi
+        write(51,'("Rgamma         ",f10.5)') Rgamma
+        write(51,'("Esurf          ",f10.5)') Esurf
         do type=1,6
-          if (xspreeqtotps(type).gt.0.)
-     +      write(11,'("Cstrip        ",a1,f10.5)') parsym(type),
+          write(51,'("Cstrip        ",a1,f10.5)') parsym(type),
      +      Cstrip(type)
-          if (xspreeqtotki(type).gt.0.)
-     +      write(11,'("Cknock        ",a1,f10.5)') parsym(type),
+          write(51,'("Cknock        ",a1,f10.5)') parsym(type),
      +      Cknock(type)
-          if (xspreeqtotbu(type).gt.0.)
-     +      write(11,'("Cbreak        ",a1,f10.5)') parsym(type),
+          write(51,'("Cbreak        ",a1,f10.5)') parsym(type),
      +      Cbreak(type)
         enddo
-        write(11,'("##")')
-        write(11,'("## Optical model")')
-        write(11,'("##")')
+        write(51,'("##")')
+        write(51,'("## Optical model")')
+        write(51,'("##")')
         if (flagjlm) then
-          write(11,'("lvadjust       ",f10.5)') lvadjust
-          write(11,'("lwadjust       ",f10.5)') lwadjust
-          write(11,'("lv1adjust      ",f10.5)') lv1adjust
-          write(11,'("lw1adjust      ",f10.5)') lw1adjust
-          write(11,'("lvsoadjust     ",f10.5)') lvsoadjust
-          write(11,'("lwsoadjust     ",f10.5)') lwsoadjust
+          write(51,'("lvadjust       ",f10.5)') lvadjust
+          write(51,'("lwadjust       ",f10.5)') lwadjust
+          write(51,'("lv1adjust      ",f10.5)') lv1adjust
+          write(51,'("lw1adjust      ",f10.5)') lw1adjust
+          write(51,'("lvsoadjust     ",f10.5)') lvsoadjust
+          write(51,'("lwsoadjust     ",f10.5)') lwsoadjust
         endif
         if (alphaomp.ge.3.and.alphaomp.le.5) then
-          write(11,'("aradialcor     ",f10.5)') aradialcor
-          write(11,'("adepthcor      ",f10.5)') adepthcor
+          write(51,'("aradialcor     ",f10.5)') aradialcor
+          write(51,'("adepthcor      ",f10.5)') adepthcor
         endif
         do type=1,6
           if (.not.flagjlm.or.type.gt.2) then
-            write(11,'("v1adjust      ",a1,f10.5)') parsym(type),
+            write(51,'("v1adjust      ",a1,f10.5)') parsym(type),
      +        v1adjust(type)
-            write(11,'("v2adjust      ",a1,f10.5)') parsym(type),
+            write(51,'("v2adjust      ",a1,f10.5)') parsym(type),
      +        v2adjust(type)
-            write(11,'("v3adjust      ",a1,f10.5)') parsym(type),
+            write(51,'("v3adjust      ",a1,f10.5)') parsym(type),
      +        v3adjust(type)
-            write(11,'("v4adjust      ",a1,f10.5)') parsym(type),
+            write(51,'("v4adjust      ",a1,f10.5)') parsym(type),
      +        v4adjust(type)
-            write(11,'("rvadjust      ",a1,f10.5)') parsym(type),
+            write(51,'("rvadjust      ",a1,f10.5)') parsym(type),
      +        rvadjust(type)
-            write(11,'("avadjust      ",a1,f10.5)') parsym(type),
+            write(51,'("avadjust      ",a1,f10.5)') parsym(type),
      +        avadjust(type)
-            write(11,'("w1adjust      ",a1,f10.5)') parsym(type),
+            write(51,'("w1adjust      ",a1,f10.5)') parsym(type),
      +        w1adjust(type)
-            write(11,'("w2adjust      ",a1,f10.5)') parsym(type),
+            write(51,'("w2adjust      ",a1,f10.5)') parsym(type),
      +        w2adjust(type)
-            write(11,'("w3adjust      ",a1,f10.5)') parsym(type),
+            write(51,'("w3adjust      ",a1,f10.5)') parsym(type),
      +        w3adjust(type)
-            write(11,'("w4adjust      ",a1,f10.5)') parsym(type),
+            write(51,'("w4adjust      ",a1,f10.5)') parsym(type),
      +        w4adjust(type)
-            write(11,'("d1adjust      ",a1,f10.5)') parsym(type),
+            write(51,'("d1adjust      ",a1,f10.5)') parsym(type),
      +        d1adjust(type)
-            write(11,'("d2adjust      ",a1,f10.5)') parsym(type),
+            write(51,'("d2adjust      ",a1,f10.5)') parsym(type),
      +        d2adjust(type)
-            write(11,'("d3adjust      ",a1,f10.5)') parsym(type),
+            write(51,'("d3adjust      ",a1,f10.5)') parsym(type),
      +        d3adjust(type)
-            write(11,'("rvdadjust     ",a1,f10.5)') parsym(type),
+            write(51,'("rvdadjust     ",a1,f10.5)') parsym(type),
      +        rvdadjust(type)
-            write(11,'("avdadjust     ",a1,f10.5)') parsym(type),
+            write(51,'("avdadjust     ",a1,f10.5)') parsym(type),
      +        avdadjust(type)
-            write(11,'("rvsoadjust    ",a1,f10.5)') parsym(type),
+            write(51,'("rvsoadjust    ",a1,f10.5)') parsym(type),
      +        rvsoadjust(type)
-            write(11,'("avsoadjust    ",a1,f10.5)') parsym(type),
+            write(51,'("avsoadjust    ",a1,f10.5)') parsym(type),
      +        avsoadjust(type)
-            write(11,'("vso1adjust    ",a1,f10.5)') parsym(type),
+            write(51,'("vso1adjust    ",a1,f10.5)') parsym(type),
      +        vso1adjust(type)
-            write(11,'("vso2adjust    ",a1,f10.5)') parsym(type),
+            write(51,'("vso2adjust    ",a1,f10.5)') parsym(type),
      +        vso2adjust(type)
-            write(11,'("wso1adjust    ",a1,f10.5)') parsym(type),
+            write(51,'("wso1adjust    ",a1,f10.5)') parsym(type),
      +        wso1adjust(type)
-            write(11,'("wso2adjust    ",a1,f10.5)') parsym(type),
+            write(51,'("wso2adjust    ",a1,f10.5)') parsym(type),
      +        wso2adjust(type)
-            write(11,'("rcadjust      ",a1,f10.5)') parsym(type),
+            write(51,'("rcadjust      ",a1,f10.5)') parsym(type),
      +        rcadjust(type)
           endif
         enddo
         do type=1,6
           do l=0,4
-            write(11,'("tljadjust     ",a1,f10.5,i2)') parsym(type),
+            write(51,'("tljadjust     ",a1,f10.5,i2)') parsym(type),
      +        tladjust(type,l),l
           enddo
         enddo
         if (k0.eq.1.and.(parinclude(0).or.flagcomp).and.
      +    Rprime.ne.0.) then
-          write(11,'("##")')
-          write(11,'("## Resonance parameters")')
-          write(11,'("## Z   A     S0        R      xs(therm)    D0",
+          write(51,'("##")')
+          write(51,'("## Resonance parameters")')
+          write(51,'("## Z   A     S0        R      xs(therm)    D0",
      +      "         a         P        Sn")')
-          write(11,'("##",2i4,1p,7e10.3)') Ztarget,Atarget,
+          write(51,'("##",2i4,7es10.3)') Ztarget,Atarget,
      +      Sstrength(0)*1.e4,Rprime,xscaptherm,D0theo(0,0),
      +      alev(0,0),pair(0,0),S(0,0,1)
         endif
       endif
-      close (unit=11)
+      close (unit=51)
 c
 c ****************** Integrated binary cross sections ******************
 c
 c flagomponly: flag to execute ONLY an optical model calculation
+c binfile    : file for binary output
+c stringtot  : string from file
 c flagexc    : flag for output of excitation functions
 c numinc     : number of incident energies
 c parname    : name of particle
@@ -223,7 +222,7 @@ c
       if (flagnatural.or..not.flagexc) return
       write(*,'(/" ########## EXCITATION FUNCTIONS ###########"/)')
       totfile='total.tot'
-      open (unit=1,status='old',file=totfile,iostat=istat)
+      open (unit=1,file=totfile,status='old',iostat=istat)
       if (istat.eq.0) then
         write(*,'(" 1. Total (binary) cross sections"/)')
         write(*,'("   Energy    Non-elastic  Elastic     Total  ",
@@ -238,7 +237,7 @@ c
         close (unit=1)
       endif
       binfile='binary.tot'
-      open (unit=1,status='old',file=binfile,iostat=istat)
+      open (unit=1,file=binfile,status='old',iostat=istat)
       if (istat.eq.0) then
         write(*,'(/" 2. Binary non-elastic cross sections",
      +    " (non-exclusive)"/)')
@@ -263,7 +262,7 @@ c
         if (parskip(type)) goto 110
         totfile=' prod.tot'
         write(totfile(1:1),'(a1)') parsym(type)
-        open (unit=1,status='old',file=totfile,iostat=istat)
+        open (unit=1,file=totfile,status='old',iostat=istat)
         if (istat.eq.0) then
           write(*,'(/1x,a8, " production"/)') parname(type)
           write(*,'(" Energy   Cross section Multiplicity"/)')
@@ -278,7 +277,7 @@ c
   110 continue
       if (flagfission) then
         fisfile='fission.tot'
-        open (unit=1,status='old',file=fisfile,iostat=istat)
+        open (unit=1,file=fisfile,status='old',iostat=istat)
         if (istat.eq.0) then
           write(*,'(/" 3b. Total fission cross sections "/)')
           write(*,'(" Energy   Cross section "/)')
@@ -316,15 +315,15 @@ c tau       : lifetime of state in seconds
 c
       write(*,'(/" 4. Residual production cross sections")')
       do 210 Acomp=0,maxA
-        do 210 Zcomp=0,maxZ
+        do 215 Zcomp=0,maxZ
           Ncomp=Acomp-Zcomp
-          if (Ncomp.lt.0.or.Ncomp.gt.maxN) goto 210
-          if (.not.rpexist(Zcomp,Ncomp)) goto 210
+          if (Ncomp.lt.0.or.Ncomp.gt.maxN) goto 215
+          if (.not.rpexist(Zcomp,Ncomp)) goto 215
           Z=ZZ(Zcomp,Ncomp,0)
           A=AA(Zcomp,Ncomp,0)
           rpfile='rp000000.tot'
           write(rpfile(3:8),'(2i3.3)') Z,A
-          open (unit=1,status='old',file=rpfile,iostat=istat)
+          open (unit=1,file=rpfile,status='old',iostat=istat)
           if (istat.eq.0) then
             write(*,'(/" Production of Z=",i3,
      +        " A=",i3," (",i3,a2,") - Total"/)') Z,A,A,nuc(Z)
@@ -344,10 +343,10 @@ c
             isofile='rp000000.L00'
             write(isofile(3:8),'(2i3.3)') Z,A
             write(isofile(11:12),'(i2.2)') nex
-            open (unit=1,status='old',file=isofile,iostat=istat)
+            open (unit=1,file=isofile,status='old',iostat=istat)
             if (istat.eq.0) then
               write(*,'(/" Production of Z=",i3," A=",i3," (",i3,a2,
-     +        ") - Level",i3,"  (lifetime:",1p,e12.5," sec.)"/)')
+     +        ") - Level",i3,"  (lifetime:",es12.5," sec.)"/)')
      +          Z,A,A,nuc(Z),nex,tau(Zcomp,Ncomp,nex)
               write(*,'(" Q-value    =",f11.6)') Qres(Zcomp,Ncomp,nex)
               write(*,'(" E-threshold=",f11.6/)')
@@ -362,6 +361,7 @@ c
               close (unit=1)
             endif
   230     continue
+  215   continue
   210 continue
 c
 c ********************** Fission cross sections ************************
@@ -372,15 +372,15 @@ c
         write(*,'(/" 4b. Fission cross sections per fissioning",
      +    " nuclide")')
         do 310 Acomp=0,maxA
-          do 310 Zcomp=0,maxZ
+          do 315 Zcomp=0,maxZ
             Ncomp=Acomp-Zcomp
-            if (Ncomp.lt.0.or.Ncomp.gt.maxN) goto 310
-            if (.not.fisexist(Zcomp,Ncomp)) goto 310
+            if (Ncomp.lt.0.or.Ncomp.gt.maxN) goto 315
+            if (.not.fisexist(Zcomp,Ncomp)) goto 315
             Z=ZZ(Zcomp,Ncomp,0)
             A=AA(Zcomp,Ncomp,0)
             rpfile='rp000000.fis'
             write(rpfile(3:8),'(2i3.3)') Z,A
-            open (unit=1,status='old',file=rpfile,iostat=istat)
+            open (unit=1,file=rpfile,status='old',iostat=istat)
             if (istat.eq.0) then
               write(*,'(/" Fission cross section for Z=",i3,
      +          " A=",i3," (",i3,a2,")"/)') Z,A,A,nuc(Z)
@@ -393,6 +393,7 @@ c
   320         continue
               close (unit=1)
             endif
+  315     continue
   310   continue
       endif
 c
@@ -431,7 +432,7 @@ c
           if (flagchannels) then
             contfile='  .tot'
             write(contfile(1:2),'(2a1)') parsym(k0),parsym(type)
-            open (unit=1,status='old',file=contfile,iostat=istat)
+            open (unit=1,file=contfile,status='old',iostat=istat)
             if (istat.eq.0) then
               write(*,'(/" Total exclusive ",a9," scattering")')
      +          reactionstring(type)
@@ -452,7 +453,7 @@ c
             discfile='  .L00'
             write(discfile(1:2),'(2a1)') parsym(k0),parsym(type)
             write(discfile(5:6),'(i2.2)') nex
-            open (unit=1,status='old',file=discfile,iostat=istat)
+            open (unit=1,file=discfile,status='old',iostat=istat)
             if (istat.eq.0) then
               write(*,'(/1x,a9," to level",i3," of ",i3,a2,":",f4.1,a1,
      +          " at",f8.5," MeV"/)') reactionstring(type),nex,A,nuc(Z),
@@ -472,7 +473,7 @@ c
           if (flagchannels) then
             contfile='  .con'
             write(contfile(1:2),'(2a1)') parsym(k0),parsym(type)
-            open (unit=1,status='old',file=contfile,iostat=istat)
+            open (unit=1,file=contfile,status='old',iostat=istat)
             if (istat.eq.0) then
               write(*,'(/" Continuum exclusive ",a9," scattering")')
      +          reactionstring(type)
@@ -508,20 +509,20 @@ c
       if (flagchannels) then
         write(*,'(/" 6. Exclusive cross sections")')
         do 510 npart=0,maxchannel
-        do 510 ia=0,numia
-        do 510 ih=0,numih
-        do 510 it=0,numit
-        do 510 id=0,numid
-        do 510 ip=0,numip
-        do 510 in=0,numin
-          if (in+ip+id+it+ih+ia.ne.npart) goto 510
-          if (.not.chanopen(in,ip,id,it,ih,ia)) goto 510
+        do 511 ia=0,numia
+        do 512 ih=0,numih
+        do 513 it=0,numit
+        do 514 id=0,numid
+        do 515 ip=0,numip
+        do 516 in=0,numin
+          if (in+ip+id+it+ih+ia.ne.npart) goto 516
+          if (.not.chanopen(in,ip,id,it,ih,ia)) goto 516
           ident=100000*in+10000*ip+1000*id+100*it+10*ih+ia
           do 520 idc=0,idnum
             if (idchannel(idc).eq.ident) then
               xsfile='xs000000.tot'
               write(xsfile(3:8),'(6i1)') in,ip,id,it,ih,ia
-              open (unit=1,status='old',file=xsfile,iostat=istat)
+              open (unit=1,file=xsfile,status='old',iostat=istat)
               if (istat.eq.0) then
                 write(*,'(/"     Emitted particles     reaction")')
                 write(*,'("   n   p   d   t   h   a")')
@@ -545,10 +546,10 @@ c
               write(isofile(3:8),'(6i1)') in,ip,id,it,ih,ia
               do 540 nex=0,Nlast(Zcomp,Ncomp,0)
                 write(isofile(11:12),'(i2.2)') nex
-                open (unit=1,status='old',file=isofile,iostat=istat)
+                open (unit=1,file=isofile,status='old',iostat=istat)
                 if (istat.eq.0) then
                   write(*,'(/" Level",i3," (lifetime:",
-     +              1p,e12.5," sec.)"/)') nex,tau(Zcomp,Ncomp,nex)
+     +              es12.5," sec.)"/)') nex,tau(Zcomp,Ncomp,nex)
                   write(*,'(" Q-value    =",f11.6)') Qexcl(idc,nex)
                   write(*,'(" E-threshold=",f11.6/)') Ethrexcl(idc,nex)
                   write(*,'(" Energy   Cross section  Branching"/)')
@@ -563,6 +564,12 @@ c
   540         continue
             endif
   520     continue
+  516   continue
+  515   continue
+  514   continue
+  513   continue
+  512   continue
+  511   continue
   510   continue
       endif
 c
@@ -571,20 +578,20 @@ c
         if (flagfission) then
           write(*,'(/" 6b. Exclusive fission cross sections")')
           do 610 npart=0,maxchannel
-          do 610 ia=0,numia
-          do 610 ih=0,numih
-          do 610 it=0,numit
-          do 610 id=0,numid
-          do 610 ip=0,numip
-          do 610 in=0,numin
-            if (in+ip+id+it+ih+ia.ne.npart) goto 610
-            if (.not.chanopen(in,ip,id,it,ih,ia)) goto 610
+          do 611 ia=0,numia
+          do 612 ih=0,numih
+          do 613 it=0,numit
+          do 614 id=0,numid
+          do 615 ip=0,numip
+          do 616 in=0,numin
+            if (in+ip+id+it+ih+ia.ne.npart) goto 616
+            if (.not.chanopen(in,ip,id,it,ih,ia)) goto 616
             ident=100000*in+10000*ip+1000*id+100*it+10*ih+ia
             do 620 idc=0,idnum
               if (idchannel(idc).eq.ident) then
                 xsfile='xs000000.fis'
                 write(xsfile(3:8),'(6i1)') in,ip,id,it,ih,ia
-                open (unit=1,status='old',file=xsfile,iostat=istat)
+                open (unit=1,file=xsfile,status='old',iostat=istat)
                 if (istat.eq.0) then
                   write(*,'(/"     Emitted particles     reaction")')
                   write(*,'("   n   p   d   t   h   a")')
@@ -603,6 +610,12 @@ c
                 endif
               endif
   620       continue
+  616     continue
+  615     continue
+  614     continue
+  613     continue
+  612     continue
+  611     continue
   610     continue
         endif
 c
@@ -616,17 +629,17 @@ c
       if (flaggamdis) then
         write(*,'(/" 7. Gamma-ray intensities")')
         do 710 Zcomp=0,maxZ
-          do 710 Ncomp=0,maxN
+          do 715 Ncomp=0,maxN
             Z=ZZ(Zcomp,Ncomp,0)
             A=AA(Zcomp,Ncomp,0)
             do 720 i1=0,numlev
-              do 720 i2=0,i1
-                if (.not.gamexist(Zcomp,Ncomp,i1,i2)) goto 720
+              do 725 i2=0,i1
+                if (.not.gamexist(Zcomp,Ncomp,i1,i2)) goto 725
                 gamfile='gam000000L00L00.tot'
                 write(gamfile(4:9),'(2i3.3)') Z,A
                 write(gamfile(11:12),'(i2.2)') i1
                 write(gamfile(14:15),'(i2.2)') i2
-                open (unit=1,status='old',file=gamfile,iostat=istat)
+                open (unit=1,file=gamfile,status='old',iostat=istat)
                 if (istat.eq.0) then
                   Egam=edis(Zcomp,Ncomp,i1)-edis(Zcomp,Ncomp,i2)
                   write(*,'(/1x,i3,a2,": Initial state",i3," (",f4.1,a1,
@@ -646,7 +659,9 @@ c
   730             continue
                   close (unit=1)
                 endif
+  725         continue
   720       continue
+  715     continue
   710   continue
       endif
       return

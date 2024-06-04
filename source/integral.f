@@ -2,18 +2,18 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 28, 2015
+c | Date  : December 9, 2016
 c | Task  : Calculate effective cross section for integral spectrum
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80  fluxfile
-      integer       i,istat,nen,Nspec,Nxs,nen0,is,k
-      real          Efluxup(0:numenin),Eflux(0:numenin),fspec(numenin),
-     +              fluxsum,Exs(0:numP),xs(0:numP),xseff,Efl,Ea1,
-     +              Eb1,xsa,xsb,xsf,xsexp,ratio
+      character*132  fluxfile
+      integer        i,istat,nen,Nspec,Nxs,nen0,is,k
+      real           Efluxup(0:numenin),Eflux(0:numenin),fspec(numenin),
+     +               fluxsum,Exs(0:numP),xs(0:numP),xseff,Efl,Ea1,
+     +               Eb1,xsa,xsb,xsf,xsexp,ratio
 c
 c ********* Read integral spectrum from experimental database **********
 c
@@ -24,21 +24,23 @@ c Starget : symbol of target nucleus
 c Ztarget : charge number of target nucleus
 c Nflux   : number of reactions with integral data
 c path    : directory containing structure files to be read
-c lenpath : length of pathname
+c Eflux   : energy of bin for flux
+c Efl     : energy of bin for flux
+c Efluxup : upper energy of bin for flux
 c fluxfile: file with experimental integral spectrum
 c fluxname: name of experimental flux
 c Nspec   : number of spectral energies
 c fspec   : spectrum values
 c
-      open (unit=1,status='unknown',file='integral.dat')
+      open (unit=1,file='integral.dat',status='replace')
       write(1,'("# ",a1," + ",i3,a2,
      +  ": Effective cross sections from integral data")')
      +  parsym(k0),Atarget,Starget
       write(1,'("# Channel      Flux          Eff. c.s. (b)",
      +  " Exp. c.s. (b)       Ratio")')
       do 10 i=1,Nflux
-        fluxfile=path(1:lenpath)//'integral/flux/spectrum.'//fluxname(i)
-        open (unit=2,status='old',file=fluxfile,iostat=istat)
+        fluxfile=trim(path)//'integral/flux/spectrum.'//fluxname(i)
+        open (unit=2,file=fluxfile,status='old',iostat=istat)
         if (istat.eq.0) then
           read(2,'(1x,i4)') Nspec
           do 110 nen=Nspec,1,-1
@@ -63,10 +65,11 @@ c
 c
 c *************** Read cross sections from TALYS output files **********
 c
+c Exs: energy of cross section file
 c Nxs: number of incident energies
 c
         is=1
-  200   open (unit=3,status='old',file=xsfluxfile(i),iostat=istat)
+  200   open (unit=3,file=xsfluxfile(i),status='old',iostat=istat)
         if (istat.eq.0) then
           Exs(0)=0.
           xs(0)=0.
@@ -117,10 +120,10 @@ c
         else
           ratio=1.
         endif
-        write(1,'(2a15,1p,2e12.5,0p,f15.5)') xsfluxfile(i),fluxname(i),
+        write(1,'(2a15,2es12.5,f15.5)') xsfluxfile(i),fluxname(i),
      +    xseff,xsexp,ratio
    10 continue
       close (unit=1)
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

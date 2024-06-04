@@ -1,9 +1,9 @@
 c
-c                      TALYS.CMB for TALYS-1.8
+c                      TALYS.CMB for TALYS-1.9
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning, Stephane Hilaire and Stephane Goriely
-c | Date  : December 28, 2015
+c | Date  : December 21, 2017
 c | Task  : File with common blocks and declarations for TALYS
 c +---------------------------------------------------------------------
 c
@@ -25,9 +25,10 @@ c
      +          numang,numangcont,numexc,numconf,numJph,numparx,numfact,
      +          numbins,numex,numJ,numenrec,numangrec,numendisc,numen2,
      +          numenmsd,numJmsd,nummsd,numbinfis,numbeta,numhill,
-     +          numtrans,nummold,numgoe,numT,numcomp,numZchan,numNchan,
-     +          numin,numip,numid,numit,numih,numia,numchantot,nummass,
-     +          numneu,numA,numnu,numenlow,numtime,numP,numen6
+     +          numtrans,nummold,numgoe,numZastro,numNastro,numT,
+     +          numcomp,numZchan,numNchan,numin,numip,numid,numit,numih,
+     +          numia,numchantot,nummass,numneu,numA,numnu,numenlow,
+     +          numtime,numP,numen6
 c
 c Use memorypar=2 for 64 Mb RAM
 c Use memorypar=5 for 256 (or more) Mb RAM
@@ -95,6 +96,8 @@ c    +           numlev=3*memorypar*memorypar+2,
      +           nummold=32,
      +           numgoe=50)
       parameter (
+     +           numZastro=4,
+     +           numNastro=4,
      +           numT=30,
      +           numcomp=100,
      +           numZchan=6,
@@ -118,13 +121,14 @@ c
 c *********************** block data constants0 ************************
 c
       common /constants0c/ parname(-1:numpar),parsym(-1:numpar),
-     +                     nuc(numelem),cparity(-1:1)
+     +                     nuc(numelem),isochar(-1:numisom),
+     +                     cparity(-1:1)
       common /constants0i/ parZ(0:numpar),parN(0:numpar),
      +                     parA(0:numpar),magic(8)
       common /constants0r/ parspin(0:numpar),pi,e2,hbar,clight,kT,emass,
      +                     avogadro,qelem
       common /constants0d/ parmass(0:numpar),excmass(0:numpar),amu
-      character*1      parsym,cparity
+      character*1      parsym,isochar,cparity
       character*2      nuc
       character*8      parname
       integer          parZ,parN,parA,magic
@@ -134,10 +138,8 @@ c
 c ************************* subroutine machine *************************
 c
       common /machinec/ nulldev,path
-      common /machinei/ lenpath
-      character*13 nulldev
-      character*60 path
-      integer      lenpath
+      character*13  nulldev
+      character*132 path
 c
 c *********************** subroutine constants *************************
 c
@@ -219,10 +221,11 @@ c
      +                 flaggshell,flagmassdis,flagffevap,flagfisfeed,
      +                 flagffspin,flagendf,flagendfdet,flagrecoil,
      +                 flaglabddx,flagrecoilav,flagEchannel,
-     +                 flagreaction,flagastrogs,flagexpmass,flagjlm
+     +                 flagreaction,flagastrogs,flagastroex,flagexpmass,
+     +                 flagjlm
       common /input3c/ optmod(0:numZph,0:numNph,numpar)
       common /input3i/ pespinmodel,maxband,maxrot,strength,strengthM1,
-     +                 fymodel
+     +                 fymodel,nonthermlev
       common /input3r/ ewfc,epreeq,emulpre
       logical      flageciscalc,flaginccalc,flagendfecis,flagrel,
      +             flagcomp,flagfullhf,flaggiant0,flagpecomp,
@@ -234,10 +237,10 @@ c
      +             flaggshell,flagmassdis,flagffevap,flagfisfeed,
      +             flagffspin,flagendf,flagendfdet,flagrecoil,
      +             flaglabddx,flagrecoilav,flagEchannel,flagreaction,
-     +             flagastrogs,flagexpmass,flagjlm
+     +             flagastrogs,flagastroex,flagexpmass,flagjlm
       character*72 optmod
       integer      pespinmodel,maxband,maxrot,strength,strengthM1,
-     +             fymodel
+     +             fymodel,nonthermlev
       real         ewfc,epreeq,emulpre
 c
 c ************************ subroutine input4 ***************************
@@ -253,8 +256,7 @@ c
      +                 altomp(numpar),flagbinspec,flagrpevap
       common /input4c/ reslib
       common /input4i/ maxchannel,ddxmode,pairmodel,fismodel,
-     +                 fismodelalt,alphaomp,deuteronomp,lurr,gefran,
-     +                 lenreslib
+     +                 fismodelalt,alphaomp,deuteronomp,lurr,gefran
       common /input4r/ eadd,eaddel,cglobal,pglobal,Tres,soswitch,eurr
       logical flagmain,flagpop,flagcheck,flagoutomp,flagdirect,
      +        flaginverse,flaggamma,flaglevels,flagdensity,flagdisc,
@@ -266,7 +268,7 @@ c
      +        flagrpevap
       character*8 reslib
       integer     maxchannel,ddxmode,pairmodel,fismodel,fismodelalt,
-     +            alphaomp,deuteronomp,lurr,gefran,lenreslib
+     +            alphaomp,deuteronomp,lurr,gefran
       real        eadd,eaddel,cglobal,pglobal,Tres,soswitch,eurr
 c
 c ************************ subroutine input5 ***************************
@@ -280,15 +282,15 @@ c
      +                  hbtransfile(0:numZ,0:numN),adjustkey(numadj),
      +                  adjustfile(numadj),clas2file(0:numZ,0:numN),
      +                  optmodfileN(0:numZ),optmodfileP(0:numZ),
-     +                  E1file(0:numZ,0:numN),
+     +                  Exlfile(0:numZ,0:numN,0:1,numgam),
      +                  radialfile(0:numZ),ompenergyfile,
      +                  rescuefile(nummt,-1:numisom),unitTirrad(5),
-     +                  unitTcool(5),radiounit,yieldunit
+     +                  unitTcool(5),radiounit,yieldunit,massdir
       common /input5i/  spincutmodel,shellmodel,kvibmodel,
      +                  Nlow(0:numZ,0:numN,0:numbar),
      +                  Ntop(0:numZ,0:numN,0:numbar),msdbins,nanglerec,
      +                  axtype(0:numZ,0:numN,numbar),radialmodel,
-     +                  breakupmodel,jlmmode,
+     +                  fismodelx(0:numZ,0:numN),breakupmodel,jlmmode,
      +                  ompadjustN(numpar,numompadj),Nadjust,
      +                  adjustix(numadj,4),nenadjust(numadj),nTmax,
      +                  Tirrad(5),Tcool(5)
@@ -315,7 +317,8 @@ c
       common /input5rB/ g(0:numZ,0:numN),gp(0:numZ,0:numN),
      +                  gn(0:numZ,0:numN),gamgam(0:numZ,0:numN),
      +                  D0(0:numZ,0:numN),
-     +                  etable(0:numZ,0:numN),ftable(0:numZ,0:numN),
+     +                  etable(0:numZ,0:numN,0:1,numgam),
+     +                  ftable(0:numZ,0:numN,0:1,numgam),
      +                  egr(0:numZ,0:numN,0:1,numgam,2),
      +                  ggr(0:numZ,0:numN,0:1,numgam,2),
      +                  sgr(0:numZ,0:numN,0:1,numgam,2),
@@ -328,6 +331,7 @@ c
      +                  epradjust(0:numZ,0:numN,0:1,numgam,2),
      +                  gpradjust(0:numZ,0:numN,0:1,numgam,2),
      +                  tpradjust(0:numZ,0:numN,0:1,numgam,2),
+     +                  upbend(0:numZ,0:numN,0:1,numgam,2),
      +                  fiso(0:numZ,0:numN,0:numpar),
      +                  fbarrier(0:numZ,0:numN,numbar),
      +                  fwidth(0:numZ,0:numN,numbar),
@@ -335,7 +339,6 @@ c
      +                  fwidthadjust(0:numZ,0:numN,numbar),
      +                  betafiscor(0:numZ,0:numN),
      +                  vfiscor(0:numZ,0:numN),
-     +                  fismodelx(0:numZ,0:numN),
      +                  Rtransmom(0:numZ,0:numN,numbar),
      +                  Rclass2mom(0:numZ,0:numN,numbar)
       common /input5rC/ widthc2(0:numZ,0:numN,numbar),Cknock(0:numpar),
@@ -376,14 +379,14 @@ c
      +             tljadjust,ldadjust,gamadjust,fisadjust
       character*80 adjustkey,adjustfile
       character*72 levelfile,deformfile,hbtransfile,clas2file,
-     +             optmodfileN,optmodfileP,E1file,radialfile,
-     +             ompenergyfile,rescuefile
+     +             optmodfileN,optmodfileP,Exlfile,radialfile,
+     +             ompenergyfile,rescuefile,massdir
       character*3  radiounit,yieldunit
       character*1  unitTirrad,unitTcool
       integer      spincutmodel,shellmodel,kvibmodel,Nlow,Ntop,msdbins,
-     +             nanglerec,axtype,radialmodel,breakupmodel,jlmmode,
-     +             ompadjustN,Nadjust,adjustix,nenadjust,nTmax,Tirrad,
-     +             Tcool
+     +             nanglerec,axtype,radialmodel,fismodelx,breakupmodel,
+     +             jlmmode,ompadjustN,Nadjust,adjustix,nenadjust,nTmax,
+     +             Tirrad,Tcool
       real         gnorm,Rspincut,alphald,betald,gammashell1,
      +             gammashell2,pairconstant,Pshiftconstant,Ufermi,
      +             cfermi,Ufermibf,cfermibf,Kph,M2constant,M2limit,
@@ -393,9 +396,9 @@ c
      +             E0,s2adjust,Krotconstant,beta2,ctable,ptable,g,gp,gn,
      +             gamgam,D0,etable,ftable,egr,ggr,sgr,epr,gpr,tpr,
      +             egradjust,ggradjust,sgradjust,epradjust,gpradjust,
-     +             tpradjust,fiso,fbarrier,fwidth,fbaradjust,
+     +             tpradjust,upbend,fiso,fbarrier,fwidth,fbaradjust,
      +             fwidthadjust,betafiscor,vfiscor,
-     +             fismodelx,Rtransmom,Rclass2mom,widthc2,Cknock,Cstrip,
+     +             Rtransmom,Rclass2mom,widthc2,Cknock,Cstrip,
      +             Cbreak,Emsdmin,v1adjust,v2adjust,v3adjust,v4adjust,
      +             rvadjust,avadjust,w1adjust,w2adjust,w3adjust,
      +             w4adjust,rwadjust,awadjust,rvdadjust,avdadjust,
@@ -542,15 +545,16 @@ c
 c
 c ************************* subroutine gammapar ************************
 c
-      common /gammaparl/ qrpaexist(0:numZ,0:numN)
+      common /gammaparl/ qrpaexist(0:numZ,0:numN,0:1,numgam)
       common /gammapari/ ngr(0:numZ,0:numN,0:1,numgam),nTqrpa
       common /gammaparr/ kgr(0:numZ,0:numN,0:1,numgam),
-     +                   eqrpa(0:numZ,0:numN,0:numgamqrpa),
+     +                   eqrpa(0:numZ,0:numN,0:numgamqrpa,0:1,numgam),
      +                   Tqrpa(numTqrpa),
-     +                   fe1qrpa(0:numZ,0:numN,0:numgamqrpa,numTqrpa)
+     +                   fqrpa(0:numZ,0:numN,0:numgamqrpa,numTqrpa,0:1,
+     +                   numgam)
       logical qrpaexist
       integer ngr,nTqrpa
-      real    kgr,eqrpa,Tqrpa,fe1qrpa
+      real    kgr,eqrpa,Tqrpa,fqrpa
 c
 c ************************* subroutine omppar **************************
 c
@@ -704,12 +708,12 @@ c
 c *********************** subroutine dtheory ***************************
 c
       common /d0theoryr/ D0theo(0:numZ,0:numN),Dlj(0:numl,0:numJ),
-     +                   Dl(0:numl)
-      real D0theo,Dlj,Dl
+     +                   Dl(0:numl),D1theo(0:numz,0:numN)
+      real D0theo,Dlj,Dl,D1theo
 c
 c *********************** subroutine radwidtheory **********************
 c
-      common /radwidtheoryr/ gamgamth(0:numZ,0:numN),
+      common /radwidtheoryr/ gamgamth(0:numZ,0:numN,0:numl),
      +                       swaveth(0:numZ,0:numN)
       real gamgamth,swaveth
 c
@@ -896,14 +900,20 @@ c
 c
 c *********************** subroutine astroinit *************************
 c
-      common /astroinitd/ xsastro(0:numZ,0:numN,0:numenin),
-     +                    rateastro(0:numZ,0:numN,numT),
+      common /astroiniti/ maxZastro,maxNastro
+      common /astroinitd/ xsastro(0:numZastro,0:numNastro,0:numenin),
+     +            xsastroex(0:numZastro,0:numNastro,0:numenin,0:numlev),
+     +                    rateastro(0:numZastro,0:numNastro,numT),
+     +               rateastroex(0:numZastro,0:numNastro,numT,0:numlev),
      +                    rateastroracap(numT),
-     +                    macsastro(0:numZ,0:numN,numT),
+     +                    macsastro(0:numZastro,0:numNastro,numT),
+     +               macsastroex(0:numZastro,0:numNastro,numT,0:numlev),
      +                    macsastroracap(numT),
      +                    rateastrofis(numT),macsastrofis(numT),
      +                    xsastrofis(0:numenin),partf(numT)
+      integer             maxZastro,maxNastro
       double precision xsastro,rateastro,rateastroracap,macsastro,
+     +                 xsastroex,rateastroex,macsastroex,
      +                 macsastroracap,rateastrofis,macsastrofis,
      +                 xsastrofis,partf
 c
@@ -1156,11 +1166,16 @@ c
      +                       xspreeqbu(0:numpar,0:numen)
       real xspreeqps,xspreeqki,xspreeqbu
 c
+c ************************** subroutine breakup ************************
+c
+      common /breakupr/ Sab,Deff,Ecent,Ca
+      real Sab,Deff,Ecent,Ca
+c
 c ************************** subroutine breakupAVR *********************
-c 
-      common /breakupAV/ xsEB(0:numpar),xsBF(0:numpar),
-     +                   xsBUnuc(0:numpar),
-     +                   ENHratio(0:numpar,0:numZ,0:numN,0:numen),
+c
+      common /breakupAVRr/ xsEB(0:numpar),xsBF(0:numpar),
+     +                     xsBUnuc(0:numpar),
+     +                     ENHratio(0:numpar,0:numZ,0:numN,0:numen),
      +                   xsBFnuc(0:numZ,0:numN),xspopnucT(0:numZ,0:numN)
       real xsEB,xsBF,xsBUnuc,ENHratio,xsBFnuc,xspopnucT
 c
@@ -1488,7 +1503,9 @@ c
      +                  yieldNpost(numneu),
      +                  yieldZApre(numelem,numneu),
      +                  yieldZApost(numelem,numneu),
-     +                  xsfpex(numelem,numneu,0:numlev),
+     +                  yieldfpex(numelem,numneu,0:1),
+     +                  fpratio(numelem,numneu,0:1),fpeps,
+     +                  xsfpex(numelem,numneu,0:1),
      +                  Pdisnu(0:numpar,numnu),pfns(0:numpar,0:numen2),
      +                  Eavpfns(0:numpar),maxpfns(0:numpar,0:numen2),
      +                  nubar(0:numpar),disa(nummass),disacor(nummass),
@@ -1499,9 +1516,9 @@ c
       integer Aff,Zff
       real    excfis,xsfpZApre,xsfpZApost,xsfpApre,xsfpApost,yieldApre,
      +        yieldApost,nupre,nupost,yieldNpre,yieldNpost,yieldZApre,
-     +        yieldZApost,xsfpex,Pdisnu,pfns,Eavpfns,maxpfns,nubar,disa,
-     +        disacor,disaz,disazcor,xsfptotpost,
-     +        xsfptotpre,yieldtotpost,yieldtotpre
+     +        yieldZApost,yieldfpex,fpratio,fpeps,xsfpex,Pdisnu,pfns,
+     +        Eavpfns,maxpfns,nubar,disa,disacor,disaz,disazcor,
+     +        xsfptotpost,xsfptotpre,yieldtotpost,yieldtotpre
 c
 c ************************ subroutine brosafy **************************
 c
@@ -1613,7 +1630,8 @@ c
 c *********************** subroutine prodyield *************************
 c
       common /yieldcalcl/ Yexist(0:numZ,0:numN,-1:numisom)
-      common /yieldcalci/ Ntime,Tp(0:numZ,0:numN,-1:numisom,5)
+      common /yieldcalci/ Ntime,Tp(0:numZ,0:numN,-1:numisom,5),
+     +                    Tmaxactivity(0:numZ,0:numN,-1:numisom)
       common /yieldcalcr/ Ntar0,Tgrid(0:numtime),Tir,Tco,
      +                    Niso(0:numZ,0:numN,-1:numisom,0:numtime),
      +                    activity(0:numZ,0:numN,-1:numisom,0:numtime),
@@ -1622,9 +1640,9 @@ c
      +                    Nisotot(0:numZ,0:numtime),
      +                    Tmax(0:numZ,0:numN,-1:numisom)
       logical Yexist
-      integer Ntime,Tp
-      real    Ntar0,Tgrid,Tir,Tco,Niso,activity,yield,Nisorel,Nisotot,
-     +        Tmax
+      integer Ntime,Tp,Tmaxactivity
+      real    Ntar0,Tgrid,Tir,Tco,Niso,activity,yield,
+     +        Nisorel,Nisotot,Tmax
 c
 c *********************** subroutine endfenergies **********************
 c
@@ -1639,4 +1657,4 @@ c
      +                   xselassh6(numen6),xselas6(numen6),
      +                   xsnon6(numen6)
       real xstot6,xsreac6,xsopt6,xselassh6,xselas6,xsnon6
-Copyright (C)  2015 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2017 A.J. Koning, S. Hilaire and S. Goriely

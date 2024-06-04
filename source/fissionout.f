@@ -39,7 +39,7 @@ c
           if (xsfeed(Zcomp,Ncomp,-1).ne.0.) then
             Z=ZZ(Zcomp,Ncomp,0)
             A=AA(Zcomp,Ncomp,0)
-            write(*,'(1x,2i4," (",i3,a2,")",1p,e12.5)') Z,A,A,
+            write(*,'(1x,2i4," (",i3,a2,")",es12.5)') Z,A,A,
      +        nuc(Z),xsfeed(Zcomp,Ncomp,-1)
           endif
    20   continue
@@ -70,7 +70,7 @@ c
             write(rpfile(3:8),'(2i3.3)') Z,A
             if (.not.fisexist(Zcomp,Ncomp)) then
               fisexist(Zcomp,Ncomp)=.true.
-              open (unit=1,status='unknown',file=rpfile)
+              open (unit=1,file=rpfile,status='replace')
               write(1,'("# ",a1," + ",i3,a2,": Fission of ",i3,a2)')
      +          parsym(k0),Atarget,Starget,A,nuc(Z)
               write(1,'("#                 ")')
@@ -78,18 +78,18 @@ c
               write(1,'("# # energies =",i6)') numinc
               write(1,'("#    E         xs ")')
               do 130 nen=1,numinclow
-                write(1,'(1p,2e12.5)') eninc(nen),0.
+                write(1,'(2es12.5)') eninc(nen),0.
   130         continue
               do 140 nen=numinclow+1,nin-1
-                write(1,'(1p,2e12.5)') eninc(nen),0.
+                write(1,'(2es12.5)') eninc(nen),0.
   140         continue
             else
-              open (unit=1,status='old',file=rpfile)
+              open (unit=1,file=rpfile,status='old')
               do 150 nen=1,nin+4
                 read(1,*)
   150         continue
             endif
-            write(1,'(1p,2e12.5)') Einc,xsfeed(Zcomp,Ncomp,-1)
+            write(1,'(2es12.5)') Einc,xsfeed(Zcomp,Ncomp,-1)
             close (unit=1)
   120     continue
   110   continue
