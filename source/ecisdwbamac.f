@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 17, 2007
+c | Date  : May 17, 2009
 c | Task  : Create ECIS input file for macroscopic DWBA calculation for 
 c |         MSD
 c +---------------------------------------------------------------------
@@ -121,10 +121,13 @@ c
    30 continue
       write(9,'(3f10.5)') angbeg,anginc,angend
       if (disp(Zixi,Nixi,itype)) then
-        write(9,'(10x,2i5)') 2,2
-        write(9,'(10x,f10.5,40x,f10.5)') ef(Zixi,Nixi,itype),
-     +    w2(Zixi,Nixi,itype)
-        write(9,'(20x,2f10.5)') d3(Zixi,Nixi,itype),d2(Zixi,Nixi,itype)
+        do 40 i=1,3
+          write(9,'(10x,2i5)') 2,2
+          write(9,'(10x,f10.5,40x,f10.5)') ef(Zixi,Nixi,itype),
+     +      w2(Zixi,Nixi,itype)
+          write(9,'(20x,2f10.5)') d3(Zixi,Nixi,itype),
+     +      d2(Zixi,Nixi,itype)
+   40   continue
       endif
       return
       end

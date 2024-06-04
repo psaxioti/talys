@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : February 26, 2005
+c | Date  : August 1, 2008
 c | Task  : Two-component multiple preequilibrium model
 c +---------------------------------------------------------------------
 c
@@ -113,8 +113,8 @@ c
               if (feedph.le.1.e-10) goto 120
               sumph=0.
               if (mpreeqmode.eq.2) then
-                omegaph=phdens2(ipp,ihp,ipn,ihn,gsp,gsn,Exinc,Efermi,
-     +            surfwell)
+                omegaph=phdens2(Zcomp,Ncomp,ipp,ihp,ipn,ihn,gsp,gsn,
+     +            Exinc,Efermi,surfwell)
                 omegaph=max(omegaph,1.)
               else
                 p0=ip
@@ -205,11 +205,11 @@ c
                   gsp=gsp*damp
                   gsn=gsn*damp
                 endif
-                omegap1h=phdens2(ipp-zejec,ihp,ipn-nejec,ihn,gsp,gsn,
-     +            Eex,Efermi,surfwell)
+                omegap1h=phdens2(Zix,Nix,ipp-zejec,ihp,ipn-nejec,ihn,
+     +            gsp,gsn,Eex,Efermi,surfwell)
                 EoplusS=Exinc-Eex
-                omega1p=phdens2(zejec,0,nejec,0,gsp,gsn,EoplusS,Efermi,
-     +            surfwell)
+                omega1p=phdens2(Zix,Nix,zejec,0,nejec,0,gsp,gsn,
+     +            EoplusS,Efermi,surfwell)
                 proba=omega1p*omegap1h/omegaph/(ipp+ipn)
                 Tswave=Tjl(type,nen,1,0)
                 Pescape=proba*Tswave

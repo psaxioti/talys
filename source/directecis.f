@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 17, 2007
+c | Date  : May 17, 2009
 c | Task  : ECIS calculation of direct cross section
 c +---------------------------------------------------------------------
 c
@@ -147,6 +147,7 @@ c cparity  : parity (character)
 c parlev   : parity of level  
 c jcore    : spin of level of core nucleus
 c pcore    : parity of level of core nucleus
+c nlev,nlev: number of excited levels for nucleus
 c iband    : band number of level
 c Jband    : angular momentum    
 c Kmag     : magnetic quantum number
@@ -164,8 +165,13 @@ c
             Jlevel(2)=jdis(Zix,Nix,i)
             Plevel(2)=cparity(parlev(Zix,Nix,i))
           else
-            Jlevel(2)=jcore(Zix,Nix,i)
-            Plevel(2)=cparity(pcore(Zix,Nix,i))
+            if (nlev(Zix,Nix).eq.1) then
+              Jlevel(2)=2.
+              Plevel(2)='+'
+            else
+              Jlevel(2)=jcore(Zix,Nix,i)
+              Plevel(2)=cparity(pcore(Zix,Nix,i))
+            endif
           endif
           iband(2)=1
           Jband(1)=int(Jlevel(2))

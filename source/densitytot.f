@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 18, 2007
+c | Date  : April 29, 2009
 c | Task  : Total level density 
 c +---------------------------------------------------------------------
 c
@@ -12,7 +12,7 @@ c
       integer          Zix,Nix,ibar,ldmod,nex2
       real             Eex,P,ald,ignatyuk,Krot,Kvib,Kcoll,Eshift
       double precision densitytot,dens,gilcam,bsfgmodel,superfluid,
-     +                 eb,ee,ldb,lde,ldtab,cctable
+     +                 eb,ee,ldb,lde,lldb,llde,ldtab,cctable
 c
 c *********************** Total level density **************************
 c
@@ -80,13 +80,18 @@ c
           ee=edens(nex2+1)
           ldb=ldtottable(Zix,Nix,nex2,ibar)
           lde=ldtottable(Zix,Nix,nex2+1,ibar)
-          ldtab=ldb+(Eshift-eb)/(ee-eb)*(lde-ldb)
         else
           eb=edens(nendens-1)
           ee=edens(nendens)
-          ldb=log(ldtottable(Zix,Nix,nendens-1,ibar))
-          lde=log(ldtottable(Zix,Nix,nendens,ibar))
-          ldtab=exp(ldb+(Eshift-eb)/(ee-eb)*(lde-ldb))
+          ldb=ldtottable(Zix,Nix,nendens-1,ibar)
+          lde=ldtottable(Zix,Nix,nendens,ibar)
+        endif
+        if (ldb.gt.1..and.lde.gt.1.) then
+          lldb=log(ldb)
+          llde=log(lde)
+          ldtab=exp(lldb+(Eshift-eb)/(ee-eb)*(llde-lldb))
+        else
+          ldtab=ldb+(Eshift-eb)/(ee-eb)*(lde-ldb)
         endif
         cctable=exp(ctable(Zix,Nix,ibar)*sqrt(Eshift))
         densitytot=cctable*ldtab

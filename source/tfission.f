@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Pascal Romain
-c | Date  : July 13, 2006
+c | Date  : February 18, 2009
 c | Task  : Fission transmission coefficients
 c +---------------------------------------------------------------------
 c
@@ -10,9 +10,10 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer          Zcomp,Ncomp,J2,parity,J,iloop,ihill,ic2,jc2,pc2
-      real             Eex,term1,term2,damper,ec2,wo2,diffnrj,wo2damp,
-     +                 boost,boostmax,Ecut,Ecut1,Ecut2,term11,term21,
-     +                 term12,term22,damper1,damper2,wo2damp1,wo2damp2
+      real             Eex,term1,term2,damper,expo,ec2,wo2,diffnrj,
+     +                 wo2damp,boost,boostmax,Ecut,Ecut1,Ecut2,term11,
+     +                 term21,term12,term22,damper1,damper2,wo2damp1,
+     +                 wo2damp2
       double precision tf,tfb1,rnfb1,tfb2,rnfb2,tfb3,rnfb3,tfii,addnrj,
      +                 tf12,tsum123,tfiii
 c
@@ -101,30 +102,35 @@ c pfisc2rot  : parity of rotational class2 states
 c
           Ecut=Emaxclass2(Zcomp,Ncomp,1)+0.5*widthc2(Zcomp,Ncomp,1)
           if (flagclass2.and.(Eex.le.Ecut)) then
-            term1=Eex-efisc2rot(Zcomp,Ncomp,1,1)
+            term1=-Eex+0.5*(efisc2rot(Zcomp,Ncomp,1,1) +
+     +        efisc2rot(Zcomp,Ncomp,1,nfisc2rot(Zcomp,Ncomp,1)))
             term2=efisc2rot(Zcomp,Ncomp,1,nfisc2rot(Zcomp,Ncomp,1))-
      +        efisc2rot(Zcomp,Ncomp,1,1)
-            damper=term1/term2
+            if (term2.gt.0.) then
+              expo=24.*term1/term2
+              damper=1./(1.+exp(expo))
+            else
+              damper=1.
+            endif
             wo2=0.5*widthc2(Zcomp,Ncomp,1)
             wo2damp=wo2*damper
             tfii=0.
             do 40 ic2=nfisc2rot(Zcomp,Ncomp,1),1,-1
               ec2=efisc2rot(Zcomp,Ncomp,1,ic2)
               diffnrj=abs(Eex-ec2)
-              if (diffnrj.le.wo2damp) then
+              addnrj=diffnrj/wo2damp
+              boost=1./(1.+addnrj**2)
+              if (boost.ge.0.25) then
                 jc2=int(2.*jfisc2rot(Zcomp,Ncomp,1,ic2))
                 pc2=pfisc2rot(Zcomp,Ncomp,1,ic2)
                 if ((jc2.eq.J2).and.(pc2.eq.parity)) then
                   boostmax=4./(tfb1+tfb2)
-                  boost=boostmax+diffnrj*diffnrj/wo2damp/wo2damp*
-     +              (1.-boostmax)
-                  addnrj=(Eex+ec2)*diffnrj/wo2damp/2./Eex
-                  boost=boostmax/(1.+addnrj**2)
+                  boost=boostmax*boost
                   tfii=tfii+tf*boost
                 endif
               endif
    40       continue
-            if(tfii.gt.0.) tf=tfii
+            if (tfii.gt.0.) tf=tfii
           endif
         endif
 c      
@@ -147,27 +153,40 @@ c
           Ecut2=Emaxclass2(Zcomp,Ncomp,2)+0.5*widthc2(Zcomp,Ncomp,2)
           Ecut=max(Ecut1,Ecut2)
           if (flagclass2.and.(Eex.le.Ecut)) then
-            term11=Eex-efisc2rot(Zcomp,Ncomp,1,1)
+            term11=-Eex+0.5*(efisc2rot(Zcomp,Ncomp,1,1) +
+     +        efisc2rot(Zcomp,Ncomp,1,nfisc2rot(Zcomp,Ncomp,1)))
             term21=efisc2rot(Zcomp,Ncomp,1,nfisc2rot(Zcomp,Ncomp,1))-
      +        efisc2rot(Zcomp,Ncomp,1,1)
-            term12=Eex-efisc2rot(Zcomp,Ncomp,2,1)
+            term12=-Eex+0.5*(efisc2rot(Zcomp,Ncomp,2,1) +
+     +        efisc2rot(Zcomp,Ncomp,2,nfisc2rot(Zcomp,Ncomp,2)))
             term22=efisc2rot(Zcomp,Ncomp,2,nfisc2rot(Zcomp,Ncomp,2))-
      +        efisc2rot(Zcomp,Ncomp,2,1)
-            damper1=term11/term21
-            damper2=term12/term22
+            if (term21.gt.0.) then
+              expo=24.*term11/term21
+              damper1=1./(1.+exp(expo))
+            else
+              damper1=1.
+            endif
+            if (term22.gt.0.) then
+              expo=24.*term12/term22
+              damper2=1./(1.+exp(expo))
+            else
+              damper2=1.
+            endif
             wo2=0.5*widthc2(Zcomp,Ncomp,1)
             wo2damp1=wo2*damper1
             tfii=0.
             do 50 ic2=nfisc2rot(Zcomp,Ncomp,1),1,-1
               ec2=efisc2rot(Zcomp,Ncomp,1,ic2)
               diffnrj=abs(Eex-ec2)
-              if (diffnrj.le.wo2damp1) then
+              addnrj=diffnrj/wo2damp1
+              boost=1./(1.+addnrj**2)
+              if (boost.ge.0.25) then
                 jc2=int(2.*jfisc2rot(Zcomp,Ncomp,1,ic2))
                 pc2=pfisc2rot(Zcomp,Ncomp,1,ic2)
                 if ((jc2.eq.J2).and.(pc2.eq.parity)) then
                   boostmax=4./(tfb1+tfb2)
-                  addnrj=(Eex+ec2)*diffnrj/wo2damp1/2./Eex
-                  boost=boostmax/(1.+addnrj**2)
+                  boost=boostmax*boost
                   tfii=tfii+tfb1*tfb2/(tfb1+tfb2)*boost
                 endif
               endif
@@ -183,13 +202,14 @@ c
             do 60 ic2=nfisc2rot(Zcomp,Ncomp,2),1,-1
               ec2=efisc2rot(Zcomp,Ncomp,2,ic2)
               diffnrj=abs(Eex-ec2)
-              if (diffnrj.le.wo2damp2) then
+              addnrj=diffnrj/wo2damp2
+              boost=1./(1.+addnrj**2)
+              if (boost.ge.0.25) then
                 jc2=int(2.*jfisc2rot(Zcomp,Ncomp,2,ic2))
                 pc2=pfisc2rot(Zcomp,Ncomp,2,ic2)
                 if ((jc2.eq.J2).and.(pc2.eq.parity)) then
                   boostmax=4./tsum123
-                  addnrj=(Eex+ec2)*diffnrj/wo2damp2/2./Eex
-                  boost=boostmax/(1.+addnrj**2)
+                  boost=boostmax*boost
                   tfiii=tfiii+tf*boost
                 endif
               endif

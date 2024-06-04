@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 11, 2004
+c | Date  : August 1, 2008
 c | Task  : Unnormalized one-step direct cross sections for outgoing 
 c |         energy grid
 c +---------------------------------------------------------------------
@@ -68,7 +68,7 @@ c
      +    alev(Zix,Nix)
         do 20 J=0,maxJmsd
           rJ=real(J)
-          omegaJ(J)=omega(p,h,gs,Exmsd,rJ)
+          omegaJ(J)=omega(Zix,Nix,p,h,gs,Exmsd,rJ)
    20   continue
         call locate(Emsd,0,msdbins2,Eout,nen2)
         if (nen2.gt.1) then

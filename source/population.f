@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : March 5, 2006   
+c | Date  : December 15, 2009
 c | Task  : Processing of pre-equilibrium spectra into population bins
 c +---------------------------------------------------------------------
 c
@@ -16,28 +16,29 @@ c
 c
 c ****** Process pre-equilibrium spectra into population arrays ********
 c
-c parskip   : logical to skip outgoing particle
-c Zindex,Zix: charge number index for residual nucleus
-c Nindex,Nix: neutron number index for residual nucleus
-c SS,S      : separation energy per particle
-c Nlast,NL  : last discrete level
-c ebegin    : first energy point of energy grid
-c eend      : last energy point of energy grid
-c flagmulpre: flag for multiple pre-equilibrium calculation
-c mulpreZN  : logical for multiple pre-equilibrium per nucleus
-c maxex     : maximum excitation energy bin for compound nucleus
-c Eout      : outgoing energy
-c Etotal    : total energy of compound system (target + projectile)
-c Ex        : excitation energy
-c egrid     : outgoing energy grid
-c Elow,Ehigh: help variables
-c deltaEx   : excitation energy bin for population arrays
-c locate    : subroutine to find value in ordered table 
-c na1,nb1   : help variables
-c Ea1,Eb1   : help variables
-c xsa,xsb,xs: help variables
-c xspreeq   : preequilibrium cross section per particle type and
-c             outgoing energy
+c flagomponly: flag to execute ONLY an optical model calculation
+c parskip    : logical to skip outgoing particle
+c Zindex,Zix : charge number index for residual nucleus
+c Nindex,Nix : neutron number index for residual nucleus
+c SS,S       : separation energy per particle
+c Nlast,NL   : last discrete level
+c ebegin     : first energy point of energy grid
+c eend       : last energy point of energy grid
+c flagmulpre : flag for multiple pre-equilibrium calculation
+c mulpreZN   : logical for multiple pre-equilibrium per nucleus
+c maxex      : maximum excitation energy bin for compound nucleus
+c Eout       : outgoing energy
+c Etotal     : total energy of compound system (target + projectile)
+c Ex         : excitation energy
+c egrid      : outgoing energy grid
+c Elow,Ehigh : help variables
+c deltaEx    : excitation energy bin for population arrays
+c locate     : subroutine to find value in ordered table 
+c na1,nb1    : help variables
+c Ea1,Eb1    : help variables
+c xsa,xsb,xs : help variables
+c xspreeq    : preequilibrium cross section per particle type and
+c              outgoing energy
 c
 c The pre-equilibrium cross sections have been calculated on the 
 c emission energy grid. They are interpolated on the excitation
@@ -45,6 +46,7 @@ c energy grids of the level populations (both for the total and the
 c spin/parity-dependent cases) to enable futher decay of the residual
 c nuclides. 
 c
+      if (flagomponly) return
       do 10 type=0,6
         if (parskip(type)) goto 10
         Zix=Zindex(0,0,type)

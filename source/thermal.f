@@ -2,22 +2,18 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 31, 2007
+c | Date  : October 17, 2008
 c | Task  : Estimate of thermal cross sections
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist    
-      character*4  thchar
-      character*90 thfile
-      integer      Zcomp,Ncomp,type,Z,A,ia,nen,idc,nex,i1,i2
-      real         xsptherm,xscaptherm,xsalphatherm,SS,xs,xsp,xsalpha,
-     +             ald,Spair,Etherm,ctherm,xscapres,xscap1,ratio,
-     +             ratiores,ratiop,ratioresp,xspres,xsp1,ratioalpha,
-     +             ratioresalpha,xsalphares,xsalpha1,Ereslog,elog,ealog,
-     +             Eratio,xsa,R,Rres,xsres,xsalog,xsreslog
+      integer      Zcomp,Ncomp,type,nen,idc,nex,i1,i2
+      real         Etherm,ctherm,xscapres,xscap1,ratio,ratiores,ratiop,
+     +             ratioresp,xspres,xsp1,ratioalpha,ratioresalpha,
+     +             xsalphares,xsalpha1,Ereslog,elog,ealog,Eratio,xsa,R,
+     +             Rres,xsres,xsalog,xsreslog,xs
 c
 c *********************** Extrapolate cross sections *******************
 c
@@ -27,62 +23,8 @@ c For energies up to 1 eV, the 1/sqrt(E) law is used. Between 1 eV
 c and the first energy at which TALYS performs the statistical model
 c calculation, we use logarithmic interpolation.
 c
-c xscaptherm  : thermal capture cross section
-c xsptherm    : thermal (n,p) cross section
-c xsalphatherm: thermal (n,p) cross section
-c Zcomp       : charge number index for compound nucleus
-c Ncomp       : neutron number index for compound nucleus
-c ZZ,Z        : charge number of residual nucleus
-c AA,A        : mass number of residual nucleus 
-c SS,S        : separation energy per particle      
-c
-      xscaptherm=0.
-      xsptherm=0.
-      xsalphatherm=0.
-      Zcomp=0
-      Ncomp=0
-      type=1
-      Z=ZZ(Zcomp,Ncomp,type)
-      A=AA(Zcomp,Ncomp,type)
-      SS=S(Zcomp,Ncomp,type)
-c
-c 1. Read experimental values from thermal cross section file
-c
-c Inquire whether file is present
-c
-c thfile: file with thermal cross sections
-c
-      thchar='z   '
-      write(thchar(2:4),'(i3.3)') Z
-      thfile=path(1:lenpath)//'thermal/'//thchar
-      inquire (file=thfile,exist=lexist)
-      if (.not.lexist) goto 20
-      open (unit=2,status='old',file=thfile)
-c
-c Search for the isotope under consideration and read information
-c
-c xs,....: help variables
-c
-      xs=0.
-      xsp=0.
-      xsalpha=0.
-   10 read(2,'(4x,i4,8x,3(e9.2,9x))',end=20) ia,xs,xsp,xsalpha
-      if (A.ne.ia) goto 10
-      if (xs.ne.0.) xscaptherm=xs
-      if (xsp.ne.0.) xsptherm=xsp
-      if (xsalpha.ne.0.) xsalphatherm=xsalpha
-   20 close (unit=2)  
-c
-c 2. Systematics
-c
-c Kopecky's value for (n,gamma) cross section at thermal energy.
-c (J. Kopecky, M.G. Delfini, H.A.J. van der Kamp and D. Nierop:
-c Revisions and extensions of neutron capture cross-sections in
-c the European Activation File EAF-3, ECN-C--92-051, July 1992.)
-c
-c alev,ald     : level density parameter 
-c Spair        : help variable
-c pair         : pairing energy
+c Zcomp        : charge number index for compound nucleus
+c Ncomp        : neutron number index for compound nucleus
 c Etherm       : thermal energy
 c ctherm       : constant for 1/v capture cross section function
 c xscapres     : capture cross section in resonance region      
@@ -90,18 +32,17 @@ c E1v          : energy at end of 1/v region
 c xscap1       : capture cross section at first incident energy
 c xspopnuc     : population cross section per nucleus    
 c ratio        : ratio thermal/first energy for gamma capture
+c xscaptherm   : thermal capture cross section
+c xsptherm     : thermal (n,p) cross section
+c xsalphatherm : thermal (n,a) cross section
 c ratiores     : ratio start of resonance region/first energy
 c ratiop       : ratio thermal/first energy for proton
 c ratioresp    : ratio start of resonance region/first energy
 c ratioalpha   : ratio thermal/first energy for proton
 c ratioresalpha: ratio start of resonance region/first energy
 c
-      if (xscaptherm.eq.0.) then
-        ald=alev(Zcomp,Ncomp)
-        Spair=SS-pair(Zcomp,Ncomp)
-        Spair=max(Spair,1.)
-        xscaptherm=1.5e-3*(ald*Spair)**3.5
-      endif
+      Zcomp=0
+      Ncomp=0
       Etherm=2.53e-8
       ctherm=sqrt(Etherm)*xscaptherm
       xscapres=ctherm/sqrt(E1v)

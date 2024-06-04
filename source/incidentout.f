@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 7, 2006   
+c | Date  : August 24, 2009
 c | Task  : Reaction output for incident channel
 c +---------------------------------------------------------------------
 c
@@ -30,20 +30,19 @@ c
 c
 c For low energy neutrons we give the resonance parameters.
 c
-c Einc   : incident energy in MeV   
-c Atarget: mass number of target nucleus    
-c swave  : S-wave strength function
-c pwave  : P-wave strength function
-c Rprime : potential scattering radius
+c Einc     : incident energy in MeV   
+c Atarget  : mass number of target nucleus    
+c Sstrength: s,p,d,etc-wave strength function
+c Rprime   : potential scattering radius
 c
       if (k0.eq.1.and.Einc.le.0.1) then
         write(*,'(/" S-wave and P-wave strength functions and ",
      +    "potential scattering radius"/)')
         write(*,'("      A      Value"/)')
         write(*,'(" S0:",i4,f8.4," .10e-4 eV**-1/2")') Atarget,
-     +    swave*1.e4
+     +    Sstrength(0)*1.e4
         write(*,'(" P0:",i4,f8.4," .10e-4 eV**-1/2")') Atarget,
-     +    pwave*1.e4
+     +    Sstrength(1)*1.e4
         write(*,'(" R :",i4,f8.4," fm")') Atarget,Rprime
       endif
 c
@@ -107,13 +106,15 @@ c
 c flagang : flag for output of angular distributions
 c nangle  : number of angles
 c angle   : angle            
+c Ltarget : excited level of target
 c directad: direct angular distribution
 c
       if (flagang.and.k0.gt.0) then
         write(*,'(/" Shape elastic scattering angular distribution"/)')
         write(*,'(" Angle    Cross section"/)')
         do 110 iang=0,nangle
-          write(*,'(1x,f5.1,1p,e16.5)') angle(iang),directad(k0,0,iang)
+          write(*,'(1x,f5.1,1p,e16.5)') angle(iang),
+     +      directad(k0,Ltarget,iang)
   110   continue                                           
       endif
       return

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning, Eric Bauge and Pascal Romain
-c | Date  : October 19, 2007
+c | Date  : August 24, 2008
 c | Task  : Read ECIS results for incident energy 
 c +---------------------------------------------------------------------
 c
@@ -13,7 +13,7 @@ c
       integer          infilecs,infiletr,infileang,infileleg,infilein,
      +                 Zix,Nix,i,nJ,k,nS,lev,l,ispin,nSt,nL,ii,iSt,iang,
      +                 itype
-      real             groundspin2,rj,jres,factor,xsr
+      real             groundspin2,rj,jres,factor,xsr,eps
       double precision xs,Tcoef,dl,teps
 c
 c ************ Read total, reaction and elastic cross section **********
@@ -90,13 +90,17 @@ c
         read(infilecs,*) xs
         xselasinc=real(xs)
       endif
-      if (xselasinc.lt.0..or.xsreacinc.lt.0..or.xstotinc.lt.0.) then
+      eps=-1.e-3
+      if (xselasinc.lt.eps.or.xsreacinc.lt.eps.or.xstotinc.lt.eps) then
         write(*,'(" TALYS-error: Negative OMP cross section")')
         write(*,'(" Elastic : ",1p,e12.5)') xselasinc
         write(*,'(" Reaction: ",1p,e12.5)') xsreacinc
         write(*,'(" Total   : ",1p,e12.5)') xstotinc
         stop
       endif
+      xselasinc=max(xselasinc,0.)
+      xsreacinc=max(xsreacinc,0.)
+      xstotinc=max(xstotinc,0.)
      
 c
 c ******************* Read transmission coefficients *******************
@@ -254,6 +258,7 @@ c iang    : running variable for angle
 c nangle  : number of angles
 c xs      : help variable
 c directad: direct angular distribution
+c Ltarget : excited level of target
 c ruth    : elastic/rutherford ratio
 c
 c For charged particles, we also read the elastic/rutherford ratio.
@@ -265,7 +270,7 @@ c
           read(infileang,'(i3,12x,e12.5)',end=410,err=410) itype,xs
           xsr=1.e38
           if (xs.le.1.e38) xsr=real(xs)
-          if (itype.eq.0) directad(k0,0,iang)=xsr
+          if (itype.eq.0) directad(k0,Ltarget,iang)=xsr
           if (itype.eq.1) ruth(iang)=xsr
   410 continue
 c

@@ -3,7 +3,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Marieke Duijvestijn
-c | Date  : October 3, 2007
+c | Date  : February 18, 2009
 c | Task  : Fission transmission coefficient for one barrier
 c +---------------------------------------------------------------------
 c
@@ -34,15 +34,16 @@ c
 c
 c Correct LDM barrier height with ground state shell correction
 c
-c fismodel : fission model
+c fismodelx: fission model
 c nfisbar  : number of fission barrier parameters
 c bfis,wfis: help variables
 c fbarrier : height of fission barrier
 c deltaW   : shell correction in nuclear mass
 c fwidth   : width of fission barrier
 c
-      if ((fismodel.ge.3).or.
-     +  ((fismodel.lt.3).and.(nfisbar(Zcomp,Ncomp).eq.1))) then
+      if ((fismodelx(Zcomp,Ncomp).ge.3).or.
+     +  ((fismodelx(Zcomp,Ncomp).lt.3).and.(nfisbar(Zcomp,Ncomp).eq.1)))
+     +  then
         bfis=fbarrier(Zcomp,Ncomp,ibar)-
      +    (deltaW(Zcomp,Ncomp,0)-deltaW(Zcomp,Ncomp,1))
       else
@@ -74,7 +75,7 @@ c
         pitrans=pfistrrot(Zcomp,Ncomp,ibar,itr)
         Eeff=Eex-etrans
         if ((J2.eq.j2trans).and.(parity.eq.pitrans)) then
-          if (fismodel.eq.5) then
+          if (fismodelx(Zcomp,Ncomp).eq.5) then
             trfisone=twkbint(Eeff,ibar,Zcomp,Ncomp)
           else
             trfisone=thill(Eeff,bfis,wfis)
@@ -123,7 +124,7 @@ c
             rho=rho2*(dE1+dE2)
           endif 
           Eeff=Eex-emid
-          if (fismodel.eq.5) then
+          if (fismodelx(Zcomp,Ncomp).eq.5) then
             trfisone=twkbint(Eeff,ibar,Zcomp,Ncomp)
           else
             trfisone=thill(Eeff,bfis,wfis)
@@ -138,7 +139,8 @@ c
             rhofisA(J,parity,ihill)=rhofisA(J,parity,ihill)+rho
           endif
    20   continue
-        if (iloop.eq.2) tfisA(J,parity,0)=max(tfisA(J,parity,0),1.d-30)
+        if (iloop.eq.2) 
+     +    tfisA(J,parity,0)=max(tfisA(J,parity,0),1.d-30)
       endif
       return
       end

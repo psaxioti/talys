@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 26, 2007
+c | Date  : August 1, 2008
 c | Task  : Emission rates for exciton model
 c +---------------------------------------------------------------------
 c
@@ -11,9 +11,10 @@ c
       include "talys.cmb"
       logical surfwell,surfgam
       integer Zcomp,Ncomp,p,h,n,type,Zix,Nix,aejec,nen,nen1,pres
-      real    gs,gsg,ignatyuk,edepth,U,preeqpair,phcomp,phcompg,Qfac,
-     +        Ewell,phdens,Eout,xs,factor,Eres,phres1,phres2,g2E,
-     +        branchplus,branchzero,phratio,Ures,phres,Emax,dE
+      real    gs,gsg,ignatyuk,edepth,U,preeqpair,phcomp,phcompg,
+     +        wemissum(0:numparx,0:numparx,0:numen),Qfac,Ewell,phdens,
+     +        Eout,xs,factor,Eres,phres1,phres2,g2E,branchplus,
+     +        branchzero,phratio,Ures,phres,Emax,dE
 c
 c *************************** Emission rates ***************************
 c
@@ -44,6 +45,7 @@ c phcompg     : particle-hole state density for compound system (gamma)
 c wemistot    : total emission rate per exciton number
 c wemispart   : emission rate per particle and exciton number 
 c wemission   : emission rate per particle, exciton number and energy
+c wemissum    : emission rate per exciton number and energy
 c parskip     : logical to skip outgoing particle
 c Zindex,Zix  : charge number index for residual nucleus
 c Nindex,Nix  : neutron number index for residual nucleus
@@ -74,15 +76,18 @@ c
         edepth=Efermi
       endif
       U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp,pairmodel)
-      phcomp=phdens(p,h,gs,U,edepth,surfwell)
-      phcompg=phdens(p,h,gsg,U,edepth,surfwell)
+      phcomp=phdens(Zcomp,Ncomp,p,h,gs,U,edepth,surfwell)
+      phcompg=phdens(Zcomp,Ncomp,p,h,gsg,U,edepth,surfwell)
       wemistot(p,h)=0.
-      do 10 type=0,6
+      do 10 nen=0,numen
+        wemissum(p,h,nen)=0.
+   10 continue
+      do 20 type=0,6
         wemispart(type,p,h)=0.
-        do 20 nen=0,numen
+        do 30 nen=0,numen
           wemission(type,p,h,nen)=0.
-   20   continue
-        if (parskip(type)) goto 10
+   30   continue
+        if (parskip(type)) goto 20
         Zix=Zindex(Zcomp,Ncomp,type)
         Nix=Nindex(Zcomp,Ncomp,type)
         gs=g(Zix,Nix)
@@ -97,9 +102,9 @@ c
         else
           Ewell=edepth
         endif    
-        if (phcomp.le.1.e-10) goto 10
-        if (type.eq.0.and.phcompg.le.1.e-10) goto 10
-        do 30 nen=ebegin(type),eend(type)
+        if (phcomp.le.1.e-10) goto 20
+        if (type.eq.0.and.phcompg.le.1.e-10) goto 20
+        do 40 nen=ebegin(type),eend(type)
           Eout=egrid(nen)
           xs=xsreac(type,nen)
           factor=wfac(type)*xs*Eout
@@ -113,7 +118,7 @@ c Check if outgoing energy exceeds maximal possible energy
 c
           if (Eres.lt.0.) then
             nen1=nen-1
-            goto 40
+            goto 50
           endif
           if (flaggshell) gs=g(Zix,Nix)*ignatyuk(Zix,Nix,Eres,0)/
      +      alev(Zix,Nix)
@@ -137,8 +142,8 @@ c
               U=max(Eres-preeqpair(Zcomp,Ncomp,n,Eres,pairmodel),
      +          preeqpair(Zcomp,Ncomp,n,Eres,pairmodel))
               surfgam=.false.
-              phres1=phdens(p-1,h-1,gsg,U,Efermi,surfgam)
-              phres2=phdens(p,h,gsg,U,Efermi,surfgam)
+              phres1=phdens(Zcomp,Ncomp,p-1,h-1,gsg,U,Efermi,surfgam)
+              phres2=phdens(Zcomp,Ncomp,p,h,gsg,U,Efermi,surfgam)
               g2E=gsg*gsg*Eout
               if (n.ge.2) then
                 branchplus=g2E/(gsg*(n-2)+g2E)
@@ -148,6 +153,7 @@ c
               branchzero=gsg*n/(gsg*n+g2E)
               phratio=(branchplus*phres1+branchzero*phres2)/phcompg
               wemission(type,p,h,nen)=Rgamma*factor*phratio
+              wemissum(p,h,nen)=wemission(type,p,h,nen) 
             endif
           else
 c
@@ -157,12 +163,13 @@ c pres : help variable
 c phres: particle-hole state density for residual system 
 c
             pres=p-aejec
-            if (pres.lt.0.or.h.eq.0) goto 30
+            if (pres.lt.0.or.h.eq.0) goto 40
             Ures=max(Eres-preeqpair(Zix,Nix,n,Eres,pairmodel),
      +        preeqpair(Zix,Nix,n,Eres,pairmodel))
-            phres=phdens(pres,h,gs,Ures,Ewell,surfwell)
+            phres=phdens(Zix,Nix,pres,h,gs,Ures,Ewell,surfwell)
             phratio=phres/phcomp
             wemission(type,p,h,nen)=factor*phratio*Qfac
+            wemissum(p,h,nen)=wemissum(p,h,nen)+wemission(type,p,h,nen)
           endif
 c
 c *** Integration of emission rates over all energies and particles ****
@@ -171,21 +178,35 @@ c deltaE: energy bin around outgoing energies
 c
           wemispart(type,p,h)=wemispart(type,p,h)+
      +      wemission(type,p,h,nen)*deltaE(nen)
-   30   continue
-        goto 50
+   40   continue
+        goto 60
 c
 c Correction in integration for last outgoing energy.
 c
 c Emax: maximal outgoing energy
 c dE  : extra part for energy integration
 c
-   40   Eout=egrid(nen1)
+   50   Eout=egrid(nen1)
         Emax=Ecomp-S(Zcomp,Ncomp,type)
         dE=Emax-(Eout+0.5*deltaE(nen1))
         wemispart(type,p,h)=wemispart(type,p,h)+
      +    wemission(type,p,h,nen1)*dE
-   50   wemistot(p,h)=wemistot(p,h)+wemispart(type,p,h)
-   10 continue
+   60   wemistot(p,h)=wemistot(p,h)+wemispart(type,p,h)
+   20 continue
+c
+c Prevent divergence of pre-equilibrium gamma cross sections in case
+c of absence of particle competition.
+c
+c
+      if (n.gt.1) then
+        if (wemistot(p,h).eq.wemispart(0,p,h)) wemispart(0,p,h)=0.
+        do 110 nen=0,numen
+          if (wemissum(p,h,nen).eq.wemission(0,p,h,nen)) then
+            wemissum(p,h,nen)=0.
+            wemission(0,p,h,nen)=0.
+          endif
+  110   continue
+      endif
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

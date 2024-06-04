@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 18, 2007
+c | Date  : May 17, 2009
 c | Task  : Create ECIS input file
 c +---------------------------------------------------------------------
 c
@@ -123,9 +123,11 @@ c
    30   continue
         write(9,'(3f10.5)') angbeg,anginc,angend
         if (disp(Zix,Nix,kopt)) then
-          write(9,'(10x,2i5)') 2,2
-          write(9,'(10x,f10.5,40x,f10.5)') efer,w2disp
-          write(9,'(20x,2f10.5)') d3disp,d2disp
+          do 40 i=1,npp
+            write(9,'(10x,2i5)') 2,2
+            write(9,'(10x,f10.5,40x,f10.5)') efer,w2disp
+            write(9,'(20x,2f10.5)') d3disp,d2disp
+   40     continue
         endif
       endif
 c

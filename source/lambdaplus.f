@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : November 1, 2007
+c | Date  : August 1, 2008
 c | Task  : Transition rates for n --> n+2
 c +---------------------------------------------------------------------
 c
@@ -133,8 +133,10 @@ c
           if (flaggshell) gs=g(Zcomp,Ncomp)*
      +      ignatyuk(Zcomp,Ncomp,uup,0)/alev(Zcomp,Ncomp)
           if (preeqmode.eq.2) then
-            lambda1p=twopihbar*M2*phdens(2,1,gs,uup,edepth,surfwell)
-            lambda1h=twopihbar*M2*phdens(1,2,gs,uuh,edepth,surfwell)
+            lambda1p=twopihbar*M2*phdens(Zcomp,Ncomp,2,1,gs,uup,
+     +        edepth,surfwell)
+            lambda1h=twopihbar*M2*phdens(Zcomp,Ncomp,1,2,gs,uuh,
+     +        edepth,surfwell)
           else
             Zratio=real(Zinit)/Ainit
             Nratio=real(Ninit)/Ainit
@@ -160,8 +162,8 @@ c
               if (j.eq.1) then
                 lambda1p=2.*ww/hbar
               else
-                densh=phdens(1,2,gs,uu,edepth,surfwell)
-                densp=phdens(2,1,gs,uu,edepth,surfwell)
+                densh=phdens(Zcomp,Ncomp,1,2,gs,uu,edepth,surfwell)
+                densp=phdens(Zcomp,Ncomp,2,1,gs,uu,edepth,surfwell)
                 if (densp.gt.1.) then
                   ratio=densh/densp
                 else
@@ -175,12 +177,14 @@ c
           term1h=lambda1h*gs*dExhh
           if (flaggshell) gs=g(Zcomp,Ncomp)*
      +      ignatyuk(Zcomp,Ncomp,U-uup,0)/alev(Zcomp,Ncomp)
-          sum1p=sum1p+term1p*phdens(p-1,h,gs,U-uup,edepth,surfwell)
-          sum1h=sum1h+term1h*phdens(p,h-1,gs,U-uuh,edepth,surfwell)
+          sum1p=sum1p+term1p*phdens(Zcomp,Ncomp,p-1,h,gs,U-uup,
+     +      edepth,surfwell)
+          sum1h=sum1h+term1h*phdens(Zcomp,Ncomp,p,h-1,gs,U-uuh,
+     +      edepth,surfwell)
    10   continue
         if (flaggshell) gs=g(Zcomp,Ncomp)*
      +    ignatyuk(Zcomp,Ncomp,U,0)/alev(Zcomp,Ncomp)
-        phtot=phdens(p,h,gs,U,edepth,surfwell)
+        phtot=phdens(Zcomp,Ncomp,p,h,gs,U,edepth,surfwell)
         if (phtot.gt.0.) then
           lplus=(sum1p+sum1h)/phtot
           lambdaplus=real(lplus)

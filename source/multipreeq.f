@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 29, 2004
+c | Date  : August 1, 2008
 c | Task  : Multiple preequilibrium model
 c +---------------------------------------------------------------------
 c
@@ -104,7 +104,7 @@ c
           if (feedph.le.1.e-10) goto 120
           sumph=0.
           if (mpreeqmode.eq.2) then
-            omegaph=phdens(ip,ih,gs,Exinc,Efermi,surfwell)
+            omegaph=phdens(Zcomp,Ncomp,ip,ih,gs,Exinc,Efermi,surfwell)
             omegaph=max(omegaph,1.)
           else
             p0=ip
@@ -177,9 +177,9 @@ c
                 gs=g(Zix,Nix)
                 if (flaggshell) gs=g(Zix,Nix)*
      +            ignatyuk(Zix,Nix,Eex,0)/alev(Zix,Nix)
-                omegap1h=phdens(ip-1,ih,gs,Eex,Efermi,surfwell)
+                omegap1h=phdens(Zix,Nix,ip-1,ih,gs,Eex,Efermi,surfwell)
                 EoplusS=Exinc-Eex
-                omega1p=phdens(1,0,gs,EoplusS,Efermi,surfwell)
+                omega1p=phdens(Zix,Nix,1,0,gs,EoplusS,Efermi,surfwell)
                 proba=omega1p*omegap1h/omegaph/ip*Rfactor
                 Tswave=Tjl(type,nen,1,0)
                 Pescape=proba*Tswave

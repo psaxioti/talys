@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 28, 2004
+c | Date  : June 12, 2009
 c | Task  : S-wave resonance parameters
 c +---------------------------------------------------------------------
 c
@@ -38,7 +38,7 @@ c
       write(reschar(2:4),'(i3.3)') Z
       resfile=path(1:lenpath)//'resonances/'//reschar
       inquire (file=resfile,exist=lexist)
-      if (.not.lexist) goto 20
+      if (.not.lexist) goto 30
       open (unit=2,status='old',file=resfile)
 c
 c 2. Search for the isotope under consideration and read information
@@ -68,15 +68,18 @@ c
 c 3. Tabulated value for total radiative width or systematics 
 c    (Kopecky, 2002)
 c
-c gamkopecky: radiative width in eV by spline fit of Kopecky
+c gamkopecky  : radiative width in eV by spline fit of Kopecky
+c gamgamadjust: adjustable factor for radiative parameters 
+c             (default 1.)
 c
-      if (gamgam(Zix,Nix).eq.0.) then
+   30 if (gamgam(Zix,Nix).eq.0.) then
         if (A.ge.40.and.A.le.250) then
           gamgam(Zix,Nix)=gamkopecky(A)
         else
-          gamgam(Zix,Nix)=1593./(A*A)
+          gamgam(Zix,Nix)=min(1593./(A*A),10.)
         endif
       endif
+      gamgam(Zix,Nix)=gamgamadjust(Zix,Nix)*gamgam(Zix,Nix)
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

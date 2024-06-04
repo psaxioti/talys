@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 17, 2007
+c | Date  : August 5, 2009
 c | Task  : ECIS calculation for incident energy
 c +---------------------------------------------------------------------
 c
@@ -193,24 +193,29 @@ c
 c
 c 2b. Rotational model
 c
-c coulbar : Coulomb barrier  
-c Nrotbeta: number of deformation parameters for rotational nucleus
-c rotbeta : deformation parameters for rotational nucleus  
-c nrot    : number of deformation parameters
-c rotpar  : deformation parameters for rotational nucleus 
-c iqm     : largest order of deformation
-c iqmax   : maximum l-value of multipole expansion
-c deftype : deformation length (D) or parameter (B)
+c flagcoulomb: flag for Coulomb excitation calculation with ECIS
+c soswitch   : switch for deformed spin-orbit calculation and sequential
+c              iterations in ECIS
+c coulbar    : Coulomb barrier  
+c Nrotbeta   : number of deformation parameters for rotational nucleus
+c rotbeta    : deformation parameters for rotational nucleus  
+c nrot       : number of deformation parameters
+c rotpar     : deformation parameters for rotational nucleus 
+c iqm        : largest order of deformation
+c iqmax      : maximum l-value of multipole expansion
+c deftype    : deformation length (D) or parameter (B)
 c
           rotational=.true.
           vibrational=.false.
           ecis1(1:1)='T'
 c
 c Some input flags for ECIS are energy dependent for the rotational
-c model. For rotational nuclei, the switch at 3 MeV needs to be made 
-c according to Pascal Romain. 
+c model. For rotational nuclei, the switch at soswitch MeV needs to 
+c be made according to Pascal Romain. 
 c
-          if (Ein.le.3.) then
+          if (k0.gt.1.and.flagcoulomb) ecis1(11:11)='T'
+          if ((k0.eq.1.and.Ein.le.soswitch).or.
+     +      (k0.gt.1.and.Ein.le.coulbar(k0))) then
             ecis1(13:13)='F'
             ecis1(21:21)='T'
             ecis1(42:42)='T'

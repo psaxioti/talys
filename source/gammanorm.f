@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Arjan Koning 
-c | Date  : September 11, 2007
+c | Date  : August 5, 2009
 c | Task  : Normalization of gamma ray strength functions 
 c +---------------------------------------------------------------------
 c
@@ -27,6 +27,7 @@ c gamgam   : total radiative width
 c gamgamth : theoretical total radiative width
 c ebegin   : first energy point of energy grid
 c eend     : last energy point of energy grid
+c Einc     : incident energy in MeV
 c Egamma   : gamma energy
 c egrid    : outgoing energy grid
 c lmax     : maximal l-value for transmission coefficients
@@ -50,7 +51,7 @@ c
         do 20 l=1,gammax
           do 20 irad=0,1
             Tgamma=twopi*(Egamma**(2*l+1))*
-     +        fstrength(Zcomp,Ncomp,Egamma,irad,l)
+     +        fstrength(Zcomp,Ncomp,Einc,Egamma,irad,l)
             Tjl(0,nen,irad,l)=Tgamma*gnorm
    20   continue
 c

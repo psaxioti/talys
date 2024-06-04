@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : May 24, 2007
+c | Date  : August 17, 2009
 c | Task  : Binary reaction results
 c +---------------------------------------------------------------------
 c
@@ -16,6 +16,8 @@ c
 c * Add direct and pre-equilibrium cross sections to population arrays *
 c
 c flaginitpop : flag for initial population distribution
+c flagomponly : flag to execute ONLY an optical model calculation
+c flagcomp    : flag for compound nucleus calculation
 c parskip     : logical to skip outgoing particle
 c Zindex,Zix  : charge number index for residual nucleus
 c Nindex,Nix  : neutron number index for residual nucleus
@@ -34,6 +36,7 @@ c
 c No binary reaction for initial excitation energy population.
 c
       if (flaginitpop) return
+      if (flagomponly.and..not.flagcomp) return
 c
 c Depending on whether the nucleus is even or odd, the quantum number J
 c appearing in the array xspop represents either J or J+0.5.
@@ -131,9 +134,11 @@ c xseps        : limit for cross sections
 c xsconttot    : total cross section for continuum 
 c xscompound   : total compound cross section    
 c xscompel     : compound elastic cross section
+c xscompel6    : compound elastic cross section
 c xselastot    : total elastic cross section (shape + compound)
 c xselasinc    : total elastic cross section (neutrons only) 
 c xsnonel      : non-elastic cross section 
+c xsnonel6     : non-elastic cross section 
 c xsreacinc    : reaction cross section for incident channel
 c xscompall    : total compound cross section summed over particles
 c xsdirdiscsum : total direct cross section
@@ -157,10 +162,13 @@ c
         xscompound(type)=xscompdisctot(type)+xscompcont(type)           
    10 continue
       xscompel=xspopex0(k0,Ltarget)
+      xscompel6(nin)=xscompel
       xselastot=xselasinc+xscompel
       xsnonel=xsreacinc-xscompel
+      xsnonel6(nin)=xsnonel
       xscompall=max(xsreacinc-xsdirdiscsum-xspreeqsum-xsgrsum,0.)
       xscompnonel=xscompall-xscompel    
+      xscompnonel=max(xscompnonel,0.)
 c
 c ***************** Create binary feeding channels *********************
 c

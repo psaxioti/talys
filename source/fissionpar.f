@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire, Marieke Duijvestijn and Arjan Koning
-c | Date  : October 22, 2007
+c | Date  : December 18, 2009
 c | Task  : Fission parameters
 c +---------------------------------------------------------------------
 c
@@ -12,7 +12,7 @@ c
       logical      lexist
       character*4  fischar
       character*90 fisfile,hbsfile,c2file
-      integer      Zix,Nix,fislocal,Z,N,A,ia,n1,i,j,n2,il,modz,modn,nbar
+      integer      Zix,Nix,fislocal,Z,N,A,ia,i,j,il,modz,modn,nbar
       real         bar1,bar2,hw1,hw2,egs,lbar0,esp,bb,vv
 c
 c ****************** Read fission barrier parameters *******************
@@ -23,20 +23,20 @@ c fission parameters for the first choice model are not available.
 
 c Determine whether barrier parameters have been provided in input
 c
-c Zix     : charge number index for residual nucleus
-c Nix     : neutron number index for residual nucleus
-c nfisbar : number of fission barrier parameters
-c fbarrier: height of fission barrier
-c fwidth  : width of fission barrier
-c fislocal: fission model
-c fismodel: fission model
+c Zix      : charge number index for residual nucleus
+c Nix      : neutron number index for residual nucleus
+c nfisbar  : number of fission barrier parameters
+c fbarrier : height of fission barrier
+c fwidth   : width of fission barrier
+c fislocal : fission model
+c fismodelx: fission model
 c
       nfisbar(Zix,Nix)=0
       do 10 i=1,numbar
         if (fbarrier(Zix,Nix,i).ne.0..or.fwidth(Zix,Nix,i).ne.0.) 
      +    nfisbar(Zix,Nix)=nfisbar(Zix,Nix)+1
    10 continue
-      fislocal=fismodel
+   20 fislocal=fismodelx(Zix,Nix)
 c
 c Fission parameters from database
 c
@@ -53,18 +53,17 @@ c
 c
 c Fismodel 1: Experimental parameters
 c
-c fisfile  : fission file
-c path     : directory containing structure files to be read
-c lenpath  : length of pathname
-c axtype   : type of axiality of barrier 
-c               1: axial symmetry
-c               2: left-right asymmetry
-c               3: triaxial and left-right symmetry
-c               4: triaxial no left-right symmetry
-c               5: no symmetry
-c bar1,bar2: inner and outer barrier heights
-c hw1,hw2  : inner and outer barrier curvatures
-c deltaW   : shell correction in nuclear mass  
+c fisfile     : fission file
+c path        : directory containing structure files to be read
+c lenpath     : length of pathname
+c axtype      : type of axiality of barrier 
+c                  1: axial symmetry
+c                  2: left-right asymmetry
+c                  3: triaxial and left-right symmetry
+c                  4: triaxial no left-right symmetry
+c                  5: no symmetry
+c bar1,bar2   : inner and outer barrier heights
+c hw1,hw2     : inner and outer barrier curvatures
 c
 c Fission barriers from database may have been overruled by user input.
 c As starting point, we take the RIPL values as compiled by Maslov.
@@ -77,10 +76,6 @@ c
   110   read(2,'(4x,i4,4x,1x,2(f8.2),5x,2(f8.2))',end=100)
      +    ia,bar1,hw1,bar2,hw2
         if (A.ne.ia) goto 110
-        if (axtype(Zix,Nix,1).ge.2.and.deltaW(Zix,Nix,1).eq.0.) 
-     +    deltaW(Zix,Nix,1)=2.5
-        if (axtype(Zix,Nix,1).eq.1.and.deltaW(Zix,Nix,1).eq.0.) 
-     +    deltaW(Zix,Nix,1)=1.5
         if (fbarrier(Zix,Nix,1).eq.0.) fbarrier(Zix,Nix,1)=bar1
         if (fwidth(Zix,Nix,1).eq.0.) fwidth(Zix,Nix,1)=hw1
         if (fbarrier(Zix,Nix,2).eq.0.) fbarrier(Zix,Nix,2)=bar2
@@ -107,7 +102,8 @@ c
         endif
         close (unit=2)
       endif
-  100 if (fismodel.le.2.and.nfisbar(Zix,Nix).eq.0) fislocal=fismodelalt
+  100 if (fismodelx(Zix,Nix).le.2.and.nfisbar(Zix,Nix).eq.0) 
+     +  fislocal=fismodelalt
 c
 c Fismodel 3: Sierk
 c
@@ -147,6 +143,8 @@ c betafiscor: adjustable factor for fission path width
 c vfiscor   : adjustable factor for fission path height
 c betafis   : fission path width
 c vfis      : fission path height
+c nbinswkb  : integration step for WKB calculation
+c nbins0    : number of continuum excitation energy bins
 c wkb       : subroutine for WKB approximation for fission
 c
       if (fislocal.eq.5) then
@@ -155,7 +153,7 @@ c
         inquire (file=fisfile,exist=lexist)
         if (lexist) then
           open (unit=2,status='old',file=fisfile)
-  300     read(2,'(4x,2i4)',end=330) ia,nbeta
+  300     read(2,'(/11x,i4,12x,i4//)',end=330) ia,nbeta
           if (A.ne.ia) then
             do 310 i=1,nbeta
               read(2,'()')
@@ -167,15 +165,25 @@ c
               betafis(i)=betafiscor(Zix,Nix)*bb
               vfis(i)=vfiscor(Zix,Nix)*vv
   320       continue
+            if (nbins0.eq.0) then
+              nbinswkb=30
+            else
+              nbinswkb=nbins0
+            endif
             call wkb(Z,A,Zix,Nix,nbar)
             nfisbar(Zix,Nix)=nbar
-            if (axtype(Zix,Nix,1).ge.2.and.deltaW(Zix,Nix,1).eq.0.)
-     +        deltaW(Zix,Nix,1)=2.5
-            if (axtype(Zix,Nix,1).eq.1.and.deltaW(Zix,Nix,1).eq.0.)
-     +        deltaW(Zix,Nix,1)=1.5
           endif
-  330     close (unit=2)
-        endif
+          goto 340
+  330     fismodelx(Zix,Nix)=fismodelalt
+          axtype(Zix,Nix,2)=2
+          close (unit=2)
+          goto 20
+  340     close (unit=2)
+        else
+          fismodelx(Zix,Nix)=fismodelalt
+          axtype(Zix,Nix,2)=2
+          goto 20
+        endif 
       endif
 c
 c Read fission states
@@ -211,76 +219,78 @@ c
 c
 c Read head band transition states
 c
-c n1,n2   : help variables
-c nfistrhb: number of head band transition states for barrier
-c fecont  : start of continuum energy
-c numlev  : maximum number of included discrete levels
-c efistrhb: energy of head band transition states 
-c jfistrhb: spin of head band transition states 
-c pfistrhb: parity of head band transition states 
+c flaghbstate: flag for head band states in fission
+c nfistrhb   : number of head band transition states for barrier
+c fecont     : start of continuum energy
+c numlev     : maximum number of included discrete levels
+c efistrhb   : energy of head band transition states 
+c jfistrhb   : spin of head band transition states 
+c pfistrhb   : parity of head band transition states 
 c
-      open (unit=2,status='old',file=hbsfile)
-      n1=min(nfisbar(Zix,Nix),2)
-      do 410 i=1,n1
-        read(2,'(4x,i4,f8.3)') nfistrhb(Zix,Nix,i),fecont(Zix,Nix,i)
-        if (nfistrhb(Zix,Nix,i).gt.numlev) then
-          write(*,'(" TALYS-error: there are more than",i3,
-     +      " head band states in file ",a73)') numlev,hbsfile
-          write(*,'(" numlev in talys.cmb should be increased")')
-          stop
-        endif
-        do 420 j=1,nfistrhb(Zix,Nix,i)
-          read(2,'(4x,f11.6,f6.1,i5)') efistrhb(Zix,Nix,i,j),
-     +      jfistrhb(Zix,Nix,i,j),pfistrhb(Zix,Nix,i,j)
- 420    continue
- 410  continue
-      close (unit=2)                       
+      if (flaghbstate) then
+        open (unit=2,status='old',file=hbsfile)
+        do 410 i=1,nfisbar(Zix,Nix)
+          read(2,'(4x,i4,f8.3)',end=410,err=410) 
+     +      nfistrhb(Zix,Nix,i),fecont(Zix,Nix,i)
+          if (nfistrhb(Zix,Nix,i).gt.numlev) then
+            write(*,'(" TALYS-error: there are more than",i3,
+     +        " head band states in file ",a73)') numlev,hbsfile
+            write(*,'(" numlev in talys.cmb should be increased")')
+            stop
+          endif
+          do 420 j=1,nfistrhb(Zix,Nix,i)
+            read(2,'(4x,f11.6,f6.1,i5)',end=410,err=410) 
+     +        efistrhb(Zix,Nix,i,j),jfistrhb(Zix,Nix,i,j),
+     +        pfistrhb(Zix,Nix,i,j)
+ 420      continue
+ 410    continue
+        close (unit=2)                       
+      endif
 c
 c Class2 states
 c
-c nclass2 : number of sets of class2 states   
-c nfisc2hb: number of class2 states for barrier
-c efisc2hb: energy of class2 states 
-c jfisc2hb: spin of class2 states 
-c pfisc2hb: parity of class2 states 
+c flagclass2: flag for class2 states in fission
+c nclass2   : number of sets of class2 states   
+c nfisc2hb  : number of class2 states for barrier
+c efisc2hb  : energy of class2 states 
+c jfisc2hb  : spin of class2 states 
+c pfisc2hb  : parity of class2 states 
 c
-      open (unit=2,status='old',file=c2file)
-      n2=nfisbar(Zix,Nix)-1
-      nclass2(Zix,Nix)=n2
-      do 430 i=1,n2
-        read(2,'(4x,i4)',end=430) nfisc2hb(Zix,Nix,i)
-        if (nfisc2hb(Zix,Nix,i).gt.numlev) then
-          write(*,'(" TALYS-error: there are more than",i3,
-     +      " class 2 states in file ",a73)') numlev,c2file
-          write(*,'(" numlev in talys.cmb should be increased")')
-          stop
-        endif
-        do 440 j=1,nfisc2hb(Zix,Nix,i)
-          read(2,'(4x,f11.6,f6.1,i5)',end=430) efisc2hb(Zix,Nix,i,j),
-     +      jfisc2hb(Zix,Nix,i,j),pfisc2hb(Zix,Nix,i,j)
-  440   continue
-  430 continue
-      close (unit=2)
+      if (flagclass2) then
+        open (unit=2,status='old',file=c2file)
+        nclass2(Zix,Nix)=nfisbar(Zix,Nix)-1
+        do 430 i=1,nclass2(Zix,Nix)
+          read(2,'(4x,i4)',end=430,err=430) nfisc2hb(Zix,Nix,i)
+          if (nfisc2hb(Zix,Nix,i).gt.numlev) then
+            write(*,'(" TALYS-error: there are more than",i3,
+     +        " class 2 states in file ",a73)') numlev,c2file
+            write(*,'(" numlev in talys.cmb should be increased")')
+            stop
+          endif
+          do 440 j=1,nfisc2hb(Zix,Nix,i)
+            read(2,'(4x,f11.6,f6.1,i5)',end=430,err=430) 
+     +        efisc2hb(Zix,Nix,i,j),jfisc2hb(Zix,Nix,i,j),
+     +        pfisc2hb(Zix,Nix,i,j)
+  440     continue
+  430   continue
+        close (unit=2)
+      endif
 c
 c ************************* Default parameters *************************
 c
-c minertia  : moment of inertia of fission barrier deformation
-c Rtransmom : normalization constant for moment of inertia for
-c             transition states
-c Irigid    : rigid body value of moment of inertia
-c minertc2  : moment of inertia for class2 states
-c Rclass2mom: normalization constant for moment of inertia for
-c             class 2 states
+c minertia    : moment of inertia of fission barrier deformation
+c Rtransmom   : normalization constant for moment of inertia for
+c               transition states
+c Irigid      : rigid body value of moment of inertia
+c minertc2    : moment of inertia for class2 states
+c Rclass2mom  : normalization constant for moment of inertia for
+c               class 2 states
 c
       if (fwidth(Zix,Nix,1).eq.0.) fwidth(Zix,Nix,1)=1.
-      if (deltaW(Zix,Nix,1).eq.0..and.Ztarget.gt.84) 
-     +  deltaW(Zix,Nix,1)=2.5    
       if (fwidth(Zix,Nix,2).eq.0.) fwidth(Zix,Nix,2)=0.6
-      if (deltaW(Zix,Nix,2).eq.0.) deltaW(Zix,Nix,2)=0.6
       if (nfisbar(Zix,Nix).eq.1.and.fbarrier(Zix,Nix,1).eq.0.) then
         fbarrier(Zix,Nix,1)=fbarrier(Zix,Nix,2)
         fwidth(Zix,Nix,1)=fwidth(Zix,Nix,2)
-        deltaW(Zix,Nix,1)=deltaW(Zix,Nix,2)
       endif
       do 510 i=1,numbar
         minertia(Zix,Nix,i)=Rtransmom(Zix,Nix,i)*Irigid(Zix,Nix,i)
@@ -290,7 +300,6 @@ c
 c ********** Rotational bands on transition and class2 states **********
 c
 c rotband   : subroutine to build rotational bands on transition states
-c flagclass2: flag for class2 states in fission
 c rotclass2 : subroutine to build rotational bands on class2 states 
 c
       call rotband(Zix,Nix)

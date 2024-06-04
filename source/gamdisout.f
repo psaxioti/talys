@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 5, 2006    
+c | Date  : September 24, 2009
 c | Task  : Output of discrete gamma-ray intensities     
 c +---------------------------------------------------------------------
 c
@@ -54,6 +54,7 @@ c
      +          jdis(Zcomp,Ncomp,i2),cparity(parlev(Zcomp,Ncomp,i2)),
      +          edis(Zcomp,Ncomp,i2),Egam,xsgamdis(Zcomp,Ncomp,i1,i2)
    30     continue
+          write(*,'(/"  Total",47x,1p,e15.5)') xsgamdistot(Zcomp,Ncomp)
    10 continue
 c
 c Write results on separate files

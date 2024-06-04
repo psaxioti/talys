@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : June 27, 2007
+c | Date  : August 19, 2007
 c | Task  : Set excitation energy grid
 c +---------------------------------------------------------------------
 c
@@ -11,32 +11,35 @@ c
       include "talys.cmb"
       integer          Zcomp,Ncomp,Zdeep,Ndeep,type,Zix,Nix,Zmother,
      +                 Nmother,NL,A,odd,nex,Aix,nexbins,Pbeg,Pprime,Ir
-      real             excont,dEx,Rodd,Exout,Ex1min,Ex1plus,ald,
+      real             Edif,excont,dEx,Rodd,Exout,Ex1min,Ex1plus,ald,
      +                 spincut,Rspin
       double precision rho1,rho2,rho3,density,r1log,r2log,r3log        
 c
 c ********************* Set maximum excitation energy ******************
 c
-c Zcomp  : charge number index for compound nucleus
-c Ncomp  : neutron number index for compound nucleus
-c Zdeep  : charge number index for lightest residual nucleus
-c Ndeep  : neutron number index for lightest residual nucleus
-c parskip: logical to skip outgoing particle
-c Zindex : charge number index for residual nucleus
-c Nindex : neutron number index for residual nucleus
-c Exmax  : maximum excitation energy for residual nucleus
-c Zmother: charge number index for mother nucleus
-c parZ   : charge number of particle
-c Nmother: neutron number index for mother nucleus
-c parN   : neutron number of particle
-c Exmax0 : maximum excitation energy for residual nucleus (including
-c          negative energies)
-c S      : separation energy per particle
+c flagomponly: flag to execute ONLY an optical model calculation
+c flagcomp   : flag for compound nucleus calculation
+c Zcomp      : charge number index for compound nucleus
+c Ncomp      : neutron number index for compound nucleus
+c Zdeep      : charge number index for lightest residual nucleus
+c Ndeep      : neutron number index for lightest residual nucleus
+c parskip    : logical to skip outgoing particle
+c Zindex     : charge number index for residual nucleus
+c Nindex     : neutron number index for residual nucleus
+c Exmax      : maximum excitation energy for residual nucleus
+c Zmother    : charge number index for mother nucleus
+c parZ       : charge number of particle
+c Nmother    : neutron number index for mother nucleus
+c parN       : neutron number of particle
+c Exmax0     : maximum excitation energy for residual nucleus (including
+c              negative energies)
+c S          : separation energy per particle
 c
 c All possible routes to all residual nuclei are followed, to
 c determine the maximum possible excitation energy for each nucleus,
 c given the incident energy.
 c
+      if (flagomponly.and..not.flagcomp) return
       Zdeep=Zcomp                                                      
       Ndeep=Ncomp                                                      
       do 10 type=1,6
@@ -101,8 +104,10 @@ c
         NL=Nlast(Zix,Nix,0)
         if (maxex(Zix,Nix).ne.0) goto 110
         deltaEx(Zix,Nix)=0.
-        if (Qres(Zix,Nix,0).eq.0.) 
-     +    Qres(Zix,Nix,0)=targetE+S(0,0,k0)+Exmax0(Zix,Nix)-Etotal
+        if (Qres(Zix,Nix,0).eq.0.) then
+          Edif=Exmax0(Zix,Nix)-Etotal
+          Qres(Zix,Nix,0)=S(0,0,k0)+targetE+Edif
+        endif
         do 120 nex=0,NL
           if (Ethresh(Zix,Nix,nex).eq.0.) then
             Qres(Zix,Nix,nex)=Qres(Zix,Nix,0)-edis(Zix,Nix,nex)

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 31, 2007
+c | Date  : December 14, 2009
 c | Task  : Initialization of arrays for various cross sections
 c +---------------------------------------------------------------------
 c
@@ -29,6 +29,7 @@ c               channel
 c xselasinc   : total elastic cross section (neutrons only) for 
 c               incident channel           
 c numl        : maximal number of l-values
+c Sstrength   : s,p,d,etc-wave strength function
 c Tjlinc      : transmission coefficients as a function of spin
 c               and l for the incident channel 
 c Tlinc       : transmission coefficients as a function of l for
@@ -48,6 +49,7 @@ c
       xsoptinc=0.
       xselasinc=0.
       do 10 l=0,numl
+        Sstrength(l)=0.
         do 20 ispin=-1,1
           Tjlinc(ispin,l)=0.   
    20   continue
@@ -416,6 +418,7 @@ c binemis    : emission spectra from initial compound nucleus
 c xscomp     : compound emission spectrum
 c xsbinemis  : cross section for emission from first compound nucleus
 c xsemis     : emission spectrum from compound nucleus
+c xsngnspec  : total (projectile,gamma-ejectile) spectrum
 c numlev     : maximum number of included discrete levels
 c xspopex0   : binary population cross section for discrete states
 c xsdisc     : total cross section for discrete state
@@ -426,6 +429,7 @@ c discad     : discrete state angular distribution
 c cleg       : compound nucleus Legendre coefficient
 c tleg       : total Legendre coefficient
 c tlegnor    : total Legendre coefficient normalized to 1 
+c cleg0      : Legendre coefficient normalized to the first one
 c transjl    : array for width fluctuation calculation
 c
       J2beg=0
@@ -478,6 +482,7 @@ c
             xscomp(type,nen)=0.
             xsbinemis(type,nen)=0.
             xsemis(type,nen)=0.
+            xsngnspec(type,nen)=0.
   570   continue
       endif
       do 580 nex=0,numlev
@@ -500,6 +505,7 @@ c
             cleg(type,nex,LL)=0.
             tleg(type,nex,LL)=0.
             tlegnor(type,nex,LL)=0.
+            cleg0(type,nex,LL)=0.
   600 continue                                   
       do 610 l=1,numtrans
         do 610 i=0,5
@@ -526,6 +532,7 @@ c tfis        : fission transmission coefficients
 c xsfeed      : cross section from compound to residual nucleus
 c xsngn       : total (projectile,gamma-ejectile) cross section
 c xsgamdis    : discrete gamma-ray cross section    
+c xsgamdistot : total discrete gamma-ray cross section    
 c
       xsngnsum=0.
       idnum=-1
@@ -569,6 +576,10 @@ c
             do 770 Zix=0,numZ
               xsgamdis(Zix,Nix,n1,n2)=0.
   770 continue
+      do 780 Nix=0,numN
+        do 780 Zix=0,numZ
+          xsgamdistot(Zix,Nix)=0.
+  780 continue
 c
 c ************* Initialization of channels and total arrays ************
 c
@@ -625,6 +636,7 @@ c
 c
 c ************* Initialization of total cross section arrays ***********
 c
+c nexmax       : maximum excitation energy bin for residual nucleus
 c xsexclusive  : exclusive single channel cross section
 c xsexclcont   : exclusive single channel cross section for continuum
 c multiplicity : particle multiplicity
@@ -640,9 +652,14 @@ c xsresprod    : total residual production (= reaction) cross section
 c xsmassprod   : residual production cross section per mass unit
 c xstot6       : total cross section (neutrons only) for ENDF-6 file
 c xsreac6      : reaction cross section for ENDF-6 file
+c xsnon6       : non-elastic cross section for ENDF-6 file
 c xsopt6       : optical model reaction cross section for ENDF-6 file
+c xselassh6    : shape elastic cross section (neutrons only) for ENDF-6 
+c                file
 c xselas6      : total elastic cross section (neutrons only) for ENDF-6 
 c                file
+c xscompel6    : compound elastic cross section
+c e6           : energies of ENDF-6 energy grid in MeV
 c fxsbinary    : cross section from initial compound to residual nucleus
 c fxsexclusive : exclusive single channel cross section
 c fxsdisctot   : total cross section summed over discrete states    
@@ -675,8 +692,10 @@ c fxscompnonel : total compound non-elastic cross section
 c fxsdirdiscsum: total direct cross section
 c fxspreeqsum  : total preequilibrium cross section summed over 
 c                particles
+c fisstring    : string for exclusive fission reaction channel
 c
       do 910 type=0,numpar
+        nexmax(type)=-1
         xsexclusive(type)=0.
         xsexclcont(type)=0.
         multiplicity(type)=0.
@@ -688,47 +707,66 @@ c
       do 920 ia=0,numA
         xsmassprod(ia)=0.
   920 continue
-      do 930 nen=1,numen6
-        xstot6(nen)=0.
-        xsreac6(nen)=0.
-        xsopt6(nen)=0.
-        xselas6(nen)=0.
-  930 continue
-      do 940 nen=1,numenlow
-        do 950 type=0,numpar
-          fxsbinary(nen,type)=0.
-          fxsexclusive(nen,type)=0.
-          fxsdisctot(nen,type)=0.
-          fxsexclcont(nen,type)=0.
-          fxsngn(nen,type)=0.
-          do 960 n1=0,numlev
-            fxsdisc(nen,type,n1)=0.
-            fxsdirdisc(nen,type,n1)=0.
-            fxscompdisc(nen,type,n1)=0.
-  960     continue
-  950   continue
-        fxsngn(nen,-1)=0.
-        do 970 Nix=0,numN
-          do 970 Zix=0,numZ
-            fxspopnuc(nen,Zix,Nix)=0.
-            do 980 n1=0,numlev
-              fxspopex(nen,Zix,Nix,n1)=0.
-              fxsbranch(nen,Zix,Nix,n1)=0.
-  980       continue
-  970   continue
-        do 990 i=0,numchantot
-          fxschannel(nen,i)=0.
-          fxsgamchannel(nen,i)=0.
-          fxsratio(nen,i)=0.
-          do 1000 n1=0,numlev
-            fxschaniso(nen,i,n1)=0.
-            fexclyield(nen,i,n1)=0.
-            do 1010 n2=0,numlev
-              fxsgamdischan(nen,i,n1,n2)=0.
- 1010       continue
- 1000     continue
-  990   continue
-  940 continue
+      if (nin.eq.1) then
+        do 930 nen=1,numen6
+          xstot6(nen)=0.
+          xsreac6(nen)=0.
+          xsnon6(nen)=0.
+          xsnonel6(nen)=0.
+          xsopt6(nen)=0.
+          xselassh6(nen)=0.
+          xselas6(nen)=0.
+          xscompel6(nen)=0.
+          e6(nen)=0.
+  930   continue
+        do 940 nen=1,numenlow
+          do 950 type=0,numpar
+            fxsbinary(nen,type)=0.
+            fxsexclusive(nen,type)=0.
+            fxsdisctot(nen,type)=0.
+            fxsexclcont(nen,type)=0.
+            fxsngn(nen,type)=0.
+            do 960 n1=0,numlev
+              fxsdisc(nen,type,n1)=0.
+              fxsdirdisc(nen,type,n1)=0.
+              fxscompdisc(nen,type,n1)=0.
+  960       continue
+  950     continue
+          fxsngn(nen,-1)=0.
+          fxsreacinc(nen)=0.
+          fxselastot(nen)=0.
+          fxsnonel(nen)=0.
+          fxscompel(nen)=0.
+          fxselasinc(nen)=0.
+          fxstotinc(nen)=0.
+          fxscompnonel(nen)=0.
+          fxsdirdiscsum(nen)=0.
+          fxspreeqsum(nen)=0.
+          do 970 Nix=0,numN
+            do 970 Zix=0,numZ
+              fxspopnuc(nen,Zix,Nix)=0.
+              do 980 n1=0,numlev
+                fxspopex(nen,Zix,Nix,n1)=0.
+                fxsbranch(nen,Zix,Nix,n1)=0.
+  980         continue
+  970     continue
+          do 990 i=0,numchantot
+            fxschannel(nen,i)=0.
+            fxsgamchannel(nen,i)=0.
+            fxsratio(nen,i)=0.
+            do 1000 n1=0,numlev
+              fxschaniso(nen,i,n1)=0.
+              fexclyield(nen,i,n1)=0.
+              do 1010 n2=0,numlev
+                fxsgamdischan(nen,i,n1,n2)=0.
+ 1010         continue
+ 1000       continue
+  990     continue
+  940   continue
+      endif
+      do 1020 i=0,numchantot
+        fisstring(i)='                  '
+ 1020 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

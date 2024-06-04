@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : September 13, 2007
+c | Date  : September 1, 2009
 c | Task  : Exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -453,6 +453,7 @@ c flagcheck  : flag for output of numerical checks
 c xsparcheck : total particle production cross section
 c flagspec   : flag for output of spectra
 c fissum     : help variable
+c Especsum   : total emission energy
 c emissum    : integrated emission spectrum
 c Eaveragesum: help variable
 c xsspeccheck: total particle production spectra
@@ -462,6 +463,7 @@ c eoutdis    : outgoing energy of discrete state reaction
 c frac       : help variable
 c Etop       : top of outgoing energy bin                    
 c nendisc    : last discrete bin
+c gmult      : continuum gamma multiplicity
 c
             if (flagcheck) then
               xsparcheck(1)=xsparcheck(1)+in*xschannel(idnum)
@@ -486,6 +488,17 @@ c
                     if (flagfission) fissum=fissum+
      +                xsfischannelsp(idnum,type,nen)*deltaE(nen)
   620             continue
+                  if (type.eq.0) then
+                    do 630 i=1,numlev
+                      do 630 i2=0,i
+                        if (xsgamdischan(idnum,i,i2).gt.0.) then
+                          emissum=emissum+xsgamdischan(idnum,i,i2)
+                          Eaveragesum=Eaveragesum+
+     +                      xsgamdischan(idnum,i,i2)*
+     +                      (edis(Zcomp,Ncomp,i)-edis(Zcomp,Ncomp,i2))
+                        endif
+  630               continue
+                  endif
                   if (npart.eq.1) then
                     NL=Nlast(Zix,Nix,0)
                     if (eoutdis(type,NL).gt.0.) then
@@ -498,11 +511,20 @@ c
      +                  xsfischannelsp(idnum,type,nendisc(type))*frac
                     endif
                   endif
-                  if (type.gt.0) xschancheck(idnum)=xschancheck(idnum)+
-     +              emissum
+                  if (type.gt.0.or.npart.eq.0) 
+     +              xschancheck(idnum)=xschancheck(idnum)+emissum
                   if (emissum.gt.0.) Eavchannel(idnum,type)=
      +              Eaveragesum/emissum
   610           continue
+                if (xschannel(idnum).gt.0.) then
+                  gmult(idnum)=xsgamchannel(idnum)/xschannel(idnum)
+                else
+                  gmult(idnum)=0.
+                endif
+                Especsum(idnum)=gmult(idnum)*Eavchannel(idnum,0)+
+     +            in*Eavchannel(idnum,1)+ip*Eavchannel(idnum,2)+
+     +            id*Eavchannel(idnum,3)+it*Eavchannel(idnum,4)+
+     +            ih*Eavchannel(idnum,5)+ia*Eavchannel(idnum,6)
                 if (flagfission) xsfischancheck(idnum)=fissum
               endif
             endif
@@ -612,6 +634,8 @@ c
             if (xschannel(idnum).lt.xseps.and.
      +        .not.chanopen(in,ip,id,it,ih,ia)) idnum=idnum-1
             if (opennum.eq.numchantot) idnumfull=.true.
+            if (idnum.lt.0) goto 120
+            if (xschannel(idnum).lt.0.) xschannel(idnum)=xseps
   120     continue
   110 continue
 c

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 18, 2007
+c | Date  : June 12, 2009
 c | Task  : Output of level density   
 c +---------------------------------------------------------------------
 c
@@ -63,13 +63,13 @@ c
 c
 c Theoretical D0
 c
-c D0   : experimental s-wave resonance spacing in eV  
-c dD0  : uncertainty in D0         
-c Dtheo: theoretical s-wave resonance spacing
+c D0    : experimental s-wave resonance spacing in eV
+c dD0   : uncertainty in D0         
+c D0theo: theoretical s-wave resonance spacing
 c
       write(*,'(" Experimental D0 :",f18.2," eV +- ",f15.5)')
      +  D0(Zix,Nix),dD0(Zix,Nix)
-      write(*,'(" Theoretical D0  :",f18.2," eV")') Dtheo(Zix,Nix)
+      write(*,'(" Theoretical D0  :",f18.2," eV")') D0theo(Zix,Nix)
 c
 c Other parameters
 c
@@ -133,7 +133,7 @@ c
       write(*,'(" Sigma (Sn)      :",4f10.5)') 
      +  (sqrt(spincut(Zix,Nix,ignatyuk(Zix,Nix,SS,ibar),SS,ibar)),
      +  ibar=0,nfisbar(Zix,Nix))
-      if (flagcol.and..not.ldexist(Zix,Nix,ibar)) then
+      if (flagcol.and..not.ldexist(Zix,Nix,1)) then
         write(*,'(" beta2           :",f10.5)') beta2(Zix,Nix,0)
         write(*,'(" Krotconstant    :",4f10.5)') 
      +    (Krotconstant(Zix,Nix,ibar),ibar=0,nfisbar(Zix,Nix))
@@ -215,7 +215,7 @@ c pardis    : parity distribution
 c densitytot: total level density
 c density   : level density 
 c
-         do 140 nex=1,nendens
+          do 140 nex=1,nendens
             Eex=edens(nex)
             ald=ignatyuk(Zix,Nix,Eex,ibar)
             if (ldmodel.eq.3.and.Eex.lt.Ucrit(Zix,Nix)-
@@ -243,7 +243,7 @@ c
 c NL,NT      : help variables
 c filedensity: flag for level densities on separate files
 c chi2D0     : chi-square of D0
-c Dratio     : ratio Dtheo/Dexp
+c Dratio     : ratio D0theo/Dexp
 c nucmass    : mass of nucleus
 c delta0     : systematical pairing energy
 c aldcrit    : critical level density parameter
@@ -266,8 +266,8 @@ c
         ldfile='ld000000.tot'
         write(ldfile(3:8),'(2i3.3)') Z,A
         open (unit=1,status='unknown',file=ldfile)
-        write(1,'("# Level density for ",i3,a2)') Atarget,nuc(Ztarget)
-        if (flagcol.and..not.ldexist(Zix,Nix,ibar)) then
+        write(1,'("# Level density for ",i3,a2)') A,nuc(Z)
+        if (flagcol.and..not.ldexist(Zix,Nix,0)) then
           write(1,'("# Model: ",a25,"Collective enhancement: yes",
      +      " beta2:",f12.5)') model,beta2(Zix,Nix,0)
         else
@@ -279,15 +279,15 @@ c
         if (dD0(Zix,Nix).eq.0.) then
           chi2D0=0.
         else
-          chi2D0=(abs(Dtheo(Zix,Nix)-D0(Zix,Nix))/dD0(Zix,Nix))**2
+          chi2D0=(abs(D0theo(Zix,Nix)-D0(Zix,Nix))/dD0(Zix,Nix))**2
         endif
         if (D0(Zix,Nix).eq.0.) then
           Dratio=0.
         else
-          Dratio=Dtheo(Zix,Nix)/D0(Zix,Nix)
+          Dratio=D0theo(Zix,Nix)/D0(Zix,Nix)
         endif
         write(1,'("# Theoretical D0  :",f18.2," eV Chi2:",1p,e12.5,0p,
-     +    " Dtheo/Dexp: ",f9.5)') Dtheo(Zix,Nix),chi2D0,Dratio
+     +    " Dtheo/Dexp: ",f9.5)') D0theo(Zix,Nix),chi2D0,Dratio
         write(1,'("# Nlow: ",i3," Ntop: ",i3,
      +    "           Mass in a.m.u.  : ",f10.6)') Nlow(Zix,Nix,0),
      +    Ntop(Zix,Nix,0),nucmass(Zix,Nix)
@@ -346,7 +346,7 @@ c
            if (ldmodel.le.3) then
              ald=ignatyuk(Zix,Nix,Eex,0)
              if (ldmodel.eq.3.and.Eex.lt.Ucrit(Zix,Nix)-P-
-     +         Pshift(Zix,Nix,ibar)) ald=aldcrit(Zix,Nix)
+     +         Pshift(Zix,Nix,0)) ald=aldcrit(Zix,Nix)
              dens=densitytot(Zix,Nix,Eex,0,ldmodel)
              sigma=sqrt(spincut(Zix,Nix,ald,Eex,0))
              write(1,'(f8.4,i4,4f14.3)') Eex,i,Ncum,dens,ald,sigma

@@ -2,19 +2,19 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 21, 2007
+c | Date  : December 21, 2009
 c | Task  : Main output
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer Zcomp,Ncomp,Zix,Nix,type,i,J
+      integer Zcomp,Ncomp,Zix,Nix,type,i,J,parity
 c
 c *************************** Code and version *************************
 c
-      write(*,'(/"    TALYS-1.0      (Version: December 21, 2007)"/)')
-      write(*,'(" Copyright (C) 2007  A.J. Koning, S. Hilaire ",
+      write(*,'(/"    TALYS-1.2       (Version: December 21, 2009)"/)')
+      write(*,'(" Copyright (C) 2009  A.J. Koning, S. Hilaire ",
      +  "and M.C. Duijvestijn")')
       write(*,'(24x," NRG          CEA              NRG"/)')
       write(*,'(" Dimensions - Cross sections: mb, Energies: MeV, ",
@@ -50,6 +50,8 @@ c flaginitpop: flag for initial population distribution
 c eninc      : incident energy in MeV
 c parsym     : symbol of particle
 c Q          : Q-value for target nucleus 
+c flagomponly: flag to execute ONLY an optical model calculation
+c flagcomp   : flag for compound nucleus calculation
 c
       Zcomp=0
       Ncomp=0
@@ -72,6 +74,7 @@ c
         if (parskip(type)) goto 10
         write(*,'(21x,a8)') parname(type)
    10 continue
+      if (flagomponly.and..not.flagcomp) return
 c
 c Projectile
 c
@@ -96,7 +99,7 @@ c npopbins: number of excitation energy bins for population distribution
 c npopJ   : number of spins for population distribution
 c Exdist  : excitation energy of population distribution
 c Pdistex : population distribution, spin-independent
-c Pdist   : population distribution per spin
+c Pdist   : population distribution per spin and parity
 c
 
         write(*,'(/," Initial population distribution - Bins: ",i3,
@@ -110,8 +113,10 @@ c
         else
           write(*,'("    Ex ",11("      J=",i2)/)') 
      +      (J,J=0,10)
-          do 40 i=1,npopbins
-            write(*,'(1p,12e10.3)') Exdist(i),(Pdist(i,J),J=0,10)
+          do 40 parity=-1,1,2
+            do 40 i=1,npopbins
+              write(*,'(1p,12e10.3)') Exdist(i),(Pdist(i,J,parity),
+     +          J=0,10)
   40      continue
         endif
       endif

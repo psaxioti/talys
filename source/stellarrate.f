@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author  : Stephane Goriely and Stephane Hilaire
-c | Date    : October 4, 2007
+c | Date    : May 19, 2009
 c | Task    : Calculate reaction rate for a Maxwell-Boltzmann 
 c |           distribution
 c +---------------------------------------------------------------------
@@ -11,7 +11,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer          Zix,Nix,Ncomp,Zcomp,nloop,iloop,nen,i
-      real             fact0,am,e,fex
+      real             fact0,am,e,fex,ee0,ee1
       double precision fact,sum,xs,term,dE,rate
 c
 c ************************ Partition Function **************************
@@ -68,10 +68,21 @@ c
           if (flagfission.and.Ncomp.eq.0.and.Zcomp.eq.0) nloop=2
           do 30 iloop=1,nloop
             do 40 i=1,numT
+              rateastrofis(i)=0.
               fact=3.7335e+10/(sqrt(am*(T9(i)**3)))
               sum=0.
               do 50 nen=1,numinc
-                e=eninc(nen) 
+                e=real(eninc(nen)*specmass(Zix,Nix,k0))
+                if (nen.lt.numinc) then
+                  ee1=real(eninc(nen+1)*specmass(Zix,Nix,k0))
+                else
+                  ee1=e
+                endif
+                if (nen.gt.1) then
+                  ee0=real(eninc(nen-1)*specmass(Zix,Nix,k0))
+                else
+                  ee0=e
+                endif
                 if (iloop.eq.1) then
                   xs=xsastro(Zcomp,Ncomp,nen)/1000.
                 else
@@ -84,7 +95,7 @@ c
                 else
                   term=fact0*e**2*xs/(exp(fex)-1.)
                 endif
-                dE=0.5*(eninc(min(nen+1,numinc))-eninc(nen-1))
+                dE=(ee1-ee0)/2.
                 sum=sum+term*dE
   50          continue
               if (flagastrogs) then

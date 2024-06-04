@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 18, 2007
+c | Date  : April 23, 2009
 c | Task  : Reaction models
 c +---------------------------------------------------------------------
 c
@@ -18,6 +18,9 @@ c flagompall  : flag for new optical model calculation for all residual
 c               nuclei 
 c basicxs     : subroutine for basic cross sections and transmission
 c               coefficients        
+c parinclude  : logical to include outgoing particle
+c gamma       : subroutine for gamma cross section and transmission 
+c               coefficients
 c enincmax    : maximum incident energy
 c epreeq      : on-set incident energy for preequilibrium calculation
 c preeqinit   : subroutine for initialization of general 
@@ -31,6 +34,7 @@ c flagastro   : flag for calculation of astrophysics reaction rate
 c astroinit   : subroutine for initialization of astrophysics quantities
 c
       if (.not.flagompall) call basicxs(0,0)
+      if (parinclude(0)) call gamma(0,0)
       if (enincmax.ge.epreeq) then
         call preeqinit
         call excitoninit
@@ -135,23 +139,27 @@ c
 c
 c Collecting total cross sections, spectra, angular distributions, etc.
 c
-c totalxs    : subroutine for total cross sections
-c flagspec   : flag for output of spectra
-c spectra    : subroutine for creation of particle spectra
-c flagfission: flag for fission     
-c flagmassdis: flag for calculation of fission fragment mass yields
-c massdis    : subroutine for fission fragment yields
-c residual   : subroutine for residual production cross sections
-c totalrecoil: subroutine for recoil results
-c numinclow  : number of incident energies below Elow   
-c thermal    : subroutine for estimate of thermal cross sections
-c output     : subroutine for output
+c totalxs      : subroutine for total cross sections
+c flagspec     : flag for output of spectra
+c spectra      : subroutine for creation of particle spectra
+c flagfission  : flag for fission     
+c flagmassdis  : flag for calculation of fission fragment mass yields
+c massdis      : subroutine for fission fragment yields
+c residual     : subroutine for residual production cross sections
+c totalrecoil  : subroutine for recoil results
+c flagrescue   : flag for final rescue: normalization to data
+c normalization: subroutine to normalize cross sections to experimental 
+c                or evaluated data
+c numinclow    : number of incident energies below Elow   
+c thermal      : subroutine for estimate of thermal cross sections
+c output       : subroutine for output
 c
         call totalxs
         if (flagspec.or.flagddx) call spectra
         if (flagfission.and.flagmassdis) call massdis
         call residual
         if (flagrecoil) call totalrecoil
+        if (flagrescue) call normalization
         if (nin.eq.numinclow+1.and.numinclow.gt.0) call thermal
    20   if (.not.flagastro) call output
    10 continue

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : June 26, 2007
+c | Date  : December 15, 2009
 c | Task  : Read input for first set of variables
 c +---------------------------------------------------------------------
 c
@@ -11,8 +11,10 @@ c
       include "talys.cmb"
       logical      projexist,massexist,elemexist,enerexist,lexist
       character*1  ch
-      character*80 word(40),key,value
-      integer      i,i2,inull,type,iz,J
+      character*14 bestchar
+      character*40 bestpath
+      character*80 word(40),key,value,bestfile
+      integer      i,i2,inull,type,iz,J,pbeg,parity,inum,k,lenbest
       real         Ein
 c
 c ************ Read first set of variables from input lines ************
@@ -23,8 +25,12 @@ c massexist  : logical for existence of mass
 c elemexist  : logical for existence of element
 c enerexist  : logical for existence of energy
 c flagnatural: flag for calculation of natural element
+c flagmicro  : flag for completely microscopic Talys calculation
+c flagbest   : flag to use best set of adjusted parameters
+c bestpath   : alternative directory for best values
 c eninc      : incident energy in MeV
 c Ztarget    : charge number of target nucleus
+c Ltarget    : excited level of target
 c Starget    : symbol of target nucleus
 c
 c 1. Initializations
@@ -35,8 +41,14 @@ c
       elemexist=.false.
       enerexist=.false.
       flagnatural=.false.
-      eninc(1)=0.
+      flagmicro=.false.
+      flagbest=.false.
+      bestpath='                                        '
+      do 5 i=0,numen6+2
+        eninc(i)=0.
+    5 continue
       Ztarget=0
+      Ltarget=0
       Starget='  '
 c
 c nlines     : number of input lines
@@ -74,7 +86,7 @@ c Atarget: mass number of target nucleus
 c
         if (key.eq.'mass') then
           massexist=.true.
-          read(value,*,end=400,err=400) Atarget
+          read(value,*,end=500,err=500) Atarget
           goto 10
         endif
 c
@@ -85,28 +97,57 @@ c
         if (key.eq.'element') then
           elemexist=.true.
           if (ch.ge.'0'.and.ch.le.'9') then 
-            read(value,*,end=400,err=400) Ztarget 
-            if (Ztarget.lt.1.or.Ztarget.gt.numelem) goto 400
+            read(value,*,end=500,err=500) Ztarget 
+            if (Ztarget.lt.1.or.Ztarget.gt.numelem) goto 500
             goto 10
           else
-            read(value,'(a2)',end=400,err=400) Starget
+            read(value,'(a2)',end=500,err=500) Starget
             Starget(1:1)=char(ichar(Starget(1:1))-32)
             goto 10
           endif
         endif
 c
-c 5. The incident energy or file with incident energies is read
+c 5. The level of the target is read
+c
+        if (key.eq.'ltarget') then
+          read(value,*,end=500,err=500) Ltarget
+          goto 10
+        endif
+c
+c 6. The incident energy or file with incident energies is read
 c
         if (key.eq.'energy') then
           enerexist=.true.
           if ((ch.ge.'0'.and.ch.le.'9').or.ch.eq.'.') then 
-            read(value,*,end=400,err=400) eninc(1)
+            read(value,*,end=500,err=500) eninc(1)
             goto 10
           else
             eninc(1)=0.
             energyfile=value
             goto 10
           endif
+        endif
+c
+c 7. Test for completely microscopic Talys calculation
+c
+        if (key.eq.'micro') then
+          if (ch.eq.'n') flagmicro=.false.
+          if (ch.eq.'y') flagmicro=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 500
+          goto 10
+        endif
+c
+c 8. Possibility to use "best" adjusted parameter sets
+c
+        if (key.eq.'best') then
+          if (ch.eq.'n') flagbest=.false.
+          if (ch.eq.'y') flagbest=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 500
+          goto 10
+        endif
+        if (key.eq.'bestpath') then
+          bestpath=value
+          goto 10
         endif
    10 continue
 c
@@ -275,7 +316,7 @@ c
           endif
           nin=0
           open (unit=2,status='old',file=energyfile)
- 310      read(2,*,end=320,err=410) Ein
+ 310      read(2,*,end=320,err=510) Ein
           if (Ein.ne.0.) then
             nin=nin+1
 c
@@ -284,7 +325,7 @@ c
 c numenin : maximal number of incident energies 
 c
             if (nin.gt.numenin) then
-              write(*,'(" TALYS-error: there are more than",i3,
+              write(*,'(" TALYS-error: there are more than",i4,
      +          " incident energies in file ",a73)') numenin,energyfile
               write(*,'(" numenin in talys.cmb should be increased")')
               stop
@@ -339,11 +380,13 @@ c 2. Population distribution as the initial state
 c
 c npopbins: number of excitation energy bins for population distribution
 c npopJ   : number of spins for population distribution
+c npopP   : number of parities for population distribution
 c numbins : maximal number of continuum excitation energy bins
 c numJ    : maximal J-value
 c Exdist  : excitation energy of population distribution
 c Pdistex : population distribution, spin-independent
-c Pdist   : population distribution per spin
+c Pdist   : population distribution per spin and parity
+c pbeg    : help variable
 c
         inquire (file=energyfile,exist=lexist)
         if (.not.lexist) then   
@@ -352,7 +395,7 @@ c
           stop
         endif
         open (unit=2,status='old',file=energyfile)
-        read(2,*,end=410,err=410) npopbins,npopJ,eninc(1)
+        read(2,*,end=510,err=510) npopbins,npopJ,npopP,eninc(1)
         if (npopbins.lt.2.or.npopbins.gt.numbins) then
           write(*,'(" TALYS-error: 2 <= bins <=",i3," in population ",
      +      "distribution file")') numbins
@@ -363,36 +406,125 @@ c
      +      " + 1 in population distribution file")') numJ
           stop
         endif
+        if (npopJ.gt.0.and.(npopP.lt.1.or.npopP.gt.2)) then
+          write(*,'(" TALYS-error: 1 <= number of parities <= 2",
+     +      " in population distribution file")') 
+          stop
+        endif
         Exdist(0)=0.
         Pdistex(0)=0.
-        do 340 J=0,numJ
-          Pdist(0,J)=0.
+        do 340 parity=-1,1,2
+          do 340 J=0,numJ
+            Pdist(0,J,parity)=0.
  340    continue
 c
 c Only excitation energy distribution (no spins)
 c 
         if (npopJ.eq.0) then
           do 350 nin=1,npopbins
-            read(2,*,end=410,err=410) Exdist(nin),Pdistex(nin)
+            read(2,*,end=510,err=510) Exdist(nin),Pdistex(nin)
  350      continue
         else
 c
 c Spin-dependent excitation energy distribution (no total)
 c 
-          do 360 nin=1,npopbins
-            read(2,*,end=410,err=410) Exdist(nin),
-     +        (Pdist(nin,J),J=0,npopJ-1)
+          if (npopP.eq.1) then
+            pbeg=1
+          else
+            pbeg=-1
+          endif
+          do 360 parity=pbeg,1,2
+            do 370 nin=1,npopbins
+                read(2,*,end=510,err=510) Exdist(nin),
+     +            (Pdist(nin,J,parity),J=0,npopJ-1)
+ 370        continue
  360      continue
+          if (npopP.eq.1) then
+            do 380 nin=1,npopbins
+              do 380 J=0,npopJ-1
+                Pdist(nin,J,-1)=Pdist(nin,J,1)
+ 380        continue
+          endif
         endif
         close (unit=2)
         numinc=1
         enincmin=eninc(1)
         enincmax=eninc(1)
       endif
+c
+c If requested by input: retrieve best set of adjusted input parameters
+c
+c bestchar: help variable
+c bestfile: adjusted "best" parameter file
+c
+      if (flagbest) then
+        bestchar='z000a000x.best'
+        write(bestchar(2:4),'(i3.3)') Ztarget
+        write(bestchar(6:8),'(i3.3)') Atarget
+        write(bestchar(9:9),'(a1)') ptype0
+        if (bestpath(1:1).eq.' ')
+     +    bestpath='best/                                   '
+        do 390 i=1,40
+          if (bestpath(i:i).eq.' ') then
+            if (bestpath(i-1:i-1).ne.'/') then
+              bestpath(i:i)='/'
+              lenbest=i
+            else
+              lenbest=i-1
+            endif
+            goto 400
+          endif
+  390   continue
+  400   if (Starget(2:2).eq.' ') then
+          if (Ltarget.eq.0) then
+            write(bestpath(lenbest+1:lenbest+5),'(a1,i3.3,"/")') 
+     +        Starget(1:1),Atarget 
+            write(bestpath(lenbest+6:lenbest+19),'(a14)') bestchar
+          else
+            write(bestpath(lenbest+1:lenbest+6),'(a1,i3.3,"m/")') 
+     +        Starget(1:1),Atarget 
+            write(bestpath(lenbest+7:lenbest+20),'(a14)') bestchar
+          endif
+        else
+          if (Ltarget.eq.0) then
+            write(bestpath(lenbest+1:lenbest+6),'(a2,i3.3,"/")') 
+     +        Starget(1:2),Atarget 
+            write(bestpath(lenbest+7:lenbest+20),'(a14)') bestchar
+          else
+            write(bestpath(lenbest+1:lenbest+7),'(a2,i3.3,"m/")') 
+     +        Starget(1:2),Atarget 
+            write(bestpath(lenbest+8:lenbest+21),'(a14)') bestchar
+          endif
+        endif
+        bestfile=path(1:lenpath)//bestpath
+        inquire (file=bestfile,exist=lexist)
+        if (.not.lexist) return
+        open (unit=3,status='old',file=bestfile)
+        inum=0
+  410   read(3,'(a80)',end=430) key
+        inum=inum+1
+        i=numlines-inum
+        inline(i)=key
+        do 420 k=1,80
+          if (inline(i)(k:k).ge.'A'.and.inline(i)(k:k).le.'Z') 
+     +      inline(i)(k:k)=char(ichar(inline(i)(k:k))+32)
+  420   continue
+        goto 410
+  430   close (unit=3)
+        if (inum.gt.0) then
+          do 440 i=nlines,1,-1
+            inline(i+inum)=inline(i)
+  440     continue
+          do 450 i=1,inum
+            inline(i)=inline(numlines-i)
+  450     continue
+          nlines=nlines+inum
+        endif
+      endif
       return
-  400 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
+  500 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
       stop
-  410 write(*,'(" TALYS-error: Problem in file ",a73)') energyfile
+  510 write(*,'(" TALYS-error: Problem in file ",a73)') energyfile
       write(*,'(" after E= ",e12.5)') Ein
       stop
       end

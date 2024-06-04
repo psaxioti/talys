@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 20, 2007
+c | Date  : September 13, 2009
 c | Task  : Output of exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -81,9 +81,9 @@ c
 c
 c Write results on separate files
 c
+c isostring    : string to designate target isomer
 c filechannels : flag for exclusive channel cross sections on
 c                separate file 
-c isostring    : string to designate target isomer
 c Liso         : isomeric number of target   
 c chanexist    : flag for existence of exclusive cross section
 c natstring    : string extension for file names
@@ -106,8 +106,8 @@ c flagendf     : flag for information for ENDF-6 file
 c fxsgamchannel: gamma channel cross section
 c fxsgamdischan: discrete gamma channel cross section 
 c
+      isostring='   '
       if (filechannels) then
-        isostring='   '
         if (Liso.eq.1) isostring='(m)'
         if (Liso.eq.2) isostring='(n)'
         do 110 npart=0,maxchannel
@@ -404,11 +404,15 @@ c preeqratio : pre-equilibrium ratio
 c emissum    : integrated emission spectrum 
 c xschancheck: integrated channel spectra
 c xsdisctot  : total cross section summed over discrete states
+c gmult      : continuum gamma multiplicity
 c Eavchannel : channel average energy
+c Qexcl      : Q-value for exclusive channel
+c eninccm    : center-of-mass incident energy in MeV
+c Especsum   : total emission energy
 c
       if (flagspec) then
         write(*,'(/" 6b. Exclusive spectra ")')
-        do 610 npart=1,maxchannel
+        do 610 npart=0,maxchannel
         do 610 ia=0,numia
         do 610 ih=0,numih
         do 610 it=0,numit
@@ -447,10 +451,17 @@ c
             write(1,'("# # energies =",i3)') eendhigh-ebegin(0)+1
             write(1,'("# E-out  ",7(2x,a8,2x))') 
      +        (parname(type),type=0,6)
-            do 650 nen=ebegin(0),eendhigh
-              write(1,'(f7.3,1p,7e12.5)') egrid(nen),
-     +          (xschannelsp(idc,type,nen),type=0,6)
-  650       continue
+            if (npart.eq.0) then
+              do 650 nen=ebegin(0),eendhigh
+                write(1,'(f7.3,1p,7e12.5)') egrid(nen),
+     +            xschannelsp(idc,0,nen),(xsngnspec(type,nen),type=1,6)
+  650         continue
+            else
+              do 660 nen=ebegin(0),eendhigh
+                write(1,'(f7.3,1p,7e12.5)') egrid(nen),
+     +            (xschannelsp(idc,type,nen),type=0,6)
+  660         continue
+            endif
             close (unit=1)
           endif
           if (flagcheck) then
@@ -463,13 +474,24 @@ c
             if (npart.eq.1.and.ia.eq.1) emissum=emissum+xsdisctot(6)
             write(*,'(/"  E-av    ",7(f7.3,5x))') 
      +        (Eavchannel(idc,type),type=0,6)
-            write(*,'("  x multi ",7(f7.3,5x))') Eavchannel(idc,0),
+            write(*,'("  multi   ",f7.3,6(11x,i1))') 
+     +        gmult(idc),in,ip,id,it,ih,ia
+            write(*,'("  Total   ",7(f7.3,5x))') 
+     +        gmult(idc)*Eavchannel(idc,0),
      +        in*Eavchannel(idc,1),ip*Eavchannel(idc,2),
      +        id*Eavchannel(idc,3),it*Eavchannel(idc,4),
      +        ih*Eavchannel(idc,5),ia*Eavchannel(idc,6)
+            write(*,'(/" Available energy:",f10.5)') 
+     +        Qexcl(idc,0)+eninccm
+            write(*,'(" Emission energy :",f10.5)') Especsum(idc)
             write(*,'(/" Check of integrated emission spectra:")')
-            write(*,'(" Cross section (x multiplicity)    =",1p,e12.5)')
-     +        npart*xschannel(idc)
+            if (npart.eq.0) then
+              write(*,'(" Cross section (x multiplicity)    =",
+     +          1p,e12.5)') gmult(idc)*xschannel(idc)
+            else
+              write(*,'(" Cross section (x multiplicity)    =",
+     +          1p,e12.5)') npart*xschannel(idc)
+            endif
             write(*,'(" Integrated spectra + discrete c.s.=",1p,e12.5)')
      +        emissum
           endif

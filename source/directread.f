@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Eric Bauge
-c | Date  : October 18, 2007
+c | Date  : August 24, 2009
 c | Task  : Read ECIS results for direct cross section
 c +---------------------------------------------------------------------
 c
@@ -21,6 +21,7 @@ c Zindex,Zix      : charge number index for residual nucleus
 c Nindex,Nix      : neutron number index for residual nucleus
 c Nlast,NL        : last discrete level
 c numlev2         : maximum number of levels
+c Ltarget         : excited level of target
 c deform          : deformation parameter 
 c eoutdis         : outgoing energy of discrete state reaction
 c edis,levelenergy: energy of level
@@ -42,7 +43,7 @@ c
 c 1. Direct collective states
 c 
         do 20 i=0,numlev2
-          if (i.eq.0.and.type.eq.k0) goto 20               
+          if (i.eq.Ltarget.and.type.eq.k0) goto 20               
           if (deform(Zix,Nix,i).eq.0.) goto 20
           if (eoutdis(type,i).le.0.) goto 20 
           levelenergy=edis(Zix,Nix,i)

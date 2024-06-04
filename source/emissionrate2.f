@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 22, 2005
+c | Date  : August 1, 2008
 c | Task  : Two-component emission rates for exciton model
 c +---------------------------------------------------------------------
 c
@@ -13,8 +13,9 @@ c
       integer Zcomp,Ncomp,ppi,hpi,pnu,hnu,n,h,type,Zix,Nix,zejec,nejec,
      +        nen,nen1,ppires,pnures
       real    gsp,gsn,gs,damp,ignatyuk,edepth,U,preeqpair,phcomp,
-     +        phdens2,Ewell,Eout,xs,factor,Eres,phres1,phres2,g2E,
-     +        branchplus,branchzero,phratio,Ures,phres,Emax,dE
+     +        wemissum2(0:numparx,0:numparx,0:numparx,0:numparx,
+     +        0:numen),phdens2,Ewell,Eout,xs,factor,Eres,phres1,phres2,
+     +        g2E,branchplus,branchzero,phratio,Ures,phres,Emax,dE
 c
 c *************************** Emission rates ***************************
 c
@@ -51,6 +52,7 @@ c wemispart2 : two-component emission rate per particle and exciton
 c              number 
 c wemission2 : two-component emission rate per particle, exciton 
 c              number and energy
+c wemissum2  : two-component emission rate per exciton number and energy
 c parskip    : logical to skip outgoing particle
 c Zindex,Zix : charge number index for residual nucleus
 c Nindex,Nix : neutron number index for residual nucleus
@@ -84,14 +86,18 @@ c
         edepth=Efermi
       endif             
       U=Ecomp-preeqpair(Zcomp,Ncomp,n,Ecomp,pairmodel)
-      phcomp=phdens2(ppi,hpi,pnu,hnu,gsp,gsn,U,edepth,surfwell)
+      phcomp=phdens2(Zcomp,Ncomp,ppi,hpi,pnu,hnu,gsp,gsn,U,edepth,
+     +  surfwell)
       wemistot2(ppi,hpi,pnu,hnu)=0.
-      do 10 type=0,6
+      do 10 nen=0,numen
+        wemissum2(ppi,hpi,pnu,hnu,nen)=0.
+   10 continue
+      do 20 type=0,6
         wemispart2(type,ppi,hpi,pnu,hnu)=0.
-        do 20 nen=0,numen
+        do 30 nen=0,numen
           wemission2(type,ppi,hpi,pnu,hnu,nen)=0.
-   20   continue
-        if (parskip(type)) goto 10
+   30   continue
+        if (parskip(type)) goto 20
         Zix=Zindex(Zcomp,Ncomp,type)
         Nix=Nindex(Zcomp,Ncomp,type)           
         gsp=gp(Zix,Nix)
@@ -103,8 +109,8 @@ c
         else
           Ewell=edepth
         endif
-        if (phcomp.le.1.e-10) goto 10
-        do 30 nen=ebegin(type),eend(type)
+        if (phcomp.le.1.e-10) goto 20
+        do 40 nen=ebegin(type),eend(type)
           Eout=egrid(nen)
           xs=xsreac(type,nen)
           factor=wfac(type)*xs*Eout
@@ -118,7 +124,7 @@ c Check if outgoing energy exceeds maximal possible energy
 c
           if (Eres.lt.0.) then
             nen1=nen-1
-            goto 40
+            goto 50
           endif
           if (flaggshell) then
             damp=ignatyuk(Zix,Nix,Eres,0)/alev(Zix,Nix)
@@ -146,10 +152,12 @@ c
               U=max(Eres-preeqpair(Zcomp,Ncomp,n,Eres,pairmodel),
      +          preeqpair(Zcomp,Ncomp,n,Eres,pairmodel))
               surfgam=.false.           
-              phres1=0.5*
-     +          (phdens2(ppi-1,hpi-1,pnu,hnu,gsp,gsn,U,Efermi,surfgam)+
-     +          phdens2(ppi,hpi,pnu-1,hnu-1,gsp,gsn,U,Efermi,surfgam))
-              phres2=phdens2(ppi,hpi,pnu,hnu,gsp,gsn,U,Efermi,surfgam)
+              phres1=0.5*(phdens2(Zcomp,Ncomp,ppi-1,hpi-1,pnu,hnu,
+     +          gsp,gsn,U,Efermi,surfgam)+
+     +          phdens2(Zcomp,Ncomp,ppi,hpi,pnu-1,hnu-1,
+     +            gsp,gsn,U,Efermi,surfgam))
+              phres2=phdens2(Zcomp,Ncomp,ppi,hpi,pnu,hnu,
+     +          gsp,gsn,U,Efermi,surfgam)
               g2E=gs*gs*Eout
               if (n.ge.2) then
                 branchplus=g2E/(gs*(n-2)+g2E)
@@ -159,6 +167,8 @@ c
               branchzero=gs*n/(gs*n+g2E)
               phratio=(branchplus*phres1+branchzero*phres2)/phcomp
               wemission2(type,ppi,hpi,pnu,hnu,nen)=Rgamma*factor*phratio
+              wemissum2(ppi,hpi,pnu,hnu,nen)=
+     +          wemission2(type,ppi,hpi,pnu,hnu,nen)
             endif
           else
 c
@@ -169,13 +179,16 @@ c phres        : particle-hole state density for residual system
 c
             ppires=ppi-zejec
             pnures=pnu-nejec
-            if (ppires.lt.0.or.pnures.lt.0.or.h.eq.0) goto 30
+            if (ppires.lt.0.or.pnures.lt.0.or.h.eq.0) goto 40
             Ures=max(Eres-preeqpair(Zix,Nix,n,Eres,pairmodel),
      +        preeqpair(Zix,Nix,n,Eres,pairmodel))
-            phres=phdens2(ppires,hpi,pnures,hnu,gsp,gsn,Ures,Ewell,
-     +        surfwell)
+            phres=phdens2(Zix,Nix,ppires,hpi,pnures,hnu,
+     +        gsp,gsn,Ures,Ewell,surfwell)
             phratio=phres/phcomp
             wemission2(type,ppi,hpi,pnu,hnu,nen)=factor*phratio
+            wemissum2(ppi,hpi,pnu,hnu,nen)=
+     +        wemissum2(ppi,hpi,pnu,hnu,nen)+
+     +        wemission2(type,ppi,hpi,pnu,hnu,nen)
           endif
 c
 c *** Integration of emission rates over all energies and particles ****
@@ -185,23 +198,40 @@ c
           wemispart2(type,ppi,hpi,pnu,hnu)=
      +      wemispart2(type,ppi,hpi,pnu,hnu)+
      +      wemission2(type,ppi,hpi,pnu,hnu,nen)*deltaE(nen)
-   30   continue
-        goto 50
+   40   continue
+        goto 60
 c
 c Correction in integration for last outgoing energy.
 c
 c Emax: maximal outgoing energy
 c dE  : extra part for energy integration
 c
-   40   Eout=egrid(nen1)
+   50   Eout=egrid(nen1)
         Emax=Ecomp-S(Zcomp,Ncomp,type)
         dE=Emax-(Eout+0.5*deltaE(nen1))
         wemispart2(type,ppi,hpi,pnu,hnu)=
      +    wemispart2(type,ppi,hpi,pnu,hnu)+
      +    wemission2(type,ppi,hpi,pnu,hnu,nen1)*dE
-   50   wemistot2(ppi,hpi,pnu,hnu)=wemistot2(ppi,hpi,pnu,hnu)+
+   60   wemistot2(ppi,hpi,pnu,hnu)=wemistot2(ppi,hpi,pnu,hnu)+
      +    wemispart2(type,ppi,hpi,pnu,hnu)
-   10 continue
+   20 continue
+c
+c Prevent divergence of pre-equilibrium gamma cross sections in case
+c of absence of particle competition.
+c
+c
+      if (n.gt.1) then
+        if (wemistot2(ppi,hpi,pnu,hnu).eq.wemispart2(0,ppi,hpi,pnu,hnu))
+     +    then
+          wemistot2(ppi,hpi,pnu,hnu)=0.
+          wemispart2(0,ppi,hpi,pnu,hnu)=0.
+        endif
+        do 110 nen=0,numen
+          if (wemissum2(ppi,hpi,pnu,hnu,nen).eq.
+     +      wemission2(0,ppi,hpi,pnu,hnu,nen))
+     +      wemission2(0,ppi,hpi,pnu,hnu,nen)=0.
+  110   continue
+      endif
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

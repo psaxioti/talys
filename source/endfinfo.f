@@ -2,13 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 27, 2006
+c | Date  : September 23, 2009
 c | Task  : Info for ENDF-6 file           
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      logical      flagel
       character*1  yesno
       character*40 endfenergyfile
       integer      nen
@@ -29,6 +30,7 @@ c nlevmax    : maximum number of included discrete levels for target
 c energyfile : file with incident energies 
 c yesno      : y or n function
 c flagendfdet: flag for detailed ENDF-6 information per channel
+c Nrescue    : number of energies for adjustment factors
 c
       open (unit=1,status='unknown',file='tefal.inf')
       write(1,'(i3,"       : projectile type")') k0
@@ -50,6 +52,13 @@ c
       write(1,'(a40,": file with incident energies")') endfenergyfile
       write(1,'(a1,"         : detailed ENDF-6 information",
      + " per channel")') yesno(flagendfdet)
+      if (Nrescue(1).ne.0) then
+        flagel=.false.
+      else
+        flagel=.true.
+      endif
+      write(1,'(a1,"         : keep elastic cross section",
+     + " in normalization")') yesno(flagel)
       close (unit=1)
       return
       end

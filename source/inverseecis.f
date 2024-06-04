@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 17, 2007
+c | Date  : August 5, 2009
 c | Task  : ECIS calculation for outgoing particles and energy grid
 c +---------------------------------------------------------------------
 c
@@ -299,14 +299,17 @@ c
 c
 c ******************* Write ECIS input file ****************************
 c
+c soswitch : switch for deformed spin-orbit calculation and sequential 
+c            iterations in ECIS
 c coulbar  : Coulomb barrier  
 c ecisinput: subroutine to create ECIS input file
 c
-c For rotational nuclei, the switch at 3 MeV needs to be made according
-c to Pascal Romain.
+c For rotational nuclei, the switch at soswitch MeV needs to be made 
+c according to Pascal Romain.
 c
           if (colltype(Zix,Nix).eq.'R'.and.flagrot(type)) then
-            if (e.le.3.) then
+            if ((type.eq.1.and.e.le.soswitch).or.
+     +        (type.gt.1.and.e.le.coulbar(type))) then
               ecis1(13:13)='F'
               ecis1(21:21)='T'
               ecis1(42:42)='T'

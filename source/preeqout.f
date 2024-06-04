@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 4, 2006   
+c | Date  : August 1, 2008
 c | Task  : Output of pre-equilibrium cross sections
 c +---------------------------------------------------------------------
 c
@@ -58,7 +58,7 @@ c
           if (flaggshell) gs=gs*ignatyuk(Zix,Nix,Eex,0)/alev(0,0)
           write(*,'(1x,3f7.3,1p,8e10.3)') Eex,
      +      preeqpair(Zix,Nix,3,Eex,pairmodel),gs,
-     +      ((phdens(h+k,h,gs,Eex,Efermi,surfwell),k=0,1),h=1,4)
+     +      ((phdens(Zix,Nix,h+k,h,gs,Eex,Efermi,surfwell),k=0,1),h=1,4)
    10   continue
       else
         write(*,'(/" Particle-hole state densities",/)')
@@ -77,15 +77,15 @@ c
           endif
           write(*,'(1x,4f7.3,1p,9e10.3)') Eex,
      +      preeqpair(Zix,Nix,3,Eex,pairmodel),gsp,gsn,
-     +      phdens2(1,1,0,0,gsp,gsn,Eex,Efermi,surfwell),
-     +      phdens2(0,0,1,1,gsp,gsn,Eex,Efermi,surfwell),
-     +      phdens2(1,1,1,0,gsp,gsn,Eex,Efermi,surfwell),
-     +      phdens2(1,0,1,1,gsp,gsn,Eex,Efermi,surfwell),
-     +      phdens2(2,1,0,0,gsp,gsn,Eex,Efermi,surfwell),
-     +      phdens2(0,0,2,1,gsp,gsn,Eex,Efermi,surfwell),
-     +      phdens2(2,2,0,0,gsp,gsn,Eex,Efermi,surfwell),
-     +      phdens2(0,0,2,2,gsp,gsn,Eex,Efermi,surfwell),
-     +      phdens2(1,1,1,1,gsp,gsn,Eex,Efermi,surfwell)
+     +      phdens2(Zix,Nix,1,1,0,0,gsp,gsn,Eex,Efermi,surfwell),
+     +      phdens2(Zix,Nix,0,0,1,1,gsp,gsn,Eex,Efermi,surfwell),
+     +      phdens2(Zix,Nix,1,1,1,0,gsp,gsn,Eex,Efermi,surfwell),
+     +      phdens2(Zix,Nix,1,0,1,1,gsp,gsn,Eex,Efermi,surfwell),
+     +      phdens2(Zix,Nix,2,1,0,0,gsp,gsn,Eex,Efermi,surfwell),
+     +      phdens2(Zix,Nix,0,0,2,1,gsp,gsn,Eex,Efermi,surfwell),
+     +      phdens2(Zix,Nix,2,2,0,0,gsp,gsn,Eex,Efermi,surfwell),
+     +      phdens2(Zix,Nix,0,0,2,2,gsp,gsn,Eex,Efermi,surfwell),
+     +      phdens2(Zix,Nix,1,1,1,1,gsp,gsn,Eex,Efermi,surfwell)
    20   continue
       endif
       write(*,'(/" Particle-hole spin distributions"/)')

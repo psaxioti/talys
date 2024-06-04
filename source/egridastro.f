@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author  : Stephane Goriely
-c | Date    : October 4, 2007
+c | Date    : May 17, 2009
 c | Task    : Calculate default incident energy grid for astrophysical 
 c |           rate
 c +---------------------------------------------------------------------
@@ -131,11 +131,11 @@ c
       if (nen.gt.numenin+2) then
         write(*,*) 'Astro-warning: too many energy points'
         nen=numenin+2
+        goto 200
       endif
       eninc(nen)=e*acm
       goto 110
-  200 continue
-      numinc=nen 
+  200 numinc=nen 
 c
 c The minimum and maximum value of all the incident energies is
 c determined.

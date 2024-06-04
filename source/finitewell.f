@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : September 2, 2004
+c | Date  : August 11, 2008
 c | Task  : Correction for finite well depth
 c +---------------------------------------------------------------------
 c
@@ -12,7 +12,7 @@ c
       logical surfwell
       integer p,h,n,jbin,jwell,k
       real    finitewell,Eex,Ewell,widthdis,wtsum,fwtsum,Ewellj,x,wtinv,
-     +        wt,fwell,factor
+     +        wt,fwell,E,factor
 c
 c ********************** Finite well correction ************************
 c
@@ -50,23 +50,22 @@ c
 c Kalbach surface effects
 c
       if (surfwell.and.Ewell.lt.(Efermi-0.5)) then
-        widthdis=Ewell*(Efermi-Ewell)/(2.*Efermi)
         if (p.eq.0.and.h.eq.1) then
           if (Eex.gt.1.16*Efermi) then
             finitewell=0.
             return
           endif
-          if (Eex.lt.Ewell) then
-            finitewell=1.
-            return
-          endif
+          if (Eex.lt.Ewell) return
+          widthdis=Ewell*(Efermi-Ewell)/(2.*Efermi)
           finitewell=1./(1.+exp((Eex-Ewell)/widthdis))
         else
+          widthdis=Ewell*(Efermi-Ewell)/(2.*Efermi)
           jbin=4
           wtsum=0.
           fwtsum=0.
           do 20 jwell=-jbin,jbin
             Ewellj=Ewell+jwell*widthdis
+            if (Ewellj.gt.Efermi.or.Ewellj.lt.0.) goto 20
             x=(Ewellj-Ewell)/widthdis
             if (x.le.80.) then
               wtinv=(1.+exp(x))*(1.+exp(-x))
@@ -74,11 +73,13 @@ c
             else
               wt=0.
             endif
-            if (Ewellj.gt.Efermi.or.Ewellj.lt.0.) goto 20
             fwell=0.
             do 10 k=0,h
-              if (Eex-k*Ewellj.gt.0.) fwell=fwell+
-     +          sgn(k)*ncomb(h,k)*((Eex-k*Ewellj)/Eex)**(n-1)
+              E=Eex-k*Ewellj
+              if (E.gt.0.) then
+                factor=(E/Eex)**(n-1)
+                fwell=fwell+sgn(k)*ncomb(h,k)*factor
+              endif
  10         continue
             wtsum=wtsum+wt
             fwtsum=fwtsum+wt*fwell
@@ -92,8 +93,9 @@ c
         if (Eex.le.Ewell) return
         if (h.eq.1.and.n.eq.1) return
         do 30 k=1,h
-          if (Eex-k*Ewell.gt.0.) then
-            factor=((Eex-k*Ewell)/Eex)**(n-1)
+          E=Eex-k*Ewell
+          if (E.gt.0.) then
+            factor=(E/Eex)**(n-1)
             finitewell=finitewell+sgn(k)*ncomb(h,k)*factor
           endif
  30     continue

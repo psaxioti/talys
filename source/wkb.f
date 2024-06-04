@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Roberto Capote, Arjan Koning, and Stephane Goriely
-c | Date  : November 13, 2007
+c | Date  : December 18, 2009
 c | Task  : Initialization of WKB approximation for fission
 c +---------------------------------------------------------------------
 c
@@ -13,7 +13,7 @@ c
       integer Z,A,nbar,nbarr,i,j,n1,Find_Extrem,Zix,Nix,ii
       real    rmiu,centr,heigth,width,ucentr,uheigth,uwidth,uexc0,uexc1,
      +        tdir,dE,uexc,phase(2*numbar),tff(2*numbar)
-      character*50 filewkb
+      character*9 filewkb
 c
 c ******* Finding maxima and minima of the deformation energy curve ****
 c
@@ -26,7 +26,8 @@ c initializes iiextr() and nextr
       nbar=nbarr
 c     nwell = nextr/2 
 c     Fitting parabola
-      write(filewkb,'("wkb",i3.3,i3.3)') Z,A
+      filewkb='         '
+      write(filewkb,'("wkb",2i3.3)') Z,A
       if (flagfisout) then
         open (unit=22,status='unknown',file=filewkb)
         write(22,'("Z=",i3," A=",i3)') Z,A
@@ -82,13 +83,13 @@ C==================================================================
 C
 C     ENERGY LOOP
 C
-      n1=3*nbins/4
+      n1=3*nbinswkb/4
       uexc=0.
       Uwkb(Zix,Nix,0)=0.
       do j=1,nbar
         Twkb(Zix,Nix,0,j)=0.
       enddo
-      do i=1,nbins
+      do i=1,nbinswkb
         if (i.le.n1) then
           dE=uexc1/n1
         else
@@ -103,7 +104,7 @@ C
      &      i,uexc,j,Twkb(Zix,Nix,i,j)
         enddo
       enddo
-      if (flagfisout) close(22)
+      if (flagfisout) close (22)
       END
 
 C===================================================================

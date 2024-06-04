@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 29, 2007
+c | Date  : February 10, 2009
 c | Task  : Normalization of compound nucleus cross section
 c +---------------------------------------------------------------------
 c
@@ -162,13 +162,13 @@ c
       if (flagcheck) then
         write(*,'(/" ++++++++++ Normalization of reaction cross",
      +    " section ++++++++++"/)')
-        write(*,'(" Reaction cross section          :",f11.5," (A)")') 
+        write(*,'(" Reaction cross section          :",f15.5," (A)")') 
      +    xsreacinc
-        write(*,'(" Sum over T(j,l)                 :",f11.5," (B)")') 
+        write(*,'(" Sum over T(j,l)                 :",f15.5," (B)")') 
      +    xsreacsum
-        write(*,'(" Compound nucleus formation c.s. :",f11.5," (C)")') 
+        write(*,'(" Compound nucleus formation c.s. :",f15.5," (C)")') 
      +    xsflux
-        write(*,'(" Ratio C/B                       :",f11.5)') 
+        write(*,'(" Ratio C/B                       :",f15.5)') 
      +    cfratio
       endif
       return

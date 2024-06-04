@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : December 17, 2007
+c | Date  : May 19, 2009
 c | Task  : Read input for third set of variables
 c +---------------------------------------------------------------------
 c
@@ -21,6 +21,7 @@ c
 c flageciscalc: flag for new ECIS calculation for outgoing particles
 c               and energy grid
 c flaginccalc : flag for new ECIS calculation for incident channel
+c flagendfecis: flag for new ECIS calculation for ENDF-6 files     
 c flagrel     : flag for relativistic kinematics
 c flagcomp    : flag for compound nucleus calculation
 c flagfullhf  : flag for full spin dependence of transmission
@@ -37,6 +38,7 @@ c maxband     : highest vibrational level added to rotational model
 c maxrot      : number of included excited rotational levels
 c k0          : index for incident particle
 c strength    : model for E1 gamma-ray strength function
+c strengthM1  : model for M1 gamma-ray strength function
 c flagpecomp  : flag for Kalbach complex particle emission model 
 c flagsurface : flag for surface effects in exciton model
 c flaggiant0  : flag for collective contribution from giant resonances
@@ -46,6 +48,7 @@ c flagfission : flag for fission
 c Atarget     : mass number of target nucleus
 c ldmodel     : level density model
 c flagparity  : flag for non-equal parity distribution
+c flaghbstate : flag for head band states in fission
 c flagclass2  : flag for class2 states in fission
 c flagbasic   : flag for output of basic information and results
 c flageciscomp: flag for compound nucleus calculation by ECIS
@@ -86,9 +89,12 @@ c flagastrogs : flag for calculation of astrophysics reaction rate
 c               with target in ground state only
 c flagexpmass : flag for using experimental nuclear mass if available
 c flagjlm     : flag for using semi-microscopic JLM OMP 
+c flagomponly : flag to execute ONLY an optical model calculation
+c flagmicro   : flag for completely microscopic Talys calculation
 c
       flageciscalc=.true.
       flaginccalc=.true.
+      flagendfecis=.true.
       flagrel=.true.
       flagcomp=.true.
       flagfullhf=.false.
@@ -111,6 +117,7 @@ c
         flagpecomp=.false.
         flagsurface=.false.
       endif
+      strengthM1=2
       if (k0.eq.1.or.k0.eq.2) then
         flaggiant0=.true.
       else
@@ -129,7 +136,8 @@ c
       else
         flagparity=.false.
       endif
-      flagclass2=.false.
+      flaghbstate=.true.
+      flagclass2=.true.
       flagbasic=.false.
       flageciscomp=.false.
       flagecisdwba=.true.
@@ -148,13 +156,10 @@ c
       do 20 type=0,6
         flagsys(type)=.false.
    20 continue   
-      flagrot(0)=.false.
-      do 30 type=1,2
-        flagrot(type)=.true.
-   30 continue   
-      do 40 type=3,6
+      do 30 type=0,6
         flagrot(type)=.false.
-   40 continue   
+   30 continue   
+      if (k0.eq.1.or.k0.eq.2) flagrot(k0)=.true.
       flagasys=.false.
       flaggshell=.false.
       flagmassdis=.false.
@@ -174,6 +179,17 @@ c
       flagastrogs=.false.
       flagexpmass=.true.
       flagjlm=.false.
+      if (flagomponly) then
+        flagcomp=.false.
+        epreeq=250.
+        emulpre=250.
+        flaggiant0=.false.
+      endif
+      if (flagmicro) then
+        strength=3
+        flagautorot=.true.
+        flagjlm=.true.
+      endif
 c
 c **************** Read third set of input variables *******************
 c
@@ -214,6 +230,10 @@ c
           read(value,*,end=300,err=300) strength
           goto 110
         endif
+        if (key.eq.'strengthM1') then
+          read(value,*,end=300,err=300) strengthM1
+          goto 110
+        endif
         if (key.eq.'eciscalc') then
           if (ch.eq.'n') flageciscalc=.false.
           if (ch.eq.'y') flageciscalc=.true.
@@ -223,6 +243,12 @@ c
         if (key.eq.'inccalc') then
           if (ch.eq.'n') flaginccalc=.false.
           if (ch.eq.'y') flaginccalc=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
+        if (key.eq.'endfecis') then
+          if (ch.eq.'n') flagendfecis=.false.
+          if (ch.eq.'y') flagendfecis=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif
@@ -313,6 +339,12 @@ c
         if (key.eq.'fission') then
           if (ch.eq.'n') flagfission=.false.
           if (ch.eq.'y') flagfission=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
+        if (key.eq.'hbstate') then
+          if (ch.eq.'n') flaghbstate=.false.
+          if (ch.eq.'y') flaghbstate=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
           goto 110
         endif

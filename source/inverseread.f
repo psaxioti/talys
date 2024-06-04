@@ -89,7 +89,7 @@ c
 c For rotational nuclei, the rotational transmission 
 c coefficients are transformed into into spherical equivalents.
 c
-      open(unit=7,status='unknown',file=transfile)
+      open (unit=7,status='unknown',file=transfile)
       do 110 type=1,6
         if (parskip(type)) goto 110
         Zix=Zindex(Zcomp,Ncomp,type)

@@ -1,8 +1,9 @@
       subroutine colenhance(Zix,Nix,Eex,ald,ibar,Krot,Kvib,Kcoll)
 c
 c +---------------------------------------------------------------------
-c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : October 5, 2007
+c | Author: Marieke Duijvestijn, Arjan Koning, Stephane Hilaire,
+c |         Stephane Goriely and Pascal Romain
+c | Date  : May 25, 2009
 c | Task  : Collective enhancement
 c +---------------------------------------------------------------------
 c
@@ -11,11 +12,11 @@ c
       include "talys.cmb"
       integer Zix,Nix,ibar,A,l
       real    Eex,ald,Krot,Kvib,Kcoll,Krot0,Kvib0,U,aldgs,ignatyuk,Temp,
-     +        avib,Pvib,Tvib,deltaS,deltaU,Cvib,term,omegavib(3),
-     +        gammavib,nvib,damper,expo0,expo,spincutgs,spincutbf,
-     +        spincut,aldf
+     +        rotfactor,aldint,damprot,avib,Pvib,Tvib,deltaS,deltaU,
+     +        Cvib,term,omegavib(3),gammavib,nvib,damper,expo0,expo,
+     +        spincutgs,spincutbf,spincut,aldf
 c
-c **************** Collective enhancement for fission  *****************
+c ************************ Collective enhancement **********************
 c
 c Zix      : charge number index for residual nucleus
 c Nix      : neutron number index for residual nucleus
@@ -52,6 +53,48 @@ c
       endif
       Temp=sqrt(U/aldgs)
 c
+c 1. Specfic collective enhancement for Bruyeres-le-Chatel 
+c    (Pascal Romain) fission model
+c
+c fismodel    : fission model
+c flagcolldamp: flag for damping of collective effects in effective
+c               level density (without explicit collective enhancement)
+c               Only used for Bruyeres-le-Chatel (Pascal Romain) fission
+c               model
+c axtype      : type of axiality of barrier 
+c               1: axial symmetry
+c               2: left-right asymmetry
+c               3: triaxial and left-right symmetry
+c               4: triaxial no left-right symmetry
+c               5: no symmetry
+c Krotconstant: normalization constant for rotational enhancement
+c damprot     : damping factor for rotational enhancement
+c rotfactor   : rotational enhancement factor
+c aldint      : level density parameter
+c
+      if (fismodel.eq.1.and.flagcolldamp) then
+        if (ibar.eq.0) return
+c
+c Tri-axial barrier
+c
+        if (axtype(Zix,Nix,ibar).eq.2) then
+          aldint=ald*8./13.5
+          rotfactor=Krotconstant(Zix,Nix,ibar)*(U/aldint)**(0.25)
+        else
+c
+c Axial and other barriers
+c
+          rotfactor=max(Krotconstant(Zix,Nix,ibar),1.)
+        endif
+c
+c Damping of enhancement
+c
+        damprot=1./(1.+exp(-0.5*(U-18.)))
+        Krot=rotfactor*(1.-damprot)+damprot
+      else
+c
+c 2. Default calculation
+c
 c Calculation of Kvib     
 c
 c AA,A     : mass number of residual nucleus
@@ -72,47 +115,47 @@ c l        : multipolarity
 c nvib     : occupation number
 c pi2      : pi**2
 c
-      A=AA(Zix,Nix,0)
+        A=AA(Zix,Nix,0)
 c
 c Kvibmodel 1:  Liquid drop
 c
-      avib=A/13.
-      Pvib=pair(Zix,Nix)
-      if (Eex.gt.Pvib) then
-        Tvib=sqrt((Eex-Pvib)/avib)
-      else
-        Tvib=0.
-      endif
-      if (Tvib.gt.0.) then
-        if (kvibmodel.eq.1) then
-          expo=min(0.0555*(A**twothird)*(Tvib**(4./3.)),80.)
-          Kvib0=exp(expo)
+        avib=A/13.
+        Pvib=pair(Zix,Nix)
+        if (Eex.gt.Pvib) then
+          Tvib=sqrt((Eex-Pvib)/avib)
         else
+          Tvib=0.
+        endif
+        if (Tvib.gt.0.) then
+          if (kvibmodel.eq.1) then
+            expo=min(0.0555*(A**twothird)*(Tvib**(4./3.)),80.)
+            Kvib0=exp(expo)
+          else
 c
 c Kvibmodel 2: Bose gas
 c
 c In this case, Kvib is automatically damped at high energies
 c
-          deltaS=0.
-          deltaU=0.
-          Cvib=0.0075*(A**onethird)
-          term=A**(-5./6.)/(1.+0.05*deltaW(Zix,Nix,ibar))
-          omegavib(2)=65.*term
-          omegavib(3)=100.*term
-          do 10 l=2,3
-            gammavib=Cvib*(omegavib(l)**2+4.*pi2*Tvib**2)
-            expo0=gammavib/(2.*omegavib(l))
-            expo=omegavib(l)/Tvib
-            if (expo0.le.80.and.expo.gt.0..and.expo.le.80.) then
-              nvib=exp(-expo0)/(exp(expo)-1.)
-              deltaS=deltaS+(2*l+1)*
-     +          ((1.+nvib)*log(1.+nvib)-nvib*log(nvib))
-              deltaU=deltaU+(2*l+1)*omegavib(l)*nvib
-            endif
-   10     continue
-          Kvib0=exp(deltaS-deltaU/Tvib)
+            deltaS=0.
+            deltaU=0.
+            Cvib=0.0075*(A**onethird)
+            term=A**(-5./6.)/(1.+0.05*deltaW(Zix,Nix,ibar))
+            omegavib(2)=65.*term
+            omegavib(3)=100.*term
+            do 10 l=2,3
+              gammavib=Cvib*(omegavib(l)**2+4.*pi2*Tvib**2)
+              expo0=gammavib/(2.*omegavib(l))
+              expo=omegavib(l)/Tvib
+              if (expo0.le.80.and.expo.gt.0..and.expo.le.80.) then
+                nvib=exp(-expo0)/(exp(expo)-1.)
+                deltaS=deltaS+(2*l+1)*
+     +            ((1.+nvib)*log(1.+nvib)-nvib*log(nvib))
+                deltaU=deltaU+(2*l+1)*omegavib(l)*nvib
+              endif
+   10       continue
+            Kvib0=exp(deltaS-deltaU/Tvib)
+          endif
         endif
-      endif
 c
 c Calculation of damping function and Krot
 c
@@ -123,17 +166,16 @@ c cfermi      : width of Fermi distribution for damping of ground-state
 c               rotational effects
 c spincutgs   : spin-cutoff parameter squared (perpendicular projection)
 c               for ground state
-c Krotconstant: normalization constant for rotational enhancement
 c Irigid      : rigid body value of moment of inertia
 c
 c Ground state
 c
-      if (ibar.eq.0) then
-        damper=0.
-        expo=(U-Ufermi)/cfermi
-        if (expo.le.80.) damper=1./(1.+exp(expo))
-        spincutgs=Krotconstant(Zix,Nix,0)*Irigid(Zix,Nix,0)*Temp
-        Krot0=max(spincutgs,1.)
+        if (ibar.eq.0) then
+          damper=0.
+          expo=(U-Ufermi)/cfermi
+          if (expo.le.80.) damper=1./(1.+exp(expo))
+          spincutgs=Krotconstant(Zix,Nix,0)*Irigid(Zix,Nix,0)*Temp
+          Krot0=max(spincutgs,1.)
 c
 c Fission barrier
 c
@@ -143,38 +185,33 @@ c cfermibf : width of Fermi distribution for damping of barrier
 c          : rotational effects      
 c spincutbf: spin-cutoff parameter squared (perpendicular projection)
 c            for fission barrier
-c axtype   : type of axiality of barrier 
-c               1: axial symmetry
-c               2: left-right asymmetry
-c               3: triaxial and left-right symmetry
-c               4: triaxial no left-right symmetry
-c               5: no symmetry
 c twopi    : 2.*pi
 c spincut  : spin cutoff factor
 c
-      else
-        damper=0.
-        expo=(U-Ufermibf)/cfermibf
-        if (expo.le.80.) damper=1./(1.+exp(expo))
-        spincutbf=Krotconstant(Zix,Nix,ibar)*Irigid(Zix,Nix,ibar)*
-     +    Temp
-        if (axtype(Zix,Nix,ibar).eq.1) Krot0=spincutbf
-        if (axtype(Zix,Nix,ibar).eq.2) Krot0=2.*spincutbf
-        if (axtype(Zix,Nix,ibar).ge.3) then
-          aldf=ignatyuk(Zix,Nix,Eex,ibar) 
-          term=spincutbf*sqrt(spincut(Zix,Nix,aldf,Eex,ibar)*
-     +      (1.-twothird*abs(beta2(Zix,Nix,ibar))))
-          if (axtype(Zix,Nix,ibar).eq.3) Krot0=0.5*sqrt(twopi)*term
-          if (axtype(Zix,Nix,ibar).eq.4) Krot0=sqrt(twopi)*term
-          if (axtype(Zix,Nix,ibar).eq.5) Krot0=2.*sqrt(twopi)*term
+        else
+          damper=0.
+          expo=(U-Ufermibf)/cfermibf
+          if (expo.le.80.) damper=1./(1.+exp(expo))
+          spincutbf=Krotconstant(Zix,Nix,ibar)*Irigid(Zix,Nix,ibar)*
+     +      Temp
+          if (axtype(Zix,Nix,ibar).eq.1) Krot0=spincutbf
+          if (axtype(Zix,Nix,ibar).eq.2) Krot0=2.*spincutbf
+          if (axtype(Zix,Nix,ibar).ge.3) then
+            aldf=ignatyuk(Zix,Nix,Eex,ibar) 
+            term=spincutbf*sqrt(spincut(Zix,Nix,aldf,Eex,ibar)*
+     +        (1.-twothird*abs(beta2(Zix,Nix,ibar))))
+            if (axtype(Zix,Nix,ibar).eq.3) Krot0=0.5*sqrt(twopi)*term
+            if (axtype(Zix,Nix,ibar).eq.4) Krot0=sqrt(twopi)*term
+            if (axtype(Zix,Nix,ibar).eq.5) Krot0=2.*sqrt(twopi)*term
+          endif
+          Krot0=max(Krot0,1.)
         endif
-        Krot0=max(Krot0,1.)
-      endif
-      Krot=1.+(Krot0-1.)*damper
-      if (kvibmodel.eq.1) then
-        Kvib=1.+(Kvib0-1.)*damper
-      else
-        Kvib=Kvib0
+        Krot=1.+(Krot0-1.)*damper
+        if (kvibmodel.eq.1) then
+          Kvib=1.+(Kvib0-1.)*damper
+        else
+          Kvib=Kvib0
+        endif
       endif
       Kcoll=max(Krot*Kvib,1.)
       return

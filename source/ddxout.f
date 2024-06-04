@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : May 1, 2007
+c | Date  : May 22, 2009
 c | Task  : Output of double-differential cross sections
 c +---------------------------------------------------------------------
 c
@@ -35,6 +35,8 @@ c xscompoutad  : compound emission angular distribution
 c ddxecount    : counter for double-differential cross section files
 c fileddxe     : designator for double-differential cross sections on
 c                separate file: angular distribution
+c natstring    : string extension for file names
+c iso          : counter for isotope
 c locate       : subroutine to find value in ordered table
 c deltaE       : energy bin around outgoing energies  
 c parsym       : symbol of particle 
@@ -67,7 +69,7 @@ c
             enf=fileddxe(type,i)
             call locate(Eo,ebegin(type),eendout(type),enf,nen)
             fac=(enf-Eo(nen))/deltaE(nen)
-            ddxfile=' ddx000_0.mev'
+            ddxfile=' ddx000_0.mev'//natstring(iso)
             write(ddxfile(1:1),'(a1)') parsym(type)
             write(ddxfile(5:9),'(f5.1)') enf
             write(ddxfile(5:7),'(i3.3)') int(enf)
@@ -124,7 +126,7 @@ c
               enf=fileddxe(type,i)
               call locate(Eo,1,iejlab(type),enf,nen)
               fac=(enf-Eo(nen))/deltaE(nen)
-              ddxfile=' ddx000_0.lab'
+              ddxfile=' ddx000_0.lab'//natstring(iso)
               write(ddxfile(1:1),'(a1)') parsym(type)
               write(ddxfile(5:9),'(f5.1)') enf
               write(ddxfile(5:7),'(i3.3)') int(enf)
@@ -178,7 +180,7 @@ c
             angf=fileddxa(type,i)
             call locate(anglecont,0,nanglecont,angf,iang)
             fac=(angf-anglecont(iang))/anginc
-            ddxfile=' ddx000_0.deg'
+            ddxfile=' ddx000_0.deg'//natstring(iso)
             write(ddxfile(1:1),'(a1)') parsym(type)
             write(ddxfile(5:9),'(f5.1)') angf
             write(ddxfile(5:7),'(i3.3)') int(angf)
@@ -230,7 +232,7 @@ c
               angf=fileddxa(type,i)
               call locate(anglecont,0,nanglecont,angf,iang)
               fac=(angf-anglecont(iang))/anginc
-              ddxfile=' ddx000_0.lab'
+              ddxfile=' ddx000_0.lab'//natstring(iso)
               write(ddxfile(1:1),'(a1)') parsym(type)
               write(ddxfile(5:9),'(f5.1)') angf
               write(ddxfile(5:7),'(i3.3)') int(angf)

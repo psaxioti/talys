@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : May 10, 2007
+c | Date  : May 26, 2009
 c | Task  : Output of final results        
 c +---------------------------------------------------------------------
 c
@@ -24,13 +24,16 @@ c
 c Write model parameters to separate file       
 c
 c flagpartable  : flag for output of model parameters on separate file
+c ldmodel       : level density model
 c alphad        : alpha-constant for asymptotic level density parameter
 c betald        : beta-constant for asymptotic level density parameter
 c gammashell1   : gamma-constant for asymptotic level density parameter
 c gammashell2   : gamma-constant for asymptotic level density parameter
 c pairconstant  : constant for pairing energy systematics
 c Pshiftconstant: global constant for pairing shift
-c Rspincut      : adjustable constant for spin cutoff factor
+c Rspincut      : adjustable constant (global) for spin cutoff factor
+c cglobal,...   : global constant to adjust tabulated level densities
+c flagcol       : flag for collective enhancement of level density
 c Ufermi        : energy of Fermi distribution for damping of 
 c               : ground-state rotational effects
 c cfermi        : width of Fermi distribution for damping of 
@@ -39,9 +42,11 @@ c Ufermibf      : energy of Fermi distribution for damping of barrier
 c               : rotational effects
 c cfermibf      : width of Fermi distribution for damping of barrier
 c               : rotational effects
+c phmodel       : particle-hole state density model
 c Kph           : constant for single-particle level density parameter
 c                 (g=A/Kph)
 c gnorm         : gamma normalization factor
+c xscaptherm    : thermal capture cross section
 c M2constant    : overall constant for matrix element in exciton model
 c M2limit       : constant for asymptotical value for matrix element
 c M2shift       : constant for energy shift for matrix element
@@ -51,8 +56,14 @@ c Esurf         : well depth for surface interaction
 c parsym        : symbol of particle
 c Cstrip        : adjustable parameter for stripping/pick-up reactions
 c Cknock        : adjustable parameter for knockout reactions
-c v1adjust..    : adjustable factors for OMP (default 1.)
 c flagjlm       : flag for using semi-microscopic JLM OMP
+c v1adjust..    : adjustable factors for OMP (default 1.)
+c k0            : index of incident particle
+c parinclude    : logical to include outgoing particle
+c flagcomp      : flag for compound nucleus calculation
+c Rprime        : potential scattering radius
+c Sstrength     : s,p,d,etc-wave strength function
+c D0theo        : theoretical s-wave resonance spacing
 c
       if (flagpartable) then
         write(11,'("#")')
@@ -60,22 +71,30 @@ c
         write(11,'("#")')         
         write(11,'("# Level density")')      
         write(11,'("#")')
-        write(11,'("alphald     ",f10.5)') alphald     
-        write(11,'("betald      ",f10.5)') betald      
-        write(11,'("gammashell1 ",f10.5)') gammashell1      
-        write(11,'("gammashell2 ",f10.5)') gammashell2      
-        write(11,'("pairconstant",f10.5)') pairconstant      
-        write(11,'("pshiftconstant",f10.5)') Pshiftconstant      
-        write(11,'("Rspincut    ",f10.5)') Rspincut       
-        write(11,'("Ufermi      ",f10.5)') Ufermi           
-        write(11,'("cfermi      ",f10.5)') cfermi           
-        write(11,'("Ufermibf    ",f10.5)') Ufermibf         
-        write(11,'("cfermibf    ",f10.5)') cfermibf         
-        write(11,'("Kph         ",f10.5)') Kph            
+        if (ldmodel.le.3) then
+          write(11,'("alphald     ",f10.5)') alphald     
+          write(11,'("betald      ",f10.5)') betald      
+          write(11,'("gammashell1 ",f10.5)') gammashell1      
+          write(11,'("gammashell2 ",f10.5)') gammashell2      
+          write(11,'("pairconstant",f10.5)') pairconstant      
+          write(11,'("pshiftconstant",f10.5)') Pshiftconstant      
+          write(11,'("Rspincut    ",f10.5)') Rspincut       
+        else
+          write(11,'("cglobal     ",f10.5)') cglobal       
+          write(11,'("pglobal     ",f10.5)') pglobal       
+        endif
+        if (flagcol) then
+          write(11,'("Ufermi      ",f10.5)') Ufermi           
+          write(11,'("cfermi      ",f10.5)') cfermi           
+          write(11,'("Ufermibf    ",f10.5)') Ufermibf         
+          write(11,'("cfermibf    ",f10.5)') cfermibf         
+        endif
+        if (phmodel.eq.1) write(11,'("Kph         ",f10.5)') Kph
         write(11,'("#")')
         write(11,'("# Gamma-ray")')
         write(11,'("#")')      
         write(11,'("gnorm       ",f10.5)') gnorm          
+        write(11,'("xscaptherm  ",1p,e12.5)') xscaptherm          
         write(11,'("#")')
         write(11,'("# Pre-equilibrium")')
         write(11,'("#")')      
@@ -95,48 +114,6 @@ c
         write(11,'("#")')
         write(11,'("# Optical model")')
         write(11,'("#")')      
-        do type=1,6
-          write(11,'("v1adjust   ",a1,f10.5)') parsym(type),
-     +      v1adjust(type)
-          write(11,'("v2adjust   ",a1,f10.5)') parsym(type),
-     +      v2adjust(type)
-          write(11,'("v3adjust   ",a1,f10.5)') parsym(type),
-     +      v3adjust(type)
-          write(11,'("v4adjust   ",a1,f10.5)') parsym(type),
-     +      v4adjust(type)
-          write(11,'("rvadjust   ",a1,f10.5)') parsym(type),
-     +      rvadjust(type)
-          write(11,'("avadjust   ",a1,f10.5)') parsym(type),
-     +      avadjust(type)
-          write(11,'("w1adjust   ",a1,f10.5)') parsym(type),
-     +      w1adjust(type)
-          write(11,'("w2adjust   ",a1,f10.5)') parsym(type),
-     +      w2adjust(type)
-          write(11,'("d1adjust   ",a1,f10.5)') parsym(type),
-     +      d1adjust(type)
-          write(11,'("d2adjust   ",a1,f10.5)') parsym(type),
-     +      d2adjust(type)
-          write(11,'("d3adjust   ",a1,f10.5)') parsym(type),
-     +      d3adjust(type)
-          write(11,'("rvdadjust  ",a1,f10.5)') parsym(type),
-     +      rvdadjust(type)
-          write(11,'("avdadjust  ",a1,f10.5)') parsym(type),
-     +      avdadjust(type)
-          write(11,'("rvsoadjust ",a1,f10.5)') parsym(type),
-     +      rvsoadjust(type)
-          write(11,'("avsoadjust ",a1,f10.5)') parsym(type),
-     +      avsoadjust(type)
-          write(11,'("vso1adjust ",a1,f10.5)') parsym(type),
-     +      vso1adjust(type)
-          write(11,'("vso2adjust ",a1,f10.5)') parsym(type),
-     +      vso2adjust(type)
-          write(11,'("wso1adjust ",a1,f10.5)') parsym(type),
-     +      wso1adjust(type)
-          write(11,'("wso2adjust ",a1,f10.5)') parsym(type),
-     +      wso2adjust(type)
-          write(11,'("rcadjust   ",a1,f10.5)') parsym(type),
-     +      rcadjust(type)
-        enddo
         if (flagjlm) then
           write(11,'("lvadjust   ",f10.5)') lvadjust
           write(11,'("lwadjust   ",f10.5)') lwadjust
@@ -145,16 +122,72 @@ c
           write(11,'("lvsoadjust ",f10.5)') lvsoadjust
           write(11,'("lwsoadjust ",f10.5)') lwsoadjust
         endif
+        do type=1,6
+          if (.not.flagjlm.or.type.gt.2) then
+            write(11,'("v1adjust   ",a1,f10.5)') parsym(type),
+     +        v1adjust(type)
+            write(11,'("v2adjust   ",a1,f10.5)') parsym(type),
+     +        v2adjust(type)
+            write(11,'("v3adjust   ",a1,f10.5)') parsym(type),
+     +        v3adjust(type)
+            write(11,'("v4adjust   ",a1,f10.5)') parsym(type),
+     +        v4adjust(type)
+            write(11,'("rvadjust   ",a1,f10.5)') parsym(type),
+     +        rvadjust(type)
+            write(11,'("avadjust   ",a1,f10.5)') parsym(type),
+     +        avadjust(type)
+            write(11,'("w1adjust   ",a1,f10.5)') parsym(type),
+     +        w1adjust(type)
+            write(11,'("w2adjust   ",a1,f10.5)') parsym(type),
+     +        w2adjust(type)
+            write(11,'("d1adjust   ",a1,f10.5)') parsym(type),
+     +        d1adjust(type)
+            write(11,'("d2adjust   ",a1,f10.5)') parsym(type),
+     +        d2adjust(type)
+            write(11,'("d3adjust   ",a1,f10.5)') parsym(type),
+     +        d3adjust(type)
+            write(11,'("rvdadjust  ",a1,f10.5)') parsym(type),
+     +        rvdadjust(type)
+            write(11,'("avdadjust  ",a1,f10.5)') parsym(type),
+     +        avdadjust(type)
+            write(11,'("rvsoadjust ",a1,f10.5)') parsym(type),
+     +        rvsoadjust(type)
+            write(11,'("avsoadjust ",a1,f10.5)') parsym(type),
+     +        avsoadjust(type)
+            write(11,'("vso1adjust ",a1,f10.5)') parsym(type),
+     +        vso1adjust(type)
+            write(11,'("vso2adjust ",a1,f10.5)') parsym(type),
+     +        vso2adjust(type)
+            write(11,'("wso1adjust ",a1,f10.5)') parsym(type),
+     +        wso1adjust(type)
+            write(11,'("wso2adjust ",a1,f10.5)') parsym(type),
+     +        wso2adjust(type)
+            write(11,'("rcadjust   ",a1,f10.5)') parsym(type),
+     +        rcadjust(type)
+          endif
+        enddo
+        if (k0.eq.1.and.(parinclude(0).or.flagcomp).and.Rprime.ne.0.) 
+     +    then
+          write(11,'("#")')
+          write(11,'("# Resonance parameters")')
+          write(11,'("#  Z   A     S0        R      xs(therm)    D0",
+     +      "         a         P        Sn")')      
+          write(11,'("#",2i4,1p,7e10.3)') Ztarget,Atarget,
+     +      Sstrength(0)*1.e4,Rprime,xscaptherm,D0theo(0,0),alev(0,0),
+     +      pair(0,0),S(0,0,1)
+        endif
       endif
       close (unit=11)
 c
 c ****************** Integrated binary cross sections ******************
 c
-c flagexc: flag for output of excitation functions   
-c numinc : number of incident energies 
-c parname: name of particle
+c flagomponly: flag to execute ONLY an optical model calculation
+c flagexc    : flag for output of excitation functions   
+c numinc     : number of incident energies 
+c parname    : name of particle
 c
-      if (.not.flagexc) return
+      if (flagomponly) return
+      if (flagnatural.or..not.flagexc) return
       write(*,'(/" ########## EXCITATION FUNCTIONS ###########"/)')
       totfile='total.tot'
       open (unit=1,status='old',file=totfile,iostat=istat)
@@ -326,7 +359,6 @@ c
 c ******************** Reactions to discrete states ********************
 c
 c flagdisc    : flag for output of discrete state cross sections
-c k0          : index of incident particle
 c Zindex,Zix  : charge number index for residual nucleus
 c Nindex,Nix  : neutron number index for residual nucleus
 c flagchannels: flag for exclusive channels calculation 

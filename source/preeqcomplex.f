@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Vivian Demetriou
-c | Date  : March 21, 2007
+c | Date  : August 24, 2009
 c | Task  : Pre-equilibrium complex particle emission
 c +---------------------------------------------------------------------
 c
@@ -10,14 +10,14 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical flagbreakup,flagknock,flaginel,surfwell
-      integer type,ndelta,ndeltapi,ndeltanu,ppi,hpi,pnu,hnu,A,i,j,type2,
-     +        nen,k,l,parity
-      real    proj2sp1,ejecmass,ejec2sp1,term1,Kap,Va,term2,term3,term4,
-     +        base,term5,termps,V1well,surface,XNT,gsn,gsp,Ewell,
-     +        termki,AKO,Ccl,phi,denom,Pn(6),gscomp(6),emax,dE,total,
-     +        Eout,sigav,denomki(6),termk0,termin0,Bdeut,Ecent,width,
-     +        fac1,fac2,Kdb,xsbreakup,factor1,Eres,omegaNT,
-     +        omegaph,phdens2,U,gauss,factor
+      integer type,ndelta,ndeltapi,ndeltanu,ppi,hpi,pnu,hnu,A,Z,N,i,j,
+     +        type2,nen,k,l,parity
+      real    pecompsum,proj2sp1,ejecmass,ejec2sp1,term1,Kap,Va,term2,
+     +        term3,term4,base,term5,termps,V1well,surface,XNT,gsn,gsp,
+     +        Ewell,termki,AKO,Ccl,phi,denom,Pn(6),gscomp(6),emax,dE,
+     +        total,Eout,sigav,denomki(6),termk0,termin0,Bdeut,Ecent,
+     +        width,fac1,fac2,Kdb,xsbreakup,factor1,Eres,P,preeqpair,
+     +        omegaNT,omegaph,phdens2,U,gauss,factor
 c
 c ************************** Kalbach model *****************************
 c
@@ -25,16 +25,18 @@ c The complex particle emission model is described in
 c C. Kalbach, "Preequilibrium reactions with complex channels", 
 c Phys. Rev. C71, 034606 (2005).
 c
-c projmass: mass of projectile
-c parmass : mass of particle in a.m.u.
-c k0      : index of incident particle
-c proj2sp1: 2*spin +1 of projectile
-c parspin : spin of particle 
-c parskip : logical to skip outgoing particle
+c pecompsum: sum of all complex particle contributions
+c projmass : mass of projectile
+c parmass  : mass of particle in a.m.u.
+c k0       : index of incident particle
+c proj2sp1 : 2*spin +1 of projectile
+c parspin  : spin of particle 
+c parskip  : logical to skip outgoing particle
 c
 c Factors for pickup and stripping processes. For reactions involving
 c only neutrons and protons this is thus not considered.
 c 
+      pecompsum=0.
       projmass=parmass(k0)
       proj2sp1=2.*parspin(k0)+1.
       do 10 type=0,6
@@ -47,6 +49,7 @@ c ejecmass: mass of ejectile
 c ejec2sp1: 2*spin +1 of ejectile
 c term1,..: help variables
 c Kap     : alpha enhancement factor
+c eninccm : center-of-mass incident energy in MeV
 c Einc    : incident energy in MeV
 c ndelta  : number of transferred particles
 c parA    : mass number of particle                    
@@ -62,12 +65,12 @@ c
         Kap=1.
         if ((k0.eq.1.or.k0.eq.2).and.type.eq.6) Kap=12.
         if (k0.eq.6.and.(type.eq.1.or.type.eq.2)) 
-     +    Kap=12.-11.*max(Einc-20.,0.)/Einc
+     +    Kap=12.-11.*max(eninccm-20.,0.)/eninccm
         ndelta=abs(parA(k0)-parA(type))
         ndeltapi=parZ(k0)-parZ(type)
         ndeltanu=parN(k0)-parN(type)
         Va=12.5*projmass
-        term2=Kap/projmass*(projmass/(Einc+Va))**(2*ndelta)
+        term2=(Kap/projmass)*(projmass/(Einc+Va))**(2*ndelta)
 c
 c Initial configuration for pickup, stripping or t-h charge exchange
 c
@@ -84,6 +87,8 @@ c
 c Further terms
 c
 c AA,A   : mass number of residual nucleus 
+c ZZ,Z   : charge number of residual nucleus 
+c NN,N   : neutron number of residual nucleus 
 c base   : help variable
 c Ztarget: charge number of target nucleus 
 c Atarget: mass number of target nucleus 
@@ -91,14 +96,16 @@ c termps : term for pickup and stripping
 c Cstrip : adjustable parameter for stripping/pick-up reactions
 c
         A=AA(0,0,type)
+        Z=ZZ(0,0,type)
+        N=NN(0,0,type)
         if (k0.eq.1) then
           term3=(5500./real(A))**ndelta
         else
           term3=(3800./real(A))**ndelta
         endif
-        if (parA(k0).lt.parA(type)) term4=1./(80.*Einc)
-        if (parA(k0).gt.parA(type)) term4=1./(580.*sqrt(Einc))
-        if (parA(k0).eq.parA(type)) term4=1./(1160.*sqrt(Einc))
+        if (parA(k0).lt.parA(type)) term4=1./(80.*eninccm)
+        if (parA(k0).gt.parA(type)) term4=1./(580.*sqrt(eninccm))
+        if (parA(k0).eq.parA(type)) term4=1./(1160.*sqrt(eninccm))
         base=real(2.*Ztarget)/real(Atarget)
         term5=base**(2*(parZ(k0)+2)*hpi+2*pnu)
         termps=Cstrip(type)*term1*term2*term3*term4*term5
@@ -118,8 +125,8 @@ c
         if (k0.eq.5.or.k0.eq.6) V1well=25.
         XNT=sqrt(Einc/projmass)*7./(V1well*Atarget*Atarget)*
      +    (pnu**2+ppi**2+hnu**2+1.5*hpi**2)
-        gsn=Ntarget/Kph
-        gsp=Ztarget/Kph
+        gsn=N/Kph
+        gsp=Z/Kph
         if (ndeltapi.eq.0) then
           Ewell=V1well*base
         else
@@ -237,7 +244,7 @@ c Einc     : incident energy in MeV
 c width    : width of break-up peak in emission spectrum
 c fac1,fac2: help variables
 c sqrttwopi: sqrt(2.*pi)
-c Kdb      : normailzation constant for (d,p) or (d,n) break-up
+c Kdb      : normalization constant for (d,p) or (d,n) break-up
 c xsbreakup: break-up cross section
 c onethird : 1/3
 c
@@ -247,7 +254,7 @@ c
           Bdeut=2.224
           Ecent=parmass(type)/parmass(k0)*
      +      (Einc-Bdeut-parZ(k0)*Ztarget/9.5)+parZ(type)*Ztarget/9.5
-          width=1.15+0.12*Einc-Atarget/140.
+          width=max(1.15+0.12*Einc-Atarget/140.,1.)
           fac1=1./(width*sqrttwopi)
           fac2=1./(2.*width**2)
           if (type.eq.1) Kdb=18.
@@ -258,15 +265,18 @@ c
 c
 c Calculation of pre-equilibrium complex particle emission.
 c
-c factor1: help variable
-c Eres   : total energy of residual system
-c Etotal : total energy of compound system (target + projectile)
-c S      : separation energy per particle                       
+c factor1  : help variable
+c Eres     : total energy of residual system
+c Etotal   : total energy of compound system (target + projectile)
+c S        : separation energy per particle                       
+c preeqpair: pre-equilibrium pairing energy
+c pairmodel: model for preequilibrium pairing energy
 c
         do 110 nen=ebegin(type),eend(type)
           Eout=egrid(nen)
           factor1=xsreac(type,nen)*Eout
-          Eres=Etotal-S(0,0,type)-Eout
+          P=preeqpair(parZ(type),parN(type),ndelta,Etotal,pairmodel)
+          Eres=Etotal-S(0,0,type)-Eout-P
 c
 c Check if outgoing energy exceeds maximal possible energy
 c    
@@ -292,19 +302,19 @@ c
           surfwell=.false.
           do 120 i=0,3
             do 120 j=0,3-i
-              omegaph=phdens2(ppi+i,hpi+i,pnu+j,hnu+j,gsp,gsn,Eres,
-     +          Ewell,surfwell)
+              omegaph=phdens2(parZ(type),parN(type),ppi+i,hpi+i,pnu+j,
+     +          hnu+j,gsp,gsn,Eres,Ewell,surfwell)
               omegaNT=omegaNT+XNT**(i+j)*omegaph
   120     continue
           do 130 i=0,ppi
             do 130 j=0,hpi
               do 130 k=0,pnu
                 do 130 l=0,hnu
-                  if (i+j+k+l.ne.0) omegaNT=omegaNT+phdens2(ppi-i,
-     +              hpi-j,pnu-k,hnu-l,gsp,gsn,Eres,Ewell,surfwell) 
+                  if (i+j+k+l.ne.0) omegaNT=omegaNT+
+     +              phdens2(parZ(type),parN(type),ppi-i,hpi-j,pnu-k,
+     +              hnu-l,gsp,gsn,Eres,Ewell,surfwell) 
   130     continue
           xspreeqps(type,nen)=termps*omegaNT*factor1
-
 c
 c Knockout term that depends on emission energy.
 c
@@ -323,6 +333,26 @@ c
             gauss=fac1*exp(-(Ecent-Eout)**2*fac2)
             xspreeqki(type,nen)=xsbreakup*gauss
           endif
+          pecompsum=pecompsum+(xspreeqps(type,nen)+xspreeqki(type,nen))*
+     +      deltaE(nen)
+  110   continue
+   10 continue
+c
+c Prevent complex particle pre-equilbrium to exceed the reaction cross
+c section.
+c
+c deltaE: energy bin around outgoing energies
+c xsflux: cross section flux
+c
+      if (pecompsum.gt.xsflux) then
+        factor=xsflux/pecompsum
+        do 150 type=0,6
+          do 160 nen=ebegin(type),eend(type)
+            xspreeqps(type,nen)=xspreeqps(type,nen)*factor
+            xspreeqki(type,nen)=xspreeqki(type,nen)*factor
+  160     continue
+  150   continue
+      endif
 c
 c If the pre-equilibrium spin distribution is chosen, we assume that the
 c spin distribution for pickup, stripping and knockout is the same as in
@@ -337,19 +367,21 @@ c maxJph    : maximal spin for particle-hole states
 c xspreeqJP : preequilibrium cross section per particle type,
 c             outgoing energy, spin and parity                    
 c
+      do 210 type=0,6
+        do 220 nen=ebegin(type),eend(type)
           if (flagpespin.and.xspreeq(type,nen).ne.0.) then
-            do 140 parity=-1,1,2
-              do 140 J=0,maxJph
+            do 230 parity=-1,1,2
+              do 230 J=0,maxJph
                 factor=xspreeqJP(type,nen,J,parity)/xspreeq(type,nen)
                 xspreeqJP(type,nen,J,parity)=
      +            xspreeqJP(type,nen,J,parity)+
      +            factor*(xspreeqps(type,nen)+xspreeqki(type,nen))
-  140       continue
+  230       continue
           endif
           xspreeq(type,nen)=xspreeq(type,nen)+xspreeqps(type,nen)+
      +      xspreeqki(type,nen)
-  110   continue
-   10 continue
+  220   continue
+  210 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : February 7, 2006
+c | Date  : December 10, 2009
 c | Task  : Optical potential for neutrons
 c +---------------------------------------------------------------------
 c
@@ -13,7 +13,7 @@ c
       integer      Zix,Nix,nen,Z,A,i,mw,md
       real         eopt,elow,eup,eint,vloc(19),f,v1loc,v2loc,v3loc,
      +             v4loc,w1loc,w2loc,d1loc,d2loc,d3loc,vso1loc,vso2loc,
-     +             wso1loc,wso2loc
+     +             wso1loc,wso2loc,factor(6)
 c
 c ************************ Calculate parameters ************************
 c
@@ -29,6 +29,7 @@ c optmod       : file with optical model parameters
 c eomp         : energies on optical model file
 c omplines     : number of lines on optical model file
 c elow,eup,eint: help variables
+c v1adjust..   : adjustable factors for OMP (default 1.)
 c vloc         : interpolated optical model parameters 
 c vomp         : optical model parameters from file
 c v,rv,av      : real volume potential, radius, diffuseness
@@ -46,8 +47,8 @@ c
       if (Zix.le.numZph.and.Nix.le.numNph) optmodfile=optmod(Zix,Nix,1)
       if (optmodfile(1:1).ne.' ') then
         if (eopt.lt.eomp(Zix,Nix,1,1).or.
-     +    eopt.gt.eomp(Zix,Nix,1,omplines(1))) goto 100
-        do 20 nen=1,omplines(1)-1
+     +    eopt.gt.eomp(Zix,Nix,1,omplines(Zix,Nix,1))) goto 100
+        do 20 nen=1,omplines(Zix,Nix,1)-1
           elow=eomp(Zix,Nix,1,nen)
           eup=eomp(Zix,Nix,1,nen+1)
           if (elow.le.eopt.and.eopt.le.eup) then
@@ -56,26 +57,26 @@ c
               vloc(i)=vomp(Zix,Nix,1,nen,i)+
      +          eint*(vomp(Zix,Nix,1,nen+1,i)-vomp(Zix,Nix,1,nen,i))
    30       continue
-            v=vloc(1)
-            rv=vloc(2)
-            av=vloc(3)
-            w=vloc(4)
-            rw=vloc(5)
-            aw=vloc(6)
-            vd=vloc(7)
-            rvd=vloc(8)
-            avd=vloc(9)
-            wd=vloc(10)
-            rwd=vloc(11)
-            awd=vloc(12)
-            vso=vloc(13)
-            rvso=vloc(14)
-            avso=vloc(15)
-            wso=vloc(16)
-            rwso=vloc(17)
-            awso=vloc(18)
-            rc=vloc(19)
-            return
+            v=v1adjust(1)*vloc(1)
+            rv=rvadjust(1)*vloc(2)
+            av=avadjust(1)*vloc(3)
+            w=w1adjust(1)*vloc(4)
+            rw=rvadjust(1)*vloc(5)
+            aw=avadjust(1)*vloc(6)
+            vd=d1adjust(1)*vloc(7)
+            rvd=rvdadjust(1)*vloc(8)
+            avd=avdadjust(1)*vloc(9)
+            wd=d1adjust(1)*vloc(10)
+            rwd=rvdadjust(1)*vloc(11)
+            awd=avdadjust(1)*vloc(12)
+            vso=vso1adjust(1)*vloc(13)
+            rvso=rvsoadjust(1)*vloc(14)
+            avso=avsoadjust(1)*vloc(15)
+            wso=wso1adjust(1)*vloc(16)
+            rwso=rvsoadjust(1)*vloc(17)
+            awso=avsoadjust(1)*vloc(18)
+            rc=rcadjust(1)*vloc(19)
+            goto 200
           endif
    20   continue
       endif
@@ -91,7 +92,6 @@ c soukhovitskii: subroutine for global optical model parameters for
 c                actinides by Soukhovitskii et al.
 c f            : E-Ef
 c v1loc.....   : help variables
-c v1adjust..   : adjustable factors for OMP (default 1.)
 c ef           : Fermi energy
 c v1,v2,v3     : components for V
 c w1,w2        : components for W
@@ -140,6 +140,22 @@ c
         rwso=rvso
         awso=avso
         rc=rcadjust(1)*rc0(Zix,Nix,1)
+      endif
+c
+c Possible additional energy-dependent adjustment of the geometry
+c
+c ompadjustF: logical for local OMP adjustment
+c adjustF   : subroutnie for local optical model geometry adjustment
+c factor    : Woods-Saxon multiplication factor
+c
+  200 if (ompadjustF(1)) then
+        call adjustF(1,eopt,factor)
+        rv=factor(1)*rv
+        av=factor(2)*av
+        rwd=factor(3)*rwd
+        awd=factor(4)*awd
+        rvso=factor(5)*rvso
+        avso=factor(6)*avso
       endif
       return
       end

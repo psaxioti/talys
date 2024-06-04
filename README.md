@@ -1,6 +1,6 @@
-     TALYS-1.0 (Version: December 21, 2007)
+     TALYS-1.1 (Version: December 22, 2009)
 
- Copyright (C) 2007  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+ Copyright (C) 2009  A.J. Koning, S. Hilaire and M.C. Duijvestijn
                          NRG          CEA              NRG
 
 The TALYS package
@@ -14,7 +14,7 @@ contains the following directories and files:
 
 - talys.setup is a script that takes care of the installation.
 
-- source/ contains the source code of TALYS: 274 Fortran subroutines, and the 
+- source/ contains the source code of TALYS: 277 Fortran subroutines, and the 
   file talys.cmb, which contains all variable declarations and common blocks.
   This includes the file ecis06t.f. This is basically Jacques Raynal's code 
   ECIS-06, which we have transformed into a subroutine and slightly modified 
@@ -27,7 +27,7 @@ contains the following directories and files:
 
 - samples/ contains the input and output files of the sample cases.
 
-In total, you will need about 1.3 Gb of free disk space to install TALYS.
+In total, you will need about 2 Gb of free disk space to install TALYS.
 
 Installation
 ------------

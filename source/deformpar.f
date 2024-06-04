@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 8, 2007
+c | Date  : June 12, 2009
 c | Task  : Deformation parameters
 c +---------------------------------------------------------------------
 c
@@ -16,7 +16,7 @@ c
       integer      Zix,Nix,Z,N,A,ia,ndisc,i,natpar,k,iirot,idef,irot,ii,
      +             nex,distance,k2,odd,vibband1,lband1,Kmag1,iphonon1,
      +             nrotlev,type,ibar
-      real         deform1(numrotcc),beta2f,beta4f,dspin,R
+      real         deform1(numrotcc),dspin,R
 c
 c ************************ Read deformation parameters *****************
 c
@@ -44,7 +44,7 @@ c
       if (deformfile(Zix)(1:1).ne.' ') then
         deffile=deformfile(Zix)
       else   
-        deffile=path(1:lenpath)//'deformation/exp/'//defchar
+        deffile=path(1:lenpath)//'deformation/'//defchar
       endif   
       inquire (file=deffile,exist=lexist)
       if (.not.lexist) goto 150
@@ -125,6 +125,15 @@ c
      +      leveltype1='D'
           iphonon(Zix,Nix,i)=max(iphonon1,1)
           if (leveltype1.eq.'R'.and.rotpar(Zix,Nix,1).eq.0.) then
+c
+c Default: read deformation parameters from mass table
+c
+            if (nex.eq.0) then
+              if (deform1(1).eq.0.) then
+                deform1(1)=beta2(Zix,Nix,0)
+                deform1(2)=beta4(Zix,Nix)
+              endif
+            endif
             do 120 k=1,numrotcc
               rotpar(Zix,Nix,k)=deform1(k)
               if (deform1(k).eq.0.) then
@@ -183,17 +192,12 @@ c Read rotational deformation parameters
 c     
 c flagautorot  : flag for automatic rotational coupled channels
 c                calculations for A > 150
-c beta2f,beta4f: deformation parameters
+c deformmodel  : model for theoretical deformation parameters
+c beta2,beta4  : deformation parameters
 c dspin        : angular momentum increase for rotational band
 c
       if (colltype(Zix,Nix).eq.'S'.and.(.not.flagspher).and.A.gt.150.
      +  and.distance.ge.8.and.flagautorot) then
-        deffile=path(1:lenpath)//'deformation/moller/'//defchar
-        inquire (file=deffile,exist=lexist)
-        if (.not.lexist) goto 200
-        open (unit=2,status='old',file=deffile)
- 170    read(2,'(4x,i4,2f12.6)',end=200) ia,beta2f,beta4f
-        if (ia.ne.A) goto 170 
         indexlevel(Zix,Nix,1)=0
         indexcc(Zix,Nix,1)=0
         leveltype(Zix,Nix,0)='R'
@@ -218,8 +222,8 @@ c
   180   continue
         if (indexcc(Zix,Nix,ndef(Zix,Nix)).ne.0) colltype(Zix,Nix)='R'
         nrot(Zix,Nix)=2
-        rotpar(Zix,Nix,1)=beta2f
-        rotpar(Zix,Nix,2)=beta4f
+        rotpar(Zix,Nix,1)=beta2(Zix,Nix,0)
+        rotpar(Zix,Nix,2)=beta4(Zix,Nix)
         deftype(Zix,Nix)='B' 
   200   close (unit=2)
         if (odd.eq.0) goto 400
@@ -311,19 +315,6 @@ c
      +    deform(Zix,Nix,k)=deform(Zix,Nix,k)*1.24*(A**onethird)
   320 continue
 c
-c ********* Deformation parameters for rotational enhancement **********
-c 
-c beta2: deformation parameter
-c
-  400 deffile=path(1:lenpath)//'deformation/moller/'//defchar
-      inquire (file=deffile,exist=lexist)
-      if (.not.lexist) goto 500
-      open (unit=2,status='old',file=deffile)
-  410 read(2,'(4x,i4,f12.6)',end=500) ia,beta2f
-      if (ia.ne.A) goto 410 
-      beta2(Zix,Nix,0)=beta2f
-  500 close (unit=2)
-c
 c ************** Rigid body value for moment of inertia ****************
 c
 c R       : radius
@@ -334,13 +325,12 @@ c amu     : atomic mass unit in MeV
 c hbarc   : hbar.c in MeV.fm
 c Irigid  : rigid body value of moment of inertia
 c
-
-      R=1.2*A**onethird
+  400 R=1.2*A**onethird
       Irigid0(Zix,Nix)=0.4*R*R*A*parmass(1)*amu/(hbarc**2)
-      do 510 ibar=0,numbar
+      do 410 ibar=0,numbar
         Irigid(Zix,Nix,ibar)=(1+abs(beta2(Zix,Nix,ibar))/3.)*
      +    Irigid0(Zix,Nix)
-  510 continue
+  410 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

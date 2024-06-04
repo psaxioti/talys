@@ -73,7 +73,7 @@ c
       do 110 i=1,numT    
         write(1,'(f8.4,1p,e12.5)') T9(i),rateastro(0,0,i)
   110 continue
-      close(unit=1)
+      close (unit=1)
       astrofile='astrorate.p'
       open (unit=1,status='unknown',file=astrofile)
       write(1,'("# Reaction rate for ",i3,a2,"(",a1,",p)")')
@@ -82,7 +82,7 @@ c
       do 120 i=1,numT
         write(1,'(f8.4,1p,e12.5)') T9(i),rateastro(1,0,i)
   120 continue
-      close(unit=1)
+      close (unit=1)
       astrofile='astrorate.a'
       open (unit=1,status='unknown',file=astrofile)
       write(1,'("# Reaction rate for ",i3,a2,"(",a1,",a)")')
@@ -91,7 +91,7 @@ c
       do 130 i=1,numT    
         write(1,'(f8.4,1p,e12.5)') T9(i),rateastro(2,2,i)
   130 continue
-      close(unit=1)
+      close (unit=1)
       rateastroeps=1.e-10
       iresprod=0
       do 140 Acomp=0,maxA
@@ -137,7 +137,7 @@ c
      +    rateastro(0,1,i),rateastro(1,0,i),rateastro(2,2,i),
      +    rateastrofis(i),(rateastrorp(i,ires),ires=1,iresprod)
   170 continue
-      close(unit=1)
+      close (unit=1)
       return
       end
 Copyright (C) 2005  A.J. Koning, S. Hilaire and M.C. Duijvestijn

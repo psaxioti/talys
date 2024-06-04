@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 17, 2007
+c | Date  : June 20, 2008
 c | Task  : Optical model parameters
 c +---------------------------------------------------------------------
 c
@@ -203,18 +203,18 @@ c
           optmodfile=optmod(Zix,Nix,k)
           if (optmodfile(1:1).ne.' ') then
             open (unit=2,status='old',file=optmodfile)   
-            read(2,'(8x,i4)') omplines(k)
-            if (omplines(k).gt.numomp) then
+            read(2,'(8x,i4)') omplines(Zix,Nix,k)
+            if (omplines(Zix,Nix,k).gt.numomp) then
               write(*,'(" TALYS-error: number of lines in OMP file > ",
      +          i4)') numomp
               stop
             endif
             eomp(Zix,Nix,k,0)=0.
-            do 220 nen=1,omplines(k)
+            do 220 nen=1,omplines(Zix,Nix,k)
               read(2,*,err=300) eomp(Zix,Nix,k,nen),
      +          (vomp(Zix,Nix,k,nen,ii),ii=1,19)    
   220       continue
-            close(unit=2)
+            close (unit=2)
           endif
   210   continue
       endif

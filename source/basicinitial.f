@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 7, 2004
+c | Date  : May 25, 2009
 c | Task  : Initialization of arrays for basic cross sections 
 c +---------------------------------------------------------------------
 c
@@ -13,21 +13,26 @@ c
 c
 c *************************** Initialization ***************************
 c
-c numen : maximum number of outgoing energies
-c lmax  : maximal l-value for transmission coefficients
-c xstot : total cross section (neutrons only) for
-c xsreac: reaction cross section
-c xsopt : optical model reaction cross section
-c xselas: total elastic cross section (neutrons only)     
-c numl  : maximum l-value (set in talys.cmb)
-c Tl    : transmission coefficients as a function of particle type, 
-c         energy and l-value (averaged over spin) 
-c Tjl   : transmission coefficients as a function of particle type, 
-c         energy, spin and l-value  
+c numen     : maximum number of outgoing energies
+c lmax      : maximal l-value for transmission coefficients
+c gammax    : number of l-values for gamma multipolarity
+c xstot     : total cross section (neutrons only) for
+c xsreac    : reaction cross section
+c xsopt     : optical model reaction cross section
+c xselas    : total elastic cross section (neutrons only)     
+c numl      : maximum l-value (set in talys.cmb)
+c Tl        : transmission coefficients as a function of particle type, 
+c             energy and l-value (averaged over spin) 
+c Tjl       : transmission coefficients as a function of particle type, 
+c             energy, spin and l-value  
 c
       do 10 nen=0,numen
         do 10 type=0,6
-          lmax(type,nen)=0
+          if (type.eq.0) then
+            lmax(type,nen)=0
+          else
+            lmax(type,nen)=gammax
+          endif
           xstot(type,nen)=0.
           xsreac(type,nen)=0.
           xsopt(type,nen)=0.

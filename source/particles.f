@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 30, 2004
+c | Date  : August 14, 2008
 c | Task  : Determine included light particles
 c +---------------------------------------------------------------------
 c
@@ -17,6 +17,7 @@ c
 c parinclude : logical to include outgoing particle
 c parskip    : logical to skip outgoing particle
 c flagfission: flag for fission
+c flagomponly: flag to execute ONLY an optical model calculation
 c outtype    : type of outgoing particles
 c default    : logical to determine default outgoing particles
 c parsym     : symbol of particle
@@ -37,35 +38,41 @@ c
         parinclude(-1)=.false.
         parskip(-1)=.true.
       endif
+      if (flagomponly) then
+        do 20 type=-1,6
+          parinclude(type)=.false.
+          parskip(type)=.true.
+   20   continue
+      endif
 c
 c Check if default is to be used
 c
       default=.true.
-      do 20 type=0,6
+      do 30 type=0,6
         if (outtype(type).ne.' ') then
           default=.false.    
-          goto 40
+          goto 50
         endif
-   20 continue
-      do 30 type=0,6
-        outtype(type)=parsym(type)
    30 continue
+      do 40 type=0,6
+        outtype(type)=parsym(type)
+   40 continue
 c
 c 2. No default, but specific competing outgoing particles are 
 c    requested. Now, we first turn all competing channels off, and then 
 c    determine which are to be included and which are to be skipped.
 c
-   40 if (.not.default) then
-        do 50 type=0,6
-          parinclude(type)=.false.
-   50   continue
+   50 if (.not.default) then
         do 60 type=0,6
-          do 60 type2=0,6
-            if (outtype(type).eq.parsym(type2)) parinclude(type2)=.true.
+          parinclude(type)=.false.
    60   continue
         do 70 type=0,6
-          parskip(type)=.not.parinclude(type)
+          do 70 type2=0,6
+            if (outtype(type).eq.parsym(type2)) parinclude(type2)=.true.
    70   continue
+        do 80 type=0,6
+          parskip(type)=.not.parinclude(type)
+   80   continue
       endif
 c
 c The incident particle is always included as outgoing particle

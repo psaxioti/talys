@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 12, 2007
+c | Date  : May 19, 2009
 c | Task  : Properties of nuclides
 c +---------------------------------------------------------------------
 c
@@ -121,12 +121,14 @@ c separation  : subroutine for separation energies and reduced and
 c               specific masses   
 c primary     : flag to designate primary (binary) reaction
 c flagpartable: flag for output of model parameters on separate file
+c Einc        : incident energy
+c enincmin    : minimum incident energy 
 c parskip     : logical to skip outgoing particle
 c structure   : subroutine for nuclear structure parameters
 c odd         : odd (1) or even (0) nucleus
 c weakcoupling: subroutine for weak coupling model       
-c Einc        : incident energy
-c enincmin    : minimum incident energy 
+c flagcomp    : flag for compound nucleus calculation
+c parinclude  : logical to include outgoing particle
 c radwidtheory: subroutine for theoretical calculation of total 
 c               radiative width
 c flaggiant0  : flag for collective contribution from giant resonances
@@ -155,6 +157,7 @@ c
       call separation
       primary=.true.
       if (flagpartable) open (11,status='unknown',file='parameters.dat')
+      Einc=enincmin
       do 110 type=0,6
         if (parskip(type).and.type.ne.0) goto 110
         Zix=Zindex(Zcomp,Ncomp,type)
@@ -165,8 +168,7 @@ c
         odd=mod(A,2)
         if (type.eq.k0.and.odd.eq.1) call weakcoupling(Zix,Nix,type)
   110 continue
-      Einc=enincmin
-      call radwidtheory(Zcomp,Ncomp)
+      if (parinclude(0).or.flagcomp) call radwidtheory(Zcomp,Ncomp,0.)
       if (flaggiant0) call sumrules
       targetspin=jdis(parZ(k0),parN(k0),Ltarget)
       targetspin2=int(2.*targetspin)

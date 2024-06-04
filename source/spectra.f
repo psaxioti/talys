@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 3, 2004
+c | Date  : May 5, 2008
 c | Task  : Creation of spectra
 c +---------------------------------------------------------------------
 c
@@ -130,8 +130,8 @@ c
         nhigh=min(nhigh,numendisc-8*fine)
         eendout(type)=nend+nhigh+8*fine
         do 40 nenout=nend+1,eendout(type)
-          espec(type,nenout)=egrid(nend)+segment/real(fine)*
-     +      (nenout-nend)
+          espec(type,nenout)=egrid(nend)+(nenout-nend)/
+     +      (segment*real(fine))
           Eout=espec(type,nenout)
           espec(type,nenout)=convfac1*Eout+convfac2+convfac3*sqrt(Eout)
           call locate(egrid,nend,eend(type),Eout,nen)

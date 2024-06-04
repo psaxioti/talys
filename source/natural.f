@@ -2,25 +2,30 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : June 11, 2007
+c | Date  : April 15, 2009
 c | Task  : Calculation for natural elements
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      integer      numen2nat
+      parameter    (numen2nat=7*(numen+numendisc))
       logical      lexist,elexist,specexist,resexist,xsexist,
      +             fissionexist,fyexist
       character*13 totfile,prodfile
       character*15 fisfile
       character*16 resfile,xsfile
       character*20 discfile,specfile,fyfile
-      integer      i,k,k2,type,iang,lenfile,zbeg,zend,abeg,aend,iz,ia,
-     +             npart,ih,it,id,ip,in,nex,nen
+      character*28 recfile
+      integer      i,k,k2,type,iang,j,n1,n2,nen,neniso(numiso),nenen,
+     +             zbeg,zend,abeg,aend,iz,ia,npart,ih,it,id,ip,in,nex
       real         en(numen2),xst(9),xstotnat(9,numen2),
      +             xsprodnat(numen2),xsyieldnat(numen2),xsnat(0:numen2),
      +             xs1nat(0:numen2),xs2nat(0:numen2),xs,y,xs1,xs2,
-     +             xs3nat(numen2),xs4nat(numen2),xs3,xs4
+     +             enspec(numiso,0:numen2nat),E,entmp,Ea,Eb,Efac,
+     +             xsspec(numiso,0:numen2nat,5),enspecnat(0:numen2nat),
+     +             xsspecnat(0:numen2nat,5)
 c
 c **************** Create runs and directories per isotope *************
 c
@@ -36,11 +41,11 @@ c
 c
 c Do a full TALYS calculation for each isotope
 c
-      do 10 iso=2,isonum
+      do iso=2,isonum
         call talysinput
         call talysinitial
         call talysreaction
-   10 continue
+      enddo    
 c
 c ******** Merge output files in results for natural elements **********
 c
@@ -60,31 +65,31 @@ c abun      : isotopic abundance
 c parsym    : symbol of particle   
 c nuc       : symbol of nucleus 
 c
-      do 110 k=1,numen2
+      do 10 k=1,numen2
         en(k)=0.
         xsprodnat(k)=0.
         xsyieldnat(k)=0.
-        do 110 k2=1,9
+        do 10 k2=1,9
           xst(k2)=0.
           xstotnat(k2,k)=0.
-  110 continue
+   10 continue
       if (filetotal) then
-        do 120 i=1,isonum
+        do 20 i=1,isonum
           totfile='total.tot'//natstring(i)
           inquire (file=totfile,exist=lexist)
           if (lexist) then
             open (2,status='old',file=totfile)
-            read(2,'(////)',end=150,err=150)
-            do 130 k=1,numinc
-              read(2,'(f10.3,2x,1p,9e11.4)',end=150,err=130) en(k),
+            read(2,'(////)',end=50,err=50)
+            do 30 k=1,numinc
+              read(2,'(f10.3,2x,1p,9e11.4)',end=50,err=30) en(k),
      +          (xst(k2),k2=1,9)
-              do 140 k2=1,9
+              do 40 k2=1,9
                 xstotnat(k2,k)=xstotnat(k2,k)+abun(i)*xst(k2)
-  140         continue
-  130       continue
-  150       close (unit=2)
+   40         continue
+   30       continue
+   50       close (unit=2)
           endif
-  120   continue
+   20   continue
         open (3,status='unknown',file='total.tot')
         write(3,'("# ",a1," + nat-",a2," Total cross sections")')
      +    parsym(k0),nuc(Ztarget)
@@ -94,9 +99,9 @@ c
         write(3,'("#    E      Non-elastic  Elastic     Total",
      +    "     Comp. el.  Shape el.  Reaction",
      +    " Comp. nonel   Direct   Pre-equil.")')              
-        do 160 k=1,numinc
+        do 60 k=1,numinc
           write(3,'(f10.3,2x,1p,9e11.4)') en(k),(xstotnat(k2,k),k2=1,9)
-  160   continue
+   60   continue
         close (unit=3)
 c
 c 2. Particle production cross sections
@@ -104,26 +109,26 @@ c
 c prodfile: file with total particle production cross sections
 c parname : name of particle   
 c
-        do 210 type=1,6
-          do 220 k=1,numinc
+        do 110 type=1,6
+          do 120 k=1,numinc
             xsprodnat(k)=0.
             xsyieldnat(k)=0.
-  220     continue
-          do 230 i=1,isonum
+  120     continue
+          do 130 i=1,isonum
             prodfile=' prod.tot'//natstring(i)
             write(prodfile(1:1),'(a1)') parsym(type)
             inquire (file=prodfile,exist=lexist)
             if (lexist) then
               open (2,status='old',file=prodfile)
-              read(2,'(////)',end=250,err=250)
-              do 240 k=1,numinc
-                read(2,'(f10.3,2e12.5)',end=250,err=240) en(k),xs,y
+              read(2,'(////)',end=150,err=150)
+              do 140 k=1,numinc
+                read(2,'(f10.3,2e12.5)',end=150,err=140) en(k),xs,y
                 xsprodnat(k)=xsprodnat(k)+abun(i)*xs
                 xsyieldnat(k)=xsyieldnat(k)+abun(i)*y
-  240         continue
-  250         close (unit=2)
+  140         continue
+  150         close (unit=2)
             endif
-  230     continue
+  130     continue
           open (3,status='unknown',file=prodfile(1:9))
           write(3,'("# ",a1," + nat-",a2," Total ",a8," production")')
      +      parsym(k0),nuc(Ztarget),parname(type)
@@ -131,12 +136,12 @@ c
           write(3,'("# ")')
           write(3,'("# # energies =",i3)') numinc
           write(3,'("#    E         xs         Yield")')       
-          do 260 k=1,numinc
+          do 160 k=1,numinc
             write(3,'(1p,e10.3,2e12.5)') en(k),xsprodnat(k),
      +        xsyieldnat(k)
-  260     continue
+  160     continue
           close (unit=3)
-  210   continue
+  110   continue
       endif
 c
 c 3. Elastic scattering angular distribution
@@ -148,14 +153,14 @@ c discfile : file with elastic scattering angular distribution
 c angle,ang: angle
 c eninc    : incident energy in MeV
 c
-      do 310 k=1,numinc
-        do 320 iang=0,nangle
+      do 210 k=1,numinc
+        do 220 iang=0,nangle
           xsnat(iang)=0.
           xs1nat(iang)=0.
           xs2nat(iang)=0.
-  320   continue
+  220   continue
         elexist=.false.
-        do 330 i=1,isonum
+        do 230 i=1,isonum
           discfile='nn       ang.L00'//natstring(i)
           write(discfile(3:9),'(f7.3)') eninc(k)
           write(discfile(3:5),'(i3.3)') int(eninc(k))
@@ -163,17 +168,17 @@ c
           if (lexist) then
             elexist=.true.
             open (2,status='old',file=discfile)
-            read(2,'(////)',end=350,err=350)
-            do 340 iang=0,nangle
-              read(2,'(f5.1,3e16.5)',end=350,err=340) angle(iang),xs,
+            read(2,'(////)',end=250,err=250)
+            do 240 iang=0,nangle
+              read(2,'(f5.1,3e16.5)',end=250,err=240) angle(iang),xs,
      +          xs1,xs2
               xsnat(iang)=xsnat(iang)+abun(i)*xs
               xs1nat(iang)=xs1nat(iang)+abun(i)*xs1
               xs2nat(iang)=xs2nat(iang)+abun(i)*xs2
-  340       continue
-  350       close (unit=2)
+  240       continue
+  250       close (unit=2)
           endif
-  330   continue
+  230   continue
         if (elexist) then
           open (3,status='unknown',file=discfile(1:16))
           write(3,'("# ",a1," + nat-",a2," Elastic scattering", 
@@ -183,34 +188,49 @@ c
           write(3,'("# # angles   =",i3)') nangle+1
           write(3,'("#   E         xs            Direct",
      +      "         Compound")')     
-          do 360 iang=0,nangle
+          do 260 iang=0,nangle
             write(3,'(f5.1,1p,3e16.5)') angle(iang),xsnat(iang),
      +        xs1nat(iang),xs2nat(iang)
-  360     continue
+  260     continue
           close (unit=3)
         endif
-  310 continue
+  210 continue
 c
 c 4. Composite particle spectra
 c
 c specexist: logical to determine existence of spectrum file
+c enspecnat: emission energy for natural element
+c enspec   : emission energy 
 c specfile : file with composite particle spectra
-c lenfile  : length of file
-c xs,xs1,..: help variables
+c xsspecnat: differential cross section for natural element
+c xsspec   : differential cross section
+c neniso   : number of emission energies per isotope
+c Efac,....: help variables
 c ebegin   : first energy point of energy grid  
 c eendout  : last energy point of energy grid 
 c
-      do 410 k=1,numinc
-        do 420 type=1,6
-          do 430 k2=1,numen2
-            xsnat(k2)=0.
-            xs1nat(k2)=0.
-            xs2nat(k2)=0.
-            xs3nat(k2)=0.
-            xs4nat(k2)=0.
-  430     continue
+      do 310 k=1,numinc
+        do 320 type=1,6
           specexist=.false.
-          do 440 i=1,isonum
+          do 330 k2=1,numen2nat
+            enspecnat(k2)=0.
+            do 340 j=1,5
+              xsspecnat(k2,j)=0.
+  340       continue
+  330     continue
+          do 350 i=1,isonum
+            do 360 k2=1,numen2
+              enspec(i,k2)=0.
+              do 370 j=1,5
+                xsspec(i,k2,j)=0.
+  370         continue
+  360       continue
+c
+c In general, the secondary spectra for the various isotopes are 
+c all different. Therefore, we first read the secondary energy
+c grids and cross sections into memory.
+c
+            neniso(i)=0
             specfile=parsym(type)//'spec000.000.tot'//natstring(i)
             write(specfile(6:12),'(f7.3)') eninc(k)
             write(specfile(6:8),'(i3.3)') int(eninc(k))
@@ -218,38 +238,76 @@ c
             if (lexist) then
               specexist=.true.
               open (2,status='old',file=specfile)
-              read(2,'(////)',end=460,err=460)
-              do 450 k2=1,numen2
-                lenfile=k2-1
-                read(2,'(f7.3,5e12.5)',end=460,err=450) en(k2),xs,xs1,
-     +            xs2,xs3,xs4
-                xsnat(k2)=xsnat(k2)+abun(i)*xs
-                xs1nat(k2)=xs1nat(k2)+abun(i)*xs1
-                xs2nat(k2)=xs2nat(k2)+abun(i)*xs2
-                xs3nat(k2)=xs3nat(k2)+abun(i)*xs3
-                xs4nat(k2)=xs4nat(k2)+abun(i)*xs4
-  450         continue
-  460         close (unit=2)
+              read(2,'(////)',end=390,err=390)
+              do 380 k2=1,numen2
+                read(2,'(f7.3,5e12.5)',end=390,err=380) 
+     +            enspec(i,k2),(xsspec(i,k2,j),j=1,5)
+                neniso(i)=neniso(i)+1
+  380         continue
+  390         close (unit=2)
             endif
-  440     continue
+  350     continue
+c
+c Make one unifying energy grid by removing double energies 
+c and sorting the remaining energies.
+c
           if (specexist) then
+            nenen=0
+            do 400 i=1,isonum
+              do 410 k2=1,neniso(i)
+                E=enspec(i,k2)
+                do 420 nen=1,nenen
+                  if (E.eq.enspecnat(nen)) goto 410
+  420           continue
+                nenen=nenen+1
+                enspecnat(nenen)=E
+  410         continue
+  400       continue
+            do 430 n1=1,nenen
+              do 440 n2=n1,nenen
+                if (enspecnat(n1).le.enspecnat(n2)) goto 440
+                entmp=enspecnat(n1)
+                enspecnat(n1)=enspecnat(n2)
+                enspecnat(n2)=entmp
+  440         continue
+  430       continue
+c
+c Interpolation and construction of natural spectra.
+c
+            do 450 nen=1,nenen
+              do 460 i=1,isonum
+                do 470 k2=1,neniso(i)-1
+                  Ea=enspec(i,k2)
+                  Eb=enspec(i,k2+1)
+                  if (enspecnat(nen).ge.Ea.and.enspecnat(nen).lt.Eb) 
+     +              then
+                    Efac=(enspecnat(nen)-Ea)/(Eb-Ea)
+                    do 480 j=1,5
+                      xs=xsspec(i,k2,j)+Efac*(xsspec(i,k2+1,j)-
+     +                  xsspec(i,k2,j))
+                      xsspecnat(nen,j)=xsspecnat(nen,j)+abun(i)*xs
+  480               continue
+                    goto 460
+                  endif
+  470           continue
+  460         continue
+  450       continue
             open (3,status='unknown',file=specfile(1:16))
             write(3,'("# ",a1," + nat-",a2,": ",a8," spectrum")')
      +        parsym(k0),nuc(Ztarget),parname(type)
             write(3,'("# E-incident = ",f7.3)') eninc(k)
             write(3,'("# ")')
-            write(3,'("# # energies =",i3)') 
-     +        eendout(type)-ebegin(type)+1
+            write(3,'("# # energies =",i3)') nenen
             write(3,'("# E-out    Total       Direct    Pre-equil.",
      +        "  Mult. preeq  Compound")')             
-            do 470 k2=1,lenfile
-              write(3,'(f7.3,1p,5e12.5)') en(k2),xsnat(k2),xs1nat(k2),
-     +          xs2nat(k2),xs3nat(k2),xs4nat(k2)
-  470       continue
+            do 490 nen=1,nenen
+              write(3,'(f7.3,1p,5e12.5)') enspecnat(nen),
+     +          (xsspecnat(nen,j),j=1,5)
+  490       continue
             close (unit=3)
           endif
-  420   continue
-  410 continue
+  320   continue
+  310 continue
 c
 c 5. Residual production cross sections
 c
@@ -261,9 +319,9 @@ c          nucleus
 c numN   : maximal number of neutrons away from the initial compound 
 c          nucleus
 c
-      zbeg=Ztarget-numZ-2
+      zbeg=max(Ztarget-numZ-2,1)
       zend=Ztarget+2
-      abeg=isotope(1)-numN-2
+      abeg=max(isotope(1)-numN-2,1)
       aend=isotope(isonum)+4
       do 510 iz=zbeg,zend
         do 510 ia=abeg,aend
@@ -532,6 +590,112 @@ c
           close (unit=3)
         endif
  1010 continue
+c
+c 9. Recoil spectra
+c
+c recfile: file with recoil spectra
+c
+c flagrecoil : flag for calculation of recoils
+c
+      if (.not.flagrecoil) return
+      zbeg=max(Ztarget-numZ-2,1)
+      zend=Ztarget+2
+      abeg=max(isotope(1)-numN-2,1)
+      aend=isotope(isonum)+4
+      do 1110 iz=zbeg,zend
+        do 1110 ia=abeg,aend
+          do 1120 k=1,numinc
+            specexist=.false.
+            do 1130 k2=1,numen2nat
+              enspecnat(k2)=0.
+              xsspecnat(k2,1)=0.
+ 1130       continue
+            do 1140 i=1,isonum
+              do 1150 k2=1,numen2
+                enspec(i,k2)=0.
+                xsspec(i,k2,1)=0.
+ 1150         continue
+c
+c In general, the recoil spectra for the various isotopes are 
+c all different. Therefore, we first read the recoil energy
+c grids and cross sections into memory.
+c
+              neniso(i)=0
+              recfile='rec000000spec000.000.tot'//natstring(i)
+              write(recfile(4:9),'(2i3.3)') iz,ia
+              write(recfile(14:20),'(f7.3)') eninc(k)
+              write(recfile(14:16),'(i3.3)') int(eninc(k))
+              inquire (file=recfile,exist=lexist)
+              if (lexist) then
+                specexist=.true.
+                open (2,status='old',file=recfile)
+                read(2,'(////)',end=1170,err=1170)
+                do 1160 k2=1,numen2
+                  read(2,'(f7.3,e12.5)',end=1170,err=1160) 
+     +              enspec(i,k2),xsspec(i,k2,1)
+                  neniso(i)=neniso(i)+1
+ 1160           continue
+ 1170           close (unit=2)
+              endif
+ 1140       continue
+c
+c Make one unifying energy grid by removing double energies 
+c and sorting the remaining energies.
+c
+            if (specexist) then
+              nenen=0
+              do 1200 i=1,isonum
+                do 1210 k2=1,neniso(i)
+                  E=enspec(i,k2)
+                  do 1220 nen=1,nenen
+                    if (E.eq.enspecnat(nen)) goto 1210
+ 1220             continue
+                  nenen=nenen+1
+                  enspecnat(nenen)=E
+ 1210           continue
+ 1200         continue
+              do 1230 n1=1,nenen
+                do 1240 n2=n1,nenen
+                  if (enspecnat(n1).le.enspecnat(n2)) goto 1240
+                  entmp=enspecnat(n1)
+                  enspecnat(n1)=enspecnat(n2)
+                  enspecnat(n2)=entmp
+ 1240           continue
+ 1230         continue
+c
+c Interpolation and construction of natural spectra.
+c
+              do 1250 nen=1,nenen
+                do 1260 i=1,isonum
+                  do 1270 k2=1,neniso(i)-1
+                    Ea=enspec(i,k2)
+                    Eb=enspec(i,k2+1)
+                    if (enspecnat(nen).ge.Ea.and.enspecnat(nen).lt.Eb)
+     +                then
+                      Efac=(enspecnat(nen)-Ea)/(Eb-Ea)
+                      xs=xsspec(i,k2,1)+Efac*(xsspec(i,k2+1,1)-
+     +                  xsspec(i,k2,1))
+                      xsspecnat(nen,1)=xsspecnat(nen,1)+abun(i)*xs
+                      goto 1260
+                    endif
+ 1270             continue
+ 1260           continue
+ 1250         continue
+              open (3,status='unknown',file=recfile(1:24))
+              write(3,'("# ",a1," + nat-",a2,": recoil spectrum for",
+     +          i3,a2)') parsym(k0),nuc(Ztarget),ia,nuc(iz)
+              write(3,'("# E-incident = ",f7.3)') eninc(k)
+              write(3,'("# ")')
+              write(3,'("# # energies =",i3)') nenen
+              write(3,'("# E-out    Cross section ")')
+              do 1280 nen=1,nenen
+                write(3,'(f7.3,1p,e12.5)') enspecnat(nen),
+     +            xsspecnat(nen,1)
+ 1280         continue
+              close (unit=3)
+            endif
+ 1120   continue
+ 1110 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

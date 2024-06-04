@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 11, 2006   
+c | Date  : August 3, 2009
 c | Task  : Output of discrete levels 
 c +---------------------------------------------------------------------
 c
@@ -19,6 +19,7 @@ c ZZ,Z       : charge number of residual nucleus
 c NN,N       : neutron number of residual nucleus
 c AA,A       : mass number of residual nucleus
 c nuc        : symbol of nucleus
+c nucmass    : mass of nucleus
 c parskip    : logical to skip outgoing particle
 c parname    : name of particle
 c S          : separation energy per particle
@@ -31,6 +32,7 @@ c tau        : lifetime of state in seconds
 c jassign    : flag for assignment of spin
 c passign    : flag for assignment of parity
 c ENSDF      : string from original ENSDF discrete level file  
+c nbranch    : number of branching levels
 c branchratio: gamma-ray branching ratio to level
 c bassign    : flag for assignment of branching ratio
 c
@@ -39,6 +41,7 @@ c
       A=AA(Zix,Nix,0)       
       write(*,'(/" NUCLEAR STRUCTURE INFORMATION FOR Z=",i3," N=",i3,
      +  " (",i3,a2,") ")') Z,N,A,nuc(Z)
+      write(*,'(/" Mass in a.m.u.     : ",f10.6)') nucmass(Zix,Nix)
       write(*,'(/" Separation energies:")') 
       write(*,'(/" Particle        S         "/)')
       do 10 type=1,6
@@ -60,12 +63,11 @@ c
      +      edis(Zix,Nix,i),jdis(Zix,Nix,i),cparity(parlev(Zix,Nix,i)),
      +      jassign(Zix,Nix,i),passign(Zix,Nix,i),ENSDF(Zix,Nix,i)
         endif
-        do 40 k=0,i
-          if (branchratio(Zix,Nix,i,k).ne.0.) then
-            write(*,'(31x,"--->",i3,2x,f8.4,18x,a1)') k,
-     +        branchratio(Zix,Nix,i,k)*100.,bassign(Zix,Nix,i,k)
-          endif
-   40   continue
+        do 30 k=1,nbranch(Zix,Nix,i)
+          write(*,'(31x,"--->",i3,2x,f8.4,18x,a1)') 
+     +      branchlevel(Zix,Nix,i,k),branchratio(Zix,Nix,i,k)*100.,
+     +      bassign(Zix,Nix,i,k)
+   30   continue
    20 continue
       return 
       end

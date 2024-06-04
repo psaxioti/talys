@@ -79,7 +79,7 @@ c
           A=AA(Zcomp,Ncomp,0)
           Zix=Zindex(Zcomp,Ncomp,0)
           Nix=Nindex(Zcomp,Ncomp,0)
-          if(xsfeed(Zcomp,Ncomp,-1).lt.fiseps) goto 20
+          if (xsfeed(Zcomp,Ncomp,-1).lt.fiseps) goto 20
           if (Zcomp.eq.0.and.Ncomp.eq.0) then
             nexend=maxex(Zcomp,Ncomp)+1
           else
@@ -146,7 +146,7 @@ c
       yieldfile='yield000.000.fis'//natstring(iso)
       write(yieldfile(6:12),'(f7.3)') Einc
       write(yieldfile(6:8),'(i3.3)') int(Einc)
-      open(unit=1,status='unknown',file=yieldfile)
+      open (unit=1,status='unknown',file=yieldfile)
       write(1,'("# ",a1," + ",i3,a2,": mass yields")')
      +  parsym(k0),Atarget,nuc(Ztarget)
       write(1,'("# E-incident = ",f7.3)') Einc
@@ -174,7 +174,7 @@ c
           write(fpfile(3:8),'(2i3.3)') i,k
           if (.not.fpexist(i,k)) then
             fpexist(i,k)=.true.
-            open(unit=1,status='unknown',file=fpfile)
+            open (unit=1,status='unknown',file=fpfile)
             write(1,'("# ",a1," + ",i3,a2,": ff yield of ",i3,a2)')
      +        parsym(k0),Atarget,nuc(Ztarget),k,nuc(i)
             write(1,'("# ")')
@@ -192,7 +192,7 @@ c
   110         continue      
             endif
           else
-            open(unit=1,status='old',file=fpfile)
+            open (unit=1,status='old',file=fpfile)
             do 120 nen=1,nin+4
               read(1,*,end=130,err=130)
   120       continue       

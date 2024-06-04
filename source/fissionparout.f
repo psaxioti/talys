@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning    
-c | Date  : October 4, 2007
+c | Date  : December 17, 2008
 c | Task  : Output for fission parameters
 c +---------------------------------------------------------------------
 c
@@ -22,7 +22,7 @@ c nuc       : symbol of nucleus
 c nfisbar   : number of fission barrier parameters
 c flagclass2: flag for class2 states in fission
 c nclass2   : number of sets of class2 states    
-c fismodel  : fission model
+c fismodelx : fission model
 c betafiscor: adjustable factor for fission path width
 c vfiscor   : adjustable factor for fission path height
 c betafis   : fission path width
@@ -53,7 +53,7 @@ c
       if (flagclass2) 
      +  write(*,'(" Number of sets of class2 states      :",i3)') 
      +  nclass2(Zix,Nix)
-      if (fismodel.eq.5) then
+      if (fismodelx(Zix,Nix).eq.5) then
         write(*,'(" Correction factor betafiscor:",f8.3)')
      +    betafiscor(Zix,Nix)
         write(*,'(" Correction factor vfiscor   :",f8.3)')

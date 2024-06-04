@@ -104,7 +104,7 @@ c
       gschar='z000'
       write(gschar(2:4),'(i3.3)') Zbrosa
       gsfile=path(1:lenpath)//'fission/brosa/groundstate/'//gschar
-      open(unit=2,status='old',file=gsfile)
+      open (unit=2,status='old',file=gsfile)
 c
 c amassmax: heaviest isotope for which parameters have been calculated
 c amassar : mass array
@@ -170,7 +170,7 @@ c
          endif
          goto 10
  11      continue
-         close(unit=2)
+         close (unit=2)
       else
  12      read(2,'(4x,i4,15x,f15.5)', end=13) amassdum, binddum
          if(amassdum.EQ.amassar(index1))then
@@ -184,7 +184,7 @@ c
          endif
          goto 12
  13      continue
-         close(unit=2)
+         close (unit=2)
       endif
 c
 c      superlong (sl), standard 1 (st), standard 2 (st2) loop      
@@ -212,7 +212,7 @@ c
          barfile=path(1:lenpath)//'fission/brosa/barrier/'//filen
          inquire (file=barfile,exist=lexist)
          if (lexist)then
-           open(unit=10,status='old',file=barfile)
+           open (unit=10,status='old',file=barfile)
 c
 c     if fission modes exists:
 c     read and calculate barrier parameters height, width, and position
@@ -240,7 +240,7 @@ c
             endif
             goto 20
  21         continue
-           close(unit=10)
+           close (unit=10)
          endif
 c
 c      interpolate, if necessary, barrier parameters
@@ -478,7 +478,7 @@ c  prescission energy, corresponding nucleus half length, and mass heavy
 c  fragment
 c
        precfile=path(1:lenpath)//'fission/brosa/prescission/'//filen
-       open(unit=10,status='old',file=precfile)
+       open (unit=10,status='old',file=precfile)
          i=1
          k=1
  310     read(10,'(4x,i4,15x,3f15.5)',end=311) amassdum,hm,elsc,bindsc
@@ -498,7 +498,7 @@ c
          endif
          goto 310
  311     continue
-         close(unit=10)
+         close (unit=10)
 c
 c     interpolate, if necessary, prescission shape parameters
 c

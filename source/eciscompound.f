@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 17, 2007
+c | Date  : May 25, 2009
 c | Task  : Create ECIS input file for compound cross section
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer nex,Zix,Nix,kopt
+      integer nex,Zix,Nix,kopt,i
       real    eopt
 c
 c *********************** Write standard input *************************
@@ -120,9 +120,11 @@ c
       Zix=Zindex(0,0,k0)
       Nix=Nindex(0,0,k0)
       if (disp(Zix,Nix,k0)) then
-        write(1,'(10x,2i5)') 2,2
-        write(1,'(10x,f10.5,40x,f10.5)') ef(Zix,Nix,k0),w2(Zix,Nix,k0)
-        write(1,'(20x,2f10.5)') d3(Zix,Nix,k0),d2(Zix,Nix,k0)
+        do 40 i=1,npp
+          write(1,'(10x,2i5)') 2,2
+          write(1,'(10x,f10.5,40x,f10.5)') ef(Zix,Nix,k0),w2(Zix,Nix,k0)
+          write(1,'(20x,2f10.5)') d3(Zix,Nix,k0),d2(Zix,Nix,k0)
+   40   continue
       endif
       return
       end

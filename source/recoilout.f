@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : March 5, 2006   
+c | Date  : April 9, 2009
 c | Task  : Output of recoils
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*24     recfile
+      character*28     recfile
       integer          Zcomp,Ncomp,Z,A,nen
       double precision sumcm
 c
@@ -64,7 +64,7 @@ c
 c Write results to separate file   
 c
         if (filerecoil) then
-          recfile='rec000000spec000.000.tot'
+          recfile='rec000000spec000.000.tot'//natstring(iso)
           write(recfile(4:9),'(2i3.3)') Z,A
           write(recfile(14:20),'(f7.3)') Einc
           write(recfile(14:16),'(i3.3)') int(Einc)

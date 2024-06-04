@@ -2,14 +2,19 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 17, 2007
+c | Date  : September 15, 2009
 c | Task  : Initialization of arrays for various structure parameters
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer Zix,Nix,type,i,k,l,irad,nen,nex,ipar,j,in,ip,id,it,ih,ia
+      logical      lexist
+      character*2  phstring1(14)
+      character*4  phstring2(72)
+      character*90 denfile
+      integer      Zix,Nix,Z,N,A,type,i,k,l,irad,nen,nex,ipar,j,in,ip,
+     +             id,it,ih,ia
 c
 c *********** Initialization of nuclear structure arrays ***************
 c
@@ -22,8 +27,14 @@ c Zix         : charge number index for residual nucleus
 c numZ        : maximal number of protons away from the initial 
 c               compound nucleus
 c nucmass     : mass of nucleus
+c expmass     : experimental mass
+c thmass      : theoretical mass
 c expmexc     : experimental mass excess
 c thmexc      : theoretical mass excess           
+c dumexc      : theoretical mass excess from Duflo-Zuker formula
+c beta4       : deformation parameters
+c gsspin      : ground state spin
+c gsparity    : ground state parity
 c ldparexist  : flag for existence of tabulated level density parameters
 c numpar      : number of particles
 c specmass    : specific mass for target nucleus
@@ -32,13 +43,28 @@ c S           : separation energy per particle
 c numen       : maximum number of outgoing energies
 c egrid       : energies of basic energy grid in MeV
 c coullimit   : energy limit for charged particle OMP calculation
+c numelem     : number of elements
+c nummass     : number of masses
 c flagreaction: flag for calculation of nuclear reactions
 c
       do 10 Nix=0,numN+4
         do 10 Zix=0,numZ+4
           nucmass(Zix,Nix)=0.
+          expmass(Zix,Nix)=0.
+          thmass(Zix,Nix)=0.
           expmexc(Zix,Nix)=0.    
           thmexc(Zix,Nix)=0.    
+          dumexc(Zix,Nix)=0.    
+          beta4(Zix,Nix)=0.    
+          Z=Zinit-Zix
+          N=Ninit-Nix
+          A=Z+N
+          if (mod(A,2).eq.0) then
+            gsspin(Zix,Nix)=0.
+          else
+            gsspin(Zix,Nix)=0.5
+          endif
+          gsparity(Zix,Nix)=1
    10 continue
       do 20 Nix=0,numN
         do 20 Zix=0,numZ
@@ -78,8 +104,10 @@ c iph,iphonon: phonon (1 or 2)
 c deform     : deformation parameter       
 c defpar     : deformation parameter  
 c numlev     : maximum number of included discrete levels
+c nbranch    : number of branching levels
 c tau        : lifetime of state in seconds     
 c bassign    : flag for assignment of branching ratio 
+c branchlevel: level to which branching takes place
 c branchratio: gamma-ray branching ratio to level
 c conv       : conversion coefficient                
 c colltype   : type of collectivity (D, V or R)
@@ -112,6 +140,7 @@ c
       do 120 i=0,numlev
         do 120 Nix=0,numN
           do 120 Zix=0,numZ
+            nbranch(Zix,Nix,i)=0
             tau(Zix,Nix,i)=0.
   120 continue
       do 130 k=0,numlev
@@ -119,6 +148,7 @@ c
           do 130 Nix=0,numN
             do 130 Zix=0,numZ
               bassign(Zix,Nix,i,k)=' '
+              branchlevel(Zix,Nix,i,k)=0
               branchratio(Zix,Nix,i,k)=0.
               conv(Zix,Nix,i,k)=0.
   130 continue
@@ -203,6 +233,11 @@ c rhojlmn    : density for neutrons
 c rhojlmp    : density for protons
 c potjlm     : JLM potential depth values
 c radjlm     : radial points for JLM potential
+c xstotadjust: total cross section adjustment
+c xseladjust : elastic cross section adjustment
+c xsnonadjust: nonelastic cross section adjustment
+c threshnorm : normalization factor at trheshold
+c Rprime     : potential scattering radius
 c
       do 410 k=1,numpar
         do 410 Nix=0,numN
@@ -256,6 +291,15 @@ c
           do 450 Zix=0,numZ
             radjlm(Zix,Nix,nen)=0.
   450 continue
+      do 460 nen=1,numen6
+        xstotadjust(nen)=0.
+        xseladjust(nen)=0.
+        xsnonadjust(nen)=0.
+  460 continue
+      do 470 type=0,numpar
+        threshnorm(type)=1.
+  470 continue
+      Rprime=0.
 c
 c Fission parameters
 c
@@ -328,13 +372,21 @@ c
 c Nlast      : last discrete level
 c Ediscrete  : energy of middle of discrete level region
 c scutoffdisc: spin cutoff factor for discrete level region 
+c delta      : energy shift
 c ldexist    : flag for existence of level density table  
 c edens      : energy grid for tabulated level densities
 c ldmodel    : level density model       
 c nendens    : number of energies for level density grid
+c nenphdens  : number of energies for particle-hole state density grid
 c Edensmax   : maximum energy on level density table
+c Ephdensmax : maximum energy on particle-hole state density table
 c ENSDF      : string from original ENSDF discrete level file
-c Dtheo      : theoretical s-wave resonance spacing 
+c D0theo     : theoretical s-wave resonance spacing 
+c Econd      : condensation energy
+c Ucrit      : critical U
+c Scrit      : critical entropy
+c Dcrit      : critical determinant
+c aldcrit    : critical level density parameter
 c ldtable    : level density from table
 c ldtottableP: total level density per parity from table
 c ldtottable : total level density from table
@@ -345,7 +397,8 @@ c
           do 610 Zix=0,numZ
             Nlast(Zix,Nix,i)=0.
             Ediscrete(Zix,Nix,i)=0.
-            scutoffdisc(Zix,Nix,i)=0.
+            scutoffdisc(Zix,Nix,i)=1.
+            delta(Zix,Nix,i)=0.
             ldexist(Zix,Nix,i)=.false.
   610 continue
 c
@@ -376,6 +429,8 @@ c
         nendens=60
         Edensmax=200.
       endif
+      nenphdens=60
+      Ephdensmax=200.
       do 660 i=0,numlev
         do 660 Nix=0,numN
           do 660 Zix=0,numZ
@@ -384,7 +439,14 @@ c
       if (.not.flagreaction) return
       do 710 Nix=0,numN
         do 710 Zix=0,numZ
-          Dtheo(Zix,Nix)=0.
+          D0theo(Zix,Nix)=0.
+          if (ldmodel.eq.3) then
+            Ucrit(Zix,Nix)=0.
+            Tcrit(Zix,Nix)=0.
+            Econd(Zix,Nix)=0.
+            Scrit(Zix,Nix)=0.
+            aldcrit(Zix,Nix)=0.
+          endif
   710 continue
       do 720 i=0,numbar
         do 720 ipar=-1,1,2
@@ -415,6 +477,60 @@ c
             jcore(Zix,Nix,i)=0.
             pcore(Zix,Nix,i)=1
   740 continue
+c
+c Particle-hole state densities
+c
+c phexist2: flag for existence of particle-hole state density table
+c phtable2: particle-hole state density from table
+c
+      do 750 l=0,numexc
+        do 750 k=0,numexc
+          do 750 j=0,numexc
+            do 750 i=0,numexc
+              do 750 Nix=0,numNph
+                do 750 Zix=0,numZph
+                  phexist2(Zix,Nix,i,j,k,l)=.false.
+                  phexist1(Zix,Nix,i,j)=.false.
+                  do 760 nex=0,numdens
+                    phtable2(Zix,Nix,i,j,k,l,nex)=0.
+                    phtable1(Zix,Nix,i,j,nex)=0.
+  760             continue
+  750 continue
+
+c Configurations for microscopic particle-hole state densities
+c
+c phmodel  : particle-hole state density model
+c Nphconf2 : number of 2-component particle-hole configurations
+c Nphconf1 : number of 1-component particle-hole configurations
+c phstring2: help variable
+c ppitable : proton particle number from table
+c hpitable : proton hole number from table
+c pnutable : neutron particle number from table
+c hnutable : neutron hole number from table
+c pptable  : particle number from table
+c hhtable  : hole number from table
+c
+      if (phmodel.eq.2) then
+        denfile=path(1:lenpath)//'density/ph/z026'
+        inquire (file=denfile,exist=lexist)
+        if (lexist) then
+          Nphconf2=72
+          Nphconf1=14
+          open (unit=2,status='old',file=denfile)
+          read(2,'(/////,10x,72(a4,5x),1x,14(a2,7x))')
+     +      (phstring2(i),i=1,72),(phstring1(k),k=1,14)
+          do 770 i=1,Nphconf2
+            read(phstring2(i),'(4i1)') ppitable(i),hpitable(i),
+     +        pnutable(i),hnutable(i)
+  770     continue
+          do 780 i=1,Nphconf1
+            read(phstring1(i),'(2i1)') pptable(i),hhtable(i)
+  780     continue
+        else
+          Nphconf2=0
+          Nphconf1=0
+        endif
+      endif
 c
 c Giant resonance sum rules
 c

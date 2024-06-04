@@ -1,19 +1,19 @@
-      subroutine radwidtheory(Zcomp,Ncomp)
+      subroutine radwidtheory(Zcomp,Ncomp,E)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 12, 2007
+c | Date  : January 13, 2009
 c | Task  : Theoretical calculation of total radiative width
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer          Zcomp,Ncomp,NL,nex,nexgam,J2b,J2e,J2,nexout,
+      integer          Zcomp,Ncomp,NL,nex,J,l,nexgam,J2b,J2e,J2,nexout,
      +                 Pprimebeg,Pprimeend,Irspin2beg,Irspin2end,Pprime,
-     +                 Irspin2,l2beg,l2end,l2,l,modl,irad
-      real             Sn,Exgam(0:10*numex),dEx,tspin,tP,gamsum,Exmid,
-     +                 Egamma,Exmin,Explus,dE1,dE2,Rspin,Tgamma,
+     +                 Irspin2,l2beg,l2end,l2,modl,irad
+      real             E,Sn,Exgam(0:10*numex),dEx,tspin,tP,Sgamsum,
+     +                 Exmid,Egamma,Exmin,Explus,dE1,dE2,Rspin,Sgamma,
      +                 fstrength
       double precision density,rho1,rho2,rho3,r1log,r2log,r3log,rho
 c
@@ -25,7 +25,8 @@ c *************** Initialization of excitation energies ****************
 c
 c Zcomp       : charge number index for compound nucleus
 c Ncomp       : neutron number index for compound nucleus
-c Sn          : neutron separation energy
+c E           : incident energy
+c Sn          : neutron separation energy + incident energy
 c S           : separation energy per particle
 c Nlast,NL    : last discrete level
 c edis        : energy of level
@@ -36,7 +37,7 @@ c
 c If the gamma normalization factor has been given in the input, we
 c do not need to calculate it.
 c
-      Sn=S(Zcomp,Ncomp,1)
+      Sn=S(Zcomp,Ncomp,1)+E
       NL=Nlast(Zcomp,Ncomp,0)
       do 10 nex=0,NL
         if (edis(Zcomp,Ncomp,nex).gt.Sn) then
@@ -62,7 +63,11 @@ c jdis      : spin of level
 c J2b       : 2 * start of J summation
 c parspin   : spin of incident particle
 c J2e       : 2 * end of J summation
-c gamsum    : sum over gamma-ray transmission coefficients
+c Sgamsum   : sum over gamma-ray transmission coefficients/2 pi
+c             (gamma strength function)
+c numl      : maximal l-value
+c numJ      : maximal J-value
+c Sgam      : gamma strength function per J,l
 c
 c Specify the summation boundaries for the neutron channel.
 c
@@ -71,7 +76,11 @@ c
       tP=parlev(Zcomp,Ncomp+1,0)
       J2b=int(abs(2.*(tspin-parspin(1))))
       J2e=int(2.*(tspin+parspin(1)))
-      gamsum=0.
+      Sgamsum=0.
+      do 40 J=0,numJ
+        do 40 l=0,numl
+          Sgam(J,l)=0.
+   40 continue
 c
 c 110: Sum over total angular momentum J (J2) of compound nucleus
 c
@@ -84,6 +93,7 @@ c
 c Exmid : help variable
 c Egamma: gamma energy
 c
+        J=J2/2
         do 120 nexout=0,nexgam
           Exmid=Exgam(nexout)
           Egamma=Sn-Exmid
@@ -199,13 +209,13 @@ c
 c
 c Create sum for normalization
 c
-c Tgamma   : gamma transmission coefficient
-c twopi    : 2.*pi
+c Sgamma   : gamma transmission coefficient/2 pi
 c fstrength: gamma ray strength function
 c
-                Tgamma=twopi*(Egamma**(l2+1))*
-     +            fstrength(Zcomp,Ncomp,Egamma,irad,l)
-                gamsum=gamsum+rho*Tgamma
+                Sgamma=(Egamma**(l2+1))*
+     +            fstrength(Zcomp,Ncomp,E,Egamma,irad,l)
+                Sgam(J,l)=Sgam(J,l)+rho*Sgamma
+                Sgamsum=Sgamsum+rho*Sgamma
   150         continue
   140       continue
   130     continue
@@ -215,15 +225,12 @@ c
 c ************** Calculation of theoretical values ********************
 c
 c gamgamth: theoretical total radiative width
-c Dtheo   : theoretical s-wave resonance spacing
+c D0theo  : theoretical s-wave resonance spacing
 c swaveth : theoretical strength function for s-wave
-c gamgam  : experimental total radiative width
 c
-      gamgamth(Zcomp,Ncomp)=gamsum*Dtheo(Zcomp,Ncomp)/twopi
-      if (Dtheo(Zcomp,Ncomp).ne.0.) then
-        swaveth(Zcomp,Ncomp)=gamgamth(Zcomp,Ncomp)/Dtheo(Zcomp,Ncomp)
-      else
-        swaveth(Zcomp,Ncomp)=0.
+      if (E.eq.0.) then
+        gamgamth(Zcomp,Ncomp)=Sgamsum*D0theo(Zcomp,Ncomp)
+        swaveth(Zcomp,Ncomp)=Sgamsum
       endif
       return
       end

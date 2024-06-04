@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 26, 2007
+c | Date  : August 5, 2009
 c | Task  : Incident photons
 c +---------------------------------------------------------------------
 c
@@ -34,7 +34,7 @@ c
       xsreacinc=gammaxs(0,0,Einc)
       do 10 irad=0,1
         do 10 l=1,gammax
-          Tgamma=twopi*(Einc**(2*l+1))*fstrength(0,0,Einc,irad,l)
+          Tgamma=twopi*(Einc**(2*l+1))*fstrength(0,0,Einc,Einc,irad,l)
           Tjlinc(irad,l)=Tgamma
    10 continue       
       return

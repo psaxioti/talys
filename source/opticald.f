@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 8, 2005
+c | Date  : December 10, 2009
 c | Task  : Optical potential for deuterons
 c +---------------------------------------------------------------------
 c
@@ -13,7 +13,8 @@ c
       integer      Zix,Nix,nen,i
       real         eopt,elow,eup,eint,vloc(19),vn,rvn,avn,wn,rwn,awn,
      +             vdn,rvdn,avdn,wdn,vp,rvp,avp,wp,rwp,awp,vdp,rvdp,
-     +             avdp,wdp,vson,rvson,avson,wson,vsop,rvsop,avsop,wsop
+     +             avdp,wdp,vson,rvson,avson,wson,vsop,rvsop,avsop,wsop,
+     +             factor(6)
 c
 c ******************* Optical model input file *************************
 c
@@ -46,8 +47,8 @@ c
       if (Zix.le.numZph.and.Nix.le.numNph) optmodfile=optmod(Zix,Nix,3)
       if (optmodfile(1:1).ne.' ') then
         if (eopt.lt.eomp(Zix,Nix,3,1).or.
-     +    eopt.gt.eomp(Zix,Nix,3,omplines(3))) goto 100
-        do 20 nen=1,omplines(3)-1
+     +    eopt.gt.eomp(Zix,Nix,3,omplines(Zix,Nix,3))) goto 100
+        do 20 nen=1,omplines(Zix,Nix,3)-1
           elow=eomp(Zix,Nix,3,nen)
           eup=eomp(Zix,Nix,3,nen+1)
           if (elow.le.eopt.and.eopt.le.eup) then
@@ -56,26 +57,26 @@ c
               vloc(i)=vomp(Zix,Nix,3,nen,i)+
      +          eint*(vomp(Zix,Nix,3,nen+1,i)-vomp(Zix,Nix,3,nen,i))
    30       continue
-            v=vloc(1)
-            rv=vloc(2)
-            av=vloc(3)
-            w=vloc(4)
-            rw=vloc(5)
-            aw=vloc(6)
-            vd=vloc(7)
-            rvd=vloc(8)
-            avd=vloc(9)
-            wd=vloc(10)
-            rwd=vloc(11)
-            awd=vloc(12)
-            vso=vloc(13)
-            rvso=vloc(14)
-            avso=vloc(15)
-            wso=vloc(16)
-            rwso=vloc(17)
-            awso=vloc(18)
-            rc=vloc(19)
-            return
+            v=v1adjust(3)*vloc(1)
+            rv=rvadjust(3)*vloc(2)
+            av=avadjust(3)*vloc(3)
+            w=w1adjust(3)*vloc(4)
+            rw=rvadjust(3)*vloc(5)
+            aw=avadjust(3)*vloc(6)
+            vd=d1adjust(3)*vloc(7)
+            rvd=rvdadjust(3)*vloc(8)
+            avd=avdadjust(3)*vloc(9)
+            wd=d1adjust(3)*vloc(10)
+            rwd=rvdadjust(3)*vloc(11)
+            awd=avdadjust(3)*vloc(12)
+            vso=vso1adjust(3)*vloc(13)
+            rvso=rvsoadjust(3)*vloc(14)
+            avso=avsoadjust(3)*vloc(15)
+            wso=wso1adjust(3)*vloc(16)
+            rwso=rvsoadjust(3)*vloc(17)
+            awso=avsoadjust(3)*vloc(18)
+            rc=rcadjust(3)*vloc(19)
+            goto 200
           endif
    20   continue
       endif                                 
@@ -169,6 +170,22 @@ c
       wso=wso1adjust(3)*0.5*(wson+wsop)
       rwso=rvso
       awso=avso
+c
+c Possible additional energy-dependent adjustment of the geometry
+c
+c ompadjustF: logical for local OMP adjustment
+c adjustF   : subroutnie for local optical model geometry adjustment
+c factor    : Woods-Saxon multiplication factor
+c
+  200 if (ompadjustF(3)) then
+        call adjustF(3,eopt,factor)
+        rv=factor(1)*rv
+        av=factor(2)*av
+        rwd=factor(3)*rwd
+        awd=factor(4)*awd
+        rvso=factor(5)*rvso
+        avso=factor(6)*avso
+      endif
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 7, 2006
+c | Date  : April 24, 2009
 c | Task  : Output of cross sections for discrete states
 c +---------------------------------------------------------------------
 c
@@ -67,7 +67,7 @@ c
      +  " and continuum")')
       do 110 type=0,6
         if (parskip(type)) goto 110
-        if (xsdisctot(type).eq.0.) goto 110
+        if (xsbinary(type).eq.0.) goto 110
         Zix=Zindex(Zcomp,Ncomp,type)
         Nix=Nindex(Zcomp,Ncomp,type)
         write(*,'(/1x,a9," cross sections:"/)') reactionstring(type)

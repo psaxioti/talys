@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 12, 2007
+c | Date  : August 5, 2009
 c | Task  : Gamma ray parameters 
 c +---------------------------------------------------------------------
 c
@@ -13,7 +13,8 @@ c
       character*4  gamchar
       character*90 gamfile
       integer      Zix,Nix,Z,A,N,ia,irad,l,nen
-      real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom,ee,fe1
+      real         eg1,sg1,gg1,eg2,sg2,gg2,egamref,enum,denom,ee,fe1,
+     +             fstrength,factor
 c
 c ***************** Default giant resonance parameters *****************
 c
@@ -90,23 +91,6 @@ c
      +  (A**onethird*ggr(Zix,Nix,1,2,1))
       kgr(Zix,Nix,1,2)=0.2*pi2h2c2
 c
-c M1 radiation
-c
-c egamref   : help variable
-c enum,denom: help variables
-c
-      if (egr(Zix,Nix,0,1,1).eq.0.) egr(Zix,Nix,0,1,1)=
-     +  41.*A**(-onethird)
-      if (ggr(Zix,Nix,0,1,1).eq.0.) ggr(Zix,Nix,0,1,1)=4.
-      kgr(Zix,Nix,0,1)=onethird*pi2h2c2
-      if (sgr(Zix,Nix,0,1,1).eq.0.) then
-        egamref=7.
-        enum=egamref*ggr(Zix,Nix,0,1,1)**2
-        denom=(egamref**2-egr(Zix,Nix,0,1,1)**2)**2+
-     +    (ggr(Zix,Nix,0,1,1)*egamref)**2
-        sgr(Zix,Nix,0,1,1)=1.58e-9*A**0.47*denom/enum/kgr(Zix,Nix,0,1)
-      endif
-c
 c E3-6 radiation
 c
 c gammax: number of l-values for gamma multipolarity
@@ -121,18 +105,6 @@ c
         kgr(Zix,Nix,1,l)=pi2h2c2/(2*l+1.)
   110 continue
 c
-c M2-6 radiation
-c
-      do 120 l=2,gammax
-        if (egr(Zix,Nix,0,l,1).eq.0.) egr(Zix,Nix,0,l,1)=
-     +    egr(Zix,Nix,0,l-1,1)
-        if (ggr(Zix,Nix,0,l,1).eq.0.) ggr(Zix,Nix,0,l,1)=
-     +    ggr(Zix,Nix,0,l-1,1)
-        if (sgr(Zix,Nix,0,l,1).eq.0.) sgr(Zix,Nix,0,l,1)=
-     +    sgr(Zix,Nix,0,l-1,1)*8.e-4
-        kgr(Zix,Nix,0,l)=pi2h2c2/(2*l+1.)
-  120 continue
-c
 c Check whether number of giant resonances is two (in which case
 c all parameters must be specified)
 c
@@ -146,7 +118,7 @@ c
      +      sgr(Zix,Nix,irad,l,2).ne.0..and.
      +      egr(Zix,Nix,irad,l,2).ne.0.)  ngr(Zix,Nix,irad,l)=2
   130 continue
-      if (strength.le.2) return
+      if (strength.le.2.or.strength.eq.5) goto 300
 c
 c
 c ***************** HFbcs or HFB QRPA strength functions ***************
@@ -181,7 +153,44 @@ c
         fe1qrpa(Zix,Nix,nen)=onethird*pi2h2c2*fe1*ftable(Zix,Nix)
   240 continue
       qrpaexist(Zix,Nix)=.true.
-  210 close(unit=2)
+  210 close (unit=2)
+c
+c ############################# M radiation ############################
+c
+c M1 radiation: strength function is related to that of E1
+c
+c egamref   : help variable
+c enum,denom: help variables
+c strengthM1: model for M1 gamma-ray strength function
+c
+  300 if (egr(Zix,Nix,0,1,1).eq.0.) egr(Zix,Nix,0,1,1)=
+     +  41.*A**(-onethird)
+      if (ggr(Zix,Nix,0,1,1).eq.0.) ggr(Zix,Nix,0,1,1)=4.
+      kgr(Zix,Nix,0,1)=onethird*pi2h2c2
+      if (sgr(Zix,Nix,0,1,1).eq.0.) then
+        egamref=7.
+        enum=kgr(Zix,Nix,0,1)*egamref*ggr(Zix,Nix,0,1,1)**2
+        denom=(egamref**2-egr(Zix,Nix,0,1,1)**2)**2+
+     +    (ggr(Zix,Nix,0,1,1)*egamref)**2
+        if (strengthM1.eq.1) then
+          factor=1.58e-9*A**0.47
+        else
+          factor=fstrength(Zix,Nix,0.,egamref,1,1)/(0.0588*A**0.878)
+        endif
+        sgr(Zix,Nix,0,1,1)=factor*denom/enum
+      endif
+c
+c M2-6 radiation
+c
+      do 310 l=2,gammax
+        if (egr(Zix,Nix,0,l,1).eq.0.) egr(Zix,Nix,0,l,1)=
+     +    egr(Zix,Nix,0,l-1,1)
+        if (ggr(Zix,Nix,0,l,1).eq.0.) ggr(Zix,Nix,0,l,1)=
+     +    ggr(Zix,Nix,0,l-1,1)
+        if (sgr(Zix,Nix,0,l,1).eq.0.) sgr(Zix,Nix,0,l,1)=
+     +    sgr(Zix,Nix,0,l-1,1)*8.e-4
+        kgr(Zix,Nix,0,l)=pi2h2c2/(2*l+1.)
+  310 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

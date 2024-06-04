@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : November 1, 2007
+c | Date  : August 1, 2008
 c | Task  : Neutron-proton transition rates for n --> n
 c +---------------------------------------------------------------------
 c
@@ -141,7 +141,7 @@ c
           endif
           if (preeqmode.eq.2) then
             lambdanupi1p=twopihbar*M2nupi*
-     +        phdens2(1,1,0,0,gsp,gsn,uu,edepth,surfwell)
+     +        phdens2(Zcomp,Ncomp,1,1,0,0,gsp,gsn,uu,edepth,surfwell)
           else
             Zix=0
             Nix=1
@@ -149,8 +149,10 @@ c
             eopt=max(uu-S(Zix,Nix,k),-20.)
             nen=min(10*numen,int(eopt*10.))
             Weff=Wompfac(0)*wvol(k,nen)
-            densh=phdens2(1,1,0,0,gsp,gsn,uu,edepth,surfwell)
-            densp=phdens2(1,1,1,0,gsp,gsn,uu,edepth,surfwell)
+            densh=phdens2(Zcomp,Ncomp,1,1,0,0,gsp,gsn,uu,
+     +        edepth,surfwell)
+            densp=phdens2(Zcomp,Ncomp,1,1,1,0,gsp,gsn,uu,
+     +        edepth,surfwell)
             if (densp.gt.1.) then
               ratio=densh/densp
             else
@@ -159,21 +161,23 @@ c
             lambdanupi1p=2.*Weff/hbar*ratio
           endif
           termnupi1p=lambdanupi1p*
-     +      phdens2(0,0,1,1,gsp,gsn,uu,edepth,surfwell)*dEx
+     +      phdens2(Zcomp,Ncomp,0,0,1,1,gsp,gsn,uu,edepth,surfwell)*dEx
           if (flaggshell) then
             damp=ignatyuk(Zcomp,Ncomp,uu,0)/alev(Zcomp,Ncomp)
             gsp=gp(Zcomp,Ncomp)*damp
             gsn=gn(Zcomp,Ncomp)*damp
           endif
           sumnupi1p=sumnupi1p+termnupi1p*
-     +      phdens2(ppi,hpi,pnu-1,hnu-1,gsp,gsn,U-uu,edepth,surfwell)
+     +      phdens2(Zcomp,Ncomp,ppi,hpi,pnu-1,hnu-1,gsp,gsn,U-uu,
+     +      edepth,surfwell)
    10   continue
         if (flaggshell) then
           damp=ignatyuk(Zcomp,Ncomp,U,0)/alev(Zcomp,Ncomp)
           gsp=gp(Zcomp,Ncomp)*damp
           gsn=gn(Zcomp,Ncomp)*damp
         endif
-        phtot=phdens2(ppi,hpi,pnu,hnu,gsp,gsn,U,edepth,surfwell)
+        phtot=phdens2(Zcomp,Ncomp,ppi,hpi,pnu,hnu,gsp,gsn,U,
+     +    edepth,surfwell)
         if (phtot.gt.0.) then
           lnupi=sumnupi1p/phtot
           lambdanupi=real(lnupi)

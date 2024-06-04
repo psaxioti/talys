@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Eric Bauge   
-c | Date  : December 18, 2007
+c | Date  : December 22, 2009
 c | Task  : Microscopic JLM OMP      
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       integer Zix,Nix,Z,N,A,i,j
       real*8  pZ,e,lv,lw,lv1,lw1,lvso,lwso
-      real rhomomn(200,6),rhomomp(200,6),vpot(200,6),rcjlm
+      real rhomomn(200,6),rhomomp(200,6),vpot(200,6),rcjlm,alam
 c
 c *********************** Parameterization *****************************
 c
@@ -38,9 +38,19 @@ c
      &     *(1.-0.09*exp(-((e-80.)/78.)**2))
       if(e.gt.80.)lw=lw*(1+(e-80.)/(400.))
       lv1=1.5-(0.65/(1.+exp((e-1.3)/3.0)))
-      lw1=(1.1+(.44/(1.+(exp(((e)-40.)/50.9))**4 )))
-     &     *(1.-.065*exp(-((40-e)/13)**2))
-     &     *(1.-.083*exp(-((200-e)/80.)**2))
+c
+c Possible modification of JLMB potential with jlmmode
+c  cf Goriely & Delaroche: PLB653, 158 (2007)
+c
+      alam=0.44
+      if (jlmmode.eq.1) alam=1.10*exp(-0.4*e**0.25)
+      if (jlmmode.ge.2) alam=1.375*exp(-0.2*e**0.5)
+      if (jlmmode.eq.3) lw=lw*2.
+c
+      lw1=(1.1+(alam/(1.+(exp(((e)-40.)/50.9))**4 )))
+     &     *(1.-.065*exp(-((40.-e)/13.)**2))
+     &     *(1.-.083*exp(-((200.-e)/80.)**2))
+c
       lvso=40.+exp(-e*0.013)*130.
       lwso=-0.2*(e-20)
       lv=lvadjust*lv
@@ -176,18 +186,18 @@ c
       implicit none
 
       include 'mom.cmb'
-      real*8 amu,aksq,grel,xemp,xem,xemt
+      real*8 aamu,aksq,grel,xemp,xem,xemt
       real*8 aux,wcm,temp,x,wm,wmp
       real*8 amen
       data amen/931.47d0/
 c
 c     constants used below are ---
 c
-c     .047846 = 2 * ( 1 amu ) / (hbar) ** 2
-c     .034447 = (1 amu) * e ** 2 / (hbar) ** 2
+c     .047846 = 2 * ( 1 aamu ) / (hbar) ** 2
+c     .034447 = (1 aamu) * e ** 2 / (hbar) ** 2
 c
-      amu=emp*em/(emp+em)
-      emu=.047846d0*amu
+      aamu=emp*em/(emp+em)
+      emu=.047846d0*aamu
 c
 c     choose between relativistic and nonrelativistic kinematics.
 c
@@ -230,12 +240,12 @@ c
 c
    10 wm=xem*(einc+xemt)/wcm
       wmp=wcm-wm
-      grel=wmp*wm/((wmp+wm)*amen*amu)
+      grel=wmp*wm/((wmp+wm)*amen*aamu)
 c
-      amu=grel*amu
+      aamu=grel*aamu
       emu=grel*emu
 c
-   22 zzp=.034447d0*amu*z*zp
+   22 zzp=.034447d0*aamu*z*zp
 c     eta = zzp/ak
       return
       end
@@ -561,7 +571,7 @@ c     **************************************************************
       subroutine convolbesl0(frc,grc,ofr,ogr,nblk8,t)
 c     ****************************************************************
 c
-c     does the conbolution using the bessel function expansion of exp.
+c     does the convolution using the bessel function expansion of exp.
 c     restricted to l=0 : trivial 
 c     ****************************************************************
       implicit none
@@ -570,7 +580,7 @@ c     ****************************************************************
       include 'mom.cmb'
       real*8 mu,mu1,ma,newtfac
       integer*4 iz(200),ifac(12),ibad(12),npo,il,i,jj,indic,j,k
-      integer*4 ir,ii,npx
+      integer*4 ir,ii,npx,incx
       real*8 cho(11), tho(11),big(200),bag(8)
       real*8 zz(200),bes(200,200),dup(12),cxp(200)
       real*8 axp(200),bxp(200),r(200),rprim(200),r2(200)
@@ -593,7 +603,8 @@ c   coeff. integ. open newton-cotes 8 pts see Abramowitz & Stegun, Dover
 c     preparation of the arrays: r, r', etc...
       do i=1,199                                           
          iz(i)=i                                                 
-         indic=mod(i,8)+1                                        
+c        indic=mod(i,8)+1                                        
+         indic=i-8*(i/8)+1                                        
          big(i+1)=bag(indic) 
          r(i)=(real(i)-.1d0)*dx   
          rprim(i)=(real(i)-0.0d0)*h     
@@ -611,7 +622,7 @@ c     preparation of the arrays: r, r', etc...
          cxp(i)=dexp(-axp(i))
          cprim(i)=dexp(-rprim2(i))
       enddo
-c     coeff of the besel function expansion, trivial for l=0
+c     coeff of the bessel function expansion, trivial for l=0
       do i=1,8
          cho(i)=0.0d0
          tho(i)=0.0d0
@@ -680,8 +691,9 @@ c     do the folding
             axp(k)=bes(k,j)*r2(k)*big(k)*cxp(k)*theta(k)*frc(k)
             bxp(k)=bes(k,j)*r2(k)*big(k)*cxp(k)*theta(k)*grc(k)
          enddo
-         soms=ssum(npx,axp(2),1)
-         somv=ssum(npx,bxp(2),1)
+         incx=1
+         soms=ssum(npx,axp(2),incx)
+         somv=ssum(npx,bxp(2),incx)
          ofr(j)=soms*newtfac*fnorm*cprim(j)*ma
          ogr(j)=somv*newtfac*fnorm*cprim(j)*ma
       enddo
@@ -775,7 +787,8 @@ C**** DOUBLE PRECISION *****************************************
  10   CONTINUE                                                        
        SDOT=STEMP                                                     
        RETURN                                                         
-  20  M=MOD(N,5)                                                      
+c 20  M=MOD(N,5)                                                      
+  20  M=N-5*(N/5)
       IF(M.EQ.0)GO TO 40                                              
       DO 30 I=1,M                                                     
       STEMP=STEMP+SX(I)*SY(I)                                         
@@ -804,7 +817,8 @@ C**** DOUBLE PRECISION *****************************************
   10  CONTINUE
        SSUM=STEMP
       RETURN
-  20  M=MOD(N,6)
+c 20  M=MOD(N,6)
+  20  M=N-6*(N/6)
       IF(M.EQ.0)GO TO 40
       DO 30 I=1,M
       STEMP=STEMP+SX(I)

@@ -2,15 +2,15 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 7, 2004
+c | Date  : September 15, 2009
 c | Task  : Energies
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer          type,nen,i,Zix,Nix,NL
-      real             Elast
+      integer          type,nen,i,Zix,Nix,NL,minbins,maxbins
+      real             Elast,b
       double precision ma1,ma2,ma,eps
 c
 c ****************************** Energies ******************************
@@ -109,8 +109,8 @@ c of the population of a residual nucleus. This will be needed for
 c the calculation of boundary effects in spectra.
 c
       do 110 type=0,6
-        if (parskip(type)) goto 110
         nendisc(type)=1
+        if (parskip(type)) goto 110
         Zix=Zindex(0,0,type)
         Nix=Nindex(0,0,type)
         NL=Nlast(Zix,Nix,0)
@@ -138,7 +138,12 @@ c flaggiant0 : flag for collective contribution from giant resonances
 c emulpre    : on-set incident energy for multiple preequilibrium
 c flagmulpre : flag for multiple pre-equilibrium calculation
 c flagendf   : flag for information for ENDF-6 file
+c eadd       : on-set incident energy for addition of discrete states
+c              to spectra
+c eaddel     : on-set incident energy for addition of elastic peak
+c              to spectra
 c flagadd    : flag for addition of discrete states to spectra
+c flagaddel  : flag for addition of elastic peak to spectra
 c numZ       : maximal number of protons away from initial compound 
 c              nucleus
 c numN       : maximal number of neutrons away from initial compound 
@@ -150,7 +155,7 @@ c
       else
         flagwidth=.false.
       endif
-      if (flagang.and.Einc.le.50.)  then
+      if (k0.eq.1.and.flagang.and.Einc.le.50.)  then
         flagcompang=.true.
       else
         flagcompang=.false.
@@ -171,17 +176,37 @@ c
       else
         flagmulpre=.true.
       endif
-      if (flagendf) then
-        if (Einc.gt.20.)  then
-          flagadd=.true.
-        else
-          flagadd=.false.
-        endif
+      if (Einc.lt.eadd) then
+        flagadd=.false.
+      else
+        flagadd=.true.
+      endif
+      if (Einc.lt.eaddel) then
+        flagaddel=.false.
+      else
+        flagaddel=.true.
       endif
       do 210 Zix=0,numZ
         do 210 Nix=0,numN
           mulpreZN(Zix,Nix)=.false.
   210 continue
+c
+c Progressive bin width for excitation energy bins
+c
+c minbins: minimum number of bins
+c maxbins: maximum number of bins
+c b      : parameter for slope
+c nbins0 : number of continuum excitation energy bins
+c nbins  : number of continuum excitation energy bins
+c
+      if (nbins0.eq.0) then
+        minbins=30
+        maxbins=numbins
+        b=60.
+        nbins=minbins+(maxbins-minbins)*Einc*Einc/(Einc*Einc+b*b)
+      else
+        nbins=nbins0
+      endif
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

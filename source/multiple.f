@@ -2,14 +2,13 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : May 30, 2007
+c | Date  : September 1, 2008
 c | Task  : Multiple emission
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*20 spfile
       integer      Zcomp,Ncomp,type,nen,nex,nexout,Zix,Nix,Z,N,A,odd,NL,
      +             J,idensfis,parity,J2,iang,p,h
       real         popepsA,Exm,dEx,Exmin,popepsB,emissum(0:numpar),
@@ -21,6 +20,7 @@ c Loop over all residual nuclei, starting with the initial compound
 c nucleus (Zcomp=0, Ncomp=0), and then according to decreasing Z and N.
 c
 c primary    : flag to designate primary (binary) reaction
+c flagomponly: flag to execute ONLY an optical model calculation
 c flaginitpop: flag for initial population distribution
 c excitation : subroutine for excitation energy population 
 c flagpop    : flag for output of population
@@ -32,6 +32,7 @@ c maxN       : maximal number of neutrons away from the initial compound
 c              nucleus
 c
       primary=.false.
+      if (flagomponly) return
       if (flaginitpop) call excitation
       if (flagpop) 
      +  write(*,'(/" ########## MULTIPLE EMISSION ##########")')
@@ -391,39 +392,22 @@ c
   320         continue
               if (emissum(type).gt.0.) 
      +          Eaverage(type)=Eaveragesum/emissum(type)
-  310       continue
 c
 c For ENDF-6 files, exclusive (n,gn), (n,gp) ... (n,ga) spectra are 
-c required. This is written to files here.
+c required. This is stored here.
 c
 c flagendf  : flag for information for ENDF-6 file  
 c parinclude: logical to include outgoing particle
-c parsym    : symbol of particle
-c k0        : index of incident particle     
-c Atarget   : mass number of target nucleus
-c Ztarget   : charge number of target nucleus          
-c parname   : name of particle
+c xsngnspec : total (projectile,gamma-ejectile) spectrum 
 c
-            if (flagendf.and.parinclude(0)) then
-              if (Zcomp.eq.0.and.Ncomp.eq.0) then
-                spfile='sp000000E000.000.tot'
-                write(spfile(10:16),'(f7.3)') Einc
-                write(spfile(10:12),'(i3.3)') int(Einc)
-                open (unit=1,status='unknown',file=spfile)    
-                write(1,'("# ",a1," + ",i3,a2,": (n,gx) Spectra")')
-     +            parsym(k0),Atarget,nuc(Ztarget)
-                write(1,'("# E-incident = ",f7.3)') Einc
-                write(1,'("# ")')
-                write(1,'("# # energies =",i3)') eendhigh-ebegin(0)+1
-                write(1,'("# E-out  ",7(2x,a8,2x))')
-     +            (parname(type),type=0,6)  
-                do 340 nen=ebegin(0),eendhigh
-                  write(1,'(f7.3,1p,7e12.5)') egrid(nen),
-     +              (xsemis(type,nen)+xsmpeemis(type,nen),type=0,6)
-  340           continue
-                close (unit=1)
+              if (flagendf.and.parinclude(0).and.
+     +          Zcomp.eq.0.and.Ncomp.eq.0) then
+                  do 340 nen=ebegin(0),eendhigh
+                    xsngnspec(type,nen)=xsemis(type,nen)+
+     +                xsmpeemis(type,nen)
+  340             continue
               endif
-            endif
+  310       continue
           endif
 c
 c **** Write partial emission channels and production cross sections ***

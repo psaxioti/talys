@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : November 1, 2007
+c | Date  : August 1, 2008
 c | Task  : Neutron transition rates for n --> n+2
 c +---------------------------------------------------------------------
 c
@@ -160,13 +160,13 @@ c
           endif
           if (preeqmode.eq.2) then  
             lambdanunu1p=twopihbar*M2nunu*
-     +        phdens2(0,0,2,1,gsp,gsn,uunup,edepth,surfwell)
+     +        phdens2(Zcomp,Ncomp,0,0,2,1,gsp,gsn,uunup,edepth,surfwell)
             lambdanunu1h=twopihbar*M2nunu*
-     +        phdens2(0,0,1,2,gsp,gsn,uunuh,edepth,surfwell)
+     +        phdens2(Zcomp,Ncomp,0,0,1,2,gsp,gsn,uunuh,edepth,surfwell)
             lambdapinu1p=twopihbar*M2pinu*
-     +        phdens2(1,0,1,1,gsp,gsn,uupip,edepth,surfwell)
+     +        phdens2(Zcomp,Ncomp,1,0,1,1,gsp,gsn,uupip,edepth,surfwell)
             lambdapinu1h=twopihbar*M2pinu*
-     +        phdens2(0,1,1,1,gsp,gsn,uupih,edepth,surfwell)
+     +        phdens2(Zcomp,Ncomp,0,1,1,1,gsp,gsn,uupih,edepth,surfwell)
           else
             do 20 j=1,4
               if (j.eq.1) uu=uunup
@@ -184,15 +184,17 @@ c
               endif
               eopt=max(uu-S(Zix,Nix,k),-20.)
               nen=min(10*numen,int(eopt*10.))
-              if(j.le.2) then
+              if (j.le.2) then
                 Weff=Wompfac(1)*wvol(k,nen)
               else
                 Weff=Wompfac(2)*wvol(k,nen)
               endif
               if (j.eq.1) lambdanunu1p=2.*Weff/hbar
               if (j.eq.2) then
-                densh=phdens2(0,0,1,2,gsp,gsn,uu,edepth,surfwell)
-                densp=phdens2(0,0,2,1,gsp,gsn,uu,edepth,surfwell)
+                densh=phdens2(Zcomp,Ncomp,0,0,1,2,gsp,gsn,uu,
+     +            edepth,surfwell)
+                densp=phdens2(Zcomp,Ncomp,0,0,2,1,gsp,gsn,uu,
+     +            edepth,surfwell)
                 if (densp.gt.1.) then
                   ratio=densh/densp
                 else
@@ -202,8 +204,10 @@ c
               endif
               if (j.eq.3) lambdapinu1p=2.*Weff/hbar
               if (j.eq.4) then
-                densh=phdens2(0,1,1,1,gsp,gsn,uu,edepth,surfwell)
-                densp=phdens2(1,0,1,1,gsp,gsn,uu,edepth,surfwell)
+                densh=phdens2(Zcomp,Ncomp,0,1,1,1,gsp,gsn,uu,
+     +            edepth,surfwell)
+                densp=phdens2(Zcomp,Ncomp,1,0,1,1,gsp,gsn,uu,
+     +            edepth,surfwell)
                 if (densp.gt.1.) then
                   ratio=densh/densp
                 else
@@ -223,20 +227,25 @@ c
             gsn=gn(Zcomp,Ncomp)*damp
           endif
           sumnunu1p=sumnunu1p+termnunu1p*
-     +      phdens2(ppi,hpi,pnu-1,hnu,gsp,gsn,U-uunup,edepth,surfwell)
+     +      phdens2(Zcomp,Ncomp,ppi,hpi,pnu-1,hnu,gsp,gsn,U-uunup,
+     +            edepth,surfwell)
           sumnunu1h=sumnunu1h+termnunu1h*
-     +      phdens2(ppi,hpi,pnu,hnu-1,gsp,gsn,U-uunuh,edepth,surfwell)
+     +      phdens2(Zcomp,Ncomp,ppi,hpi,pnu,hnu-1,gsp,gsn,U-uunuh,
+     +            edepth,surfwell)
           sumpinu1p=sumpinu1p+termpinu1p*
-     +      phdens2(ppi-1,hpi,pnu,hnu,gsp,gsn,U-uupip,edepth,surfwell)
+     +      phdens2(Zcomp,Ncomp,ppi-1,hpi,pnu,hnu,gsp,gsn,U-uupip,
+     +            edepth,surfwell)
           sumpinu1h=sumpinu1h+termpinu1h*
-     +      phdens2(ppi,hpi-1,pnu,hnu,gsp,gsn,U-uupih,edepth,surfwell)
+     +      phdens2(Zcomp,Ncomp,ppi,hpi-1,pnu,hnu,gsp,gsn,U-uupih,
+     +            edepth,surfwell)
    10   continue
         if (flaggshell) then
           damp=ignatyuk(Zcomp,Ncomp,U,0)/alev(Zcomp,Ncomp)
           gsp=gp(Zcomp,Ncomp)*damp
           gsn=gn(Zcomp,Ncomp)*damp
         endif
-        phtot=phdens2(ppi,hpi,pnu,hnu,gsp,gsn,U,edepth,surfwell)
+        phtot=phdens2(Zcomp,Ncomp,ppi,hpi,pnu,hnu,gsp,gsn,U,
+     +    edepth,surfwell)
         if (phtot.gt.0.) then
           lplus=(sumnunu1p+sumnunu1h+sumpinu1p+sumpinu1h)/phtot
           lambdanuplus=real(lplus)

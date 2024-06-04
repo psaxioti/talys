@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : December 18, 2007
+c | Date  : August 5, 2009
 c | Task  : Write input parameters
 c +---------------------------------------------------------------------
 c
@@ -62,7 +62,7 @@ c maxZ        : maximal number of protons away from the initial compound
 c               nucleus
 c maxN        : maximal number of neutrons away from the initial 
 c               compound nucleus
-c nbins       : number of continuum excitation energy bins
+c nbins0      : number of continuum excitation energy bins
 c segment     : number of segments to divide emission energy grid
 c nlevmax     : maximum number of included discrete levels for target
 c nlevmaxres  : maximum number of included discrete levels for residual
@@ -86,6 +86,8 @@ c yesno       : function to assign y or n to logical value
 c flagchannels: flag for exclusive channels calculation
 c maxchannel  : maximal number of outgoing particles in individual
 c               channel description (e.g. this is 3 for (n,2np))
+c flagmicro   : flag for completely microscopic Talys calculation
+c flagbest    : flag to use best set of adjusted parameters
 c flagrel     : flag for relativistic kinematics
 c flagrecoil  : flag for calculation of recoils     
 c flaglabddx  : flag for calculation of DDX in LAB system
@@ -109,7 +111,7 @@ c
      +  "maximal number of neutrons away from the initial",
      +  " compound nucleus")') maxN
       write(*,'(" bins              ",i3,"     nbins        ",
-     +  "number of continuum excitation energy bins")') nbins
+     +  "number of continuum excitation energy bins")') nbins0
       write(*,'(" segment           ",i3,"     segment    ",
      +  "  number of segments to divide emission energy grid")') segment
       write(*,'(" maxlevelstar      ",i3,"     nlevmax",
@@ -152,6 +154,12 @@ c
       write(*,'(" maxchannel         ",i2,"     maxchannel",
      +  "   maximal number of outgoing particles in",
      +  " individual channel description")') maxchannel
+      write(*,'(" micro               ",a1,"     flagmicro",
+     +  "    flag for completely microscopic Talys calculation")') 
+     +  yesno(flagmicro)
+      write(*,'(" best                ",a1,"     flagbest ",
+     +  "    flag to use best set of adjusted parameters")') 
+     +  yesno(flagbest)
       write(*,'(" relativistic        ",a1,"     flagrel",
      +  "      flag for relativistic kinematics")') yesno(flagrel)
       write(*,'(" recoil              ",a1,"     flagrecoil",
@@ -182,9 +190,11 @@ c flagdisp    : flag for dispersive optical model
 c flagjlm     : flag for using semi-microscopic JLM OMP 
 c flagompall  : flag for new optical model calculation for all residual
 c               nuclei  
+c flagomponly : flag to execute ONLY an optical model calculation
 c flagautorot : flag for automatic rotational coupled channels
 c               calculations for A > 150
 c flagspher   : flag to force spherical optical model   
+c flagcoulomb : flag for Coulomb excitation calculation with ECIS
 c flagstate   : flag for optical model potential for each excited state
 c maxband     : highest vibrational level added to rotational model 
 c maxrot      : number of included excited rotational levels
@@ -198,7 +208,10 @@ c flagecissave: flag for saving ECIS input and output files
 c flageciscalc: flag for new ECIS calculation for outgoing particles
 c               and energy grid
 c flaginccalc : flag for new ECIS calculation for incident channel
+c flagendfecis: flag for new ECIS calculation for ENDF-6 files     
 c radialmodel : model for radial matter densities (JLM OMP only)
+c jlmmode     : option for JLM imaginary potential normalization
+c alphaomp    : alpha optical model (1=normal, 2= McFadden-Satchler)
 c
       write(*,'(" #"/" # Optical model"/" #")')
       write(*,'(" localomp            ",a1,"     flaglocalomp flag for",
@@ -210,11 +223,17 @@ c
       write(*,'(" optmodall           ",a1,"     flagompall   flag for",
      +  " new optical model calculation for all residual nuclei")')
      +  yesno(flagompall)
+      write(*,'(" omponly             ",a1,"     flagomponly ",
+     +  " flag to execute ONLY an optical model calculation")') 
+     +  yesno(flagomponly)
       write(*,'(" autorot             ",a1,"     flagautorot ",
      +  " flag for automatic rotational coupled channels ",
      +  "calculations for A > 150")') yesno(flagautorot)
       write(*,'(" spherical           ",a1,"     flagspher   ",
      +  " flag to force spherical optical model")') yesno(flagspher)
+      write(*,'(" coulomb             ",a1,"     flagcoulomb ",
+     +  " flag for Coulomb excitation calculation with ECIS")') 
+     +  yesno(flagcoulomb)
       write(*,'(" statepot            ",a1,"     flagstate   ",
      +  " flag for optical model potential for each excited state")')
      +  yesno(flagstate)
@@ -252,9 +271,18 @@ c
       write(*,'(" inccalc             ",a1,"     flaginccalc ",
      +  " flag for new ECIS calculation for incident channel")')
      +  yesno(flaginccalc)
+      write(*,'(" endfecis            ",a1,"     flagendfecis",
+     +  " flag for new ECIS calculation for ENDF-6 files")')
+     +  yesno(flagendfecis)
       write(*,'(" radialmodel        ",i2,"     radialmodel ",
      +  " model for radial matter densities (JLM OMP only)")') 
      +  radialmodel
+      write(*,'(" jlmmode            ",i2,"     jlmmode     ",
+     +  " option for JLM imaginary potential normalization")') 
+     +  jlmmode    
+      write(*,'(" alphaomp           ",i2,"     alphaomp    ",
+     +  " alpha optical model (1=normal, 2= McFadden-Satchler)")') 
+     +  alphaomp    
 c
 c 4. Compound nucleus
 c
@@ -291,6 +319,7 @@ c 5. Gamma emission
 c
 c gammax      : number of l-values for gamma multipolarity
 c strength    : model for E1 gamma-ray strength function
+c strengthM1  : model for M1 gamma-ray strength function
 c flagelectron: flag for application of electron conversion coefficient
 c
       write(*,'(" #"/" # Gamma emission"/" #")')
@@ -298,6 +327,8 @@ c
      +  "       number of l-values for gamma multipolarity")') gammax
       write(*,'(" strength           ",i2,"     strength",
      +  "     model for E1 gamma-ray strength function")') strength
+      write(*,'(" strengthM1         ",i2,"     strengthM1",
+     +  "   model for M1 gamma-ray strength function")') strengthM1
       write(*,'(" electronconv        ",a1,"     flagelectron",
      +  " flag for application of electron conversion coefficient")')
      +  yesno(flagelectron)
@@ -310,6 +341,7 @@ c preeqmode   : designator for pre-equilibrium model
 c flagmulpre  : flag for multiple pre-equilibrium calculation 
 c mpreeqmode  : designator for multiple pre-equilibrium model 
 c emulpre     : on-set incident energy for multiple preequilibrium
+c phmodel     : particle-hole state density model
 c pairmodel   : model for preequilibrium pairing energy
 c flagpespin  : flag for pre-equilibrium spin distribution or compound
 c               spin distribution for pre-equilibrium cross section   
@@ -343,6 +375,8 @@ c
       write(*,'(" mpreeqmode         ",i2,"     mpreeqmode",
      +  "   designator for multiple pre-equilibrium model")')
      +  mpreeqmode
+      write(*,'(" phmodel            ",i2,"     phmodel    ",
+     +  "  particle-hole state density model")') phmodel
       write(*,'(" pairmodel          ",i2,"     pairmodel",
      +  "    designator for pre-equilibrium pairing model")') pairmodel
       write(*,'(" preeqspin           ",a1,"     flagpespin",
@@ -407,6 +441,7 @@ c
 c flagfission: flag for fission
 c fismodel   : fission model
 c fismodelalt: alternative fission model for default barriers
+c flaghbstate: flag for head band states in fission
 c flagclass2 : flag for class2 states in fission
 c flagmassdis: flag for calculation of fission fragment mass yields
 c flagffevap : flag for calculation of particle evaporation from
@@ -419,6 +454,8 @@ c
      +  "  fission model")') fismodel  
       write(*,'(" fismodelalt        ",i2,"     fismodelalt ",
      +  " alternative fission model for default barriers")') fismodelalt
+      write(*,'(" hbstate             ",a1,"     flaghbstate ",
+     +  " flag for head band states in fission")') yesno(flaghbstate)
       write(*,'(" class2              ",a1,"     flagclass2 ",
      +  "  flag for class2 states in fission")') yesno(flagclass2)
       write(*,'(" massdis             ",a1,"     flagmassdis",
@@ -442,11 +479,16 @@ c flaginverse : flag for output of transmission coefficients and
 c               inverse reaction cross sections
 c flagtransen : flag for output of transmission coefficients per energy
 c flagoutecis : flag for output of ECIS results
+c flagurr     : flag for output of unresolved resonance parameters
 c flaggamma   : flag for output of gamma-ray information
 c flagpeout   : flag for output of pre-equilibrium results
 c flagfisout  : flag for output of fission information
 c flagdisc    : flag for output of discrete state cross sections
 c flagspec    : flag for output of spectra
+c eadd        : on-set incident energy for addition of discrete states
+c               to spectra
+c eaddel      : on-set incident energy for addition of elastic peak
+c               to spectra
 c flagadd     : flag for addition of discrete states to spectra
 c flagaddel   : flag for addition of elastic peak to spectra
 c flagang     : flag for output of angular distributions
@@ -485,6 +527,9 @@ c
      +  yesno(flagtransen)
       write(*,'(" outecis             ",a1,"     flagoutecis ",
      +  " flag for output of ECIS results")') yesno(flagoutecis)
+      write(*,'(" outurr              ",a1,"     flagurr     ",
+     +  " flag for output of unresolved resonance parameters")') 
+     +  yesno(flagurr)
       write(*,'(" outgamma            ",a1,"     flaggamma    flag",
      +  " for output of gamma-ray information")') yesno(flaggamma)
       write(*,'(" outpreequilibrium   ",a1,"     flagpeout",
@@ -498,12 +543,26 @@ c
       write(*,'(" outspectra          ",a1,"     flagspec",
      +  "     flag for output of double-differential cross",
      +  " sections")') yesno(flagspec)
-      write(*,'(" adddiscrete         ",a1,"     flagadd ",
-     +  "     flag for addition of discrete states to spectra")')
-     +  yesno(flagadd)
-      write(*,'(" addelastic          ",a1,"     flagaddel",
-     +  "    flag for addition of elastic peak to spectra")')
-     +  yesno(flagaddel)
+      if (numinc.gt.1.and.enincmin.lt.eadd.and.enincmax.ge.eadd) 
+     +  then
+        write(*,'(" adddiscrete       ",f7.3," eadd         on-set ",
+     +    "incident energy for addition of discrete peaks to spectra")')
+     +    eadd
+      else
+        write(*,'(" addiscrete          ",a1,"     flagadd      ",
+     +    "flag for addition of discrete states to spectra")')
+     +    yesno(flagadd)
+      endif
+      if (numinc.gt.1.and.enincmin.lt.eaddel.and.enincmax.ge.eaddel) 
+     +  then
+        write(*,'(" addelastic        ",f7.3," eaddel       on-set",
+     +    " incident energy addition of elastic peak to spectra")') 
+     +    eaddel
+      else
+        write(*,'(" addelastic          ",a1,"     flagaddel    ",
+     +    "flag for addition of elastic peak to spectra")')
+     +    yesno(flagaddel)
+      endif
       write(*,'(" outangle            ",a1,"     flagang",
      +  "      flag for output of angular distributions")')
      +  yesno(flagang)

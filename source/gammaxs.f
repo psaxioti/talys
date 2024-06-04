@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 29, 2007
+c | Date  : August 5, 2009
 c | Task  : Gamma ray cross sections
 c +---------------------------------------------------------------------
 c
@@ -17,6 +17,7 @@ c ************** Calculate photo-absorption cross section **************
 c
 c Zcomp    : charge number index for compound nucleus
 c Ncomp    : neutron number index for compound nucleus
+c Einc     : incident energy in MeV
 c Egamma   : gamma energy
 c xsgdr    : photo-absorption cross section from GDR part
 c fstrength: gamma ray strength function
@@ -27,7 +28,7 @@ c
       xsgdr=0.
       do 10 irad=0,1
         do 10 l=1,gammax
-          xsgdr=xsgdr+fstrength(Zcomp,Ncomp,Egamma,irad,l)/
+          xsgdr=xsgdr+fstrength(Zcomp,Ncomp,Einc,Egamma,irad,l)/
      +      kgr(Zcomp,Ncomp,irad,l)*Egamma
    10 continue
 c

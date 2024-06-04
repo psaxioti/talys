@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : November 21, 2007
+c | Date  : August 5, 2009
 c | Task  : Read input for fourth set of variables
 c +---------------------------------------------------------------------
 c
@@ -42,26 +42,38 @@ c flagoutdwba : flag for output of DWBA cross sections for MSD
 c flaggamdis  : flag for output of discrete gamma-ray intensities
 c flageciscomp: flag for compound nucleus calculation by ECIS
 c flagoutecis : flag for output of ECIS results
+c flagurr     : flag for output of unresolved resonance parameters
 c flagompall  : flag for new optical model calculation for all 
 c               residual nuclei
 c flagecissave: flag for saving ECIS input and output files
 c numinc      : number of incident energies
 c flagexc     : flag for output of excitation functions
 c flagnatural : flag for calculation of natural element
-c flagadd     : flag for addition of discrete states to spectra 
-c flagaddel   : flag for addition of elastic peak to spectra
+c eadd        : on-set incident energy for addition of discrete states 
+c               to spectra 
+c eaddel      : on-set incident energy for addition of elastic peak    
+c               to spectra 
 c flagelectron: flag for application of electron conversion coefficient
 c flagspher   : flag to force spherical optical model
+c flagcoulomb : flag for Coulomb excitation calculation with ECIS
 c flagcol     : flag for collective enhancement of level density
+c flagcolldamp: flag for damping of collective effects in effective 
+c               level density (without explicit collective enhancement)
+c               Only used for Bruyeres-le-Chatel (Pascal Romain) fission
+c               model
 c flagctmglob : flag for global CTM model (no discrete level info)
 c cglobal     : global constant to adjust tabulated level densities
 c pglobal     : global constant to adjust tabulated level densities
 c alphaomp    : alpha optical model (1=normal, 2= McFadden-Satchler)
+c soswitch    : switch for deformed spin-orbit calculation and sequential 
+c               iterations in ECIS
 c flagpartable: flag for output of model parameters on separate file
 c maxchannel  : maximal number of outgoing particles in individual
 c               channel description (e.g. this is 3 for (n,2np))
 c Ztarget     : charge number of target nucleus
+c massmodel   : model for theoretical nuclear mass
 c pairmodel   : model for preequilibrium pairing energy
+c flagmicro   : flag for completely microscopic Talys calculation
 c fismodel    : fission model
 c fismodelalt : alternative fission model for default barriers 
 c flagendf    : flag for information for ENDF-6 file
@@ -91,6 +103,7 @@ c
       flagoutdwba=.false.
       flaggamdis=.false.
       flagoutecis=flageciscomp
+      flagurr=.false.
       if (flagompall) then
         flagecissave=.true.
       else
@@ -107,24 +120,31 @@ c
         flagexc=.true.
       endif
       if (flagnatural) flagexc=.true.
-      flagadd=.true.
-      flagaddel=flagadd
-      flagelectron=.false.
+      eadd=0.
+      eaddel=0.
+      flagelectron=.true.
       flagspher=.false.      
+      flagcoulomb=.true.      
       flagpartable=.false.
       maxchannel=4
       pairmodel=2
-      fismodel=1
+      if (flagmicro) then
+        fismodel=5
+      else
+        fismodel=1
+      endif
       fismodelalt=4     
       if (flagfission) then
         flagcol=.true.
       else
         flagcol=.false.
       endif
+      flagcolldamp=.false.
       flagctmglob=.false.
       cglobal=1.e-20
       pglobal=1.e-20
       alphaomp=1
+      soswitch=3.
 c
 c If the results of TALYS are used to create ENDF-6 data files,
 c several output flags are automatically set.
@@ -132,8 +152,8 @@ c
       if (flagendf) then
         flagcheck=.true.
         flagdisc=.true.
-        flagadd=.false.
-        flagaddel=.false.
+        eadd=20.
+        eaddel=250.
         if (flagfission) flagfisout=.true.
         flagang=.true.
         flaglegendre=.true.
@@ -295,6 +315,12 @@ c
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
         endif
+        if (key.eq.'urr') then
+          if (ch.eq.'n') flagurr=.false.
+          if (ch.eq.'y') flagurr=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
         if (key.eq.'ecissave') then
           if (ch.eq.'n') flagecissave=.false.
           if (ch.eq.'y') flagecissave=.true.
@@ -308,15 +334,27 @@ c
           goto 10
         endif
         if (key.eq.'adddiscrete') then
-          if (ch.eq.'n') flagadd=.false.
-          if (ch.eq.'y') flagadd=.true.
-          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          if (ch.eq.'y') then
+            eadd=0.
+            goto 10
+          endif
+          if (ch.eq.'n') then
+            eadd=250.
+            goto 10
+          endif
+          read(value,*,end=200,err=200) eadd
           goto 10
         endif
         if (key.eq.'addelastic') then
-          if (ch.eq.'n') flagaddel=.false.
-          if (ch.eq.'y') flagaddel=.true.
-          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          if (ch.eq.'y') then
+            eaddel=0.
+            goto 10
+          endif
+          if (ch.eq.'n') then
+            eaddel=250.
+            goto 10
+          endif
+          read(value,*,end=200,err=200) eaddel
           goto 10
         endif
         if (key.eq.'electronconv') then
@@ -336,9 +374,21 @@ c
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
         endif               
+        if (key.eq.'coulomb') then
+          if (ch.eq.'n') flagcoulomb=.false.
+          if (ch.eq.'y') flagcoulomb=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
         if (key.eq.'colenhance') then
           if (ch.eq.'n') flagcol=.false.
           if (ch.eq.'y') flagcol=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 200
+          goto 10
+        endif
+        if (key.eq.'colldamp') then
+          if (ch.eq.'n') flagcolldamp=.false.
+          if (ch.eq.'y') flagcolldamp=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
           goto 10
         endif
@@ -380,6 +430,10 @@ c
         endif
         if (key.eq.'alphaomp') then
           read(value,*,end=200,err=200) alphaomp
+          goto 10
+        endif                    
+        if (key.eq.'soswitch') then
+          read(value,*,end=200,err=200) soswitch
           goto 10
         endif                    
    10 continue

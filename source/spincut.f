@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : October 5, 2007
+c | Date  : January 5, 2009
 c | Task  : Spin cutoff factor
 c +---------------------------------------------------------------------
 c
@@ -36,7 +36,9 @@ c 1. Below the matching energy
 c
 c spincutmodel: model for spin cutoff factor for ground state
 c scutconst   : constant for spin cutoff factor
-c Rspincut    : adjustable constant for spin cutoff factor 
+c Rspincut    : adjustable constant (global) for spin cutoff factor 
+c s2adjust    : adjustable constant (Z,A,barrier-dependent) for spin
+c               cutoff parameter
 c Irigid0     : undeformed rigid body value of moment of inertia
 c alimit      : asymptotic level density parameter
 c Em          : matching energy
@@ -54,12 +56,19 @@ c Tcrit       : critical temperature
 c Ediscrete   : energy of middle of discrete level region
 c s2m,s2d,Ed  : help variables
 c scutoffdisc : spin cutoff factor for discrete level region 
+c flagcolldamp: flag for damping of collective effects in effective
+c               level density (without explicit collective enhancement)
+c               Only used for Bruyeres-le-Chatel (Pascal Romain) fission
+c               model
+c beta2       : deformation parameter
 c
       spincut=1.
+      aldm=1.
       if (spincutmodel.eq.1) then
-        scutconst=Rspincut*Irigid0(Zix,Nix)/alimit(Zix,Nix)
+        scutconst=Rspincut*s2adjust(Zix,Nix,ibar)*Irigid0(Zix,Nix)/
+     +    alimit(Zix,Nix)
       else
-        scutconst=Rspincut*Irigid0(Zix,Nix)
+        scutconst=Rspincut*s2adjust(Zix,Nix,ibar)*Irigid0(Zix,Nix)
       endif
       Em=Exmatch(Zix,Nix,ibar)
       if (ldmodel.eq.2.or.ldmodel.ge.4) Em=S(Zix,Nix,1)
@@ -85,6 +94,8 @@ c
         else
           s2m=scutoffdisc(Zix,Nix,ibar)
         endif
+        if (flagcolldamp.and.ibar.ne.0) 
+     +    s2m=(1.+beta2(Zix,Nix,ibar)/3.)*s2m
         s2d=scutoffdisc(Zix,Nix,ibar)
         Ed=Ediscrete(Zix,Nix,ibar)
         spincut=s2d
@@ -108,6 +119,8 @@ c
           spincut=scutoffdisc(Zix,Nix,ibar)
         endif
       endif
+      if (flagcolldamp.and.ibar.ne.0) 
+     +  spincut=(1.+beta2(Zix,Nix,ibar)/3.)*spincut
       spincut=max(scutoffdisc(Zix,Nix,ibar),spincut)
       return
       end

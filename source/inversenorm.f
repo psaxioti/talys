@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 7, 2004
+c | Date  : May 19, 2009
 c | Task  : Normalization and extrapolation of reaction cross sections 
 c |         and transmission coefficients
 c +---------------------------------------------------------------------
@@ -57,7 +57,6 @@ c
         Z=ZZ(Zcomp,Ncomp,type)
         A=AA(Zcomp,Ncomp,type)
         xsprev=0.
-        threshnorm(type)=0.
         do 20 nen=ebegin(type),eendmax(type)
           if (xsopt(type,nen).eq.0.) goto 20
           enuc=egrid(nen)/parA(type)
@@ -67,7 +66,6 @@ c
      +      xs/xsopt(type,nen)
           xsprev=xs
    20   continue
-        if (threshnorm(type).eq.0.) threshnorm(type)=1.
         do 30 nen=ebegin(type),eendmax(type)
           if (xsopt(type,nen).eq.0.) goto 30
           xs=xstripathi(nen)

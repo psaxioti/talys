@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 14, 2004
+c | Date  : September 29, 2008
 c | Task  : Calculation of angular distributions for discrete states
 c +---------------------------------------------------------------------
 c
@@ -94,6 +94,20 @@ c
           tlegnor(k0,0,LL)=tleg(k0,0,LL)/xselastot
   240   continue
       endif
+c
+c Normalization to first Legendre coefficient (for ENDF-6 files)
+c
+c cleg0: Legendre coefficient normalized to the first one
+c
+      do 250 type=0,6
+        if (parskip(type)) goto 250
+        do 260 nex=0,Nlast(parZ(type),parN(type),0)
+          if (tlegnor(type,nex,0).eq.0.) goto 260
+          do 270 LL=0,J2end
+            cleg0(type,nex,LL)=tlegnor(type,nex,LL)/tlegnor(type,nex,0)
+  270     continue
+  260   continue
+  250 continue
 c
 c ***************************** Recoils ********************************
 c

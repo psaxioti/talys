@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn
-c | Date  : September 9, 2004
+c | Date  : May 12, 2008
 c | Task  : Spline fit
 c +---------------------------------------------------------------------
 c
@@ -29,7 +29,10 @@ c
         goto 10
       endif
       hsp=xa(khi)-xa(klo)
-      if (hsp.eq.0.) pause 'bad xa input in splint'
+      if (hsp.eq.0.) then
+        write(*,*) 'bad xa input in splint'
+        stop
+      endif
       a=(xa(khi)-x)/hsp
       b=(x-xa(klo))/hsp
       y=a*ya(klo)+b*ya(khi)+((a**3-a)*y2a(klo)+(b**3-b)*y2a(khi))*

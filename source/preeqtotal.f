@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 14, 2004
+c | Date  : June 30, 2008
 c | Task  : Total pre-equilibrium cross sections
 c +---------------------------------------------------------------------
 c
@@ -41,6 +41,8 @@ c               knockout and inelastic
 c xspreeqki   : preequilibrium cross section per particle type and
 c               outgoing energy for knockout and inelastic              
 c xspreeqsum  : total preequilibrium cross section summed over particles
+c xspreeq     : preequilibrium cross section per particle type and 
+c               outgoing energy
 c
 c The pre-equilibrium spectra and spectra per exciton number are summed
 c to total pre-equilibrium cross sections. Special care is taken for the
@@ -80,6 +82,21 @@ c
         xspreeqsum=xspreeqsum+xspreeqtot(type)
    10 continue
 c
+c Prevent divergence of pre-equilibrium gamma cross sections in case
+c of absence of particle competition.
+c
+      if (xspreeqsum.eq.xspreeqtot(0)) then
+        xspreeqtot(0)=0.
+        xspreeqsum=0.
+        do 50 p=p0,maxpar
+          xssteptot(0,p)=0.
+          do 60 nen=ebegin(0),nendisc(0)
+            xsstep(0,p,nen)=0.
+            xspreeq(0,nen)=0.
+   60     continue
+   50   continue
+      endif
+c
 c ************************* Unitarity condition ************************
 c
 c In line with unitarity, the summed direct + pre-equilibrium cross 
@@ -87,16 +104,15 @@ c section may not exceed the reaction cross section. In these cases,
 c we normalize the results.
 c
 c xsflux        : cross section flux
-c xsreacinc     : reaction cross section for incident channel  
+c xseps         : limit for cross sections
 c xsdirdiscsum  : total direct cross section
+c xsreacinc     : reaction cross section for incident channel  
 c xsgrsum       : sum over giant resonance cross sections
 c norm,preeqnorm: preequilibrium normalization factor
 c xspreeqdiscsum: total preequilibrium cross section for discrete states
 c xspreeqdisc   : preequilibrium cross section for discrete state
 c xspreeqdisctot: preequilibrium cross section summed over discrete
 c                 states
-c xspreeq       : preequilibrium cross section per particle type and 
-c                 outgoing energy
 c flag2comp     : flag for two-component pre-equilibrium model
 c ppi           : proton particle number
 c ppi0          : initial proton number
@@ -111,8 +127,9 @@ c xspreeqJP     : preequilibrium cross section per particle type,
 c                 outgoing energy, spin and parity
 c
       xsflux=xsreacinc-xsdirdiscsum-xsgrsum
+      xsflux=max(xsflux,0.)
       preeqnorm=0.
-      if (xspreeqsum+xspreeqdiscsum.gt.xsflux) then
+      if (xsflux.gt.xseps.and.xspreeqsum+xspreeqdiscsum.gt.xsflux) then
         norm=xsflux/(xspreeqsum+xspreeqdiscsum)
         preeqnorm=norm
         xspreeqdiscsum=xspreeqdiscsum*norm

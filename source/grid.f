@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : August 1, 2007
+c | Date  : September 23, 2009
 c | Task  : Energy and angle grid
 c +---------------------------------------------------------------------
 c
@@ -10,8 +10,8 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       logical lexist
-      integer nen,type,nen0,iang
-      real    Eout,degrid,Eeps,coulfactor,dang,angval,angmin,angmax
+      integer nen,nen0,type,iang,mt
+      real    Eout,degrid,Eeps,coulfactor,dang,angval,angmin,angmax,val
 c
 c ************************ Basic outgoing energy grid ******************
 c
@@ -132,8 +132,8 @@ c energies above Elow only. We keep track of the number of lower
 c energies, for which simple empirical cross section estimates are made.
 c
 c eninclow : minimal incident energy for nuclear model calculations 
-c D0       : s-wave resonance spacing in eV 
-c Dtheo    : theoretical s-wave resonance spacing
+c D0       : s-wave resonance spacing in keV 
+c D0theo   : theoretical s-wave resonance spacing
 c E1v      : energy at end of 1/v region
 c eninc    : incident energy in MeV  
 c locate   : subroutine to find value in ordered table      
@@ -146,11 +146,12 @@ c of the resonance region are also inserted.
 c
       if (eninclow.eq.0.) then
         if (D0(0,0).eq.0.) then
-          eninclow=min(Dtheo(0,0)*1.e-6,1.)
+          eninclow=min(D0theo(0,0)*1.e-6,1.)
         else
           eninclow=min(D0(0,0)*1.e-6,1.)
         endif
       endif
+      if (numinc.ge.numenlow-2) eninclow=min(eninclow,eninc(numenlow-2))
       E1v=0.2*eninclow
       if (eninc(1).lt.E1v) then
         call locate(eninc,1,numinc,E1v,nen0)
@@ -173,11 +174,6 @@ c
       numinclow=0
       do 330 nen=1,numinc
         if (eninc(nen).lt.eninclow) numinclow=numinclow+1      
-        if (numinclow.gt.numenlow) then
-          write(*,'(" TALYS-error: The number of incident energies",
-     +      " below Elow should not exceed",i3)') numenlow
-          stop
-        endif
   330 continue
 c
 c ************** Set limit for transmission coefficients ***************
@@ -185,7 +181,7 @@ c
 c translimit: limit for transmission coefficient 
 c transpower: power for transmission coefficient limit
 c
-      translimit=1./(10**transpower)
+  400 translimit=1./(10**transpower)
 c
 c **************************** Basic angle grid ************************
 c
@@ -277,6 +273,8 @@ c
 c flagecissave: flag for saving ECIS input and output files          
 c ecisstatus  : status of ECIS file
 c flaginccalc : flag for new ECIS calculation for incident channel
+c flagendf    : flag for information for ENDF-6 file
+c flagendfecis: flag for new ECIS calculation for ENDF-6 files     
 c
       if (flagecissave) then
         ecisstatus='keep'
@@ -296,6 +294,57 @@ c
         open (unit=19,status='old',file='incident.leg')
         open (unit=20,status='old',file='incident.in')
       endif
+      if (flagendf.and..not.flagendfecis) then
+        inquire (file='endf.cs',exist=lexist)
+        if (.not.lexist) then
+          write(*,'(" TALYS-error: The first calculation of a run",
+     +      " should always be done with ecissave y and endfecis y")')
+          stop
+        endif     
+        open (unit=23,status='old',file='endf.cs')
+      endif
+c
+c To fit data very precisely, a "normal" TALYS calculation may not 
+c suffice. Therefore, as a final "rescue" an option is included to read 
+c incident energy dependent adjustment factors for the most important
+c cross sections. The MT number from the ENDF-6 format is used as index.
+c
+c Crescue   : adjustment factor for this incident energy
+c Nrescue   : number of energies for adjustment factors
+c Erescue   : energy grid for adjustment factors
+c frescue   : adjustment factor
+c grescue   : global multiplication factor for incident energy dependent
+c             adjustment factors
+c rescuefile: file with incident energy dependent adjustment factors
+c
+      do 510 mt=1,nummt
+        Nrescue(mt)=0
+        Crescue(mt)=1.
+        do 520 nen=1,numen6
+          Erescue(mt,nen)=0.
+          frescue(mt,nen)=grescue(mt)
+  520   continue
+        if (rescuefile(mt)(1:1).ne.' ') then
+          open (unit=2,status='old',file=rescuefile(mt))
+          nen=1
+  530     read(2,*,end=540) Erescue(mt,nen),val
+          frescue(mt,nen)=grescue(mt)*val
+          if (nen.gt.1.and.(Erescue(mt,nen).le.Erescue(mt,nen-1))) then
+            write(*,'(" TALYS-error: energies in rescuefile must",
+     +          " be given in ascending order")')
+            stop
+          endif
+          nen=nen+1
+          if (nen.gt.numen6+1) then
+            write(*,'(" TALYS-error: number of lines in rescuefile > ",
+     +        i4)') numen6
+            stop
+          endif
+          goto 530
+  540     Nrescue(mt)=nen-1
+          close (unit=2)
+        endif
+  510 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

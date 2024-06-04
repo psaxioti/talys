@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : October 9, 2006
+c | Date  : September 29, 2007
 c | Task  : Output of discrete angular distributions
 c +---------------------------------------------------------------------
 c
@@ -30,6 +30,7 @@ c Atarget     : mass number of target nucleus
 c nuc         : symbol of nucleus
 c Ztarget     : charge number of target nucleus  
 c Einc        : incident energy in MeV 
+c cleg0       : Legendre coefficient normalized to the first one
 c
       write(*,'(/" 8. Discrete state angular distributions")')
       if (flaglegendre) then
@@ -50,6 +51,7 @@ c
           write(discfile(1:2),'(2a1)') parsym(k0),parsym(k0)
           write(discfile(3:9),'(f7.3)') Einc
           write(discfile(3:5),'(i3.3)') int(Einc)
+          write(discfile(15:16),'(i2.2)') Ltarget
           open (unit=1,status='unknown',file=discfile)  
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering Legendre coefficients")') parsym(k0),
@@ -58,11 +60,11 @@ c
           write(1,'("# ")')
           write(1,'("# # coeff.   =",i3)') J2end+1
           write(1,'("#  L       Total           Direct",
-     +      "        Compound       Normalized")')
+     +      "        Compound       Normalized    ENDF-6")')
           do 20 LL=0,J2end
-            write(1,'(i3,1p,4e16.5)') LL,tleg(k0,Ltarget,LL),
+            write(1,'(i3,1p,5e16.5)') LL,tleg(k0,Ltarget,LL),
      +        dleg(k0,Ltarget,LL),cleg(k0,Ltarget,LL),
-     +        tlegnor(k0,Ltarget,LL)
+     +        tlegnor(k0,Ltarget,LL),cleg0(k0,Ltarget,LL)
    20     continue
           close (unit=1)
         endif    
@@ -95,6 +97,7 @@ c
           discfile='nn       ang.L00'//natstring(iso)
           write(discfile(3:9),'(f7.3)') Einc
           write(discfile(3:5),'(i3.3)') int(Einc)
+          write(discfile(15:16),'(i2.2)') Ltarget
           open (unit=1,status='unknown',file=discfile)  
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering angular distribution")') parsym(k0),
@@ -102,7 +105,7 @@ c
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i3)') nangle+1
-          write(1,'("#   E         xs            Direct",
+          write(1,'("# Angle       xs            Direct",
      +      "         Compound")')     
           do 40 iang=0,nangle
             write(1,'(f5.1,1p,3e16.5)') angle(iang),
@@ -127,6 +130,7 @@ c
           write(discfile(1:2),'(2a1)') parsym(k0),parsym(k0)
           write(discfile(3:9),'(f7.3)') Einc
           write(discfile(3:5),'(i3.3)') int(Einc)
+          write(discfile(15:16),'(i2.2)') Ltarget
           open (unit=1,status='unknown',file=discfile)  
           write(1,'("# ",a1," + ",i3,a2,
      +      " Elastic scattering angular distribution")') parsym(k0),
@@ -134,7 +138,7 @@ c
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i3)') nangle+1
-          write(1,'("#   E         xs            Direct",
+          write(1,'("# Angle       xs            Direct",
      +      "         Compound    c.s./Rutherford")')     
           do 60 iang=0,nangle
             write(1,'(f5.1,1p,4e16.5)') angle(iang),
@@ -188,10 +192,10 @@ c
             write(1,'("# ")')
             write(1,'("# # coeff.   =",i3)') J2end+1
             write(1,'("#  L       Total           Direct",
-     +        "        Compound       Normalized")')
+     +        "        Compound       Normalized    ENDF-6")')
             do 130 LL=0,J2end
-              write(1,'(i3,1p,4e16.5)') LL,tleg(k0,i,LL),dleg(k0,i,LL),
-     +          cleg(k0,i,LL),tlegnor(k0,i,LL)
+              write(1,'(i3,1p,5e16.5)') LL,tleg(k0,i,LL),dleg(k0,i,LL),
+     +          cleg(k0,i,LL),tlegnor(k0,i,LL),cleg0(k0,i,LL)
   130       continue
             close (unit=1)
           endif    
@@ -201,7 +205,7 @@ c
 c 2. Angular distributions
 c
       write(*,'(/" 8b2. Inelastic angular distributions")')
-      do 140 i=1,nlev(Zix,Nix)
+      do 140 i=0,nlev(Zix,Nix)
         if (i.eq.Ltarget) goto 140
         if (xsdisc(k0,i).eq.0.) goto 140
         write(*,'(/"    Level ",i2/)') i
@@ -226,7 +230,7 @@ c
           write(1,'("# E-incident = ",f7.3)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i3)') nangle+1
-          write(1,'("#  E         xs           Direct       Compound")')
+          write(1,'("# Angle      xs           Direct       Compound")')
           do 160 iang=0,nangle
             write(1,'(f5.1,1p,3e15.5)') angle(iang),discad(k0,i,iang),
      +        directad(k0,i,iang),compad(k0,i,iang)
@@ -279,10 +283,11 @@ c
               write(1,'("# ")')
               write(1,'("# # coeff.   =",i3)') J2end+1
               write(1,'("#  L       Total           Direct",
-     +          "        Compound       Normalized")')
+     +          "        Compound       Normalized    ENDF-6")')
               do 240 LL=0,J2end
-                write(1,'(i3,1p,4e16.5)') LL,tleg(type,i,LL),
-     +            dleg(type,i,LL),cleg(type,i,LL),tlegnor(type,i,LL)
+                write(1,'(i3,1p,5e16.5)') LL,tleg(type,i,LL),
+     +            dleg(type,i,LL),cleg(type,i,LL),tlegnor(type,i,LL),
+     +            cleg0(type,i,LL)
   240       continue
             close (unit=1)
           endif    
@@ -319,7 +324,7 @@ c
             write(1,'("# E-incident = ",f7.3)') Einc
             write(1,'("# ")')
             write(1,'("# # angles   =",i3)') nangle+1
-            write(1,'("#   E        xs           Direct",
+            write(1,'("# Angle      xs           Direct",
      +        "        Compound")')     
             do 270 iang=0,nangle
               write(1,'(f5.1,1p,3e15.5)') angle(iang),

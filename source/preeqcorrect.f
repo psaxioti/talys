@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : August 14, 2004
+c | Date  : March 4, 2008
 c | Task  : Correct pre-equilibrium cross sections for direct effects
 c +---------------------------------------------------------------------
 c
@@ -38,7 +38,6 @@ c
         if (Ltarget.ne.0) goto 100
         NL=Nlast(parZ(type),parN(type),0)
         do 20 i=0,NL
-          if (type.eq.k0) goto 20
           if (xsdirdisc(type,i).ne.0.) goto 20
           esd=eoutdis(type,i)
           if (esd.lt.0.) goto 100
@@ -72,9 +71,13 @@ c                 states
 c xspreeqdiscsum: total preequilibrium cross section for discrete states
 c dorigin       : origin of direct cross section (Direct or Preeq)
 c
-          call locate(egrid,nendisc(type),eend(type),esd1,nen1)
-          call locate(egrid,nendisc(type),eend(type),esd2,nen2)
-          xs1=0.5*(xspreeq(type,nen1)+xspreeq(type,nen2))*(esd2-esd1)
+          if (type.eq.k0) then
+            xs1=1.e-6
+          else
+            call locate(egrid,nendisc(type),eend(type),esd1,nen1)
+            call locate(egrid,nendisc(type),eend(type),esd2,nen2)
+            xs1=0.5*(xspreeq(type,nen1)+xspreeq(type,nen2))*(esd2-esd1)
+          endif
           xspreeqdisc(type,i)=xs1
           xspreeqdisctot(type)=xspreeqdisctot(type)+xs1
           xspreeqdiscsum=xspreeqdiscsum+xs1

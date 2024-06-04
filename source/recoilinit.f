@@ -199,11 +199,16 @@ c
             go to 70
           endif
    60   continue
-   70   if (maxentype.gt.0) maxentype=max(maxentype,3)
+   70   if (maxen.gt.0.and.egrid(maxen).lt.Emaxlab) maxentype=maxen
+        if (maxentype.gt.0) maxentype=max(maxentype,3)
         nl=Nlast(parZ(type),parN(type),0)
         Elast=eoutdis(type,nl)-elwidth
         Elast=max(Elast,0.)
-        call locate(egrid,0,maxentype,Elast,nend)
+        if (Elast.gt.egrid(maxentype)) then
+          nend=maxentype
+        else
+          call locate(egrid,0,maxentype,Elast,nend)
+        endif
         do 80 iej=1,nend
           Eejlab(type,iej)=egrid(iej)
    80   continue

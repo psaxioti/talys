@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : June 26, 2007
+c | Date  : August 5, 2009
 c | Task  : Prepare energy grid, level density and transmission 
 c |         coefficient information for compound nucleus
 c +---------------------------------------------------------------------
@@ -13,7 +13,7 @@ c
       integer          Zcomp,Ncomp,idfis,type,Zix,Nix,A,NL,odd,nexout,
      +                 Pprime,Ir,l,irad,updown,nen,na,nb,nc,ibar,ibk,
      +                 ibin,J,parity
-      real             Ex0plus,Ex0min,SS,Rodd,dEx,dExhalf,Exout,
+      real             Ex0plus,Ex0min,Efs,SS,Rodd,dEx,dExhalf,Exout,
      +                 Rboundary,Ex1min,Ex1plus,Eout,emax,emin,Exm,
      +                 Rspin,Egamma,fstrength,Ea,Eb,Ec,ta,tb,tc,tint,
      +                 exfis,dExmin,elowest,elow,emid
@@ -30,12 +30,13 @@ c Ex0plus   : upper boundary of entrance bin
 c Exinc     : excitation energy of entrance bin
 c dExinc    : excitation energy bin for mother nucleus
 c Ex0min    : lower boundary of entrance bin
+c Efs       : fast particle energy for gamma ray strength function
+c SS,S      : separation energy per particle  
 c parskip   : logical to skip outgoing particle
 c Zindex,Zix: charge number index for residual nucleus
 c Nindex,Nix: neutron number index for residual nucleus
 c AA,A      : mass number of residual nucleus
 c Nlast,NL  : last discrete level
-c SS        : separation energy per particle  
 c odd       : odd (1) or even (0) nucleus
 c Rodd      : term to determine integer or half-integer spins
 c
@@ -44,6 +45,7 @@ c the top Ex0plus and the bottom Ex0min.
 c
       Ex0plus=Exinc+0.5*dExinc
       Ex0min=Exinc-0.5*dExinc
+      Efs=Exinc-S(Zcomp,Ncomp,1)
       do 10 type=0,6
         if (parskip(type)) goto 10
         Zix=Zindex(Zcomp,Ncomp,type)
@@ -187,7 +189,7 @@ c
           if (nexout.le.NL) then
             Pprime=parlev(Zix,Nix,nexout)
             Ir=int(jdis(Zix,Nix,nexout))
-            rho0(type,nexout,Ir,Pprime)=Rboundary
+            rho0(type,nexout,Ir,Pprime)=dble(Rboundary)
           else
 c
 c For decay to the continuum we use a spin and parity dependent level 
@@ -196,7 +198,7 @@ c
             do 110 Pprime=-1,1,2
               do 120 Ir=0,maxJ(Zix,Nix,nexout)
                 rho0(type,nexout,Ir,Pprime)=
-     +            Rboundary*rhogrid(Zix,Nix,nexout,Ir,Pprime)
+     +            dble(Rboundary)*rhogrid(Zix,Nix,nexout,Ir,Pprime)
   120         continue
   110       continue
           endif
@@ -225,7 +227,7 @@ c
             do 220 l=1,gammax
               do 220 irad=0,1
                 Tgam(nexout,l,irad)=twopi*(Egamma**(2*l+1))*gnorm*
-     +            fstrength(Zcomp,Ncomp,Egamma,irad,l)
+     +            fstrength(Zcomp,Ncomp,Efs,Egamma,irad,l)
   220       continue
           else
 c
@@ -296,7 +298,8 @@ c
 c The maximal l-values needed in the compound nucleus calculations are
 c determined.
 c
-c lmaxinc: maximal l-value for transmission coefficients
+c lmaxinc    : maximal l-value for transmission coefficients
+c flaginitpop: flag for initial population distribution
 c
             lmaxhf(type,nexout)=lmax(type,nen)
           endif
@@ -304,7 +307,11 @@ c
         if (nexmax(type).gt.0) lmaxhf(type,nexmax(type))=
      +    lmaxhf(type,nexmax(type)-1)          
    10 continue
-      lmaxhf(k0,0)=lmaxinc
+      if (flaginitpop) then
+        lmaxhf(k0,0)=gammax
+      else
+        lmaxhf(k0,0)=lmaxinc
+      endif
 c
 c **** Calculate fission level densities and Hill-Wheeler terms ********
 c

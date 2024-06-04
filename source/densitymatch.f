@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : December 18, 2007
+c | Date  : May 26, 2009
 c | Task  : Level density matching solution
 c +---------------------------------------------------------------------
 c
@@ -206,7 +206,6 @@ c
           i=int(Exm/dEx)
           if (i.gt.0) 
      +      call pol1(i*dEx,(i+1)*dEx,temprho(i),temprho(i+1),Exm,Tm)
-          if (Tm.eq.0.) Tm=Tmemp
         endif
         if (E0m.eq.1.e-20) then
           i=int(Exm/dEx)
@@ -216,10 +215,21 @@ c
           rhomatch=exp(dble(logrhomatch))
           E0m=Exm-Tm*real(log(dble(Tm)*rhomatch))
         endif
+        if (Tm.eq.0.) Tm=Tmemp
         T(Zix,Nix,ibar)=Tm
         Exmatch(Zix,Nix,ibar)=Exm
         E0(Zix,Nix,ibar)=E0m
    10 continue
+c
+c Set theoretical value of D0
+c
+c dtheory: subroutine for theoretical calculation of average neutron
+c          spacings
+c D0theo : theoretical s-wave resonance spacing 
+c Dltheo : theoretical s-wave resonance spacing per l value
+c
+      call dtheory(Zix,Nix,0,0.)
+      D0theo(Zix,Nix)=Dltheo(0)
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn

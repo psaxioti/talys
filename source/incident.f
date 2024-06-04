@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : June 12, 2007
+c | Date  : June 7, 2009
 c | Task  : Main settings and basic cross sections for incident energy
 c +---------------------------------------------------------------------
 c
@@ -19,6 +19,7 @@ c flagmain  : flag for main output
 c Einc      : incident energy in MeV
 c yesno     : function to assign y or n to logical value
 c flagwidth : flag for width fluctuation calculation
+c nbins     : number of continuum excitation energy bins
 c
 c Multiple pre-equilibrium emission is always set off if there is no
 c primary pre-equilibrium emission.
@@ -36,12 +37,14 @@ c
      +      " ##########"/)') Einc        
         endif
         write(*,'(" Energy dependent input flags"/)')
-        write(*,'(" Width fluctuations (flagwidth)      : ",a1)') 
+        write(*,'(" Width fluctuations (flagwidth)            : ",a1)') 
      +    yesno(flagwidth)
-        write(*,'(" Preequilibrium (flagpreeq)          : ",a1)') 
+        write(*,'(" Preequilibrium (flagpreeq)                : ",a1)') 
      +    yesno(flagpreeq)
-        write(*,'(" Multiple preequilibrium (flagmulpre): ",a1)') 
+        write(*,'(" Multiple preequilibrium (flagmulpre)      : ",a1)') 
      +    yesno(flagmulpre)
+        write(*,'(" Number of continuum excitation energy bins:",i3)') 
+     +    nbins
       endif
 c
 c *** Calculation of total, reaction, elastic cross section, 
@@ -56,8 +59,13 @@ c incidentnorm : subroutine for normalization of reaction cross sections
 c                and transmission coefficients for incident channel
 c flaginitpop  : flag for initial population distribution
 c incidentgamma: subroutine for incident photons
-c nin          : counter for incident energy
-c numinclow    : number of incident energies below Elow
+c strength     : model for E1 gamma-ray strength function
+c parinclude   : logical to include outgoing particle
+c flagcomp     : flag for compound nucleus calculation
+c radwidtheory : subroutine for theoretical calculation of total
+c                radiative width
+c gammanorm    : subroutine for normalization of gamma ray strength 
+c                functions 
 c spr          : subroutine for S, P and R' resonance parameters
 c flaginverse  : flag for output of transmission coefficients and 
 c                inverse reaction cross sections
@@ -71,7 +79,9 @@ c
       else
         if (.not.flaginitpop) call incidentgamma
       endif
-      if (k0.eq.1.and.(Einc.le.0.1.or.nin.eq.numinclow+1)) call spr
+      if (parinclude(0).or.flagcomp) call radwidtheory(0,0,Einc)
+      if (strength.eq.1) call gammanorm(0,0)
+      if (k0.eq.1.and.(parinclude(0).or.flagcomp)) call spr
       if (flaginverse) call incidentout
       return
       end

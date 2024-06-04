@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 17, 2007
+c | Date  : August 5, 2009
 c | Task  : ECIS calculation for incident particle on ENDF-6 energy grid
 c +---------------------------------------------------------------------
 c
@@ -30,6 +30,7 @@ c Nband           : number of vibrational bands
 c angbeg          : first angle
 c anginc          : angle increment
 c angend          : last angle
+c flagendfecis    : flag for new ECIS calculation for ENDF-6 files
 c Zindex          : charge number index for residual nucleus
 c Nindex          : neutron number index for residual nucleus
 c
@@ -52,7 +53,8 @@ c
 c
 c Loop over energies on ENDF-6 energy grid.
 c
-      open (unit=9,status='unknown',file='ecisendf.inp')
+      if (flagendfecis) 
+     +  open (unit=9,status='unknown',file='ecisendf.inp')
       Zix=Zindex(0,0,k0)
       Nix=Nindex(0,0,k0)
 c
@@ -248,14 +250,19 @@ c
 c
 c ******************* Write ECIS input file ****************************
 c
+c flagcoulomb: flag for Coulomb excitation calculation with ECIS
+c soswitch   : switch for deformed spin-orbit calculation and sequential 
+c              iterations in ECIS
 c coulbar    : Coulomb barrier  
 c ecisinput  : subroutine to create ECIS input file
 c
-c For rotational nuclei, the switch at 3 MeV needs to be made according
-c to Pascal Romain.
+c For rotational nuclei, the switch at soswitch MeV needs to be made 
+c according to Pascal Romain.
 c
-        if (colltype(Zix,Nix).eq.'R'.and.k0.le.2) then
-          if (e.le.3.) then
+        if (colltype(Zix,Nix).eq.'R'.and.flagrot(k0)) then
+          if (k0.gt.1.and.flagcoulomb) ecis1(11:11)='T'
+          if ((k0.eq.1.and.e.le.soswitch).or.
+     +        (k0.gt.1.and.e.le.coulbar(k0))) then
             ecis1(13:13)='F'
             ecis1(21:21)='T'
             ecis1(42:42)='T'
@@ -272,6 +279,7 @@ c
   110 continue
       write(9,'("fin")') 
       close (unit=9)
+      if (.not.flagendfecis) return
 c
 c ************ ECIS calculation for outgoing energies ******************
 c

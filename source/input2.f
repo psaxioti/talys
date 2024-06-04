@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 29, 2007
+c | Date  : June 7, 2009
 c | Task  : Read input for second set of variables
 c +---------------------------------------------------------------------
 c
@@ -15,44 +15,46 @@ c
 c
 c ************* Defaults for second set of input variables *************
 c
-c outtype   : type of outgoing particles
-c maxZ,numZ : maximal number of protons away from the initial 
-c             compound nucleus
-c maxN,numN : maximal number of neutrons away from the initial 
-c             compound nucleus
-c nbins     : number of continuum excitation energy bins
-c segment   : number of segments to divide emission energy grid
-c nlevmax   : maximum number of included discrete levels for target
-c nlevmaxres: maximum number of included discrete levels for residual
-c             nucleus
-c nlevbin   : number of excited levels for binary nucleus  
-c k0        : index of incident particle 
-c Ltarget   : excited level of target
-c isomer    : definition of isomer in seconds
-c core      : even-even core for weakcoupling (-1 or 1)
-c gammax    : number of l-values for gamma multipolarity
-c transpower: power for transmission coefficient limit
-c transeps  : absolute limit for transmission coefficient
-c xseps     : limit for cross sections 
-c popeps    : limit for population cross section per nucleus
-c Rfiseps   : ratio for limit for fission cross section per nucleus
-c nangle    : number of angles
-c numang    : maximum number of angles
-c nanglecont: number of angles for continuum
-c maxenrec  : number of recoil energies
-c massmodel : model for theoretical nuclear mass
-c ldmodel   : level density model
-c wmode     : designator for width fluctuation model
-c preeqmode : designator for pre-equilibrium model
-c mpreeqmode: designator for multiple pre-equilibrium model
-c nlev      : number of excited levels for nucleus  
+c outtype    : type of outgoing particles
+c maxZ,numZ  : maximal number of protons away from the initial 
+c              compound nucleus
+c maxN,numN  : maximal number of neutrons away from the initial 
+c              compound nucleus
+c nbins0     : number of continuum excitation energy bins
+c segment    : number of segments to divide emission energy grid
+c nlevmax    : maximum number of included discrete levels for target
+c nlevmaxres : maximum number of included discrete levels for residual
+c              nucleus
+c nlevbin    : number of excited levels for binary nucleus  
+c k0         : index of incident particle 
+c isomer     : definition of isomer in seconds
+c core       : even-even core for weakcoupling (-1 or 1)
+c gammax     : number of l-values for gamma multipolarity
+c transpower : power for transmission coefficient limit
+c transeps   : absolute limit for transmission coefficient
+c xseps      : limit for cross sections 
+c popeps     : limit for population cross section per nucleus
+c Rfiseps    : ratio for limit for fission cross section per nucleus
+c nangle     : number of angles
+c numang     : maximum number of angles
+c nanglecont : number of angles for continuum
+c maxenrec   : number of recoil energies
+c massmodel  : model for theoretical nuclear mass
+c flagmicro  : flag for completely microscopic Talys calculation
+c ldmodel    : level density model
+c wmode      : designator for width fluctuation model
+c preeqmode  : designator for pre-equilibrium model
+c mpreeqmode : designator for multiple pre-equilibrium model
+c phmodel    : particle-hole state density model
+c nlev       : number of excited levels for nucleus  
+c flagomponly: flag to execute ONLY an optical model calculation 
 c
       do 10 type=0,6
         outtype(type)=' '
    10 continue
       maxZ=numZ-2
       maxN=numN-2
-      nbins=40
+      nbins0=40
       segment=1
       nlevmax=20
       nlevmaxres=10
@@ -64,7 +66,6 @@ c
         endif
    20 continue
       nlevbin(k0)=nlevmax
-      Ltarget=0
       isomer=1.
       core=-1
       gammax=2
@@ -76,15 +77,23 @@ c
       nangle=numang
       nanglecont=18
       maxenrec=numenrec
-      massmodel=3
-      ldmodel=1
+      massmodel=2
+      if (flagmicro) then
+        ldmodel=5
+        preeqmode=2
+        phmodel=2
+      else
+        ldmodel=1
+        preeqmode=2
+        phmodel=1
+      endif
       wmode=1
-      preeqmode=2
-      mpreeqmode=1
+      mpreeqmode=2
       do 30 Nix=0,numN
         do 30 Zix=0,numZ
           nlev(Zix,Nix)=0
    30 continue
+      flagomponly=.false.
 c
 c **************** Read second set of input variables ******************
 c
@@ -137,7 +146,7 @@ c
           goto 110
         endif
         if (key.eq.'bins') then
-          read(value,*,end=300,err=300) nbins
+          read(value,*,end=300,err=300) nbins0
           goto 110
         endif
         if (key.eq.'segment') then
@@ -150,10 +159,6 @@ c
         endif
         if (key.eq.'maxlevelsres') then
           read(value,*,end=300,err=300) nlevmaxres
-          goto 110
-        endif
-        if (key.eq.'ltarget') then
-          read(value,*,end=300,err=300) Ltarget
           goto 110
         endif
         if (key.eq.'isomer') then
@@ -220,6 +225,10 @@ c
           read(value,*,end=300,err=300) mpreeqmode
           goto 110
         endif
+        if (key.eq.'phmodel') then
+          read(value,*,end=300,err=300) phmodel
+          goto 110
+        endif
         if (key.eq.'nlevels') then
           read(word(2),*,end=300,err=300) iz
           read(word(3),*,end=300,err=300) ia
@@ -245,6 +254,12 @@ c
   240     read(word(3),*,end=300,err=300) nlevbin(type2)
           goto 110
         endif           
+        if (key.eq.'omponly') then
+          if (ch.eq.'n') flagomponly=.false.
+          if (ch.eq.'y') flagomponly=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          goto 110
+        endif
   110 continue
       return
   300 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)

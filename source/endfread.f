@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 31, 2007
+c | Date  : December 10, 2009
 c | Task  : Read ECIS results for incident particle on ENDF-6 energy 
 c |         grid
 c +---------------------------------------------------------------------
@@ -10,42 +10,143 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer          nen,Z,A
-      real             tripathi,e,enuc
+      character*72     line
+      integer          infileendf,nen,Z,A,nend,mt,nen2
+      real             tripathi,e,Ea,Eb,xsa,xsb,xsc,xsd,Efac,xsdift,
+     +                 xsdife,enuc
       double precision xs
 c
 c ************ Read total, reaction and elastic cross section **********
 c
-c nen6     : total number of energies 
-c e6,e     : energies of ENDF-6 energy grid in MeV
-c k0       : index of incident particle
-c coullimit: energy limit for charged particle OMP calculation
-c xs       : help variable
-c xstot6   : total cross section (neutrons only) for ENDF-6 file
-c xsreac6  : reaction cross section for ENDF-6 file
-c xsopt6   : optical model reaction cross section for ENDF-6 file
-c xselas6  : total elastic cross section (neutrons only) for ENDF-6 file
+c flagendfecis: flag for new ECIS calculation for ENDF-6 files
+c nen6        : total number of energies 
+c e6,e        : energies of ENDF-6 energy grid in MeV
+c k0          : index of incident particle
+c coullimit   : energy limit for charged particle OMP calculation
+c xs          : help variable
+c xstot6      : total cross section (neutrons only) for ENDF-6 file
+c xsreac6     : reaction cross section for ENDF-6 file
+c xsopt6      : optical model reaction cross section for ENDF-6 file
+c xselassh6   : shape elastic cross section (neutrons only) for ENDF-6 
+c               file
 c
-      open (unit=3,status='unknown',file='ecis06.endfcs')
-      do 10 nen=1,nen6
+      if (flagendfecis) then
+        open (unit=3,status='unknown',file='ecis06.endfcs')
+        infileendf=3
+        open (unit=23,status='unknown',file='endf.cs')
+   10   read(3,'(a72)',end=20) line
+        write(23,'(a72)') line
+        goto 10
+   20   rewind 3
+      else
+        infileendf=23
+      endif
+      do 30 nen=1,nen6
         e=real(e6(nen))
-        if (k0.gt.1.and.e.lt.coullimit(k0)) goto 10
-        read(3,'()')
+        if (k0.gt.1.and.e.lt.coullimit(k0)) goto 30
+        read(infileendf,'()')
         if (k0.eq.1) then
-          read(3,*) xs
+          read(infileendf,*) xs
           xstot6(nen)=real(xs)
         endif
-        read(3,*) xs
+        read(infileendf,*) xs
         xsreac6(nen)=real(xs)
         xsopt6(nen)=real(xs)
         if (k0.eq.1) then
-          read(3,*) xs
-          xselas6(nen)=real(xs)
+          read(infileendf,*) xs
+          xselassh6(nen)=real(xs)
         endif
-   10 continue
-      close (unit=3)
+   30 continue
+      close (unit=3,status=ecisstatus)
+      close (unit=23,status=ecisstatus)
       open (unit=10,status='unknown',file='ecis06.endfin')
       close (unit=10,status=ecisstatus)
+c
+c ********** Compound elastic contribution and normalization ***********
+c  
+c locate     : subroutine to find value in ordered table
+c xscompel    : compound elastic cross section
+c pol1       : subroutine for polynomial interpolation of first order
+c xselas6    : total elastic cross section (neutrons only) for ENDF-6 
+c              file
+c xsnon6     : non-elastic cross section for ENDF-6 file
+c flagrescue : flag for final rescue: normalization to data
+c
+        if (k0.ge.1) then
+          do 110 nen=1,nen6
+            e=real(e6(nen))
+            if (e.le.eninc(1)) then
+              xsc=xscompel6(1)
+              xsd=xsnonel6(1)
+            else
+              call locate(eninc,1,numinc,e,nend)
+              Ea=eninc(nend)
+              Eb=eninc(nend+1)
+              xsa=xscompel6(nend)
+              xsb=xscompel6(nend+1)
+              call pol1(Ea,Eb,xsa,xsb,e,xsc)
+              xsa=xsnonel6(nend)
+              xsb=xsnonel6(nend+1)
+              call pol1(Ea,Eb,xsa,xsb,e,xsd)
+            endif
+            xselas6(nen)=xselassh6(nen)+xsc
+            xsnon6(nen)=xsd
+            xstot6(nen)=xselas6(nen)+xsnon6(nen)
+c
+c ************************ Adjustment factors **************************
+c
+c Set incident energy dependent adjustment factors (purely for
+c fitting purposes).
+c
+c Nrescue: number of energies for adjustment factors
+c Crescue: adjustment factor for this incident energy
+c Erescue: energy grid for adjustment factors
+c frescue: adjustment factor
+c
+            if (flagrescue) then
+              do 120 mt=1,3  
+                if (Nrescue(mt).eq.0) goto 120
+                Crescue(mt)=1.
+                if (e.le.Erescue(mt,1)) then
+                  Crescue(mt)=frescue(mt,1)
+                  goto 120
+                endif
+                if (e.ge.Erescue(mt,Nrescue(mt))) then
+                  Crescue(mt)=frescue(mt,Nrescue(mt))
+                  goto 120
+                endif
+                do 130 nen2=1,Nrescue(mt)-1
+                  if (e.gt.Erescue(mt,nen2).and.
+     +              e.le.Erescue(mt,nen2+1)) then
+                    Efac=(e-Erescue(mt,nen2))/
+     +                (Erescue(mt,nen2+1)-Erescue(mt,nen2))
+                    Crescue(mt)=frescue(mt,nen2)+
+     +                Efac*(frescue(mt,nen2+1)-frescue(mt,nen2))
+                    goto 120
+                  endif
+  130           continue
+  120         continue
+c
+c Put difference in the elastic (or total) cross section
+c
+              if (Crescue(1).ne.1..and.Crescue(1).ne.0.)
+     +          xsdift=xstot6(nen)*(1./Crescue(1)-1.)
+              if (Crescue(2).ne.1..and.Crescue(2).ne.0.)
+     +          xsdife=xselas6(nen)*(1./Crescue(2)-1.)
+              if (Crescue(2).ne.1..and.Crescue(2).ne.0.) then
+                xselas6(nen)=xselas6(nen)+xsdife
+                xstot6(nen)=xstot6(nen)+xsdife
+              else
+                xselas6(nen)=xselas6(nen)+xsdift
+                xstot6(nen)=xstot6(nen)+xsdift
+              endif
+            endif
+  110     continue
+        else
+          do 150 nen=1,nen6
+            xsnon6(nen)=xsreac6(nen)
+  150     continue
+        endif
 c
 c ************ Normalization with semi-empirical results ***************
 c  
@@ -62,40 +163,44 @@ c
       if (flagsys(k0)) then
         Z=ZZ(0,0,k0)
         A=AA(0,0,k0)
-        do 110 nen=1,nen6
-          if (xsopt6(nen).eq.0.) goto 110
+        do 210 nen=1,nen6
+          if (xsopt6(nen).eq.0.) goto 210
           e=real(e6(nen))
           enuc=e/parA(k0)
           xs=tripathi(parZ(k0),parA(k0),Z,A,enuc)
           if (xs.eq.0.) xs=xsopt(k0,nen)*threshnorm(k0)
-          xsreac6(nen)=xs
+          xsnon6(nen)=xs
           if (k0.eq.1) xselas6(nen)=xselas6(nen)+xsopt6(nen)-xs   
-  110   continue
+  210   continue
       endif
 c
 c **************** Write total cross sections to file ******************
 c  
-c parsym   : symbol of particle  
-c Atarget  : mass number of target nucleus   
-c nuc      : symbol of nucleus 
-c Ztarget  : charge number of target nucleus     
-c numinclow: number of incident energies below Elow
+c parsym    : symbol of particle  
+c Atarget   : mass number of target nucleus   
+c nuc       : symbol of nucleus 
+c Ztarget   : charge number of target nucleus     
+c numinclow : number of incident energies below Elow
+c fxsnonel  : non-elastic cross section for incident channel
+c fxselastot: total elastic cross section (neutrons only) for 
+c             incident channel
+c fxstotinc : total cross section (neutrons only) for incident channel
 c
       open (unit=1,status='unknown',file='endf.tot')
       write(1,'("# ",a1," + ",i3,a2," Total cross sections")')
      +  parsym(k0),Atarget,nuc(Ztarget)
       write(1,'("# ")')
       write(1,'("# ")')
-      write(1,'("# # energies =",i3)') nen6+numinclow
-      write(1,'("#    E         Reaction  Elastic     Total")')
-      do 210 nen=1,numinclow
-        write(1,'(1p,e12.5,2x,3e11.4)') eninc(nen),fxsreacinc(nen),
-     +    fxselasinc(nen),fxstotinc(nen)
-  210 continue
-      do 220 nen=1,nen6
-        write(1,'(1p,e12.5,2x,3e11.4)') e6(nen),xsreac6(nen),
+      write(1,'("# # energies =",i4)') nen6+numinclow
+      write(1,'("#    E        Non-elastic Elastic     Total")')
+      do 310 nen=1,numinclow
+        write(1,'(1p,e12.5,2x,3e11.4)') eninc(nen),fxsnonel(nen),
+     +    fxselastot(nen),fxstotinc(nen)
+  310 continue
+      do 320 nen=1,nen6
+        write(1,'(1p,e12.5,2x,3e11.4)') e6(nen),xsnon6(nen),
      +    xselas6(nen),xstot6(nen)
-  220 continue
+  320 continue
       close (unit=1)
       return
       end

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : July 1, 2004
+c | Date  : May 5, 2009
 c | Task  : Separation energies 
 c +---------------------------------------------------------------------
 c
@@ -22,6 +22,7 @@ c S      : separation energy per particle
 c excmass: mass excess of particle in a.m.u.
 c amu    : atomic mass unit in MeV
 c thmexc : theoretical mass excess       
+c dumexc : theoretical mass excess from Duflo-Zuker formula
 c
 c For consistency, separation energies are always calculated using two
 c nuclear masses of the same type, i.e. both experimental or both
@@ -38,8 +39,13 @@ c
             if (expmexc(Zix,Nix).ne.0..and.expmexc(Zr,Nr).ne.0.) then
               S(Zix,Nix,type)=real(expmexc(Zr,Nr)-expmexc(Zix,Nix)+
      +          excmass(type)*amu)
-            else
+              goto 20
+            endif
+            if (thmexc(Zix,Nix).ne.0..and.thmexc(Zr,Nr).ne.0.) then
               S(Zix,Nix,type)=real(thmexc(Zr,Nr)-thmexc(Zix,Nix)+
+     +          excmass(type)*amu)
+            else
+              S(Zix,Nix,type)=real(dumexc(Zr,Nr)-dumexc(Zix,Nix)+
      +          excmass(type)*amu)
             endif
    20     continue

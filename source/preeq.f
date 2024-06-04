@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : March 5, 2006   
+c | Date  : May 26, 2009
 c | Task  : Pre-equilibrium reactions
 c +---------------------------------------------------------------------
 c
@@ -13,17 +13,19 @@ c
 c
 c ********************** General initializations ***********************
 c
-c p0  : initial particle number
-c parA: mass number of particle
-c k0  : index of incident particle
-c h0  : initial hole number
-c ppi0: initial proton number
-c parZ: charge number of particle
-c hpi0: initial proton hole number
-c pnu0: initial neutron number
-c parN: neutron number of particle
-c hnu0: initial neutron hole number
+c flagomponly: flag to execute ONLY an optical model calculation
+c p0         : initial particle number
+c parA       : mass number of particle
+c k0         : index of incident particle
+c h0         : initial hole number
+c ppi0       : initial proton number
+c parZ       : charge number of particle
+c hpi0       : initial proton hole number
+c pnu0       : initial neutron number
+c parN       : neutron number of particle
+c hnu0       : initial neutron hole number
 c
+      if (flagomponly) return
       p0=parA(k0)
       h0=0
       ppi0=parZ(k0)
@@ -87,6 +89,7 @@ c
 c Correct reaction cross section for direct and giant resonance effects
 c
       xsflux=xsreacinc-xsdirdiscsum-xsgrsum
+      xsflux=max(xsflux,0.)
 c
 c Choice between one-component and two-component exciton model.
 c

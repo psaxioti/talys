@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : May 30, 2007
+c | Date  : April 18, 2008
 c | Task  : Excitation energy population
 c +---------------------------------------------------------------------
 c
@@ -36,7 +36,7 @@ c parlev   : parity of level
 c xspop    : population cross section
 c npopJ    : number of spins for population distribution
 c Pdistex  : population distribution, spin-independent
-c Pdist    : population distribution per spin
+c Pdist    : population distribution per spin and parity
 c spindis  : spin distribution
 c pardis   : parity distribution
 c xspopex  : population cross section summed over spin and parity
@@ -78,8 +78,8 @@ c
               Prob=Probex*spindis(Zcomp,Ncomp,Eex,ald,Rspin,0)*
      +          pardis
             else
-              Pa=Pdist(nen,J)
-              Pb=Pdist(nen+1,J)
+              Pa=Pdist(nen,J,parity)
+              Pb=Pdist(nen+1,J,parity)
               call pol1(Ea,Eb,Pa,Pb,Eex,Prob)
             endif
             xspop(Zcomp,Ncomp,nex,J,parity)=Prob*dEx

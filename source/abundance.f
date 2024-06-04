@@ -33,6 +33,9 @@ c isonum : number of isotopes
 c abtot  : summed abundances for normalization
 c nuc    : symbol of nucleus
 c
+c Note that for non-natural elements we take the longest-lived isotope 
+c as default.
+c
 c 1. Isotopic abundances from user file
 c
 c

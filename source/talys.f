@@ -1,7 +1,7 @@
 c
-c                            TALYS-1.0 
+c                            TALYS-1.2
 c
-c                   (Version: December 21, 2007)
+c                   (Version: December 21, 2009)
 c
 c             Nuclear reactions from 1 keV to 200 MeV. 
 c
@@ -16,7 +16,7 @@ c       | NRG - Nuclear Research and Consultancy Group          |
 c       | Westerduinweg 3                                       |
 c       | P.O. Box 25, NL-1755 ZG  Petten, The Netherlands      |
 c       | Phone: (+31) 224 564051  FAX: (+31) 224 568490        |
-c       | Email: koning@nrg-nl.com                              |
+c       | Email: koning@nrg.eu                                  |
 c       |-------------------------------------------------------|
 c
 c       |-------------------------------------------------------|
@@ -36,14 +36,14 @@ c       | NRG - Nuclear Research and Consultancy Group          |
 c       | Westerduinweg 3                                       |
 c       | P.O. Box 25, NL-1755 ZG  Petten, The Netherlands      |
 c       | Phone: (+31) 224 564402  FAX: (+31) 224 568490        |
-c       | Email: duijvestijn@nrg-nl.com                         |
+c       | Email: duijvestijn@nrg.eu                             |
 c       |-------------------------------------------------------|
 c
       program talys
 c
 c +---------------------------------------------------------------------
 c | Author : Arjan Koning, Stephane Hilaire and Marieke Duijvestijn
-c | Date   : December 21, 2007
+c | Date   : December 21, 2009
 c | Task   : Main program
 c +---------------------------------------------------------------------
 c
@@ -68,4 +68,4 @@ c
       call talysreaction
       if (flagnatural) call natural
       end
-Copyright (C) 2007  A.J. Koning, S. Hilaire and M.C. Duijvestijn
+Copyright (C) 2008  A.J. Koning, S. Hilaire and M.C. Duijvestijn

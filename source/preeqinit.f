@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning 
-c | Date  : September 3, 2004
+c | Date  : August 1, 2008
 c | Task  : Initialization of general pre-equilibrium parameters
 c +---------------------------------------------------------------------
 c
@@ -10,8 +10,8 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer n,k,J,p,h,ppi,hpi,pnu,hnu,i
-      real    sigma2ph,denom,expo,gs,Epp,factor,gsp,gsn,Eppi,factorp,
-     +        Epnu,factorn
+      real    sigma2ph,denom,expo,gs,Epp,factor,gsp,gsn,Eppi,
+     +        factorp,Epnu,factorn
 c
 c ********************** General initializations ***********************
 c
@@ -192,11 +192,11 @@ c
         Rblann(2,1,5)=0.516
         Rblann(2,2,5)=0.484
       endif
-      do 310 i=1,2
-        do 310 J=1,2
-          do 310 k=6,numparx
+      do 410 i=1,2
+        do 410 J=1,2
+          do 410 k=6,numparx
             Rblann(i,J,k)=0.5
-  310 continue
+  410 continue
       return
       end
 Copyright (C) 2004  A.J. Koning, S. Hilaire and M.C. Duijvestijn
