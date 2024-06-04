@@ -132,8 +132,7 @@ c Tjl,Tcoef  : transmission coefficients as a function of spin and
 c              l-value
 c numl       : maximal number of l-values
 c colltype   : type of collectivity (D, V or R)
-c flagrot    : flag for use of rotational optical model per
-c              outgoing particle, if available
+c flagspher  : flag to force spherical optical model
 c factor     : help variable
 c ispin      : spin index
 c parspin    : spin of particle
@@ -151,7 +150,7 @@ c
           read(infiletr,'(i3,i6,f9.1,e20.8)') lev,l,jres,Tcoef
           if (l.gt.numl) goto 120
           if (lev.eq.1) then
-            if (colltype(Zix,Nix).ne.'S'.and.flagrot(k0)) then
+            if (colltype(Zix,Nix).ne.'S'.and..not.flagspher) then
               factor=(2.*rj+1.)/(2.*jres+1.)/(groundspin2+1.)
             else
               factor=1.
@@ -301,7 +300,7 @@ c dorigin      : origin of direct cross section (Direct or Preeq)
 c xscollconttot: total collective cross section in the continuum
 c xsdirdiscsum : total direct cross section
 c
-      if (colltype(Zix,Nix).ne.'S'.and.flagrot(k0)) then
+      if (colltype(Zix,Nix).ne.'S'.and..not.flagspher) then
         xscoupled=0.
         do 510 ist=2,nSt
           read(infileang,'(i5,7x,i3)') i,nS
@@ -322,7 +321,7 @@ c
           if (ii.le.Nlast(Zix,Nix,0)) then
             xsdirdisctot(k0)=xsdirdisctot(k0)+xsdirdisc(k0,ii)
           else
-            xscollconttot=xscollconttot+xsdirdisc(k0,ii)
+            xscollconttot(k0)=xscollconttot(k0)+xsdirdisc(k0,ii)
           endif
           xscoupled=xscoupled+xsdirdisc(k0,ii)
           dorigin(k0,ii)='Direct'

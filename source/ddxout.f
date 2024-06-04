@@ -36,7 +36,6 @@ c xscompoutad  : compound emission angular distribution
 c ddxecount    : counter for double-differential cross section files
 c fileddxe     : designator for double-differential cross sections on
 c                separate file: angular distribution
-c Starget      : symbol of target nucleus
 c natstring    : string extension for file names
 c iso          : counter for isotope
 c locate       : subroutine to find value in ordered table
@@ -91,11 +90,11 @@ c
               write(ddxfile(15:18),'(i4.4)') int(enf)
               open (unit=1,file=ddxfile,status='unknown')
             endif
-            write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum")')
-     +        parsym(k0),Atarget,Starget,parname(type)
+            write(1,'("# ",a1," + ",a,": ",a8," DDX spectrum")')
+     +        parsym(k0),trim(targetnuclide),parname(type)
             write(1,'("# E-incident = ",f10.5)') Einc
             write(1,'("# E-emission = ",f8.3)') enf
-            write(1,'("# # angles =",i4)') nanglecont+1
+            write(1,'("# # angles   = ",i4)') nanglecont+1
             write(1,'("# Angle    Total       Direct    Pre-equil.",
      +        "  Mult. preeq  Compound")')
             do 50 iang=0,nanglecont
@@ -167,12 +166,12 @@ c
               write(ddxfile(6:9),'(i4.4)') int(Einc)
               write(ddxfile(15:20),'(f6.1)') enf
               write(ddxfile(15:18),'(i4.4)') int(enf)
-              write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum",
-     +          " in LAB system")') parsym(k0),Atarget,Starget,
+              write(1,'("# ",a1," + ",a,": ",a8," DDX spectrum",
+     +          " in LAB system")') parsym(k0),trim(targetnuclide),
      +          parname(type)
               write(1,'("# E-incident = ",f10.5)') Einc
               write(1,'("# E-emission = ",f8.3)') enf
-              write(1,'("# # angles =",i4)') nanglecont+1
+              write(1,'("# # angles   = ",i4)') nanglecont+1
               write(1,'("# Angle    Total")')
               do 90 iang=0,nanglecont
                 xsa=ddxejlab(type,nen,iang)
@@ -237,8 +236,8 @@ c
               write(ddxfile(15:17),'(i3.3)') int(angf)
               open (unit=1,file=ddxfile,status='unknown')
             endif
-            write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum")')
-     +        parsym(k0),Atarget,Starget,parname(type)
+            write(1,'("# ",a1," + ",a,": ",a8," DDX spectrum")')
+     +        parsym(k0),trim(targetnuclide),parname(type)
             write(1,'("# E-incident = ",f10.5)') Einc
             write(1,'("# Angle      = ",f7.3)') angf
             write(1,'("# # energies =",i6)')
@@ -303,8 +302,8 @@ c
                 write(ddxfile(15:17),'(i3.3)') int(angf)
                 open (unit=1,file=ddxfile,status='unknown')
               endif
-              write(1,'("# ",a1," + ",i3,a2,": ",a8," DDX spectrum",
-     +          " in LAB system")') parsym(k0),Atarget,Starget,
+              write(1,'("# ",a1," + ",a,": ",a8," DDX spectrum",
+     +          " in LAB system")') parsym(k0),trim(targetnuclide),
      +          parname(type)
               write(1,'("# E-incident = ",f10.5)') Einc
               write(1,'("# Angle      = ",f7.3)') angf

@@ -61,7 +61,6 @@ c eninc,Einc: incident energy in MeV
 c parsym    : symbol of particle
 c k0        : index of incident particle
 c Atarget   : mass number of target nucleus
-c Starget   : symbol of target nucleus
 c Ztarget   : charge number of target nucleus
 c numinc    : number of incident energies
 c
@@ -69,12 +68,12 @@ c
         binfile='binary.tot'
         if (nin.eq.numinclow+1) then
           open (unit=1,file=binfile,status='replace')
-          write(1,'("# ",a1," + ",i3,a2," Binary cross sections")')
-     +      parsym(k0),Atarget,Starget
+          write(1,'("# ",a1," + ",a," Binary cross sections")')
+     +      parsym(k0),trim(targetnuclide)
           write(1,'("# ")')
           write(1,'("# ")')
           write(1,'("# # energies =",i6)') numinc
-          write(1,'("#    E       ",7(2x,a8,1x))')
+          write(1,'("#    E       ",7(3x,a8,1x))')
      +      (parname(type),type=0,6)
           do 20 nen=1,numinclow
             write(1,'(8es12.5)') eninc(nen),

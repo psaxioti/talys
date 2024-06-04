@@ -83,7 +83,7 @@ c
 c Maximum temperature
 c
       Tm0 = Tmadjust * (0.45 * ZA13 - 5.82)
-      Ex = Ein + Sn
+      Ex = max(Ein + Sn, 0.)
       ald = A / 10.
       Tm = sqrt(Tm0 * Tm0 + Ex / ald)
       Emax = ETfns(NETfns)
@@ -162,7 +162,7 @@ c
         do nen = 1, NETfns
           E = ETfns(nen)
           dE = dETfns(nen)
-          maxwell(nen) = maxfactor * sqrt(E) * exp(-E/Eav)
+          maxwell(nen) = maxfactor * sqrt(E) * exp(-E/(2./3.*Eav))
           summax = summax + maxwell(nen) * dE
         enddo
         if (summax > 0.) then

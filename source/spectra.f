@@ -141,6 +141,7 @@ c
           Eout=espec(type,nenout)
           espec(type,nenout)=convfac1*Eout+convfac2+convfac3*sqrt(Eout)
           call locate(egrid,nend,eend(type),Eout,nen)
+          nen = min(nen, numen-1)
           Ea=Eout-egrid(nen)
           Eb=egrid(nen+1)-egrid(nen)
           if (Ea.lt.Eb) then

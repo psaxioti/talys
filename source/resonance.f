@@ -67,8 +67,8 @@ c
         am=redumass(Zix,Nix,k0)
         convfac=2.45484e+5/sqrt(am)
         open(unit=2,file='astrorateres.g',status='replace')
-        write(2,'("# Reaction rate for ",i3,a2,"(",a1,",g)")')
-     +    Atarget,Starget,parsym(k0)
+        write(2,'("# Reaction rate for ",a,"(",a1,",g)")')
+     +    trim(targetnuclide),parsym(k0)
         write(2,'("#    T     kT[keV]     Rate       MACS")')
         Ntemp=nTmax
       else
@@ -121,12 +121,12 @@ c
           endif
   140   continue
   150   read(1,'(a80)',err=100,end=100) string
-        if (MT.eq.1) xsfile='totalxs.tot'
+        if (MT.eq.1) xsfile='total.tot'
         if (MT.eq.2) xsfile='elastic.tot'
         if (MT.eq.18) xsfile='fission.tot'
         rpfile='rp000000.tot'
         if (MT.eq.102) then
-            xsfile='xs000000.tot'
+          xsfile='xs000000.tot'
           write(rpfile(3:5),'(i3.3)') Ztarget
           write(rpfile(6:8),'(i3.3)') Atarget+1
         endif

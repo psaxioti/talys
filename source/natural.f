@@ -20,7 +20,7 @@ c
       character*20 totfile,tot0file
       character*21 discfile,specfile,fyfile
       character*29 recfile
-      character*80 str(9)
+      character*132 str(9)
       integer      i,k,k2,type,jend,iang,j,n1,n2,nen,neniso(numiso),
      +             nenen,zbeg,zend,abeg,aend,iz,ia,npart,ih,it,id,ip,in,
      +             nex
@@ -31,7 +31,7 @@ c
      +             xsspec(numiso,0:numen2nat,5),enspecnat(0:numen2nat),
      +             xsspecnat(0:numen2nat,5),Nis,act,frac,
      +             actnat(0:numtime),Nisnat(0:numtime),Ynat(0:numtime),
-     +             fracnat(0:numtime)
+     +             fracnat(0:numtime),natbranch(0:numen2),br,absum
 c
 c **************** Create runs and directories per isotope *************
 c
@@ -86,13 +86,13 @@ c
    10 continue
       if (filetotal) then
         do 20 i=1,isonum
-          totfile='total.tot'//natstring(i)
+          totfile='all.tot'//natstring(i)
           inquire (file=totfile,exist=lexist)
           if (lexist) then
             open (2,file=totfile,status='old')
             read(2,'(////)',end=50,err=50)
             do 30 k=1,numinc
-              read(2,'(11e11.4)',end=50,err=50) en(k),
+              read(2,'(11e12.5)',end=50,err=50) en(k),
      +          (xst(k2),k2=1,10)
               do 40 k2=1,10
                 xstotnat(k2,k)=xstotnat(k2,k)+abun(i)*xst(k2)
@@ -101,15 +101,15 @@ c
    50       close (unit=2)
           endif
    20   continue
-        open (3,file='total.tot',status='replace')
+        open (3,file='all.tot',status='replace')
         write(3,'("# ",a1," + nat-",a2," Total cross sections")')
      +    parsym(k0),Starget
         write(3,'("# ")')
         write(3,'("# ")')
         write(3,'("# # energies =",i6)') numinc
-        write(3,'("#    E      Non-elastic  Elastic     Total",
+        write(3,'("#    E      Non-elastic Elastic     Total",
      +    "     Comp. el.  Shape el.  Reaction",
-     +    " Comp. nonel   Direct   Pre-equil.   Dir. Capt.")')
+     +    " Comp. nonel   Direct   Pre-equil. Dir. Capt.")')
         do 60 k=1,numinc
           write(3,'(11es11.4)') en(k),(xstotnat(k2,k),k2=1,10)
    60   continue
@@ -127,7 +127,7 @@ c
         endif
         do 72 j=1,jend
           do 74 i=1,isonum
-            if (j.eq.1) totstring='totalxs'
+            if (j.eq.1) totstring='total'
             if (j.eq.2) totstring='nonelastic'
             if (j.eq.3) totstring='reaction'
             if (j.eq.4) totstring='elastic'
@@ -166,7 +166,7 @@ c
 c prodfile: file with total particle production cross sections
 c parname : name of particle
 c
-        do 110 type=1,6
+        do 110 type=0,6
           do 120 k=1,numinc
             xsprodnat(k)=0.
             xsyieldnat(k)=0.
@@ -421,7 +421,7 @@ c
   550           close (unit=2)
               endif
   530       continue
-          if (resexist) then
+            if (resexist) then
               open (3,file=resfile(1:12),status='replace')
               write(3,'("# ",a1," + nat-",a2,": Production of ",i3,a2,
      +          " - Total")') parsym(k0),Starget,ia,nuc(iz)
@@ -437,14 +437,13 @@ c
 c
 c Per ground state and isomer
 c
-            write(resfile(10:12),'("L00")')
-            inquire (file=resfile,exist=lexist)
-            if (.not.lexist) goto 510
             do 570 nex=0,numlev
               do 580 k=1,numinc
                 xsnat(k)=0.
+                natbranch(k)=0.
   580         continue
               resexist=.false.
+              absum=0.
               do 590 i=1,isonum
                 resfile='rp000000.L00'//natstring(i)
                 write(resfile(3:8),'(2i3.3)') iz,ia
@@ -455,12 +454,19 @@ c
                   open (2,file=resfile,status='old')
                   read(2,'(////)',end=610,err=610)
                   do 600 k=1,numinc
-                    read(2,'(2es12.5)',end=610,err=610) en(k),xs
+                    read(2,'(3es12.5)',end=610,err=610) en(k),xs,br
                     xsnat(k)=xsnat(k)+abun(i)*xs
+                    natbranch(k)=natbranch(k)+abun(i)*br
   600             continue
   610             close (unit=2)
+                  absum=absum+abun(i)
                 endif
   590         continue
+              if (absum.gt.0.) then
+                do k=1,numinc
+                  natbranch(k)=natbranch(k)/absum
+                enddo
+              endif
               if (resexist) then
                 open (3,file=resfile(1:12),status='replace')
                 write(3,'("# ",a1," + nat-",a2,": Production of ",i3,a2,
@@ -468,9 +474,9 @@ c
                 write(3,'("# ")')
                 write(3,'("# ")')
                 write(3,'("# # energies =",i6)') numinc
-                write(3,'("#    E         xs")')
+                write(3,'("#    E         xs      Branching")')
                 do 620 k=1,numinc
-                  write(3,'(2es12.5)') en(k),xsnat(k)
+                  write(3,'(3es12.5)') en(k),xsnat(k),natbranch(k)
   620           continue
                 close (unit=3)
               endif
@@ -859,7 +865,7 @@ c
                   resexist=.true.
                   open (2,status='old',file=Yfile)
                   do k=1,9
-                    read(2,'(a80)') str(k)
+                    read(2,'(a)') str(k)
                   enddo
                   do 1340 k=1,numtime
                     read(2,'(f8.1,3es15.5,f15.5)',end=1350,err=1350) 
@@ -874,10 +880,10 @@ c
  1330         continue
               if (resexist) then
                 open (3,status='unknown',file=Yfile(1:11))
-                write(3,'("# Reaction: ",a1," + nat",a2,a58)')
-     +             parsym(k0),nuc(Ztarget),str(1)(22:80)
+                write(3,'("# Reaction: ",a1," + nat",a2,a)')
+     +             parsym(k0),nuc(Ztarget),trim(str(1)(22:132))
                 do k=2,9
-                  write(3,'(a80)') str(k)
+                  write(3,'(a)') trim(str(k))
                 enddo
                 do 1360 k=1,numtime
                   write(3,'(f8.1,3es15.5,f15.5)') Tgrid(k),

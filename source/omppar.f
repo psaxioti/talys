@@ -12,7 +12,7 @@ c
       logical      lexist
       character*1  omptype,Rpart
       character*8  ompchar
-      character*72 optmodfile
+      character*132 optmodfile
       character*132 ompfile
       character*132 string
       integer      Zix,Nix,Z,N,A,k,iz,ia,i,nomp,ii,nen,kk,j,NE,Zt,At,
@@ -316,7 +316,7 @@ c
           if (optmodfile(1:1).ne.' ') then
             open (unit=2,file=optmodfile,status='old')
             eferm=0.
-            read(2,'(a)',end=300,err=300) string
+            read(2,'(a)',end=240,err=300) string
             read(string,*,end=240,err=300) iz,ia,omplines(Zix,Nix,k),
      +        eferm
   240       if (eferm.gt.0.) ef(Zix,Nix,k)=eferm
@@ -402,7 +402,7 @@ c
       Eompend1(6,2)=25.
       Eompend0(6,2)=50.
       return
-  300 write(*,'(" TALYS-error: Format error in ",a72)') optmodfile
+  300 write(*,'(" TALYS-error: Format error in ",a)') trim(optmodfile)
       stop
       end
 Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

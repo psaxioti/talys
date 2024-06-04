@@ -11,13 +11,13 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include      "talys.cmb"
-      logical      lexist
-      character*3  Zstring
-      character*90 enhBUnxs,enhBUpxs
-      integer      Zcomp,Acomp,Ncomp,Z,A,N,type,ien,Ioutn,iep,Ioutp
-      integer      Nix,Zix
-      real         ENHN,ENHP,enout,epout
-      real*8       NUCLEUN,NUCLEUP,NUCLEUNr,NUCLEUPr,Eoutn,Eoutp
+      logical       lexist
+      character*3   Zstring
+      character*132 enhBUnxs,enhBUpxs
+      integer       Zcomp,Acomp,Ncomp,Z,A,N,type,ien,Ioutn,iep,Ioutp
+      integer       Nix,Zix
+      real          ENHN,ENHP,enout,epout
+      real*8        NUCLEUN,NUCLEUP,NUCLEUNr,NUCLEUPr,Eoutn,Eoutp
 c
 c ***  n,p reaction cross sections ratios for breakup enhancement  ***
 c
@@ -30,8 +30,8 @@ c                 Eq. (2), PRC 94,014606 (2016)
 c                 n + Atarget:  sig(n,Z,A,Enout)/sig_Total(n,Enout)
 c                 p + Atarget:  sig(p,Z,A,Epout)/sig_Reaction(p,Epout)
 c                 included in STRUCTURE directory as follows:
-c                 structure\TENDL_npxs\neutrons\ENHratioN.da
-c                 structure\TENDL_npxs\protons\ENHratioP.da
+c                 structure\breakup\neutrons\ENHratioN.da
+c                 structure\breakup\protons\ENHratioP.da
 c numenout      : maximal number of breakup nucleons outgoing energies
 c                 included in talys.cmb as well as in reacinitial
 c Zix           : charge number index for residual nucleus
@@ -55,13 +55,13 @@ c
        write(Zstring,'(i3.3)') Ztarget
        do type=1,2
         if (type.eq.1) then
-c         enhBUnxs=trim(path)//'TENDL_npxs/neutrons/ENHratioN.dat'
-          enhBUnxs=trim(path)//'TENDL_npxs/neutrons/ENHratioN.'//Zstring
+c         enhBUnxs=trim(path)//'breakup/neutrons/ENHratioN.dat'
+          enhBUnxs=trim(path)//'breakup/neutrons/ENHratioN.'//Zstring
         inquire (file=enhBUnxs,exist=lexist)
           if (.not.lexist) go to 409
         open (unit=25,status='unknown',file=enhBUnxs)
-c         enhBUpxs=trim(path)//'TENDL_npxs/protons/ENHratioP.dat'
-          enhBUpxs=trim(path)//'TENDL_npxs/protons/ENHratioP.'//Zstring
+c         enhBUpxs=trim(path)//'breakup/protons/ENHratioP.dat'
+          enhBUpxs=trim(path)//'breakup/protons/ENHratioP.'//Zstring
         inquire (file=enhBUpxs,exist=lexist)
         if (.not.lexist) go to 409
           open (unit=26,status='unknown',file=enhBUpxs)
@@ -202,13 +202,13 @@ c
 c
 c               
 409     write(8,*)' '
-      write(8,*)'subroutine npxsratios: missing TENDL_npxs library in',
+      write(8,*)'subroutine npxsratios: missing breakup library in',
      +          ' TALYS structure or missing xs files from TENDL-2019 '
       write(8,*)'***     NO BUenhancement taken into account     ***'
       write(8,*)'  '
 c
       write(*,*)' '
-      write(*,*)'subroutine npxsratios: missing TENDL_npxs library in',
+      write(*,*)'subroutine npxsratios: missing breakup library in',
      +          ' TALYS structure or missing xs files from TENDL-2019 '
       write(*,*)'***     NO BUenhancement taken into account     ***'
       write(*,*)' '

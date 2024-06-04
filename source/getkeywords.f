@@ -8,10 +8,10 @@ c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
-      character*1   chprev,ch
-      character*80  word(40)
-      character*80  line
-      integer       i,nkey,ibeg,iend
+      character*1    chprev,ch
+      character*132  word(40)
+      character*132  line
+      integer        i,nkey,ibeg,iend
 c
 c **************** Read keywords and values from input line ************
 c
@@ -31,7 +31,7 @@ c
    10 continue
       chprev=' '
       nkey=0
-      do 20 i=1,80
+      do 20 i=1,132
         if (i.gt.1) chprev=line(i-1:i-1)
         ch=line(i:i)
         if (ch.ne.' '.and.chprev.eq.' ') then

@@ -9,10 +9,10 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80 key
-      integer      Zix,Nix,type,ibar,i,N,j,npow,nen
-      real         E,factor,Ea,Eb,Em,D,Da,Db,C,Eadj(0:numenadj),
-     +             Dadj(0:numenadj)
+      character*132 key
+      integer       Zix,Nix,type,ibar,i,N,j,npow,nen
+      real          E,factor,Ea,Eb,Em,D,Da,Db,C,Eadj(0:numenadj),
+     +              Dadj(0:numenadj)
 c
 c ************************* OMP Wv function ****************************
 c

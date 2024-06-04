@@ -69,7 +69,7 @@ c
       write(9,fmt=Eformat) tarspin,idvib(1),1,tarparity,e,spin,
      +  projmass,resmass,prodZ
       if (vibrational) write(9,'()')
-      do 10 i=2,ncoll
+      do i=2,ncoll
         write(9,'(f5.2,2i2,a1,5f10.5)') Jlevel(i),idvib(i),min(i,npp),
      +    Plevel(i),Elevel(i)
         if (vibrational) then
@@ -78,10 +78,10 @@ c
           if (idvib(i).ge.1) write(9,'(2i5)') iph(i),iband(i)
           if (ecis1(3:3).eq.'T') write(9,'()')
         endif
-   10 continue
-      do 20 i=1,Nband
+      enddo
+      do i=1,Nband
         write(9,'(2i5,f10.5)') Jband(i),Kmag(i),vibbeta(i)
-   20 continue
+      enddo
       if (rotational) then
         write(9,'(2i5,f10.1)') iqm,iqmax,tarspin
         write(9,'(7f10.5)') (rotbeta(i),i=1,Nrotbeta)
@@ -109,7 +109,7 @@ c anginc       : angle increment
 c angend       : last angle
 c
       if (.not.jlmloc) then
-        do 30 i=1,npp
+        do i=1,npp
           eopt=e-real(Elevel(i)*(resmass+projmass)/resmass)
           call optical(Zix,Nix,kopt,eopt)
           if (abs(v).ge.1000.) then
@@ -124,14 +124,14 @@ c
           write(9,'(3f10.5)') wso,rwso,awso
           write(9,'(3f10.5)') rc,0.,0.
           write(9,'(3f10.5)') 0.,0.,0.
-   30   continue
+        enddo
         write(9,'(3f10.5)') angbeg,anginc,angend
         if (disp(Zix,Nix,kopt)) then
-          do 40 i=1,npp
+          do i=1,npp
             write(9,'(10x,2i5)') 2,2
             write(9,'(10x,f10.5,40x,f10.5)') efer,w2disp
             write(9,'(20x,2f10.5)') d3disp,d2disp
-   40     continue
+          enddo
         endif
       endif
 c
@@ -158,35 +158,35 @@ c
 c 1.  Real central
 c 2.  Imaginary central
 c
-        do 110 k=1,2
+        do k=1,2
           write(9,'(9i5)') 1,1,0,k,0,0,0,1,-1
           write(9,'(f10.5)') normjlm(Zix,Nix,k)
           write(9,'(2(f10.5,e20.6))')
      +      (radjlm(Zix,Nix,i),-potjlm(Zix,Nix,i,k),i=1,nrad-2)
           write(9,'(2(f10.5,e20.6),a4)') (radjlm(Zix,Nix,i),
      +      -potjlm(Zix,Nix,i,k),i=nrad-1,nrad),"last"
-  110   continue
+        enddo
 c
 c 3.  Real surface (not used)
 c 4.  Imaginary surface (not used)
 c
-        do 120 k=3,4
+        do k=3,4
           write(9,'(8i5)') 1,1,0,k,0,0,0,-1
           write(9,'()')
-  120   continue
+        enddo
 c
 c 5.  Real spin-orbit
 c 6.  Imaginary spin-orbit
 c
         if (kopt.ne.6) then
-          do 130 k=5,6
+          do k=5,6
             write(9,'(9i5)') 1,1,0,k,0,0,0,1,-1
             write(9,'(f10.5)') normjlm(Zix,Nix,k)
             write(9,'(2(f10.5,e20.6))')
      +        (radjlm(Zix,Nix,i),-0.5*potjlm(Zix,Nix,i,k),i=1,nrad-2)
             write(9,'(2(f10.5,e20.6),a4)') (radjlm(Zix,Nix,i),
      +        -0.5*potjlm(Zix,Nix,i,k),i=nrad-1,nrad),"last"
-  130     continue
+          enddo
         endif
 c
 c 7.  Coulomb

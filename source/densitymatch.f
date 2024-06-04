@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       character*7      key
-      character*90     denfile
+      character*132    denfile
       integer          Zix,Nix,ibar,i,A,nEx,j,Nstart,iz,ia,Z
       real             ald,Tm,Exm,E0m,ignatyuk,logrholoc(-1:1),val,
      +                 Exend,dEx,Eex,U,Krot,Kvib,Kcoll,P,logrhomatch

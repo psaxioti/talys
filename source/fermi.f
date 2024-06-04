@@ -29,7 +29,7 @@ c
       U=Eex-P
       if (U.gt.0.) then
         factor=min(2.*sqrt(ald*U),700.)
-        sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
+        sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar,0))
         denom=12.*sqrt(2.)*sigma*(ald**0.25)*(U**1.25)
         fermi=exp(factor)/denom
       else

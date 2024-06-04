@@ -1,4 +1,5 @@
-      subroutine hrtwprepare(tjl,numtjl,st,tav,sv,v,w,numtr,numinc)
+      subroutine hrtwprepare(tjl,numtjl,st,tav,sv,v,w,numtr,numinc,
+     +  WFCfactor)
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
@@ -9,9 +10,10 @@ c
 c ****************** Declarations and common blocks ********************
 c
       implicit none
-      integer          numtjl,numtr,numinc,niter,i,ni
-      real             sv,v(numtr),w(numtr)
-      double precision tjl(0:5,numtr),st,tav(numtr),st2,factor,t,f
+      integer          numtjl,numtr,numinc,niter,i,ni,WFCfactor
+      real             sv,v(numtr),w(numtr),alpha,gamma,beta
+      double precision tjl(0:5,numtr),st,tav(numtr),st2,factor,t,f,va,
+     +                 ft,gt,denom,Ta
 c
 c ************************** HRTW calculation **************************
 c
@@ -46,16 +48,36 @@ c
 c factor,t,f,sv: help variables
 c v,w          : variables for final HRTW calculation
 c
-      factor=real(4.*st2/(st*st+3.*st2))
-      do 40 i=1,numtjl+1
-        t=tav(i)
-        if (t.lt.st) then
-          f=factor*(1.+t/st)
-          w(i)=real(1.+2./(1.+t**f)+87.*(((t-st2/st)/st)**2)*(t/st)**5)
-        else
-          w(i)=3.
-        endif
-   40 continue
+c WFCfactor: 1 Original HRTW
+c            2 Ernebjerg and Herman, AIP Conference Proceedings
+c              Volume 769 Issue 1 Pages 1233-1236,
+c              American Institute of Physics, 2005
+c
+      if (WFCfactor.eq.1) then
+        factor=real(4.*st2/(st*st+3.*st2))
+        do 40 i=1,numtjl+1
+          t=tav(i)
+          if (t.lt.st) then
+            f=factor*(1.+t/st)
+            w(i)=real(1.+2./(1.+t**f)+87.*(((t-st2/st)/st)**2)*
+     +        (t/st)**5)
+          else
+            w(i)=3.
+          endif
+   40   continue
+      else
+        alpha=0.139
+        beta=15.247
+        gamma=4.081
+        do 45 i=1,numtjl+1
+          Ta=tav(i)
+          fT=alpha/(1.-Ta**beta)
+          gT=1.+gamma*Ta*(1.-Ta)
+          denom=1.+fT*(st**gT)
+          va=2.-1./denom
+          w(i)=1.+2./va
+   45   continue
+      endif
       do 50 i=1,numtjl+1
         v(i)=real(tav(i)/(1.+tav(i)/st*(w(i)-1.)))
    50 continue

@@ -9,7 +9,7 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*72 optmodfile
+      character*132 optmodfile
       integer      Zix,Nix,k,nen,i,iz,in,ia,omptype,nrange,nr
       real         eopt,elow,eup,eint,vloc(19),e,vn,rvn,avn,wn,rwn,awn,
      +             vdn,rvdn,avdn,wdn,vp,rvp,avp,wp,rwp,awp,vdp,rvdp,

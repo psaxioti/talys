@@ -9,11 +9,11 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist
-      character*6  reschar
-      character*90 resfile
-      integer      Zix,Nix,Z,A,ia,Nrrf
-      real         D0f,dD0f,gamgamf,dgamgamf
+      logical       lexist
+      character*6   reschar
+      character*132 resfile
+      integer       Zix,Nix,Z,A,ia,Nrrf
+      real          D0f,dD0f,gamgamf,dgamgamf
 c
 c ********** Resonance spacings and total radiative widths *************
 c
@@ -70,23 +70,10 @@ c
       endif
    20 close (unit=2)
 c
-c 3. Tabulated value for total radiative width or systematics
-c    (Kopecky, 2002)
-c
-c gamkopecky  : radiative width in eV by spline fit of Kopecky
 c gamgamadjust: adjustable factor for radiative parameters
 c             (default 1.)
 c
-   30 if (gamgam(Zix,Nix).eq.0.) then
-        if (A.ge.40.and.A.le.250) then
-          gamgam(Zix,Nix)=gamkopecky(A)
-        else
-          gamgam(Zix,Nix)=min(1593./(A*A),10.)
-        endif
-      endif
-      gamgam(Zix,Nix)=gamgamadjust(Zix,Nix)*gamgam(Zix,Nix)
-      if (Zix.eq.0.and.Nix.eq.0.and.gnorm.ne.-1.)
-     +  gnorm=gamgamadjust(Zix,Nix)*gnorm
+   30 gamgam(Zix,Nix)=gamgamadjust(Zix,Nix)*gamgam(Zix,Nix)
       return
       end
 Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

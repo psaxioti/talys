@@ -9,7 +9,7 @@ c
 c ******************* Declarations and common blocks *******************
 c
       include "talys.cmb"
-      character*80     key
+      character*132    key
       integer          Zix,Nix,ibar,ldmod,nex2
       real             Eex,P,ald,ignatyuk,Krot,Kvib,Kcoll,Eshift,factor,
      +                 pt,ct,expo

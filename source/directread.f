@@ -170,7 +170,7 @@ c
             if (i.le.NL) then
               xsdwbatot=xsdwbatot+xsdirdisc(type,i)
             else
-              xscollconttot=xscollconttot+xsdirdisc(type,i)
+              xscollconttot(type)=xscollconttot(type)+xsdirdisc(type,i)
             endif
           endif
   410   continue

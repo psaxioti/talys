@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer          nen,i,k,n,nensub,nenint,type,Zix,Nix,nex,idc,
-     +                 nen2
+     +                 nen2,nen0
       double precision Ein,degrid,Eeps,ratio,emax,ee,e6tmp
 c
 c ************************ Basic ENDF-6 energy grid ********************
@@ -108,13 +108,14 @@ c nenint: energy index
 c
   100 nensub=nen
       if (k0.eq.1) then
-        do 110 nin=1,numinc-1
+        do 110 nen0=1,numinc-1
           do 120 nen=1,nensub
-            ratio=e6(nen)/eninc(nin)
+            ratio=e6(nen)/eninc(nen0)
             if (ratio.ge.0.999.and.ratio.le.1.001) goto 110
   120     continue
           do 130 nen=1,nensub
-            if (eninc(nin).gt.e6(nen).and.eninc(nin).le.e6(nen+1)) then
+            if (eninc(nen0).gt.e6(nen).and.eninc(nen0).le.e6(nen+1)) 
+     +          then
               nenint=nen+1
               goto 140
             endif
@@ -125,7 +126,7 @@ c
           do 150 nen=nensub,nenint+1,-1
             e6(nen)=e6(nen-1)
   150     continue
-          e6(nenint)=eninc(nin)
+          e6(nenint)=eninc(nen0)
   110   continue
         nen=nensub
 c
@@ -196,11 +197,12 @@ c
         endif
   330 continue
   400 return
-  510 write(*,'(" TALYS-error: Problem in file ",a73)') ompenergyfile
+  510 write(*,'(" TALYS-error: Problem in file ",a)') 
+     +  trim(ompenergyfile)
       write(*,'(" after E= ",es12.5)') Ein
       stop
   520 write(*,'(" TALYS-error: there are more than",i6,
-     +  " incident energies in file ",a73)') numen6,ompenergyfile
+     +  " incident energies in file ",a)') numen6,trim(ompenergyfile)
       write(*,'(" numen6 in talys.cmb should be increased")')
       stop
       end

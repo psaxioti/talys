@@ -5,7 +5,7 @@ c   dispersive relations also included if alphaomp=5
 c Ref: Demetriou, Grama and Goriely (2002) NPA707, 253
 c
       include "talys.cmb"
-      character*80 key
+      character*132 key
       real rhomom(numjlm),radmom(numjlm)
       real va(1000),rva(1000)
       real z,a,ee,rb,e2exp,factor1,factor2

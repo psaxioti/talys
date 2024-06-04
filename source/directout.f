@@ -54,7 +54,7 @@ c
       write(*,'(/" Discrete direct inelastic cross section:",
      +  f12.5,"   Level 1-",i3)') xsdirdisctot(k0),nlev(Zix,Nix)
       write(*,'(" Collective cross section in continuum  :",f12.5)')
-     +  xscollconttot
+     +  xscollconttot(k0)
       if (flagang) then
         write(*,'(/" Direct inelastic angular distributions")')
         ilev=0
@@ -127,7 +127,7 @@ c
      +  eoutgr(k0,3,1),Ggrcoll(3,1),betagr(3,1)
       write(*,'(" HEOR :",5f12.5)') xsgrcoll(k0,3,2),Egrcoll(3,2),
      +  eoutgr(k0,3,2),Ggrcoll(3,2),betagr(3,2)
-      write(*,'(/" Total:",f12.5/)') xsgrtot(k0)-xscollconttot
+      write(*,'(/" Total:",f12.5/)') xsgrtot(k0)-xscollconttot(k0)
       if (flagddx) then
         write(*,'(" Average angular distributions",/)')
         write(*,'(" Angle    GMR         GQR         LEOR      HEOR"/)')
@@ -144,7 +144,8 @@ c
         do 120 nen=ebegin(k0),eend(k0)
           write(*,'(1x,f8.3,6es11.4)') egrid(nen),xsgr(k0,nen),
      +      xsgrstate(k0,0,1,nen),xsgrstate(k0,2,1,nen),
-     +      xsgrstate(k0,3,1,nen),xsgrstate(k0,3,2,nen),xscollcont(nen)
+     +      xsgrstate(k0,3,1,nen),xsgrstate(k0,3,2,nen),
+     +      xscollcont(k0,nen)
   120   continue
       endif
       return

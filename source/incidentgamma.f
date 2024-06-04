@@ -33,7 +33,7 @@ c
       lmaxinc=gammax
       xsreacinc=gammaxs(0,0,Einc)
       xsqd=quasideuteron(Einc)
-      xsgdr=xsreacinc-quasideuteron(Einc)
+      xsgdr=xsreacinc-xsqd
       if (xsgdr.gt.0.) then
         factor=xsreacinc/xsgdr
       else

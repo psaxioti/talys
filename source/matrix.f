@@ -9,9 +9,9 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80 key
-      integer      A,n,aproj
-      real         factor,M2c
+      character*132 key
+      integer       A,n,aproj
+      real          factor,M2c
 c
 c ****************** Energy dependent matrix element *******************
 c

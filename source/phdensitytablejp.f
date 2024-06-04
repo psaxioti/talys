@@ -13,7 +13,7 @@ c
       logical          lexist
       character*5      denchar
       character*6      phdir
-      character*90     denfile
+      character*132    denfile
       integer          Zix,Nix,Z,A,ia,parity,nex,J,istat
       real             ephjpgrid
       double precision ldtot,ld2j1(0:numJ)
@@ -86,13 +86,13 @@ c
    10   continue
         close (unit=2)
         if (A.ne.ia) then
-          write(*,'("Input ph file not available:",a90)') denfile
+          write(*,'("Input ph file not available:",a)') trim(denfile)
           write(*,'(" For A=",i3," --> Change of ldmodelracap=1",
      +      " to ldmodelracap=2")') A
           ldmodelracap=2
         endif
       else
-        write(*,'("Input ph file not available:",a90)') denfile
+        write(*,'("Input ph file not available:",a)') trim(denfile)
         write(*,'("  Change of ldmodelracap=1 to ldmodelracap=2")')
         ldmodelracap=2
       endif

@@ -207,13 +207,12 @@ c
                   endif
   180           continue
                 activity(Zix,Nix,is,it)=lamD*Niso(Zix,Nix,is,it)*1.e-6
-                if (it.le.Ntime) yield(Zix,Nix,is,it)=
+                if (it.le.Ntime) yield(Zix,Nix,is,it)=max(
      +            (activity(Zix,Nix,is,it)-activity(Zix,Nix,is,it-1))/
-     +            (Ibeam*dble(Tgrid(it)-Tgrid(it-1)))
+     +            (Ibeam*hoursec*dble(Tgrid(it)-Tgrid(it-1))), 0.)
               endif
               if (Niso(Zix,Nix,is,it).gt.0.) Yexist(Zix,Nix,is)=.true.
-              if (is.eq.-1) Nisotot(Zix,it)=Nisotot(Zix,it)+
-     +          Niso(Zix,Nix,is,it)
+              Nisotot(Zix,it)=Nisotot(Zix,it)+Niso(Zix,Nix,is,it)
   170       continue
             if (.not.Yexist(Zix,Nix,is)) goto 140
             if (lamD.gt.0..and.prate0.gt.0.) then

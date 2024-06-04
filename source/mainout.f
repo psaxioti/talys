@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 30, 2021
+c | Date  : December 29, 2023
 c | Task  : Main output
 c +---------------------------------------------------------------------
 c
@@ -13,8 +13,8 @@ c
 c
 c *************************** Code and version *************************
 c
-      write(*,'(/"    TALYS-1.96 (Version: December 30, 2021)"/)')
-      write(*,'(" Copyright (C) 2021  A.J. Koning, S. Hilaire ",
+      write(*,'(/"    TALYS-1.97 (Version: December 29, 2023)"/)')
+      write(*,'(" Copyright (C) 2023  A.J. Koning, S. Hilaire ",
      +  "and S. Goriely"/)')
       write(*,'(" Dimensions - Cross sections: mb, Energies: MeV, ",
      +  "Angles: degrees")')
@@ -35,7 +35,6 @@ c k0         : index of incident particle
 c parname    : name of particle
 c parmass    : mass of particle in a.m.u.
 c Atarget    : mass number of target nucleus
-c Starget    : symbol of target nucleus
 c tarmass    : mass of target nucleus
 c Ltarget    : excited level of target
 c edis       : energy of level
@@ -57,10 +56,10 @@ c
       Zix=Zindex(Zcomp,Ncomp,k0)
       Nix=Nindex(Zcomp,Ncomp,k0)
       write(*,'(/" ########## BASIC REACTION PARAMETERS ##########"/)')
-      write(*,'(" Projectile           : ",a8,4x,
+      write(*,'(" Projectile           : ",a8,t37,
      +  "Mass in a.m.u.      : ",f10.6)') parname(k0),parmass(k0)
-      write(*,'(" Target               : ",i3,a2,7x,
-     +  "Mass in a.m.u.      : ",f10.6)') Atarget,Starget,tarmass
+      write(*,'(" Target               : ",a,t37,
+     +  "Mass in a.m.u.      : ",f10.6)') trim(targetnuclide),tarmass
       if (Ltarget.ne.0) then
         write(*,'(/" Excited target level : Number  Energy  ",
      +    "Spin Parity Lifetime(sec)")')
@@ -69,10 +68,10 @@ c
      +    cparity(parlev(Zix,Nix,Ltarget)),tau(Zix,Nix,Ltarget)
       endif
       write(*,'(/" Included channels:")')
-      do 10 type=-1,6
-        if (parskip(type)) goto 10
+      do type=-1,6
+        if (parskip(type)) cycle
         write(*,'(21x,a8)') parname(type)
-   10 continue
+      enddo
       if (flagomponly.and..not.flagcomp) return
 c
 c Projectile
@@ -83,13 +82,13 @@ c
         else
           write(*,'(/,i6," incident energies (LAB):"/)') numinc
         endif
-        do 20 i=1,numinc
+        do i=1,numinc
           if (eninc(i).lt.0.001) then
             write(*,'(1x,es10.3)') eninc(i)
           else
             write(*,'(1x,f10.3)') eninc(i)
           endif
-   20   continue
+        enddo
       else
 c
 c Initial population distribution
@@ -106,25 +105,27 @@ c
      +    npopE,npopJ,eninc(1)
         if (npopJ.eq.0) then
           write(*,'("    Ex     Population "/)')
-          do 30 i=1,npopE
+          do i=1,npopE
             write(*,'(2es10.3)') EdistE(i),PdistE(i)
-  30      continue
+          enddo
         else
-          write(*,'("    Ex ",11("      J=",i2)/)')
+          write(*,'(" Parity   Ex ",11("      J=",i2)/)')
      +      (J,J=0,10)
-          do 40 parity=-1,1,2
-            do 40 i=1,npopE
-              write(*,'(12es10.3)') EdistE(i),(PdistJP(i,J,parity),
-     +          J=0,10)
-  40      continue
+          do parity=-1,1,2
+            do i=1,npopE
+              write(*,'(i6,12es10.3)') parity,EdistE(i),
+     +          (PdistJP(i,J,parity),J=0,10)
+            enddo
+          enddo
         endif
       endif
       write(*,'(/" Q-values for binary reactions:"/)')
-      do 50 type=0,6
-        if (parskip(type)) goto 50
+      do type=0,6
+        if (parskip(type)) cycle
         write(*,'(" Q(",a1,",",a1,"):",f9.5)') parsym(k0),parsym(type),
      +    Q(type)
-   50 continue
+      enddo
+      if (flagcheck) call arraysize
 c
 c * Write nuclear structure parameters for target and compound nucleus *
 c
@@ -150,4 +151,4 @@ c
       endif
       return
       end
-Copyright (C)  2021 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

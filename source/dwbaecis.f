@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : April 27, 2013
+c | Date  : March 8, 2023
 c | Task  : ECIS calculations of DWBA for MSD
 c +---------------------------------------------------------------------
 c
@@ -101,7 +101,7 @@ c *************************** Macroscopic MSD **************************
 c
 c 2. First exchange one-step reaction for multi-step
 c
-      do 10 ii=1,2
+      do ii=1,2
         if (ii.eq.2) then
           inquire (file='ecis.msdin',exist=lexist)
           if (.not.lexist) then
@@ -113,8 +113,8 @@ c
           open (unit=10,file='ecis.msdin',status='unknown')
         endif
         itype=k0
-        do 20 type=1,2
-          if (parskip(type)) goto 20
+        do type=1,2
+          if (parskip(type)) cycle
           Zix=Zindex(0,0,type)
           Nix=Nindex(0,0,type)
           QQ=S(0,0,itype)-S(0,0,type)
@@ -123,81 +123,81 @@ c
           else
             nen1end=msdbins2
           endif
-          do 30 nen1=0,nen1end,2
+          do nen1=0,nen1end,2
             Emsdin=real(specmass(Zix,Nix,itype)*Emsd(nen1))
-            do 40 nen2=nen1+2,msdbins2,2
+            do nen2=nen1+2,msdbins2,2
               Emsdout=Emsd(nen2)
               Exmsd=Emsdin-Emsdout+QQ
-              if (Exmsd.lt.0..or.(Exmsd+0.1).ge.Emsdin) goto 40
+              if (Exmsd.lt.0..or.(Exmsd+0.1).ge.Emsdin) cycle
               if (ii.eq.1.and.flagecisdwba) call ecisdwbamac(itype,type)
               if (ii.eq.2) then
                 call dwbaread(nen1,nen2)
                 if (flagoutdwba) call dwbaout(itype,type,nen1,nen2)
               endif
-   40       continue
-   30     continue
+            enddo
+          enddo
           if (ii.eq.2) then
             call dwbaint
             if (.not.flagonestep) call onecontinuumA(itype,type)
             call onestepA(type)
           endif
-   20   continue
+        enddo
         if (flagonestep) goto 300
 c
 c 3. Inelastic one-step reaction for multi-step
 c
-        do 110 type=1,2
-          if (parskip(type)) goto 110
-          if (type.eq.k0) goto 110
+        do type=1,2
+          if (parskip(type)) cycle
+          if (type.eq.k0) cycle
           itype=type
           Zix=Zindex(0,0,type)
           Nix=Nindex(0,0,type)
-          do 120 nen1=0,msdbins2,2
+          do nen1=0,msdbins2,2
             Emsdin=real(specmass(Zix,Nix,itype)*Emsd(nen1))
-            do 130 nen2=nen1+2,msdbins2,2
+            do nen2=nen1+2,msdbins2,2
               Emsdout=Emsd(nen2)
               Exmsd=Emsdin-Emsdout
-              if (Exmsd.lt.0..or.(Exmsd+0.1).ge.Emsdin) goto 130
+              if (Exmsd.lt.0..or.(Exmsd+0.1).ge.Emsdin) cycle
               if (ii.eq.1.and.flagecisdwba) call ecisdwbamac(itype,type)
               if (ii.eq.2) then
                 call dwbaread(nen1,nen2)
                 if (flagoutdwba) call dwbaout(itype,type,nen1,nen2)
               endif
-  130       continue
-  120     continue
+            enddo
+          enddo
           if (ii.eq.2) then
             call dwbaint
             call onecontinuumA(itype,type)
           endif
-  110   continue
+        enddo
 c
 c 4. Second exchange one-step reaction for multi-step
 c
-        do 210 itype=1,2
-          if (parskip(itype)) goto 210
-          if (itype.eq.k0) goto 210
+        do itype=1,2
+          if (parskip(itype)) cycle
+          if (itype.eq.k0) cycle
           type=k0
           Zix=Zindex(0,0,type)
           Nix=Nindex(0,0,type)
           QQ=S(0,0,itype)-S(0,0,type)
-          do 220 nen1=0,msdbins2,2
+          do nen1=0,msdbins2,2
             Emsdin=real(specmass(Zix,Nix,itype)*Emsd(nen1))
-            do 230 nen2=nen1+2,msdbins2,2
+            do nen2=nen1+2,msdbins2,2
               Emsdout=Emsd(nen2)
               Exmsd=Emsdin-Emsdout+QQ
-              if (Exmsd.lt.0..or.(Exmsd+0.1).ge.Emsdin) goto 230
+              if (Exmsd.lt.0..or.(Exmsd+0.1).ge.Emsdin) cycle
               if (ii.eq.1.and.flagecisdwba) call ecisdwbamac(itype,type)
               if (ii.eq.2) then
                 call dwbaread(nen1,nen2)
                 if (flagoutdwba) call dwbaout(itype,type,nen1,nen2)
               endif
-  230       continue
-  220     continue
+            enddo
+          enddo
           if (ii.eq.2) then
             call dwbaint
             call onecontinuumA(itype,type)
           endif
-  210   continue
+        enddo
   300   if (ii.eq.1.and.flagecisdwba) then
           write(9,'("fin")')
           close (unit=9)
@@ -225,7 +225,7 @@ c
           close (unit=8,status=ecisstatus)
           close (unit=10,status=ecisstatus)
         endif
-  10  continue
+      enddo
       return
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

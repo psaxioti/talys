@@ -9,11 +9,11 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist
-      character*6  radchar
-      character*90 radfile
-      integer      Zix,Nix,Z,A,ia,i,nradjlm,j
-      real         h,dr,rp0,rp1,rn0,rn1,ap,an,expo
+      logical       lexist
+      character*6   radchar
+      character*132 radfile
+      integer       Zix,Nix,Z,A,ia,i,nradjlm,j
+      real          h,dr,rp0,rp1,rn0,rn1,ap,an,expo
 c
 c ****************** Read radial matter densities **********************
 c
@@ -42,9 +42,9 @@ c
       else
         radchar=trim(nuc(Z))//'.rad'
         if (radialmodel.eq.1) then
-          radfile=trim(path)//'optical/jlm/goriely/'//radchar
+          radfile=trim(path)//'optical/jlm/bskg3/'//radchar
         else
-          radfile=trim(path)//'optical/jlm/hilaire/'//radchar
+          radfile=trim(path)//'optical/jlm/d1m/'//radchar
         endif
         inquire (file=radfile,exist=lexist)
         if (.not.lexist) return
@@ -57,13 +57,8 @@ c
    20   continue
         goto 10
       endif
-c
-c Hilaire file starts at 0 fm, which we skip.
-c
-      if (radialmodel.eq.2) then
-        read(2,*)
-        nradjlm=nradjlm-1
-      endif
+      read(2,*)
+      nradjlm=nradjlm-1
       do 30 i=1,min(nradjlm,numjlm)
         read(2,*) radjlm(Zix,Nix,i),
      +    (rhojlmp(Zix,Nix,i,j),j=1,5),(rhojlmn(Zix,Nix,i,j),j=1,5)
@@ -83,16 +78,18 @@ c
           rn0=rhojlmn(Zix,Nix,nradjlm,j)
           rn1=rhojlmn(Zix,Nix,nradjlm-1,j)
           ap=0.
-          if (rp0.gt.0..and.rp1.gt.0.) ap=-log(rp0/rp1)/h
+          if (rp0*rp1.gt.0.) ap=-log(rp0/rp1)/h
           an=0.
-          if (rn0.gt.0..and.rn1.gt.0.) an=-log(rn0/rn1)/h
+          if (rn0*rn1.gt.0.) an=-log(rn0/rn1)/h
           do 50 i=nradjlm+1,numjlm
              dr=h*(i-nradjlm)
              if (j.eq.1) radjlm(Zix,Nix,i)=radjlm(Zix,Nix,nradjlm)+dr
              expo=ap*dr
-             if (abs(expo).le.80.) rhojlmp(Zix,Nix,i,j)=rp0*exp(-expo)
+             if (abs(expo).le.80..and.expo.gt.0.)
+     +         rhojlmp(Zix,Nix,i,j)=rp0*exp(-expo)
              expo=an*dr
-             if (abs(expo).le.80.) rhojlmn(Zix,Nix,i,j)=rn0*exp(-expo)
+             if (abs(expo).le.80..and.expo.gt.0.)
+     +         rhojlmn(Zix,Nix,i,j)=rn0*exp(-expo)
    50     continue
    40   continue
       endif

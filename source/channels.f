@@ -69,8 +69,8 @@ c
       Zend=min(Zend,Zinit)
       Nend=min(numNchan,maxN)
       Nend=min(Nend,Ninit)
-      do 110 Zix=0,Zend
-        do 110 Nix=0,Nend
+      do Zix=0,Zend
+        do Nix=0,Nend
 c
 c 2. To minimize the loops, the maximal possible number of each particle
 c    type is determined, given Zix and Nix. E.g. for Zix=1, Nix=2 there
@@ -262,9 +262,9 @@ c
 c 310: Loop over excitation energies of residual nucleus
 c
             do 310 nexout=maxex(Zix,Nix),0,-1
-              do 320 type=0,6
-                if (parskip(type)) goto 320
-                if (identorg(type).eq.-1) goto 320
+              do type=0,6
+                if (parskip(type)) cycle
+                if (identorg(type).eq.-1) cycle
 c
 c Determine the compound nucleus belonging to the emitted particle type.
 c
@@ -310,9 +310,9 @@ c
 c term1,..: help variables
 c popexcl : population cross section of bin just before decay
 c
-                do 340 nex=maxex(Zcomp,Ncomp),1,-1
+                do nex=maxex(Zcomp,Ncomp),1,-1
                   if (feedexcl(Zcomp,Ncomp,type,nex,nexout).eq.0.)
-     +              goto 340
+     +              cycle
                   term1=feedexcl(Zcomp,Ncomp,type,nex,nexout)/
      +              popexcl(Zcomp,Ncomp,nex)
                   term2=term1*xsexcl(idorg,nex)
@@ -331,18 +331,18 @@ c
 c Calculation of inclusive spectrum per excitation energy dS/dEk'
 c
                   if (flagspec) then
-                    do 350 type2=0,6
-                      if (parskip(type2)) goto 350
+                    do type2=0,6
+                      if (parskip(type2)) cycle
 c
 c Calculation of first term of exclusive spectrum.
 c
 c term3: help variable
 c
-                      do 360 nen=ebegin(type2),eend(type2)
+                      do nen=ebegin(type2),eend(type2)
                         term3=term1*specexcl(idorg,type2,nex,nen)
                         specexcl(idnum,type2,nexout,nen)=
      +                    specexcl(idnum,type2,nexout,nen)+term3
-  360                 continue
+                      enddo
 c
 c Calculation of second term of exclusive spectrum. The spectrum of the
 c last emitted particle is obtained by interpolating the feeding terms
@@ -354,20 +354,20 @@ c specemission: subroutine for exclusive emission spectra
 c specemis    : exclusive emission contribution
 c
                       if (type2.eq.0.and.nex.le.Nlast(Zcomp,Ncomp,0))
-     +                  goto 350
+     +                  cycle
                       if (type2.eq.type) then
                         call specemission(Zcomp,Ncomp,nex,idorg,type,
      +                    nexout)
-                        do 370 nen=ebegin(type),eend(type)
+                        do nen=ebegin(type),eend(type)
                           specexcl(idnum,type,nexout,nen)=
      +                      specexcl(idnum,type,nexout,nen)+
      +                      specemis(nen)
-  370                   continue
+                        enddo
                       endif
-  350               continue
+                    enddo
                   endif
-  340           continue
-  320         continue
+                enddo
+              enddo
 c
 c 7. Exclusive cross sections: total and per isomer
 c
@@ -385,14 +385,14 @@ c
                 xsgamchannel(idnum)=xsgamchannel(idnum)+
      +            gamexcl(idnum,nexout)
                 if (flagspec) then
-                  do 380 type=0,6
-                    if (parskip(type)) goto 380
-                    do 390 nen=ebegin(type),eend(type)
+                  do type=0,6
+                    if (parskip(type)) cycle
+                    do nen=ebegin(type),eend(type)
                       xschannelsp(idnum,type,nen)=
      +                  xschannelsp(idnum,type,nen)+
      +                  specexcl(idnum,type,nexout,nen)
-  390               continue
-  380             continue
+                    enddo
+                  enddo
                 endif
               endif
   310       continue
@@ -413,21 +413,21 @@ c
               xschannel(idnum)=xseps
               xsgamchannel(idnum)=xseps
               xschaniso(idnum,0)=xseps
-              do 400 i=1,Nlast(Zix,Nix,0)
+              do i=1,Nlast(Zix,Nix,0)
                 if (tau(Zix,Nix,i).ne.0.) then
                   xschaniso(idnum,0)=0.5*xseps
                   xschaniso(idnum,i)=0.5*xseps
                 endif
-  400         continue
+              enddo
             endif
 c
 c For each exclusive channel, the multiplicity or yield per
 c isomer/ground state is determined.
 c
             if (xschannel(idnum).ne.0.) then
-              do 410 i=0,Nlast(Zix,Nix,0)
+              do i=0,Nlast(Zix,Nix,0)
                 exclbranch(idnum,i)=xschaniso(idnum,i)/xschannel(idnum)
-  410         continue
+              enddo
             endif
 c
 c 8. Exclusive fission cross sections
@@ -435,23 +435,23 @@ c
 c All exclusive fission cross sections and spectra are determined.
 c
             if (flagfission) then
-              do 510 nex=maxex(Zix,Nix),1,-1
+              do nex=maxex(Zix,Nix),1,-1
                 if (popexcl(Zix,Nix,nex).ne.0.) then
                   term=fisfeedex(Zix,Nix,nex)/popexcl(Zix,Nix,nex)
                   xsfischannel(idnum)=xsfischannel(idnum)+term*
      +              xsexcl(idnum,nex)
                   if (flagspec) then
-                    do 520 type=0,6
-                      if (parskip(type)) goto 520
-                      do 530 nen=ebegin(type),eend(type)
+                    do type=0,6
+                      if (parskip(type)) cycle
+                      do nen=ebegin(type),eend(type)
                         xsfischannelsp(idnum,type,nen)=
      +                    xsfischannelsp(idnum,type,nen)+
      +                    term*specexcl(idnum,type,nex,nen)
-  530                 continue
-  520               continue
+                      enddo
+                    enddo
                   endif
                 endif
-  510         continue
+              enddo
               channelsum=channelsum+xsfischannel(idnum)
               xsabs=xsabs+xsfischannel(idnum)
             endif
@@ -489,11 +489,11 @@ c
               xsparcheck(6)=xsparcheck(6)+ia*xschannel(idnum)
               if (flagspec) then
                 fissum=0.
-                do 610 type=0,6
-                  if (parskip(type)) goto 610
+                do type=0,6
+                  if (parskip(type)) cycle
                   emissum=0.
                   Eaveragesum=0.
-                  do 620 nen=ebegin(type),eend(type)
+                  do nen=ebegin(type),eend(type)
                     xsspeccheck(type,nen)=xsspeccheck(type,nen)+
      +                xschannelsp(idnum,type,nen)
                     emissum=emissum+xschannelsp(idnum,type,nen)*
@@ -502,17 +502,18 @@ c
      +                xschannelsp(idnum,type,nen)*deltaE(nen)
                     if (flagfission) fissum=fissum+
      +                xsfischannelsp(idnum,type,nen)*deltaE(nen)
-  620             continue
+                  enddo
                   if (type.eq.0) then
-                    do 630 i=1,numlev
-                      do 630 i2=0,i
+                    do i=1,numlev
+                      do i2=0,i
                         if (xsgamdischan(idnum,i,i2).gt.0.) then
                           emissum=emissum+xsgamdischan(idnum,i,i2)
                           Eaveragesum=Eaveragesum+
      +                      xsgamdischan(idnum,i,i2)*
      +                      (edis(Zcomp,Ncomp,i)-edis(Zcomp,Ncomp,i2))
                         endif
-  630               continue
+                      enddo
+                    enddo
                   endif
                   if (npart.eq.1) then
                     NL=Nlast(Zix,Nix,0)
@@ -530,7 +531,7 @@ c
      +              xschancheck(idnum)=xschancheck(idnum)+emissum
                   if (emissum.gt.0.) Eavchannel(idnum,type)=
      +              Eaveragesum/emissum
-  610           continue
+                enddo
                 if (xschannel(idnum).gt.0.) then
                   gmult(idnum)=xsgamchannel(idnum)/xschannel(idnum)
                 else
@@ -658,25 +659,26 @@ c
   122   continue
   121   continue
   120   continue
-  110 continue
+      enddo
+      enddo
 c
 c Calculate relative yield per channel
 c
       if (channelsum.gt.0.) then
-        do 710 idc=0,idnum
+        do idc=0,idnum
           yieldchannel(idc)=xschannel(idc)/channelsum
-  710   continue
+        enddo
       endif
 c
 c Set threshold energy for inelastic scattering to that of first
 c excited state.
 c
-      do 810 idc=0,idnum
+      do idc=0,idnum
         if (k0.eq.1.and.idchannel(idc).eq.100000) then
           Ethrexcl(idc,0)=Ethrexcl(idc,1)
-          goto 820
+          exit
         endif
-  810 continue
-  820 return
+      enddo
+      return
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

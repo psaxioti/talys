@@ -344,7 +344,8 @@ c
      +                xspopexP(Zix,Nix,nexout,Pprime)+factor
                     popdecay(type,nexout,Ir,Pprime)=
      +                popdecay(type,nexout,Ir,Pprime)+factor
-                    partdecay(type)=partdecay(type)+factor
+                    partdecay(type,Pprime)=partdecay(type,Pprime)+factor
+                    partdecaytot(type)=partdecaytot(type)+factor
                   endif
                   sumIP=sumIP+factor
   120           continue

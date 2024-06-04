@@ -37,7 +37,8 @@ c
               endif
    20       continue
           endif
-   30     if (xsconttot(type).eq.0.) then
+   30     xsdisctot(type)=min(xsexclusive(type),xsdisctot(type))
+          if (xsconttot(type).eq.0.) then
             xsexclcont(type)=0.
           else
             xsexclcont(type)=max(xsexclusive(type)-xsdisctot(type),0.)

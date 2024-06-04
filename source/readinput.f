@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : February 25, 2012
+c | Date  : January 20, 2023
 c | Task  : Read input
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer i
+      integer i,istat
 c
 c ************************** User Input ********************************
 c
@@ -22,19 +22,21 @@ c We read the complete input file first as a set of character strings.
 c The actual keywords will be read from these later on. For natural
 c elements, the input file only needs to be read once.
 c
-      if (iso.ne.1) return
-      if (nlines.gt.0) return
-      i=1
-   10 read(*,'(a80)',end=100) inline(i)
-      i=i+1
-      if (i.gt.numlines) then
-        write(*,'(" TALYS-error: Number of input lines exceeds ",i5)')
-     +    numlines
-        write(*,'(" numlines in talys.cmb should be increased")')
-        stop
-      endif
-      goto 10
-  100 nlines=i-1
+      if (iso /= 1) return
+      if (nlines > 0) return
+      i = 1
+      do
+        read(*, '(a132)', iostat = istat) inline(i)
+        if (istat ==  -1) exit
+        i = i + 1
+        if (i > numlines) then
+          write(*,'(" TALYS-error: Number of input lines exceeds ",i5)')
+     +      numlines
+          write(*,'(" numlines in talys.cmb should be increased")')
+          stop
+        endif
+      enddo
+      nlines = i - 1
 c
 c ************** Convert uppercase to lowercase characters *************
 c
@@ -44,10 +46,10 @@ c other character strings.
 c
 c convert: subroutine to convert input line from upper case to lowercase
 c
-      do 110 i=1,nlines
+      do i=1,nlines
         call convert(i)
-  110 continue
+      enddo
       nlines0=nlines
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

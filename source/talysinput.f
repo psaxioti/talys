@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : June 28, 2004
+c | Date  : January 29, 2023
 c | Task  : User input and defaults
 c +---------------------------------------------------------------------
 c
@@ -29,4 +29,4 @@ c
       call checkvalue
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

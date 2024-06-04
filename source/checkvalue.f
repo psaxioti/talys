@@ -2,21 +2,21 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 29, 2021
+c | Date  : June 16, 2022
 c | Task  : Check for errors in values
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist
-      character*90 massfile
-      character*72 massdir0
-      integer      type,i,Zix,Nix,mt,is,l,omptype,nr,nr2,A,irad,lval,
-     +             igr,ibar,fax0,n,m,k
-      real         egr0,ggr0,sgr0,epr0,gpr0,tpr0,value,fbar0,fhw0,
-     +             fR0,Ea,Eb,Em,D,Ea2,Eb2,upbendc,upbende,upbendf,tf0,
-     +             b0
+      logical       lexist
+      character*132 massfile
+      character*132 massdir0
+      integer       type,i,Zix,Nix,mt,is,l,omptype,nr,nr2,A,irad,lval,
+     +              igr,ibar,fax0,n,m,k
+      real          egr0,ggr0,sgr0,epr0,gpr0,tpr0,value,fbar0,fhw0,
+     +              fR0,Ea,Eb,Em,D,Ea2,Eb2,upbendc,upbende,upbendf,tf0,
+     +              b0
 c
 c All parameters need to fall within certain ranges. These ranges are
 c specified in this subroutine and in the manual.
@@ -39,16 +39,16 @@ c enincmax : maximum incident energy
 c Emaxtalys: maximum acceptable energy for TALYS
 c Estop    : incident energy above which TALYS stops
 c
-      do 10 type=0,6
+      do type=0,6
         if (ptype0.eq.parsym(type)) goto 20
-   10 continue
+      enddo
       if (ptype0.eq.'0') goto 20
       write(*,'(" TALYS-error: Wrong symbol for projectile: ",a1)')
      +  ptype0
       stop
-   20 do 30 i=3,numelem
+   20 do i=3,numelem
         if (Starget.eq.nuc(i)) goto 40
-   30 continue
+      enddo
       write(*,'(" TALYS-error: Wrong symbol for element: ",a2)') Starget
       stop
    40 if (Atarget.le.5.or.Atarget.gt.nummass) then
@@ -207,15 +207,15 @@ c
           write(*,'(" TALYS-error: 0 <= maxlevelsres <=",i3)') numlev
           stop
         endif
-        do 50 type=0,6
+        do type=0,6
           if (nlevbin(type).lt.0.or.nlevbin(type).gt.numlev) then
             write(*,'(" TALYS-error: 0 <= maxlevelsbin <=",i3)') numlev
             stop
           endif
-   50   continue
+        enddo
       endif
-      do 60 Zix=0,numZ
-        do 70 Nix=0,numN
+      do Zix=0,numZ
+        do Nix=0,numN
           if (nlev(Zix,Nix).lt.0.or.nlev(Zix,Nix).gt.numlev) then
             write(*,'(" TALYS-error: 0 <= nlevels <=",i3)') numlev
             stop
@@ -233,23 +233,28 @@ c
             write(*,'(" TALYS-error: -600. <= massexcess <= 600.")')
             stop
           endif
-   70   continue
-   60 continue
+        enddo
+      enddo
       if (massdir(1:1).ne.' ') then
         massdir0=massdir
         massdir=trim(path)//'masses/'//massdir0
         massfile=trim(massdir)//'/'//'Fe.mass'
         inquire (file=massfile,exist=lexist)
         if (.not.lexist) then
-          write(*,'(" TALYS-error: Non-existent mass file ",a90)') 
+          write(*,'(" TALYS-error: Non-existent mass file ",a)') 
      +      trim(massfile)
           stop
         endif
         massfile=trim(massdir)//'/'//trim(Starget)//'.mass'
         inquire (file=massfile,exist=lexist)
         if (.not.lexist) 
-     +    write(*,'(" TALYS-warning: Non-existent mass file ",a90)')
-     +      trim(massfile)
+     +    write(*,'(" TALYS-warning: Non-existent mass file ",a)')
+     +    trim(massfile)
+      endif
+      if (flagnatural.and.Ltarget.gt.0) then
+        write(*,'(" TALYS-error: Excited level for target not",
+     +    " possible for natural targets")')
+        stop
       endif
       if (Lisoinp.eq.-1) then
         if (Ltarget.lt.0.or.Ltarget.gt.numlev) then
@@ -289,9 +294,9 @@ c
         write(*,'(" TALYS-error: 0. <= Rfiseps <= 1.")')
         stop
       endif
-      if (eninclow.ne.0..and.(eninclow.lt.1.e-6.or.eninclow.gt.1.))
+      if (eninclow.ne.0..and.(eninclow.lt.1.e-11.or.eninclow.gt.1.))
      +  then
-        write(*,'(" TALYS-error: 1.e-6 <= Elow <= 1.")')
+        write(*,'(" TALYS-error: 1.e-11 <= Elow <= 1.")')
         stop
       endif
       if (nangle.lt.1..or.nangle.gt.numang) then
@@ -404,7 +409,7 @@ c
           write(*,'(" TALYS-error: 0 <= Area < 10000 cm^2")')
           stop
         endif
-        do 80 k=1,5
+        do k=1,5
           if (Tirrad(k).lt.0.or.Tirrad(k).ge.1000000) then
             write(*,'(" TALYS-error: 0 <= Tirrad < 1.e6")')
             stop
@@ -413,8 +418,8 @@ c
             write(*,'(" TALYS-error: 0 <= Tcool < 1.e6")')
             stop
           endif
-   80   continue
-        do 90 k=1,5
+        enddo
+        do k=1,5
           if (unitTirrad(k).ne.' '.and.unitTirrad(k).ne.'y'.and.
      +      unitTirrad(k).ne.'d'.and.unitTirrad(k).ne.'h'.and.
      +      unitTirrad(k).ne.'m'.and.unitTirrad(k).ne.'s') then
@@ -429,7 +434,7 @@ c
      +        Tcool(k)
             stop
           endif
-   90   continue
+        enddo
         if (rhotarget.ne.-1..and.(rhotarget.le.0..or.rhotarget.gt.100.))
      +    then
           write(*,'(" TALYS-error: 0 < rhotarget <= 100.")')
@@ -452,23 +457,23 @@ c optmodfileN: optical model parameter file for neutrons
 c optmodfileP: optical model parameter file for protons
 c radialfile : radial matter density file
 c
-      do 110 Zix=0,numZph
-        do 120 Nix=0,numNph
-          do 130 type=1,6
-            if (optmod(Zix,Nix,type)(1:1).eq.' ') goto 130
+      do Zix=0,numZph
+        do Nix=0,numNph
+          do type=1,6
+            if (optmod(Zix,Nix,type)(1:1).eq.' ') cycle
             inquire (file=optmod(Zix,Nix,type),exist=lexist)
             if (.not.lexist) then
               write(*,'(" TALYS-error: Non-existent optical model",
-     +          " file: ",a72)') optmod(Zix,Nix,type)
+     +          " file: ",a)') trim(optmod(Zix,Nix,type))
               stop
             endif
-  130     continue
-  120   continue
+          enddo
+        enddo
         if (optmodfileN(Zix)(1:1).ne.' ') then
           inquire (file=optmodfileN(Zix),exist=lexist)
           if (.not.lexist) then
             write(*,'(" TALYS-error: Non-existent optical model",
-     +        " file: ",a72)') optmodfileN(Zix)
+     +        " file: ",a)') trim(optmodfileN(Zix))
             stop
           endif
         endif
@@ -476,15 +481,15 @@ c
           inquire (file=optmodfileP(Zix),exist=lexist)
           if (.not.lexist) then
             write(*,'(" TALYS-error: Non-existent optical model",
-     +        " file: ",a72)') optmodfileP(Zix)
+     +        " file: ",a)') trim(optmodfileP(Zix))
             stop
           endif
         endif
         if (radialfile(Zix)(1:1).ne.' ') then
           inquire (file=radialfile(Zix),exist=lexist)
           if (.not.lexist) then
-            write(*,'(" TALYS-error: Non-existent radial file: ",a72)')
-     +        radialfile(Zix)
+            write(*,'(" TALYS-error: Non-existent radial file: ",a)')
+     +        trim(radialfile(Zix))
             stop
           endif
         endif
@@ -511,8 +516,8 @@ c
         if (levelfile(Zix)(1:1).ne.' ') then
           inquire (file=levelfile(Zix),exist=lexist)
           if (.not.lexist) then
-            write(*,'(" TALYS-error: Non-existent level file: ",a72)')
-     +        levelfile(Zix)
+            write(*,'(" TALYS-error: Non-existent level file: ",a)')
+     +        trim(levelfile(Zix))
             stop
           endif
         endif
@@ -520,29 +525,29 @@ c
           inquire (file=deformfile(Zix),exist=lexist)
           if (.not.lexist) then
             write(*,'(" TALYS-error: Non-existent deformation ",
-     +        "parameter file: ",a72)') deformfile(Zix)
+     +        "parameter file: ",a)') trim(deformfile(Zix))
             stop
           endif
         endif
-        do 140 Nix=0,numN
-          do 142 irad=0,1
-            do 144 l=1,numgam
+        do Nix=0,numN
+          do irad=0,1
+            do l=1,numgam
               if (Exlfile(Zix,Nix,irad,l)(1:1).ne.' ') then
                 inquire (file=Exlfile(Zix,Nix,irad,l),exist=lexist)
                 if (.not.lexist) then
                   write(*,'(" TALYS-error: Non-existent strength ",
-     +              "function file irad=",i1," l=",i2," : ",a72)')
-     +              irad,l,Exlfile(Zix,Nix,irad,l)
+     +              "function file irad=",i1," l=",i2," : ",a)')
+     +              irad,l,trim(Exlfile(Zix,Nix,irad,l))
                   stop
                 endif
               endif
-  144       continue
-  142     continue
+            enddo
+          enddo
           if (densfile(Zix,Nix)(1:1).ne.' ') then
             inquire (file=densfile(Zix,Nix),exist=lexist)
             if (.not.lexist) then
               write(*,'(" TALYS-error: Non-existent level density ",
-     +          "file: ",a72)') densfile(Zix,Nix)
+     +          "file: ",a)') trim(densfile(Zix,Nix))
               stop
             endif
             if (ctable(Zix,Nix,0).eq.1.e-20) ctable(Zix,Nix,0)=0.
@@ -559,8 +564,8 @@ c
             inquire (file=hbtransfile(Zix,Nix),exist=lexist)
             if (.not.lexist) then
               write(*,'(" TALYS-error: Non-existent head band ",
-     +          "transition state file: ",a72)')
-     +          hbtransfile(Zix,Nix)
+     +          "transition state file: ",a)')
+     +          trim(hbtransfile(Zix,Nix))
               stop
             endif
           endif
@@ -568,35 +573,35 @@ c
             inquire (file=clas2file(Zix,Nix),exist=lexist)
             if (.not.lexist) then
               write(*,'(" TALYS-error: Non-existent class 2 ",
-     +          "transition state file: ",a72)') clas2file(Zix,Nix)
+     +          "transition state file: ",a)') trim(clas2file(Zix,Nix))
               stop
             endif
           endif
-  140   continue
-  110 continue
+        enddo
+      enddo
       if (ompenergyfile(1:1).ne.' ') then
         inquire (file=ompenergyfile,exist=lexist)
         if (.not.lexist) then
-          write(*,'(" TALYS-error: Non-existent ompenergyfile: ",a72)')
-     +      ompenergyfile
+          write(*,'(" TALYS-error: Non-existent ompenergyfile: ",a)')
+     +      trim(ompenergyfile)
           stop
         endif
       endif
       if (yieldfile(1:1).ne.' ') then
         inquire (file=yieldfile,exist=lexist)
         if (.not.lexist) then
-          write(*,'(" TALYS-error: Non-existent yieldfile: ",a72)')
-     +      yieldfile
+          write(*,'(" TALYS-error: Non-existent yieldfile: ",a)')
+     +      trim(yieldfile)
           stop
         endif
       endif
-      do 150 mt=1,nummt
-        do 155 is=-1,numisom
+      do mt=1,nummt
+        do is=-1,numisom
           if (rescuefile(mt,is)(1:1).ne.' ') then
             inquire (file=rescuefile(mt,is),exist=lexist)
             if (.not.lexist) then
               write(*,'(" TALYS-error: Non-existent rescue file: ",
-     +          a72)') rescuefile(mt,is)
+     +          a)') trim(rescuefile(mt,is))
               stop
             endif
           endif
@@ -604,8 +609,8 @@ c
             write(*,'(" TALYS-error: 0.001 <= grescue <= 1000.")')
             stop
           endif
-  155   continue
-  150 continue
+        enddo
+      enddo
       if (alphaomp.lt.1.or.alphaomp.gt.8) then
         write(*,'(" TALYS-error: 1 <= alphaomp <= 8")')
         stop
@@ -638,7 +643,7 @@ c              real central potential
 c nr1        : counter
 c nr2        : counter
 c
-      do 160 type=1,6
+      do type=1,6
         if (v1adjust(type).lt.0.1.or.v1adjust(type).gt.10.) then
           write(*,'(" TALYS-error: 0.1 <= v1adjust <= 10.")')
           stop
@@ -751,8 +756,8 @@ c
           write(*,'(" TALYS-error: 0.1 <= rcadjust <= 10.")')
           stop
         endif
-        do 170 omptype=1,numompadj
-          do 180 nr=1,ompadjustN(type,omptype)
+        do omptype=1,numompadj
+          do nr=1,ompadjustN(type,omptype)
             if (ompadjustE1(type,omptype,nr).lt.0.or.
      +        ompadjustE1(type,omptype,nr).gt.Emaxtalys) then
               write(*,'(" TALYS-error: 0. <= ompadjustE1 <= ",f10.3)')
@@ -770,8 +775,8 @@ c
               write(*,'(" TALYS-error: ompadjustE1 <= ompadjustE2 ")')
               stop
             endif
-            do 190 nr2=1,ompadjustN(type,omptype)
-              if (nr.eq.nr2) goto 190
+            do nr2=1,ompadjustN(type,omptype)
+              if (nr.eq.nr2) cycle
               if (ompadjustE1(type,omptype,nr).gt.
      +          ompadjustE1(type,omptype,nr2).and.
      +          ompadjustE1(type,omptype,nr).lt.
@@ -780,7 +785,7 @@ c
      +            "ompadjustE2 overlapping")')
                 stop
               endif
-  190       continue
+            enddo
             if (ompadjustD(type,omptype,nr).lt.-100.or.
      +        ompadjustD(type,omptype,nr).gt.100.) then
               write(*,'(" TALYS-error: -100. <= ompadjustD <= 100.")')
@@ -791,20 +796,20 @@ c
               write(*,'(" TALYS-error: 0. <= ompadjusts <= 100.")')
               stop
             endif
-  180     continue
-  170   continue
-  160 continue
-      do 195 Zix=0,numZ
-        do 196 Nix=0,numN
-          do 197 type=-1,6
+          enddo
+        enddo
+      enddo
+      do Zix=0,numZ
+        do Nix=0,numN
+          do type=-1,6
             tf0=TJadjust(Zix,Nix,type)
             if (tf0.lt.0.001.or.tf0.gt.1000.) then
               write(*,'(" TALYS-error: 0.001 <= TJadjust <= 1000.")')
               stop
             endif
-  197     continue
-  196   continue
-  195 continue
+          enddo
+        enddo
+      enddo
       if (jlmmode.lt.0.or.jlmmode.gt.3) then
         write(*,'(" TALYS-error: 0 <= jlmmode <= 3")')
         stop
@@ -845,7 +850,7 @@ c
         write(*,'(" TALYS-error: 0.1 <= soswitch <= 10.")')
         stop
       endif
-      do 198 type=1,2
+      do type=1,2
         if (Ejoin(type).le.0..or.Ejoin(type).gt.Emaxtalys) then
           write(*,'(" TALYS-error: 0. < Ejoin <= ",f10.5)')
      +      Emaxtalys
@@ -855,7 +860,7 @@ c
           write(*,'(" TALYS-error: 0.01 <= Vinfadjust <= 10.")')
           stop
         endif
-  198 continue
+      enddo
 c
 c Check direct reaction parameters
 c
@@ -899,6 +904,10 @@ c
       endif
       if (wmode.lt.0.or.wmode.gt.3) then
         write(*,'(" TALYS-error: 0 <= wmode <= 3")')
+        stop
+      endif
+      if (wfcfactor.lt.1.or.wfcfactor.gt.3) then
+        write(*,'(" TALYS-error: 1 <= WFCfactor <= 3")')
         stop
       endif
       if (k0.eq.0.and.ewfc.gt.0.) then
@@ -961,7 +970,6 @@ c upbende      : properties of the low-energy upbend of given multipolarity
 c gamgam      : total radiative width in eV
 c D0          : s-wave resonance spacing in eV
 c fiso        : correction factor for isospin forbidden transitions
-c gnorm       : gamma normalization factor
 c etable      : constant to adjust tabulated strength functions
 c ftable      : constant to adjust tabulated strength functions
 c wtable      : constant to adjust tabulated strength functions
@@ -975,8 +983,8 @@ c
         write(*,'(" TALYS-error: 1 <= gammax <= 6")')
         stop
       endif
-      if (strength.lt.1.or.strength.gt.9) then
-        write(*,'(" TALYS-error: 1 <= strength <= 9")')
+      if (strength.lt.1.or.strength.gt.10) then
+        write(*,'(" TALYS-error: 1 <= strength <= 10")')
         stop
       endif
       if (strength.eq.3.or.strength.eq.4) then
@@ -988,15 +996,15 @@ c
           stop
         endif
       endif
-      if ((strengthM1.lt.1.or.strengthM1.gt.4).and.strengthM1.ne.8)
-     +    then
-        write(*,'(" TALYS-error: strengthM1 = 1, 2, 3, 4 or 8")')
+      if ((strengthM1.lt.1.or.strengthM1.gt.4).and.strengthM1.ne.8.
+     +  and.strengthM1.ne.10) then
+        write(*,'(" TALYS-error: strengthM1 = 1, 2, 3, 4, 8 or 10")')
         stop
       endif
-      do 210 Zix=0,numZ
-        do 220 Nix=0,numN
-          do 230 irad=0,1
-            do 240 lval=1,gammax
+      do Zix=0,numZ
+        do Nix=0,numN
+          do irad=0,1
+            do lval=1,gammax
               if (etable(Zix,Nix,irad,lval).lt.-10..or.
      +          etable(Zix,Nix,irad,lval).gt.10.) then
                 write(*,'(" TALYS-error: -10. <= etable <= 10.")')
@@ -1007,9 +1015,9 @@ c
                 write(*,'(" TALYS-error: 0.1 <= ftable <= 10.")')
                 stop
               endif
-              if (wtable(Zix,Nix,irad,lval).lt.0..or.
+              if (wtable(Zix,Nix,irad,lval).lt.0.1.or.
      +          wtable(Zix,Nix,irad,lval).gt.10.) then
-                write(*,'(" TALYS-error: 0. <= wtable <= 10.")')
+                write(*,'(" TALYS-error: 0.1 <= wtable <= 10.")')
                 stop
               endif
               if (etableadjust(Zix,Nix,irad,lval).lt.-10..or.
@@ -1022,12 +1030,12 @@ c
                 write(*,'(" TALYS-error: 0.1 <= ftableadjust <= 10.")')
                 stop
               endif
-              if (wtableadjust(Zix,Nix,irad,lval).lt.0..or.
+              if (wtableadjust(Zix,Nix,irad,lval).lt.0.1.or.
      +          wtableadjust(Zix,Nix,irad,lval).gt.10.) then
-                write(*,'(" TALYS-error: 0. <= wtableadjust <= 10.")')
+                write(*,'(" TALYS-error: 0.1 <= wtableadjust <= 10.")')
                 stop
               endif
-              do 250 igr=1,2
+              do igr=1,2
                 egr0=egr(Zix,Nix,irad,lval,igr)
                 if (egr0.ne.0..and.(egr0.lt.1..or.egr0.gt.100.)) then
                   write(*,'(" TALYS-error: 1.<= energy of GR <=100.")')
@@ -1090,7 +1098,7 @@ c
                   write(*,'(" TALYS-error: 0.05 <= spradjust <= 20.")')
                   stop
                 endif
-  250         continue
+              enddo
               upbendc=upbend(Zix,Nix,irad,lval,1)
               if (upbendc.lt.0..or.upbendc.gt.1.e-5) then
                 write(*,'(" TALYS-error: 0 <= upbendc <= 1.e-5")')
@@ -1106,8 +1114,8 @@ c
                 write(*,'(" TALYS-error: -10 <= upbendf <= 10")')
                 stop
               endif
-  240       continue
-  230     continue
+            enddo
+          enddo
           if (gamgam(Zix,Nix).ne.0.) then
             if (gamgam(Zix,Nix).lt.0..or.gamgam(Zix,Nix).gt.10.) then
               write(*,'(" TALYS-error: 0. < gamgam <= 10.")')
@@ -1125,9 +1133,9 @@ c
             write(*,'(" TALYS-error: 0.01 <= gamgamadjust <= 20.")')
             stop
           endif
-  220   continue
-  210 continue
-      do 260 type=-1,6
+        enddo
+      enddo
+      do type=-1,6
         if (fiso(type).ne.-1..and.
      +    (fiso(type).lt.0.01.or.fiso(type).gt.100.)) then
           write(*,'(" TALYS-error: 0.01 <= fiso <= 100.")')
@@ -1138,11 +1146,7 @@ c
           write(*,'(" TALYS-error: 0.01 <= fisom <= 100.")')
           stop
         endif
-  260 continue
-      if ((gnorm.le.0..or.gnorm.gt.1000.).and.gnorm.ne.-1.) then
-        write(*,'(" TALYS-error: 0. < gnorm <= 1000.")')
-        stop
-      endif
+      enddo
       if (RprimeU.lt.0..or.RprimeU.gt.10.) then
         write(*,'(" TALYS-error: 0. <= Rprime <= 10.")')
         stop
@@ -1156,20 +1160,22 @@ c
         write(*,'(" TALYS-error: 1 <= ldmodelracap <= 3")')
         stop
       endif
-      do 270 Zix=0,numZ
-        do 270 Nix=0,numN
+      do Zix=0,numZ
+        do Nix=0,numN
           if (spectfacth(Zix,Nix).lt.0..or.
      +      spectfacth(Zix,Nix).gt.10.) then
             write(*,'(" TALYS-error: 0. <= sfth <= 10.")')
             stop
           endif
-          do 270 i=0,numlev
+          do i=0,numlev
             if (spectfacexp(Zix,Nix,i).lt.0..or.
      +        spectfacexp(Zix,Nix,i).gt.10.) then
               write(*,'(" TALYS-error: 0. <= sfexp <= 10.")')
               stop
             endif
-  270 continue
+          enddo
+        enddo
+      enddo
 c
 c 6. Check of values for pre-equilibrium
 c
@@ -1186,6 +1192,8 @@ c M2constant  : constant for matrix element in exciton model
 c M2limit     : constant for asymptotic value for matrix element
 c M2shift     : constant for energy shift for matrix element
 c Rpinu,....  : ratio for two-component matrix element
+c Rspincutpreeq: adjustable constant (global) for preequilbrium spin 
+c                cutoff factor
 c Esurf0      : well depth for surface interaction
 c Rgamma      : adjustable parameter for pre-equilibrium gamma decay
 c msdbins     : number of energy points for DWBA calculation for MSD
@@ -1230,8 +1238,8 @@ c
         write(*,'(" TALYS-error: 1 <= pairmodel <= 2")')
         stop
       endif
-      if (pespinmodel.lt.1.or.pespinmodel.gt.3) then
-        write(*,'(" TALYS-error: 1 <= pespinmodel <= 3")')
+      if (pespinmodel.lt.1.or.pespinmodel.gt.4) then
+        write(*,'(" TALYS-error: 1 <= pespinmodel <= 4")')
         stop
       endif
       if (M2constant.lt.0..or.M2constant.gt.100.) then
@@ -1260,6 +1268,10 @@ c
       endif
       if (Rnupi.lt.0..or.Rnupi.gt.100.) then
         write(*,'(" TALYS-error: 0. <= Rnupi <= 100.")')
+        stop
+      endif
+      if (Rspincutpreeq.le.0..or.Rspincutpreeq.gt.10.) then
+        write(*,'(" TALYS-error: 0. < Rspincutpreeq <= 10.")')
         stop
       endif
       if (Esurf0.ne.-1..and.(Esurf0.lt.0..or.Esurf0.gt.38.)) then
@@ -1303,7 +1315,7 @@ c
      +    "mechanism for photonuclear reactions")')
         stop
       endif
-      do 280 type=0,6
+      do type=0,6
         if (Cstrip(type).lt.0..or.Cstrip(type).gt.100.) then
           write(*,'(" TALYS-error: 0. <= Cstrip <= 100.")')
           stop
@@ -1316,7 +1328,7 @@ c
           write(*,'(" TALYS-error: 0. <= Cbreak <= 100.")')
           stop
         endif
-  280 continue
+      enddo
 c
 c 7. Check of values for level densities
 c
@@ -1372,8 +1384,8 @@ c
         write(*,'(" TALYS-error: 1 <= ldmodelCN <= 6")')
         stop
       endif
-      do 310 Zix=0,numZ
-        do 320 Nix=0,numN
+      do Zix=0,numZ
+        do Nix=0,numN
           if (ldmodel(Zix,Nix).lt.1.or.ldmodel(Zix,Nix).gt.6) then
             write(*,'(" TALYS-error: 1 <= ldmodel <= 6")')
             stop
@@ -1406,7 +1418,11 @@ c
               stop
             endif
           endif
-          do 330 ibar=0,numbar
+          if (Risomer(Zix,Nix).lt.0.1.or.Risomer(Zix,Nix).gt.10.) then
+            write(*,'(" TALYS-error: 0.1 <= Risomer <= 10.")')
+            stop
+          endif
+          do ibar=0,numbar
             if (deltaW(Zix,Nix,ibar).ne.0.) then
               if (deltaW(Zix,Nix,ibar).lt.-20..or.
      +          deltaW(Zix,Nix,ibar).gt.20.) then
@@ -1434,9 +1450,9 @@ c
               stop
             endif
             if (E0(Zix,Nix,ibar).ne.0.) then
-              if (E0(Zix,Nix,ibar).lt.-10..or.
-     +          E0(Zix,Nix,ibar).gt.10.) then
-                write(*,'(" TALYS-error: -10. <= E0 <= 10.")')
+              if (E0(Zix,Nix,ibar).lt.-15..or.
+     +          E0(Zix,Nix,ibar).gt.15.) then
+                write(*,'(" TALYS-error: -15. <= E0 <= 15.")')
                 stop
               endif
             endif
@@ -1522,7 +1538,17 @@ c
                 stop
               endif
             endif
-  330     continue
+            if (Ufermi(Zix,Nix,ibar).lt.0..or.
+     +        Ufermi(Zix,Nix,ibar).gt.1000.) then
+              write(*,'(" TALYS-error: 0. <= Ufermi <= 1000.")')
+              stop
+            endif
+            if (cfermi(Zix,Nix,ibar).lt.0..or.
+     +        cfermi(Zix,Nix,ibar).gt.1000.) then
+              write(*,'(" TALYS-error: 0. <= cfermi <= 1000.")')
+              stop
+            endif
+          enddo
           if (aadjust(Zix,Nix).lt.0.1.or.aadjust(Zix,Nix).gt.10.)
      +      then
             write(*,'(" TALYS-error: 0.1 <= aadjust <= 10.")')
@@ -1588,8 +1614,8 @@ c
             write(*,'(" TALYS-error: -5. <= Pshiftconstant <= 5.")')
             stop
           endif
-  320   continue
-  310 continue
+        enddo
+      enddo
       if (cglobal.ne.0.) then
         if (cglobal.lt.-10..or.cglobal.gt.10.) then
           write(*,'(" TALYS-error: -10. <= cglobal <= 10.")')
@@ -1614,18 +1640,14 @@ c Ufermi        : energy of Fermi distribution for damping of
 c                 ground-state rotational effects
 c cfermi        : width of Fermi distribution for damping of
 c               : ground-state rotational effects
-c Ufermibf      : energy of Fermi distribution for damping of barrier
-c               : rotational effects
-c cfermibf      : width of Fermi distribution for damping of barrier
-c               : rotational effects
 c Kph           : constant for single-particle level density parameter
 c                 (g=A/Kph)
 c Rspincut      : adjustable constant (global) for spin cutoff factor
 c Rspincutff    : parameter (global) for FF spin cutoff factor
 c
-      do 340 Zix=0,numZ
-        do 350 Nix=0,numN
-          do 360 ibar=0,numbar
+      do Zix=0,numZ
+        do Nix=0,numN
+          do ibar=0,numbar
             if (alev(Zix,Nix).ne.0.and.deltaW(Zix,Nix,ibar).ne.0..and.
      +        alimit(Zix,Nix).ne.0.and.gammald(Zix,Nix).ne.-1.) then
               write(*,'(" TALYS-error: Level density conflict - a,",
@@ -1634,31 +1656,15 @@ c
      +          " fission barrier=",i3)') Zinit-Zix,Ainit-Zix-Nix,ibar
               stop
             endif
-  360     continue
-  350   continue
-  340 continue
+          enddo
+        enddo
+      enddo
       if (gammashell2.lt.0..or.gammashell2.gt.0.2) then
         write(*,'(" TALYS-error: 0. <= gammashell2 <= 0.2")')
         stop
       endif
       if (pairconstant.lt.0..or.pairconstant.gt.30.) then
         write(*,'(" TALYS-error: 0. <= pairconstant <= 30.")')
-        stop
-      endif
-      if (Ufermi.lt.0..or.Ufermi.gt.1000.) then
-        write(*,'(" TALYS-error: 0. <= Ufermi <= 1000.")')
-        stop
-      endif
-      if (cfermi.le.0..or.cfermi.gt.1000.) then
-        write(*,'(" TALYS-error: 0. <= cfermi <= 1000.")')
-        stop
-      endif
-      if (Ufermibf.lt.0..or.Ufermibf.gt.1000.) then
-        write(*,'(" TALYS-error: 0. <= Ufermibf <= 1000.")')
-        stop
-      endif
-      if (cfermibf.le.0..or.cfermibf.gt.1000.) then
-        write(*,'(" TALYS-error: 0. <= cfermibf <= 1000.")')
         stop
       endif
       if (Kph.lt.1..or.Kph.gt.100.) then
@@ -1683,6 +1689,7 @@ c flagmassdis: flag for calculation of fission fragment mass yields
 c fismodel   : fission model
 c fismodelalt: alternative fission model for default barriers
 c ffmodel    : fission fragment model, 1: GEF 2: HF3D (Okumura) 3:SPY
+c              0: local (your own files)
 c pfnsmodel  : PFNS  model, 1: Iwamoto 2: from FF decay
 c gefran     : number of random events for GEF calculation
 c Cnubar1    : adjustable parameter for nubar constant value
@@ -1739,8 +1746,8 @@ c
         write(*,'(" TALYS-error: 1 <= fymodel <= 5")')
         stop
       endif
-      if (ffmodel.lt.1.or.ffmodel.gt.3) then
-        write(*,'(" TALYS-error: 1 <= ffmodel <= 3")')
+      if (ffmodel.lt.0.or.ffmodel.gt.4) then
+        write(*,'(" TALYS-error: 0 <= ffmodel <= 4")')
         stop
       endif
       if (pfnsmodel.lt.1.or.pfnsmodel.gt.2) then
@@ -1767,9 +1774,13 @@ c
         write(*,'(" TALYS-error: 0.1 < Fsadjust <= 10.")')
         stop
       endif
-      do 410 Zix=0,numZ
-        do 420 Nix=0,numN
-          do 430 ibar=1,numbar
+      if (Cbarrier.lt.0.1.or.Cbarrier.gt.10.) then
+        write(*,'(" TALYS-error: 0.1 < Cbarrier <= 10.")')
+        stop
+      endif
+      do Zix=0,numZ
+        do Nix=0,numN
+          do ibar=1,numbar
             fax0=axtype(Zix,Nix,ibar)
             if (fax0.ne.0.and.(fax0.lt.1.or.fax0.gt.5)) then
               write(*,'(" TALYS-error: 1 <= type of axiality <= 5")')
@@ -1815,7 +1826,7 @@ c
               write(*,'(" TALYS-error: 0.05 <= Rclass2mom <= 20.")')
               stop
             endif
-  430     continue
+          enddo
           fhw0=betafiscor(Zix,Nix)
           if (fhw0.lt.0.05.or.fhw0.gt.20.) then
             write(*,'(" TALYS-error: 0.05 <= betafiscor <= 20.")')
@@ -1836,8 +1847,8 @@ c
             write(*,'(" TALYS-error: 0.1 <= vfiscoradjust <= 10.")')
             stop
           endif
-  420   continue
-  410 continue
+        enddo
+      enddo
 c
 c 9. Check of values for output
 c
@@ -1868,22 +1879,22 @@ c
         write(*,'(" TALYS-error: 0 <= ddxmode <= 3")')
         stop
       endif
-      do 510 type=0,6
-        do 520 i=1,ddxecount(type)
+      do type=0,6
+        do i=1,ddxecount(type)
           value=fileddxe(type,i)
           if (value.lt.0.or.value.gt.enincmax) then
             write(*,'(" TALYS-error: 0. <= fileddxe <=",f8.3)') enincmax
             stop
           endif
-  520   continue
-        do 530 i=1,ddxacount(type)
+        enddo
+        do i=1,ddxacount(type)
           value=fileddxa(type,i)
           if (value.lt.0.or.value.gt.180.) then
             write(*,'(" TALYS-error: 0. <= fileddxa <= 180.")')
             stop
           endif
-  530   continue
-  510 continue
+        enddo
+      enddo
       if (flagdecay) flagpop=.true.
 c
 c 10. Check of values energy-dependent parameter adjustment
@@ -1898,8 +1909,8 @@ c Em       : intermediate energy of local adjustment
 c D        : depth of local adjustment
 c adjustkey: keyword for local adjustment
 c
-      do 610 n=1,Nadjust
-        if (adjustfile(i)(1:1).ne.' ') goto 610
+      do n=1,Nadjust
+        if (adjustfile(i)(1:1).ne.' ') cycle
         Ea=adjustpar(n,1)
         Eb=adjustpar(n,2)
         Em=adjustpar(n,3)
@@ -1907,27 +1918,27 @@ c
         if ((Ea.ge.Eb).or.(Ea.ge.Em).or.(Em.ge.Eb)) then
           write(*,'(" TALYS-error: energy range for adjustment should",
      +      " be given as follows: Ea Eb Em D, with Ea < Em < Eb",
-     +      " for keyword ",a80)') adjustkey(n)
+     +      " for keyword ",a)') trim(adjustkey(n))
           stop
         endif
         if (D.le.0..or.D.ge.10.) then
-          write(*,'(" TALYS-error: 0. < D <= 10. for keyword ",a80)')
-     +      adjustkey(n)
+          write(*,'(" TALYS-error: 0. < D <= 10. for keyword ",a)')
+     +      trim(adjustkey(n))
           stop
         endif
-        do 620 m=1,Nadjust
-          if (m.eq.n) goto 620
-          if (adjustkey(m).ne.adjustkey(n)) goto 620
+        do m=1,Nadjust
+          if (m.eq.n) cycle
+          if (adjustkey(m).ne.adjustkey(n)) cycle
           Ea2=adjustpar(m,1)
           Eb2=adjustpar(m,2)
           if ((Ea2.gt.Ea.and.Ea2.lt.Eb).or.(Eb2.gt.Ea.and.Eb2.lt.Eb))
      +      then
             write(*,'(" TALYS-error: overlapping energy ranges for ",
-     +        "keyword ",a80)') adjustkey(n)
+     +        "keyword ",a)') trim(adjustkey(n))
             stop
           endif
-  620   continue
-  610 continue
+        enddo
+      enddo
 c
 c 11. Check for correct name of libraries for resonance parameters
 c
@@ -1935,12 +1946,12 @@ c flagres   : flag for output of low energy resonance cross sections
 c reslib    : library with resonance parameters
 c
       if (flagres) then
-        if (trim(reslib).eq.'tendl.2021') goto 700
+        if (trim(reslib).eq.'tendl.2023') goto 700
         if (trim(reslib).eq.'jeff3.3') goto 700
         if (trim(reslib).eq.'endfb8.0') goto 700
         if (trim(reslib).eq.'cendl3.2') goto 700
-        if (trim(reslib).eq.'jendl4.0') goto 700
-        write(*,'(" TALYS-error: Wrong library name: ",a16)') reslib
+        if (trim(reslib).eq.'jendl5.0') goto 700
+        write(*,'(" TALYS-error: Wrong library name: ",a)') trim(reslib)
         stop
       endif
   700 continue

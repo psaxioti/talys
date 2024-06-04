@@ -9,16 +9,16 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80 key
-      integer      type,type2,nen
-      real         Nab(numpar,numpar),Napb(numpar,numpar),r0,Cb,arg,
-     +             step,F,H,Feff,width,fac1,Emax,wplus,wmin,Epk,Tpren,
-     +             factor,Ehalf,xsbreakup,Eout,wi,fac2,TE,Ksig,
-     +             widthsig,PBU(0:numen),PBUint
+      character*132 key
+      integer       type,type2,nen
+      real          Nab(numpar,numpar),Napb(numpar,numpar),r0,Cb,arg,
+     +              step,F,H,Feff,width,fac1,Emax,wplus,wmin,Epk,Tpren,
+     +              factor,Ehalf,xsbreakup,Eout,wi,fac2,TE,Ksig,
+     +              widthsig,PBU(0:numen),PBUint
 c
 c ************************** Kalbach model *****************************
 c
-c Break-up model by Kalbach: Phys. Rev. C to be published (2017)
+c Break-up model by Kalbach: Phys. Rev. C95, 014606 (2017).
 c
 c Nab     : break-up normalization constants
 c Napb    : break-up normalization constants
@@ -30,18 +30,20 @@ c
 c We first determine the possible break-up channels and the other
 c particle resulting from the break-up.
 c
-      do 5 type=1,6
-        do 5 type2=1,6
+      do type=1,6
+        do type2=1,6
           Nab(type,type2)=1.
           Napb(type,type2)=1.
-    5 continue
+        enddo
+      enddo
       Nab(3,1)=3.6
       Nab(3,2)=3.6
 c
 c Extra adjustment for (d,n) and (d,p) cross sections, TENDL-2021
+c  Later withdrawn due to bad (d,n), (d,2n) etc fits
 c
-      Nab(3,1)=Nab(3,1)*max(3.-Atarget/125.,1.)
-      Nab(3,2)=Nab(3,2)*max(6.-Atarget/50.,1.)
+c     Nab(3,1)=Nab(3,1)*max(3.-Atarget/125.,1.)
+c     Nab(3,2)=Nab(3,2)*max(6.-Atarget/50.,1.)
 c
       Nab(4,1)=4.1
       Nab(4,2)=2.0
@@ -60,13 +62,13 @@ c
       Napb(5,3)=1.8
       Ksig=112.
       widthsig=13.
-      do 10 type=1,6
-        if (parskip(type)) goto 10
+      do type=1,6
+        if (parskip(type)) cycle
 c
 c (d,n) and (d,p)
 c
         if (k0.eq.3) then
-          if (type.ne.1.and.type.ne.2) goto 10
+          if (type.ne.1.and.type.ne.2) cycle
           if (type.eq.1) type2=2
           if (type.eq.2) type2=1
         endif
@@ -74,7 +76,7 @@ c
 c (t,d) and (t,p)
 c
         if (k0.eq.4) then
-          if (type.gt.3) goto 10
+          if (type.gt.3) cycle
           if (type.eq.1) type2=3
           if (type.eq.2) type2=1
           if (type.eq.3) type2=1
@@ -83,7 +85,7 @@ c
 c (h,d) and (h,p)
 c
         if (k0.eq.5) then
-          if (type.gt.3) goto 10
+          if (type.gt.3) cycle
           if (type.eq.1) type2=2
           if (type.eq.2) type2=3
           if (type.eq.3) type2=2
@@ -92,7 +94,7 @@ c
 c (a,n), (a,p), (a,d), (a,t) and (a,h)
 c
         if (k0.eq.6) then
-          if (type.eq.6) goto 10
+          if (type.eq.6) cycle
           if (type.eq.1) type2=5
           if (type.eq.2) type2=4
           if (type.eq.3) type2=3
@@ -199,7 +201,7 @@ c
 c First calculate normalization integral and spectrum function
 c
         PBUint=0.
-        do 110 nen=ebegin(type),eend(type)
+        do nen=ebegin(type),eend(type)
           Eout=egrid(nen)
           if (Eout.le.Epk) then
             wi=wmin
@@ -216,16 +218,16 @@ c
             PBU(nen)=fac1*exp(-(Eout-Epk)**2/fac2)*TE
             PBUint=PBUint+PBU(nen)*deltaE(nen)
           endif
-  110   continue
+        enddo
         if (PBUint.gt.0.) then
           xsbreakup=factor*Cbreak(type)*
      +      (Nab(k0,type)*Deff*Deff+Napb(k0,type)*Deff)*
      +      exp(Einc/Ksig)*Tpren
-          do 120 nen=ebegin(type),eend(type)
+          do nen=ebegin(type),eend(type)
             xspreeqbu(type,nen)=xsbreakup*PBU(nen)
-  120     continue
+          enddo
         endif
-   10 continue
+      enddo
       return
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

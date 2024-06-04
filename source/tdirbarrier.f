@@ -137,44 +137,44 @@ c
      +        rhofis(i+1,J,parity,ibar2))
             rho3=min(rhofis(i+2,J,parity,ibar)*(1.+1.d-10),
      +        rhofis(i+2,J,parity,ibar2)*(1.+1.d-10))
-        endif
-        r1log=log(rho1)
-        r2log=log(rho2)
-        r3log=log(rho3)
-        if (r2log.ne.r1log.and.r2log.ne.r3log) then
-          rho=(rho1-rho2)/(r1log-r2log)*dE1
-     +      +(rho2-rho3)/(r2log-r3log)*dE2
-        else
-          rho=rho2*(dE1+dE2)
-        endif 
-        Eeff=Eex-emid
-        if (abs(ibar-ibar2).eq.1) then       
-          trfisone=twkbint(Eeff,ibar,Zcomp,Ncomp)
-          trfistwo=twkbint(Eeff,ibar2,Zcomp,Ncomp)
-          if ( twkbphaseint(Eeff,ibar,Zcomp,Ncomp) .gt. 0 ) then
-            trfis=trfis+rho*trfisone*trfistwo/
-     +        (1+(1.-trfisone)*(1.-trfistwo))
-          else
-            trfis=trfis+rho*trfisone*trfistwo
-          endif      
-        elseif (abs(ibar-ibar2).eq.2) then
-          trfisone=twkbint(Eeff,ibar,Zcomp,Ncomp)
-          trfistwo=twkbint(Eeff,ibar2,Zcomp,Ncomp)
-          ibar3=(ibar2+ibar)/2
-            trfisthree=twkbint(Eeff,ibar3,Zcomp,Ncomp)
-          if ( twkbphaseint(Eeff,ibar,Zcomp,Ncomp) .gt. 0 ) then
-            trfisonetwo=rho*trfisone*trfisthree/
-     +        (1+(1.-trfisone)*(1.-trfisthree))
-          else
-            trfisonetwo=rho*trfisone*trfisthree
           endif
-          if ( twkbphaseint(Eeff,ibar3,Zcomp,Ncomp) .gt. 0 ) then
-            trfis=trfis+rho*trfisonetwo*trfistwo/
-     +        (1+(1.-trfisonetwo)*(1.-trfistwo))
+          r1log=log(rho1)
+          r2log=log(rho2)
+          r3log=log(rho3)
+          if (r2log.ne.r1log.and.r2log.ne.r3log) then
+            rho=(rho1-rho2)/(r1log-r2log)*dE1
+     +        +(rho2-rho3)/(r2log-r3log)*dE2
           else
-            trfis=trfis+rho*trfisonetwo*trfistwo
+            rho=rho2*(dE1+dE2)
+          endif 
+          Eeff=Eex-emid
+          if (abs(ibar-ibar2).eq.1) then       
+            trfisone=twkbint(Eeff,ibar,Zcomp,Ncomp)
+            trfistwo=twkbint(Eeff,ibar2,Zcomp,Ncomp)
+            if ( twkbphaseint(Eeff,ibar,Zcomp,Ncomp) .gt. 0 ) then
+              trfis=trfis+rho*trfisone*trfistwo/
+     +          (1+(1.-trfisone)*(1.-trfistwo))
+            else
+              trfis=trfis+rho*trfisone*trfistwo
+            endif      
+          elseif (abs(ibar-ibar2).eq.2) then
+            trfisone=twkbint(Eeff,ibar,Zcomp,Ncomp)
+            trfistwo=twkbint(Eeff,ibar2,Zcomp,Ncomp)
+            ibar3=(ibar2+ibar)/2
+              trfisthree=twkbint(Eeff,ibar3,Zcomp,Ncomp)
+            if ( twkbphaseint(Eeff,ibar,Zcomp,Ncomp) .gt. 0 ) then
+              trfisonetwo=rho*trfisone*trfisthree/
+     +          (1+(1.-trfisone)*(1.-trfisthree))
+            else
+              trfisonetwo=rho*trfisone*trfisthree
+            endif
+            if ( twkbphaseint(Eeff,ibar3,Zcomp,Ncomp) .gt. 0 ) then
+              trfis=trfis+rho*trfisonetwo*trfistwo/
+     +          (1+(1.-trfisonetwo)*(1.-trfistwo))
+            else
+              trfis=trfis+rho*trfisonetwo*trfistwo
+            endif
           endif
-        endif
           rhof=rhof+rho
    20   continue
       endif

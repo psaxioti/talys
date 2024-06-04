@@ -87,12 +87,12 @@ c
         write(1,'(f5.2,2i2,a1,es10.3,4f10.5)') targetspin,0,1,
      +    tarparity,Einc,spin,projmass,resmass,prodZ
       endif
-      do 10 nex=1,nsp1
+      do nex=1,nsp1
         write(1,'(f5.2,2i2,a1,5f10.5)') jcomp(nex),0,nex+1,pcomp(nex),
      +  elevelcomp(nex),spincomp(nex),ejeccomp(nex),masscomp(nex),
      +  prodZcomp(nex)
-   10 continue
-      do 20 nex=0,nsp1
+      enddo
+      do nex=0,nsp1
         Zix=parZ(typecomp(nex))
         Nix=parN(typecomp(nex))
         eopt=Einc-real(elevelcomp(nex)/specmass(Zix,Nix,typecomp(nex)))
@@ -107,25 +107,25 @@ c
         write(1,'(3f10.5)') wso,rwso,awso
         write(1,'(3f10.5)') rc,0.,0.
         write(1,'(3f10.5)') 0.,0.,0.
-   20 continue
+      enddo
       write(1,'(3f10.5)') angbeg,anginc,angend
       write(1,'(f10.5)') bz1
       if (parinclude(0)) write(1,'(es10.3,4f10.5)')
      +  tgo,S(0,0,1),0.,egr(0,0,1,1,1),ggr(0,0,1,1,1)
-      do 30 nex=0,ncont
-        if (parskip(0).and.nex.eq.0) goto 30
+      do nex=0,ncont
+        if (parskip(0).and.nex.eq.0) cycle
         write(1,'(7es10.3)') real(Zinit),aldcomp(nex),
      +    Umcomp(nex),tempcomp(nex),0.,E0comp(nex),Excomp(nex)
-   30 continue
+      enddo
       write(1,'(3i5)') 1,1,0
       Zix=Zindex(0,0,k0)
       Nix=Nindex(0,0,k0)
       if (disp(Zix,Nix,k0)) then
-        do 40 i=1,npp
+        do i=1,npp
           write(1,'(10x,2i5)') 2,2
           write(1,'(10x,f10.5,40x,f10.5)') ef(Zix,Nix,k0),w2(Zix,Nix,k0)
           write(1,'(20x,2f10.5)') d3(Zix,Nix,k0),d2(Zix,Nix,k0)
-   40   continue
+        enddo
       endif
       return
       end

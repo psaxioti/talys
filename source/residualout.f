@@ -2,13 +2,15 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 19, 2019
+c | Date  : June 19, 2022
 c | Task  : Output of residual production cross sections
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      character*3  massstring
+      character*6  finalnuclide
       character*16 rpfile,isofile
       integer      Acomp,Zcomp,Ncomp,nex,Z,A,Ares,nen
 c
@@ -60,8 +62,8 @@ c Ares      : mass number of residual nucleus
 c
           do 30 nex=1,Nlast(Zcomp,Ncomp,0)
             if (tau(Zcomp,Ncomp,nex).ne.0.) then
-              write(*,'(31x,i3,3x,es12.5,f9.5,2x,es12.5,
-     +          " sec. ")') nex,xspopex(Zcomp,Ncomp,nex),
+              write(*,'(31x,i3,3x,es12.5,f9.5,2x,es12.5," sec. ")') 
+     +          levnum(Zcomp,Ncomp,nex),xspopex(Zcomp,Ncomp,nex),
      +          xsbranch(Zcomp,Ncomp,nex),tau(Zcomp,Ncomp,nex)
             endif
    30     continue
@@ -121,7 +123,6 @@ c edis          : energy of level
 c numinc        : number of incident energies
 c numinclow     : number of incident energies below Elow
 c nin           : counter for incident energy
-c Starget       : symbol of target nucleus
 c eninc,Einc    : incident energy in MeV
 c flagcompo     : flag for output of cross section components
 c xspopdir      : direct population cross section per nucleus
@@ -147,11 +148,15 @@ c
             A=AA(Zcomp,Ncomp,0)
             rpfile='rp000000.tot'//natstring(iso)
             write(rpfile(3:8),'(2i3.3)') Z,A
+            massstring='   '
+            write(massstring,'(i3)') A
+            finalnuclide=trim(nuc(Z))//adjustl(massstring)
             if (.not.rpexist(Zcomp,Ncomp)) then
               rpexist(Zcomp,Ncomp)=.true.
               open (unit=1,file=rpfile,status='replace')
-              write(1,'("# ",a1," + ",i3,a2,": Production of ",i3,a2,
-     +          " - Total")') parsym(k0),Atarget,Starget,A,nuc(Z)
+              write(1,'("# ",a1," + ",a,": Production of ",a,
+     +          " - Total")') parsym(k0),trim(targetnuclide),
+     +          trim(finalnuclide)
               write(1,'("# Q-value    =",es12.5," mass=",f11.6)')
      +          Qres(Zcomp,Ncomp,nex),nucmass(Zcomp,Ncomp)
               write(1,'("# E-threshold=",es12.5)')
@@ -204,18 +209,20 @@ c
               if (nex.eq.0.or.tau(Zcomp,Ncomp,nex).ne.0.) then
                 isofile='rp000000.L00'//natstring(iso)
                 write(isofile(3:8),'(2i3.3)') Z,A
-                write(isofile(11:12),'(i2.2)') nex
+                write(isofile(11:12),'(i2.2)') levnum(Zcomp,Ncomp,nex)
                 if (.not.rpisoexist(Zcomp,Ncomp,nex)) then
                   rpisoexist(Zcomp,Ncomp,nex)=.true.
                   open (unit=1,file=isofile,status='unknown')
                   if (nex.eq.0) then
-                    write(1,'("# ",a1," + ",i3,a2,": Production of ",
-     +                i3,a2," - Ground state")') parsym(k0),Atarget,
-     +                Starget,A,nuc(Z)
+                    write(1,'("# ",a1," + ",a,": Production of ",
+     +                a," - Ground state")') parsym(k0),
+     +                trim(targetnuclide),trim(finalnuclide)
                   else
-                    write(1,'("# ",a1," + ",i3,a2,": Production of ",
-     +                i3,a2," - Level",i3,f12.5," MeV")') parsym(k0),
-     +                Atarget,Starget,A,nuc(Z),nex,edis(Zcomp,Ncomp,nex)
+                    write(1,'("# ",a1," + ",a,": Production of ",
+     +                a," - Level",i3,t45,f12.5," MeV")') parsym(k0),
+c    +                a," - Level",i3,f12.5)') parsym(k0),
+     +                trim(targetnuclide),trim(finalnuclide),
+     +                levnum(Zcomp,Ncomp,nex),edis(Zcomp,Ncomp,nex)
                   endif
                   write(1,'("# Q-value    =",es12.5," mass=",
      +              f11.6)') Qres(Zcomp,Ncomp,nex),nucmass(Zcomp,Ncomp)

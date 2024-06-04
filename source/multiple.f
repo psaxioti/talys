@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : May 31, 2020
+c | Date  : April 9, 2022
 c | Task  : Multiple emission
 c +---------------------------------------------------------------------
 c
@@ -11,13 +11,13 @@ c
       include "talys.cmb"
       character*13 fisfile,rpfile
       character*60 form1,form2
-      character*80 key
+      character*132 key
       integer      Zcomp,Ncomp,type,nen,nex,nexout,Zix,Nix,Z,N,A,odd,NL,
      +             J,idensfis,parity,J2,Jfis,iang,p,h,Jres,Ares,Zres,
-     +             Nres,oddres,Pres
+     +             Nres,oddres,Pres,Ir
       real         popepsA,xspopsave(0:numex),Exm,dEx,Exmin,popepsB,
      +             xsmax,Smax,emissum(0:numpar),Eaveragesum,Eout,sumxs,
-     +             xsdif,ang,kalbach,xsp,factor
+     +             xsdif,ang,kalbach,xsp,factor,Smin,rJ
 c
 c ******************** Loop over nuclei ********************************
 c
@@ -243,6 +243,7 @@ c energy bin.
 c
 c popepsA : limit for population cross sections per energy
 c idensfis: identifier to activate possible fission level densities
+c Smin    : minimal separation energy
 c
 c Continue for this (Zcomp,Ncomp,nex) only when there is sufficient
 c reaction flux in the excitation energy bin.
@@ -257,6 +258,7 @@ c
             write(*,'(" bin    Ex      Pop     P Pop per P",
      +        9("  J=",f4.1,"  ")/)') (J+0.5*odd,J=0,8)
           endif
+          Smin=S(Zcomp,Ncomp,1)
           do 110 nex=maxex(Zcomp,Ncomp),1,-1
             dExinc=deltaEx(Zcomp,Ncomp,nex)
             if (flagpop) then
@@ -268,8 +270,6 @@ c
      +            (xspop(Zcomp,Ncomp,nex,J,parity),J=0,8)
   115         continue
             endif
-            popdecay=0.
-            partdecay=0.
 c
 c For exclusive channel cross section calculations, some variables
 c need to be stored in extra arrays.
@@ -282,20 +282,21 @@ c
 c
 c Discrete levels decay by gamma cascade. Isomers are excluded
 c from gamma cascade.
-c Note that we assume that discrete levels cannot particle decay.
-c This needs to be added (for light nuclei) in a future version.
+c If discrete level energies are above the minimal particle
+c separation energy, there can also be particle decay from that 
+c discrete level, i.e. instead of gamma cascade we do HF.
 c
 c tau    : lifetime of state in seconds
 c cascade: subroutine for gamma-ray cascade
 c Exinc  : excitation energy of entrance bin
 c
-            if (nex.le.Nlast(Zcomp,Ncomp,0)) then
+            Exinc=Ex(Zcomp,Ncomp,nex)
+            if (nex.le.Nlast(Zcomp,Ncomp,0).and.Exinc.le.Smin) then
               if (tau(Zcomp,Ncomp,nex).eq.0.)
      +          call cascade(Zcomp,Ncomp,nex)
               goto 110
             endif
             if (xspopex(Zcomp,Ncomp,nex).lt.popepsA) goto 110
-            Exinc=Ex(Zcomp,Ncomp,nex)
 c
 c For each mother excitation energy bin, determine the highest
 c possible excitation energy bin nexmax for the residual nuclei.
@@ -378,6 +379,9 @@ c              emission
 c tfissionout: subroutine for output of fission transmission
 c              coefficients
 c
+                  popdecay=0.
+                  partdecay=0.
+                  partdecaytot=0.
                   if (xspop(Zcomp,Ncomp,nex,J,parity).lt.popepsB)
      +              goto 145
                   xsp=xspop(Zcomp,Ncomp,nex,J,parity)
@@ -385,33 +389,34 @@ c
                   if (flagfission.and.nfisbar(Zcomp,Ncomp).ne.0)
      +              call tfission(Zcomp,Ncomp,nex,J2,parity)
                   call compound(Zcomp,Ncomp,nex,J2,parity)
-                  if (flagdecay) then
-                    do 146 type=0,6
-                      Zix=Zindex(Zcomp,Ncomp,type)
-                      Nix=Nindex(Zcomp,Ncomp,type)
-                      Zres=ZZ(Zcomp,Ncomp,type)
-                      Nres=NN(Zcomp,Ncomp,type)
-                      Ares=AA(Zcomp,Ncomp,type)
-                      oddres=mod(Ares,2)
-                      do 147 Pres=-1,1,2
-                        write(*,'(/" Decay of Z=",i3," N=",i3," (",
-     +                    i3,a2,"), Bin=",i3," Ex=",f8.3," J=",f4.1,
-     +                    " P=",i2," Pop=",es10.3," to bins of Z=",i3,
-     +                    " N=",i3," (",i3,a2,"), P=",i2," via ",
-     +                    a8," emission"/)') 
-     +                    Z,N,A,nuc(Z),nex,Exinc,J+0.5*odd,parity,xsp,
-     +                    Zres,Nres,Ares,nuc(Zres),Pres,parname(type)
-                        write(*,'(" Total: ",es10.3,/)') partdecay(type)
-                        write(*,'(" bin    Ex",10("    J=",f4.1)/)') 
-     +                    (Jres+0.5*oddres,Jres=0,9)
-                        do 148 nexout=0,nexmax(type)
-                          write(*,'(1x,i3,f8.3,10es10.3)') 
-     +                      nexout,Ex(Zix,Nix,nexout),
-     +                      (popdecay(type,nexout,Jres,Pres),Jres=0,9)
-  148                   continue
-                        write(*,*)
-  147                 continue
-  146               continue
+                  if (flagpop) then
+                    rJ=0.5*J2
+                    write(*,'(f4.1,i4,8es10.3)') rJ,parity,xsp,
+     +                (partdecaytot(type),type=0,6)
+                    if (flagdecay) then
+                      do 146 type=0,6
+                        if (parskip(type)) goto 146
+                        Zix=Zindex(Zcomp,Ncomp,type)
+                        Nix=Nindex(Zcomp,Ncomp,type)
+                        Zres=ZZ(Zcomp,Ncomp,type)
+                        Nres=NN(Zcomp,Ncomp,type)
+                        Ares=AA(Zcomp,Ncomp,type)
+                        oddres=mod(Ares,2)
+                        do 147 Pres=-1,1,2
+                          write(*,'(/" Total Pprime=",i2,":",es10.3,
+     +                      " via ",a8," emission"/)') 
+     +                      Pres,partdecay(type,Pres),parname(type)
+                           write(*,'(" bin    Ex",10("    J=",f4.1)/)')
+     +                       (Ir+0.5*oddres,Ir=0,9)
+                          do 148 nexout=0,nexmax(type)
+                            write(*,'(1x,i3,f8.3,10es10.3)') 
+     +                        nexout,Ex(Zix,Nix,nexout),
+     +                        (popdecay(type,nexout,Jres,Pres),Jres=0,9)
+  148                     continue
+                          write(*,*)
+  147                   continue
+  146                 continue
+                    endif
                   endif
   145           continue
   140         continue
@@ -730,8 +735,8 @@ c
      +        xspopex(Zcomp,Ncomp,0)
             do 480 nex=1,Nlast(Zcomp,Ncomp,0)
               if (tau(Zcomp,Ncomp,nex).ne.0.)
-     +          write(*,'(" Level",i3,"    :",es12.5)') nex,
-     +            xspopex(Zcomp,Ncomp,nex)
+     +          write(*,'(" Level",i3,"    :",es12.5)') 
+     +            levnum(Zcomp,Ncomp,nex),xspopex(Zcomp,Ncomp,nex)
   480       continue
           endif
 c

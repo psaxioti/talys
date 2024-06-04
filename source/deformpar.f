@@ -9,14 +9,14 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist,first2,first3,first4
-      character*1  colltype1,deftype1,leveltype1
-      character*6  defchar
-      character*90 deffile
-      integer      Zix,Nix,Z,N,A,ia,ndisc,i,natpar,k,iirot,idef,irot,ii,
-     +             nex,distance,k2,odd,vibband1,lband1,Kmag1,iphonon1,
-     +             nrotlev,type,ibar
-      real         deform1(numrotcc),dspin,R
+      logical       lexist,first2,first3,first4
+      character*1   colltype1,deftype1,leveltype1
+      character*6   defchar
+      character*132 deffile
+      integer       Zix,Nix,Z,N,A,ia,ndisc,i,natpar,k,iirot,idef,irot,
+     +              ii,nex,distance,k2,odd,vibband1,lband1,Kmag1,
+     +              iphonon1,nrotlev,type,ibar
+      real          deform1(numrotcc),dspin,R
 c
 c ************************ Read deformation parameters *****************
 c

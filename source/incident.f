@@ -67,8 +67,7 @@ c parinclude   : logical to include outgoing particle
 c flagcomp     : flag for compound nucleus calculation
 c radwidtheory : subroutine for theoretical calculation of total
 c                radiative width
-c gammanorm    : subroutine for normalization of gamma ray strength
-c                functions
+c tgamma       : subroutine for photon transmission coefficients
 c spr          : subroutine for S, P and R' resonance parameters
 c flaginverse  : flag for output of transmission coefficients and
 c                inverse reaction cross sections
@@ -84,7 +83,7 @@ c
       endif
       if ((parinclude(0).or.flagcomp).and.Einc.le.100.) then
         call radwidtheory(0,0,Einc)
-        if (strength.eq.1) call gammanorm(0,0)
+        if (strength.eq.1) call tgamma(0,0)
       endif
       if (k0.eq.1.and.(parinclude(0).or.flagcomp)) call spr
       if (flaginverse) call incidentout

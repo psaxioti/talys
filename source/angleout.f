@@ -27,9 +27,7 @@ c cleg        : compound nucleus Legendre coefficient
 c tlegnor     : total Legendre coefficient normalized to 1
 c fileelastic : flag for elastic angular distribution on separate file
 c parsym      : symbol of particle
-c Atarget     : mass number of target nucleus
 c Ztarget     : charge number of target nucleus
-c Starget     : symbol of target nucleus
 c Einc        : incident energy in MeV
 c cleg0       : Legendre coefficient normalized to the first one
 c
@@ -67,9 +65,9 @@ c
             write(legfile(16:17),'(i2.2)') Ltarget
             open (unit=1,file=legfile,status='unknown')
           endif
-          write(1,'("# ",a1," + ",i3,a2,
+          write(1,'("# ",a1," + ",a,
      +      " Elastic scattering Legendre coefficients")') parsym(k0),
-     +      Atarget,Starget
+     +      trim(targetnuclide)
           write(1,'("# E-incident = ",f10.5)') Einc
           write(1,'("# ")')
           write(1,'("# # coeff.   =",i4)') J2end+1
@@ -125,9 +123,9 @@ c
             write(discfile(16:17),'(i2.2)') Ltarget
             open (unit=1,file=discfile,status='unknown')
           endif
-          write(1,'("# ",a1," + ",i3,a2,
+          write(1,'("# ",a1," + ",a,
      +      " Elastic scattering angular distribution")') parsym(k0),
-     +      Atarget,Starget
+     +      trim(targetnuclide)
           write(1,'("# E-incident = ",f10.5)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i4)') nangle+1
@@ -142,11 +140,12 @@ c
         endif
       else
         write(*,'(" Angle        Total            Direct",
-     +    "       Compound       c.s/Rutherford"/)')
+     +    "       Compound       c.s/Rutherford  Nuc+interference"/)')
         do 50 iang=0,nangle
-          write(*,'(1x,f5.1,4es16.5)') angle(iang),
+          write(*,'(1x,f5.1,5es16.5)') angle(iang),
      +      max(discad(k0,Ltarget,iang),directad(k0,Ltarget,iang)),
-     +      directad(k0,Ltarget,iang),compad(k0,Ltarget,iang),ruth(iang)
+     +      directad(k0,Ltarget,iang),compad(k0,Ltarget,iang),
+     +      ruth(iang),elasni(iang)
    50   continue
 c
 c Write results to separate file
@@ -171,19 +170,19 @@ c
             write(discfile(16:17),'(i2.2)') Ltarget
             open (unit=1,file=discfile,status='unknown')
           endif
-          write(1,'("# ",a1," + ",i3,a2,
+          write(1,'("# ",a1," + ",a,
      +      " Elastic scattering angular distribution")') parsym(k0),
-     +      Atarget,Starget
+     +      trim(targetnuclide)
           write(1,'("# E-incident = ",f10.5)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i4)') nangle+1
           write(1,'("# Angle       xs            Direct",
-     +      "         Compound    c.s./Rutherford")')
+     +      "         Compound    c.s./Rutherford  Nuc+interference")')
           do 60 iang=0,nangle
-            write(1,'(f5.1,4es16.5)') angle(iang),
+            write(1,'(f5.1,5es16.5)') angle(iang),
      +        max(discad(k0,Ltarget,iang),directad(k0,Ltarget,iang)),
      +        directad(k0,Ltarget,iang),compad(k0,Ltarget,iang),
-     +        ruth(iang)
+     +        ruth(iang),elasni(iang)
    60     continue
           close (unit=1)
         endif
@@ -238,9 +237,9 @@ c
               write(legfile(16:17),'(i2.2)') i
               open (unit=1,file=legfile,status='unknown')
             endif
-            write(1,'("# ",a1," + ",i3,a2,
+            write(1,'("# ",a1," + ",a,
      +        " Inelastic scattering Legendre coefficients"," - Level",
-     +        i3)')  parsym(k0),Atarget,Starget,i
+     +        i3)')  parsym(k0),trim(targetnuclide),i
             write(1,'("# E-incident = ",f10.5)') Einc
             write(1,'("# ")')
             write(1,'("# # coeff.   =",i4)') J2end+1
@@ -290,9 +289,9 @@ c
             write(discfile(16:17),'(i2.2)') i
             open (unit=1,file=discfile,status='unknown')
           endif
-          write(1,'("# ",a1," + ",i3,a2,
+          write(1,'("# ",a1," + ",a,
      +      " Inelastic scattering angular distribution",
-     +      " - Level",i3)') parsym(k0),Atarget,Starget,i
+     +      " - Level",i3)') parsym(k0),trim(targetnuclide),i
           write(1,'("# E-incident = ",f10.5)') Einc
           write(1,'("# ")')
           write(1,'("# # angles   =",i4)') nangle+1
@@ -355,9 +354,9 @@ c
                 write(legfile(16:17),'(i2.2)') i
                 open (unit=1,file=legfile,status='unknown')
               endif
-              write(1,'("# ",a1," + ",i3,a2," (",a1,",",a1,
+              write(1,'("# ",a1," + ",a," (",a1,",",a1,
      +          ") Legendre coefficients"," - Level",i3)') parsym(k0),
-     +          Atarget,Starget,parsym(k0),parsym(type),i
+     +          trim(targetnuclide),parsym(k0),parsym(type),i
               write(1,'("# E-incident = ",f10.5)') Einc
               write(1,'("# ")')
               write(1,'("# # coeff.   =",i4)') J2end+1
@@ -410,9 +409,9 @@ c
               write(discfile(16:17),'(i2.2)') i
               open (unit=1,file=discfile,status='unknown')
             endif
-            write(1,'("# ",a1," + ",i3,a2," (",a1,",",a1,
+            write(1,'("# ",a1," + ",a," (",a1,",",a1,
      +        ") angular distributions - Level",i3)') parsym(k0),
-     +        Atarget,Starget,parsym(k0),parsym(type),i
+     +        trim(targetnuclide),parsym(k0),parsym(type),i
             write(1,'("# E-incident = ",f10.5)') Einc
             write(1,'("# ")')
             write(1,'("# # angles   =",i4)') nangle+1

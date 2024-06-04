@@ -35,7 +35,6 @@ c numinclow : number of incident energies below Elow
 c parsym    : symbol of particle
 c k0        : index of incident particle
 c Atarget   : mass number of target nucleus
-c Starget   : symbol of target nucleus
 c Ztarget   : charge number of target nucleus
 c numinc    : number of incident energies
 c eninc,Einc: incident energy in MeV
@@ -45,8 +44,8 @@ c
           write(totfile(1:1),'(a1)') parsym(type)
           if (nin.eq.numinclow+1) then
             open (unit=1,file=totfile,status='replace')
-            write(1,'("# ",a1," + ",i3,a2," Total ",a8," production")')
-     +        parsym(k0),Atarget,Starget,parname(type)
+            write(1,'("# ",a1," + ",a," Total ",a8," production")')
+     +        parsym(k0),trim(targetnuclide),parname(type)
             write(1,'("# Q-value    =",es12.5)') Q(type)
             write(1,'("# ")')
             write(1,'("# # energies =",i6)') numinc
@@ -82,8 +81,8 @@ c
           fisfile='fission.tot'//natstring(iso)
           if (nin.eq.numinclow+1) then
             open (unit=1,file=fisfile,status='replace')
-            write(1,'("# ",a1," + ",i3,a2,"   : (",a1,",f)        ",
-     +        "  Total")') parsym(k0),Atarget,Starget,parsym(k0)
+            write(1,'("# ",a1," + ",a,"   : (",a1,",f)        ",
+     +        "  Total")') parsym(k0),trim(targetnuclide),parsym(k0)
             write(1,'("# ")')
             write(1,'("# ")')
             write(1,'("# # energies =",i6)') numinc

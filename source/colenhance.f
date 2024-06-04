@@ -3,14 +3,14 @@ c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn, Arjan Koning, Stephane Hilaire,
 c |         Stephane Goriely and Pascal Romain
-c | Date  : April 4, 2012
+c | Date  : April 4, 2022
 c | Task  : Collective enhancement
 c +---------------------------------------------------------------------
 c
 c ******************* Declarations and common blocks *******************
 c
       include "talys.cmb"
-      character*80 key
+      character*132 key
       integer      Zix,Nix,ibar,A,l
       real         Eex,ald,Krot,Kvib,Kcoll,Krot0,Kvib0,U,aldgs,ignatyuk,
      +             Temp,Kr,factor,rotfactor,aldint,damprot,avib,Pvib,
@@ -176,9 +176,9 @@ c
 c Calculation of damping function and Krot
 c
 c damper      : energy damping function
-c Ufermi      : energy of Fermi distribution for damping of ground-state
+c Ufermi      : energy of Fermi distribution for damping of 
 c             : rotational effects
-c cfermi      : width of Fermi distribution for damping of ground-state
+c cfermi      : width of Fermi distribution for damping of 
 c               rotational effects
 c spincutgs   : spin-cutoff parameter squared (perpendicular projection)
 c               for ground state
@@ -186,10 +186,10 @@ c Irigid      : rigid body value of moment of inertia
 c
 c Ground state
 c
+        damper=0.
+        expo=(U-Ufermi(Zix,Nix,ibar))/cfermi(Zix,Nix,ibar)
+        if (expo.le.80.) damper=1./(1.+exp(expo))
         if (ibar.eq.0) then
-          damper=0.
-          expo=(U-Ufermi)/cfermi
-          if (expo.le.80.) damper=1./(1.+exp(expo))
           spincutgs=Kr*Irigid(Zix,Nix,0)*Temp
           Krot0=max(spincutgs,1.)
 c
@@ -206,16 +206,13 @@ c twopi    : 2.*pi
 c spincut  : spin cutoff factor
 c
         else
-          damper=0.
-          expo=(U-Ufermibf)/cfermibf
-          if (expo.le.80.) damper=1./(1.+exp(expo))
           spincutbf=Krotconstant(Zix,Nix,ibar)*Irigid(Zix,Nix,ibar)*
      +      Temp
           if (axtype(Zix,Nix,ibar).eq.1) Krot0=spincutbf
           if (axtype(Zix,Nix,ibar).eq.2) Krot0=2.*spincutbf
           if (axtype(Zix,Nix,ibar).ge.3) then
             aldf=ignatyuk(Zix,Nix,Eex,ibar)
-            term=spincutbf*sqrt(spincut(Zix,Nix,aldf,Eex,ibar)*
+            term=spincutbf*sqrt(spincut(Zix,Nix,aldf,Eex,ibar,0)*
      +        (1.-twothird*abs(beta2(Zix,Nix,ibar))))
             if (axtype(Zix,Nix,ibar).eq.3) Krot0=0.5*sqrt(twopi)*term
             if (axtype(Zix,Nix,ibar).eq.4) Krot0=sqrt(twopi)*term

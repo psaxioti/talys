@@ -12,7 +12,7 @@ c
       logical          lexist,inpalev,inpdeltaW,inpalimit,inpgammald
       character*5      denchar
       character*22     denformat
-      character*90     denfile
+      character*132    denfile
       integer          Zix,Nix,Z,N,A,ldmod,ia,Nlow0,Ntop0,ibar,imax,
      +                 imin,i,oddZ,oddN,iloop
       real             ald0,pshift0,scutoffsys,sigsum,denom,rj,sd,ald,
@@ -101,11 +101,11 @@ c
      +        Pshift(Zix,Nix,ibar)=pshift0+Pshiftadjust(Zix,Nix,ibar)
    20     continue
         else
-          if (ctable(Zix,Nix,0).eq.1.e-20) 
-     +      ctable(Zix,Nix,0)=ald0+ctableadjust(Zix,Nix,0)
-          if (ptable(Zix,Nix,0).eq.1.e-20) 
-     +      ptable(Zix,Nix,0)=pshift0+ptableadjust(Zix,Nix,0)
+          if (ctable(Zix,Nix,0).eq.1.e-20) ctable(Zix,Nix,0)=ald0
+          if (ptable(Zix,Nix,0).eq.1.e-20) ptable(Zix,Nix,0)=pshift0
         endif
+        ctable(Zix,Nix,0)=ctable(Zix,Nix,0)+ctableadjust(Zix,Nix,0)
+        ptable(Zix,Nix,0)=ptable(Zix,Nix,0)+ptableadjust(Zix,Nix,0)
       endif
    30 close (unit=2)
 c
@@ -119,7 +119,11 @@ c nfistrrot: number of rotational transition states for barrier
 c
       do 40 ibar=0,nfisbar(Zix,Nix)
         if (ibar.eq.0) then
-          Nlast(Zix,Nix,ibar)=nlev(Zix,Nix)
+          if (Ntop(Zix,Nix,ibar).eq.-1) then
+            Nlast(Zix,Nix,ibar)=nlev(Zix,Nix)
+          else
+            Nlast(Zix,Nix,ibar)=min(Ntop(Zix,Nix,ibar),nlev(Zix,Nix))
+          endif
         else
           Nlast(Zix,Nix,ibar)=max(nfistrrot(Zix,Nix,ibar),1)
         endif

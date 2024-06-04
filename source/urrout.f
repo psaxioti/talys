@@ -23,7 +23,6 @@ c flagurrendf: flag for URR info for ENDF
 c nin        : counter for incident energy
 c Ztarget    : charge number of target nucleus
 c Atarget    : mass number of target nucleus
-c Starget    : symbol of target nucleus
 c Ltarget    : excited level of target
 c jdis       : spin of level
 c xscaptherm : thermal capture cross section
@@ -47,8 +46,8 @@ c
         open (unit=21,file='urr.dat',status='unknown')
         write(21,'("#")')
         write(21,'("# Resonance parameters for Z=",i4," A=",i4," (",
-     +    i3,a2,") Target spin=",f4.1)') Ztarget,Atarget,Atarget,
-     +    Starget,jdis(0,1,Ltarget)
+     +    a,") Target spin=",f4.1)') Ztarget,Atarget,
+     +    trim(targetnuclide),jdis(0,1,Ltarget)
         write(21,'("# Thermal capture cross section=",es12.5," mb",
      +    "   Sn=",es12.5," MeV")') xscaptherm(-1),S(0,0,1)
         write(21,'("#")')
@@ -121,8 +120,8 @@ c
           if (.not.urrexist(type,l)) then
             urrexist(type,l)=.true.
             open (unit=1,file=urrfile,status='replace')
-            write(1,'("# ",a1," + ",i3,a2," l-value:",i2)')
-     +        parsym(k0),Atarget,Starget,l
+            write(1,'("# ",a1," + ",a," l-value:",i2)')
+     +        parsym(k0),trim(targetnuclide),l
             write(1,'("# URR parameters for ENDF-6 format")')
             if (type.eq.-1) write(1,'("# Average fission width")')
             if (type.eq.0) write(1,'("# Average radiation width")')
@@ -173,8 +172,8 @@ c
           if (.not.urrexist(type,l)) then
             urrexist(type,l)=.true.
             open (unit=1,file=urrfile,status='replace')
-            write(1,'("# ",a1," + ",i3,a2," l-value:",i2)')
-     +        parsym(k0),Atarget,Starget,l
+            write(1,'("# ",a1," + ",a," l-value:",i2)')
+     +        parsym(k0),trim(targetnuclide),l
             write(1,'("# URR parameters for ENDF-6 format")')
             if (type.eq.7) then
               write(1,'("# Mean level spacing per l")')
@@ -236,7 +235,7 @@ c
         if (.not.urrexist(type,0)) then
           urrexist(type,0)=.true.
           open (unit=1,file=urrfile,status='replace')
-          write(1,'("# ",a1," + ",i3,a2)') parsym(k0),Atarget,Starget
+          write(1,'("# ",a1," + ",a)') parsym(k0),trim(targetnuclide)
           if (type.eq.9) then
             write(1,'("# URR cross section with formalism from NJOY")')
             write(1,'("# Rprime[fm] = ",es12.5)') RprimeU

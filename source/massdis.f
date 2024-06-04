@@ -545,20 +545,23 @@ c ffmodel  : fission fragment model,
 c            1: GEF (database by Ali Al-Adili and Fredrik Nordstroem) 
 c            2: HF3D (Okumura) (database by Toshihiko Kawano)
 c            3: SPY (Okumura) (Jean-Francois Lemaitre)
+c            4: Langevin-4D (Titech)
 c
         if (fymodel.eq.4) then
           if (yieldfile(1:1).eq.' ') then
             Effrel=Etotal
             ffpath=trim(path)//'fission/ff/'
+            if (ffmodel.eq.0) ffname='user'
             if (ffmodel.eq.1) ffname='gef'
             if (ffmodel.eq.2) ffname='hf3d'
             if (ffmodel.eq.3) ffname='spy'
+            if (ffmodel.eq.4) ffname='langevin4d'
             ffpath=trim(ffpath)//trim(ffname)//'/'
             massstring='   '
             Afile=Ainit
             Sfile=nuc(Zinit)
             write(massstring,'(i3.3)') Afile
-            nucstring=trim(Sfile)//massstring//isochar(Lisoinp)
+            nucstring=trim(Sfile)//massstring
             ffpath=trim(ffpath)//trim(nucstring)//'/'
             Efile=trim(ffpath)//trim(nucstring)//'_'//trim(ffname)//'.E'
             inquire (file=Efile,exist=lexist)
@@ -613,7 +616,7 @@ c
               stop
             endif
             open (unit=1,file=Yfile(k),status='unknown')
-            read(1,'(///13x,i4)') Ntotal(k)
+            read(1,'(///13x,i6)') Ntotal(k)
             read(1,'(a)') string
             do i=1,Ntotal(k)
               read(1,'(a)',end=164) string

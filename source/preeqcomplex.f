@@ -88,7 +88,7 @@ c
         do 120 nen=ebegin(type),eend(type)
           xspecomp=xspreeqps(type,nen)+xspreeqki(type,nen)+
      +      xspreeqbu(type,nen)
-          if (pespinmodel.eq.3.and.xspreeq(type,nen).ne.0.) then
+          if (pespinmodel.ge.3.and.xspreeq(type,nen).ne.0.) then
             do 130 parity=-1,1,2
               do 130 J=0,maxJph
                 factor=xspreeqJP(type,nen,J,parity)/xspreeq(type,nen)

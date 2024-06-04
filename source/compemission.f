@@ -92,9 +92,6 @@ c
           Nix=Nindex(Zcomp,Ncomp,type)
           NL=Nlast(Zix,Nix,0)
           SS=S(Zcomp,Ncomp,type)
-c
-c end of recoil initialisation
-c
           do 120 nen=1,numen
             xsgrid(nen)=0.
             xsmpegrid(nen)=0.
@@ -106,10 +103,10 @@ c mcontrib: contribution to emission spectrum
 c speceps : limit for cross section spectra
 c
           do 130 nexout=0,nexmax(type)
-            dEx=deltaEx(Zix,Nix,nexout)
             if (nexout.eq.0.and.NL.eq.0) goto 130
             if (mcontrib(type,nex,nexout).le.speceps) goto 130
             Exout=Ex(Zix,Nix,nexout)
+            dEx=deltaEx(Zix,Nix,nexout)
 c
 c Decay from continuum to continuum. For most residual continuum
 c bins, no special care needs to be taken and the emission energy Eout
@@ -129,11 +126,10 @@ c Eout   : emission energy
 c
             if (nexout.gt.NL) then
               Ex1min=Exout-0.5*dEx
+              Ex1plus=Exout+0.5*dEx
               if (nexout.eq.nexmax(type).and.type.ge.1) then
                 Ex1plus=Ex0plus-SS
                 Exout=0.5*(Ex1plus+Ex1min)
-              else
-                Ex1plus=Exout+0.5*dEx
               endif
               emin=Ex0min-SS-Ex1plus
               emin=max(emin,0.)
@@ -170,8 +166,8 @@ c nenbeg,nenend: help variables
 c dE           : emission bin
 c dEhalf       : half of emission bin
 c
-c After the bottom (emin) and top (emax) of the excitation energy
-c bin have been determined. Then the begin and end points for the
+c the bottom (emin) and top (emax) of the excitation energy
+c bin have been determined, the begin and end points for the
 c spectrum are located.
 c
             call locate(Ebottom,ebegin(type),eend(type),emin,nenbeg)
@@ -261,6 +257,8 @@ c
                     term=xso00+edist/dExinc*(xsop0-xso00)
                   endif
                 endif
+cTK 2022-10-24
+c               term=xso00
                 term=max(term,0.)
                 weight(nen)=term*deltaE(nen)
   150         continue

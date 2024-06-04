@@ -9,7 +9,7 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80 key
+      character*132 key
       logical      flagknock,flaginel
       integer      type,ndelta,type2,nen
       real         proj2sp1,ejecmass,ejec2sp1,termki,AKO,Ccl,phi,denom,

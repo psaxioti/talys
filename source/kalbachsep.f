@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 10, 2004
+c | Date  : January 29, 2023
 c | Task  : Separation energies for Kalbach systematics
 c +---------------------------------------------------------------------
 c
@@ -32,7 +32,7 @@ c
 c We use the 'old' Myers-Swiatecki parameters as used by Kalbach
 c in Phys. Rev. C37, 2350, (1988).
 c
-      do 10 type=1,6
+      do type=1,6
         Z=ZZ(0,0,type)
         A=AA(0,0,type)
         Ac=real(Ainit)
@@ -51,7 +51,7 @@ c
      +    33.22*((Nc-Zc)**2/Ac**(2.*twothird)-(Nb-Zb)**2/Ab**
      +    (2.*twothird))-0.717*(Zc**2/(Ac**onethird)-
      +    Zb**2/(Ab**onethird))+1.211*(Zc**2/Ac-Zb**2/Ab)-Ib
-   10 continue
+      enddo
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

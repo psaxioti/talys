@@ -139,8 +139,6 @@ c associated normalization factors.
 c
 c cfratio     : compound formation ratio
 c colltype    : type of collectivity (D, V or R)
-c flagrot     : flag for use of rotational optical model per
-c               outgoing particle, if available
 c norm        : normalization factor
 c xsflux      : cross section flux
 c xsdirdiscsum: total direct cross section
@@ -156,7 +154,7 @@ c already depleted by the contribution going into the strongly coupled
 c inelastic channels.
 c
       cfratio=0.
-      if (colltype(Zix,Nix).ne.'S'.and.flagrot(k0)) then
+      if (colltype(Zix,Nix).ne.'S'.and..not.flagspher) then
         norm=1.
         xsflux=xsreacsum-xsdirdiscsum+xscoupled-xspreeqsum-xsgrsum
         if (xsreacsum.gt.0.) cfratio=xsflux/xsreacsum

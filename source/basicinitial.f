@@ -2,14 +2,14 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 25, 2009
+c | Date  : January 24, 2023
 c | Task  : Initialization of arrays for basic cross sections
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer nen,type,l,ispin
+      integer nen
 c
 c *************************** Initialization ***************************
 c
@@ -26,29 +26,16 @@ c             energy and l-value (averaged over spin)
 c Tjl       : transmission coefficients as a function of particle type,
 c             energy, spin and l-value
 c
-      do 10 nen=0,numen
-        do 10 type=0,6
-          if (type.eq.0) then
-            lmax(type,nen)=0
-          else
-            lmax(type,nen)=gammax
-          endif
-          xstot(type,nen)=0.
-          xsreac(type,nen)=0.
-          xsopt(type,nen)=0.
-          xselas(type,nen)=0.
-   10 continue
-      do 20 l=0,numl
-        do 20 nen=0,numen
-          do 20 type=0,6
-            Tl(type,nen,l)=0.
-   20 continue
-      do 30 l=0,numl
-        do 30 ispin=-1,1
-          do 30 nen=0,numen
-            do 30 type=0,6
-              Tjl(type,nen,ispin,l)=0.
-   30 continue
+      lmax=0
+      do nen=0,numen
+        lmax(0,nen)=gammax
+      enddo
+      xstot=0.
+      xsreac=0.
+      xsopt=0.
+      xselas=0.
+      Tl=0.
+      Tjl=0.
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

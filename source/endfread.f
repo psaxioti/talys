@@ -188,7 +188,6 @@ c
 c parsym    : symbol of particle
 c Atarget   : mass number of target nucleus
 c Ztarget   : charge number of target nucleus
-c Starget   : symbol of target nucleus
 c numinclow : number of incident energies below Elow
 c fxsnonel  : non-elastic cross section for incident channel
 c fxselastot: total elastic cross section (neutrons only) for
@@ -196,8 +195,8 @@ c             incident channel
 c fxstotinc : total cross section (neutrons only) for incident channel
 c
       open (unit=1,file='endf.tot',status='replace')
-      write(1,'("# ",a1," + ",i3,a2," Total cross sections")')
-     +  parsym(k0),Atarget,Starget
+      write(1,'("# ",a1," + ",a," Total cross sections")')
+     +  parsym(k0),trim(targetnuclide)
       write(1,'("# ")')
       write(1,'("# ")')
       write(1,'("# # energies =",i6)') nen6+numinclow
@@ -215,8 +214,8 @@ c
 c Total cross sections only
 c
       open (unit=1,file='endftot.tot',status='replace')
-      write(1,'("# ",a1," + ",i3,a2," Total cross sections")')
-     +  parsym(k0),Atarget,Starget
+      write(1,'("# ",a1," + ",a," Total cross sections")')
+     +  parsym(k0),trim(targetnuclide)
       write(1,'("# ")')
       write(1,'("# ")')
       write(1,'("# # energies =",i6)') nen6+numinclow
@@ -232,8 +231,8 @@ c
 c Elastic cross sections only
 c
       open (unit=1,file='endfel.tot',status='replace')
-      write(1,'("# ",a1," + ",i3,a2," Elastic cross sections")')
-     +  parsym(k0),Atarget,Starget
+      write(1,'("# ",a1," + ",a," Elastic cross sections")')
+     +  parsym(k0),trim(targetnuclide)
       write(1,'("# ")')
       write(1,'("# ")')
       write(1,'("# # energies =",i6)') nen6+numinclow
@@ -249,8 +248,8 @@ c
 c Nonelastic cross sections only
 c
       open (unit=1,file='endfnon.tot',status='replace')
-      write(1,'("# ",a1," + ",i3,a2," Nonelastic cross sections")')
-     +  parsym(k0),Atarget,Starget
+      write(1,'("# ",a1," + ",a," Nonelastic cross sections")')
+     +  parsym(k0),trim(targetnuclide)
       write(1,'("# ")')
       write(1,'("# ")')
       write(1,'("# # energies =",i6)') nen6+numinclow

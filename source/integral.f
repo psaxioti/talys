@@ -15,13 +15,13 @@ c
       character*1    isostring(numflux)
       character*3    Astring,ext
       character*8    reac,reacstr(numflux)
-      character*80   word(40)
+      character*132  word(40)
       character*132  xsfile,fluxfile
       character*200  line
       integer        i,istat,nen,Nspec,Nxs,nen0,is,k,L
-      real           Efluxup(0:numenin),Eflux(0:numenin),fspec(numenin),
+      real           Eflux(0:numenin),fspec(numenin),
      +               fluxsum,Exs(0:numP),xs(0:numP),xseff,Efl,Ea1,
-     +               Eb1,xsa,xsb,xsf,xsexp,ratio
+     +               Eb1,xsa,xsb,xsf,xsexp,ratio,igr,Eup,elow,dum,sp
 c
 c ********* Read reaction channels with integral cross sections ********
 c
@@ -36,15 +36,18 @@ c
         open (unit=2,file=xsfile,status='old',iostat=istat)
         if (istat.eq.0) then
           i=1
-   5      read(2,'(a)',err=8,end=8) line
-          call getkeywords(line(1:80),word)
-          reacstr(i)=trim(word(3))
-          fluxname(i)=trim(word(5))
-          isostring(i)=trim(word(8))
-          read(line(139:148),*) integralexp(i)
-          i=i+1
-          goto 5
-   8      close (unit=2)
+          do 
+            read(2,'(a)',iostat=istat) line
+            if (istat.ne.0) exit
+            call getkeywords(line(1:132),word)
+            reacstr(i)=trim(word(3))
+            isostring(i)=trim(word(4))
+            fluxname(i)=trim(word(5))
+            read(line(41:49),*) integralexp(i)
+c           read(line(51:59),*) dintegralexp(i)
+            i=i+1
+          enddo 
+          close (unit=2)
           Nflux=i-1
         endif
       endif
@@ -52,6 +55,7 @@ c
 c Determine corresponding TALYS output file
 c
       do i=1,Nflux
+        reac=''
         ext='tot'
         if (trim(reacstr(i)).eq.'n,g') reac='xs000000'
         if (trim(reacstr(i)).eq.'n,p') reac='xs010000'
@@ -95,40 +99,39 @@ c Nflux   : number of reactions with integral data
 c path    : directory containing structure files to be read
 c Eflux   : energy of bin for flux
 c Efl     : energy of bin for flux
-c Efluxup : upper energy of bin for flux
 c fluxfile: file with experimental integral spectrum
 c fluxname: name of experimental flux
 c Nspec   : number of spectral energies
 c fspec   : spectrum values
 c
       open (unit=1,file='integral.dat',status='replace')
-      write(1,'("# ",a1," + ",i3,a2,
+      write(1,'("# ",a1," + ",a,
      +  ": Effective cross sections from integral data")')
-     +  parsym(k0),Atarget,Starget
-      write(1,'("# Channel      Flux          Eff. c.s. (b)",
-     +  " Exp. c.s. (b)       Ratio")')
+     +  parsym(k0),trim(targetnuclide)
+      write(1,'("# Channel      Spectrum        Eff. xs (b)",
+     +  " Exp. xs (b)         Ratio")')
       do 10 i=1,Nflux
-        fluxfile=trim(path)//'integral/spectra/spectrum.'//fluxname(i)
+        fluxfile=trim(path)//'integral/spectra/'//trim(fluxname(i))//
+     +    '.txt'
         open (unit=2,file=fluxfile,status='old',iostat=istat)
         if (istat.eq.0) then
-          read(2,'(1x,i4)') Nspec
-          do 110 nen=Nspec,1,-1
-            read(2,*) nen0,Efluxup(nen),fspec(nen)
-  110     continue
+          read(2,'()')
+          read(2,'()')
+          nen=0
+          fluxsum=0
+          do
+            read(2,*,iostat=istat) igr,Eup,elow,dum,sp
+            if (istat.ne.0) exit
+            nen=nen+1
+            fspec(nen)=sp
+            Eflux(nen)=0.5*(Eup+Elow)*1.e-6
+            fluxsum=fluxsum+sp
+          enddo
           close (unit=2)
-c
-c Determine middle of histograms and energy bins. Calculate the
-c integral of the flux for normalization.
-c
-          fluxsum=0.
-          Efluxup(0)=Efluxup(1)
-          do 120 nen=1,Nspec
-            Eflux(nen)=0.5*(Efluxup(nen-1)+Efluxup(nen))*1.e-6
-            fluxsum=fluxsum+fspec(nen)
-  120     continue
+          Nspec=nen
         else
-          write(*,'(" TALYS-warning: integral spectrum file ",a80,
-     +      "does not exist")') fluxfile
+          write(*,'(" TALYS-warning: integral spectrum file ",a,
+     +      " does not exist")') trim(fluxfile)
           goto 10
         endif
 c
@@ -144,7 +147,8 @@ c
           xs(0)=0.
           read(3,'(///,14x,i6,/)') Nxs
           do 210 nen=1,Nxs
-            read(3,*) Exs(nen),xs(nen)
+            read(3, *, iostat=istat ) Exs(nen), xs(nen)
+            if (istat == -1) exit
   210     continue
           close (unit=3)
         else

@@ -9,9 +9,9 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer l,i,nen,iang,Zix,Nix,iangd(0:numangcont)
+      integer l,i,nen,iang,Zix,Nix,iangd(0:numangcont),J,parity
       real    wscale,grwidth,fac1,fac2,sumgauss,edist,gauss(0:numen),
-     +        weight,diswidth,dang
+     +        weight,diswidth,dang,term
 c
 c ************* Smearing of giant resonances into spectra **************
 c
@@ -93,9 +93,9 @@ c deltaE       : energy bin around outgoing energies
 c collcontad   : collective angular distribution in the continuum
 c directad     : direct angular distribution
 c
-      if (xscollconttot.eq.0.) return
-      xsgrtot(k0)=xsgrtot(k0)+xscollconttot
-      xsgrsum=xsgrsum+xscollconttot
+      if (xscollconttot(k0).eq.0.) return
+      xsgrtot(k0)=xsgrtot(k0)+xscollconttot(k0)
+      xsgrsum=xsgrsum+xscollconttot(k0)
       if (flagddx) then
         dang=180./nangle
         do 105 iang=0,nanglecont
@@ -119,12 +119,17 @@ c
           sumgauss=sumgauss+gauss(nen)
   120   continue
         if (sumgauss.ne.0.) then
+          J=jdis(Zix,Nix,i)
+          parity=parlev(Zix,Nix,i)
           do 130 nen=ebegin(k0),eend(k0)
             weight=gauss(nen)/sumgauss/deltaE(nen)
-            xscollcont(nen)=xscollcont(nen)+weight*xsdirdisc(k0,i)
+            term=weight*xsdirdisc(k0,i)
+            xscollcont(k0,nen)=xscollcont(k0,nen)+term
+            xscollcontJP(k0,J,parity,nen)=xscollcontJP(k0,J,parity,nen)+
+     +        term
             if (flagddx) then
               do 140 iang=0,nanglecont
-                collcontad(nen,iang)=collcontad(nen,iang)+
+                collcontad(k0,nen,iang)=collcontad(k0,nen,iang)+
      +            weight*directad(k0,i,iangd(iang))
   140         continue
             endif
@@ -135,10 +140,11 @@ c
 c Add collective contribution to giant resonance results
 c
       do 210 nen=ebegin(k0),eend(k0)
-        xsgr(k0,nen)=xsgr(k0,nen)+xscollcont(nen)
+        xsgr(k0,nen)=xsgr(k0,nen)+xscollcont(k0,nen)
         if (flagddx) then
           do 220 iang=0,nanglecont
-            xsgrad(k0,nen,iang)=xsgrad(k0,nen,iang)+collcontad(nen,iang)
+            xsgrad(k0,nen,iang)=xsgrad(k0,nen,iang)+
+     +        collcontad(k0,nen,iang)
   220     continue
         endif
   210 continue

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Marieke Duijvestijn and Arjan Koning
-c | Date  : July 9, 2004
+c | Date  : January 24, 2023
 c | Task  : Initialization of exciton model parameters
 c +---------------------------------------------------------------------
 c
@@ -30,13 +30,13 @@ c
       wfac(0)=pi2h3c2
       Zcomp=0
       Ncomp=0
-      do 10 type=1,6
-        if (parskip(type)) goto 10
+      do type=1,6
+        if (parskip(type)) cycle
         Zix=Zindex(Zcomp,Ncomp,type)
         Nix=Nindex(Zcomp,Ncomp,type)
         wfac(type)=amupi2h3c2*(2.*parspin(type)+1.)*
      +    redumass(Zix,Nix,type)
-   10 continue
+      enddo
 c
 c ******************* Q-factors for emission rate **********************
 c
@@ -74,19 +74,19 @@ c
       NoverA=real(Ninit)/real(Ainit)
       zproj=parZ(k0)
       nproj=parN(k0)
-      do 110 type=1,6
-        do 120 p=1,numparx
+      do type=1,6
+        do p=1,numparx
           Qfactor(type,p)=1.
-  120   continue
-        if (parskip(type)) goto 110
+        enddo
+        if (parskip(type)) cycle
         zejec=parZ(type)
         nejec=parN(type)
         aejec=parA(type)
-        do 130 p=1,maxpar
-          if (p.lt.aejec) goto 130
+        do p=1,maxpar
+          if (p.lt.aejec) cycle
           Qenum=0.
           Qdenom=0.
-          do 140 ppi=zproj,p-nproj
+          do ppi=zproj,p-nproj
             hpi=ppi-zproj
             npi=ppi+hpi
             pnu=p-ppi
@@ -97,16 +97,16 @@ c
             factor3=1./real(nfac(ppi)*nfac(pnu))
             factor4=real(nfac(hpi)*nfac(hnu))
             Qdenom=Qdenom+factor1*factor2*factor3/factor4
-            if (ppi.lt.zejec.or.pnu.lt.nejec) goto 140
+            if (ppi.lt.zejec.or.pnu.lt.nejec) cycle
             factor5=ZoverA**(npi-zejec)
             factor6=NoverA**(nnu-nejec)
             factor7=1./real(nfac(ppi-zejec)*nfac(pnu-nejec))
             Qenum=Qenum+factor5*factor6*factor7/factor4
-  140     continue
+          enddo
           if (Qdenom.gt.0.) Qfactor(type,p)=(Qenum/Qdenom)*
      +      real(nfac(p-aejec))/real(nfac(p))
-  130   continue
-  110 continue
+        enddo
+      enddo
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

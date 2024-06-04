@@ -9,12 +9,12 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist
-      character*5  denchar
-      character*90 denfile
-      integer      Zix,Nix,Z,A,ia,nex,i,nex2
-      real         phden2(0:numdens,numconf),phden(0:numdens,numconf),
-     +             sum
+      logical       lexist
+      character*5   denchar
+      character*132 denfile
+      integer       Zix,Nix,Z,A,ia,nex,i,nex2
+      real          phden2(0:numdens,numconf),phden(0:numdens,numconf),
+     +              sum
 c
 c ******** Tabulated particle-hole level densities from Hilaire ********
 c

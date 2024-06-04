@@ -2,14 +2,13 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire and Stephane Goriely
-c | Date  : November 10, 2016
+c | Date  : January 24, 2023
 c | Task  : Initialization of astrophysics quantities
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer in,iz,nen,i,nex
 c
 c **** Initialization of arrays of astrophysics interest ***************
 c
@@ -33,34 +32,18 @@ c xsastrofis  : astrophysical fission cross section
 c
       maxZastro=numZastro
       maxNastro=numNastro
-      do 10 in=0,numNastro
-        do 20 iz=0,numZastro
-          do 30 nen=1,numinc
-            xsastro(iz,in,nen)=0.
-            do 40 nex=0,numlev
-              xsastroex(iz,in,nen,nex)=0.
-   40       continue
-   30     continue
-          do 50 i=1,numT
-            rateastro(iz,in,i)=0.
-            macsastro(iz,in,i)=0.
-            do 60 nex=0,numlev
-              rateastroex(iz,in,i,nex)=0.
-              macsastroex(iz,in,i,nex)=0.
-   60       continue
-   50     continue
-   20   continue
-   10 continue
-      do 110 i=1,numT
-        partf(i)=0.
-        rateastrofis(i)=0.
-        rateastroracap(i)=0.
-        macsastrofis(i)=0.
-        macsastroracap(i)=0.
-  110 continue
-      do 120 nen=1,numenin
-        xsastrofis(nen)=0.
-  120 continue
+      xsastro=0.
+      xsastroex=0.
+      rateastro=0.
+      macsastro=0.
+      rateastroex=0.
+      macsastroex=0.
+      partf=0.
+      rateastrofis=0.
+      rateastroracap=0.
+      macsastrofis=0.
+      macsastroracap=0.
+      xsastrofis=0.
       return
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

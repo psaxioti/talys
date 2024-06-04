@@ -50,7 +50,7 @@ c
           phi1=sqrt(phi2)
           Tf=2.*Tcrit(Zix,Nix)*phi1/log((phi1+1.)/(1.-phi1))
           Sf=Scrit(Zix,Nix,ibar)*Tcrit(Zix,Nix)/Tf*(1.-phi2)
-          sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
+          sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar,0))
           superfluid=exp(dble(Sf))/sqrt(Df)/sqrttwopi/sigma
         endif
       else

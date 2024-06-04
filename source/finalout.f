@@ -2,20 +2,21 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 2, 2021
+c | Date  : April 4, 2022
 c | Task  : Output of final results
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
+      character*1   yesno
       character*6   discfile,contfile
       character*9   totfile,reactionstring(0:6)
       character*10  binfile
       character*11  fisfile
       character*12  rpfile,isofile,xsfile
       character*19  gamfile
-      character*80  string
+      character*132 string
       character*126 stringtot
       integer       istat,nen,type,Acomp,Zcomp,Ncomp,Z,A,nex,Zix,Nix,
      +              npart,ia,ih,it,id,ip,in,ident,idc,i1,i2
@@ -34,26 +35,17 @@ c Pshiftconstant: global constant for pairing shift
 c Rspincut      : adjustable constant (global) for spin cutoff factor
 c Rspincutff    : parameter (global) for FF spin cutoff factor
 c cglobal,...   : global constant to adjust tabulated level densities
-c flagcolall    : flag for collective enhancement of level density
-c                 for all nuclides
-c Ufermi        : energy of Fermi distribution for damping of
-c               : ground-state rotational effects
-c cfermi        : width of Fermi distribution for damping of
-c               : ground-state rotational effects
-c Ufermibf      : energy of Fermi distribution for damping of barrier
-c               : rotational effects
-c cfermibf      : width of Fermi distribution for damping of barrier
-c               : rotational effects
 c phmodel       : particle-hole state density model
 c Kph           : constant for single-particle level density parameter
 c                 (g=A/Kph)
-c gnorm         : gamma normalization factor
 c xscaptherm    : thermal capture cross section
 c M2constant    : overall constant for matrix element in exciton model
 c M2limit       : constant for asymptotic value for matrix element
 c M2shift       : constant for energy shift for matrix element
 c Rpinu,Rnupi...: ratio for two-component matrix element
 c Rgamma        : adjustable parameter for pre-equilibrium gamma decay
+c Rspincutpreeq : adjustable constant (global) for preequilibrium spin 
+c                 cutoff factor
 c Esurf         : well depth for surface interaction
 c parsym        : symbol of particle
 c xspreeqtotps  : preequilibrium cross section per particle type for
@@ -88,6 +80,8 @@ c
         write(51,'("##")')
         write(51,'("## Level density")')
         write(51,'("##")')
+        write(51, '("ldmodel        ", i1)') ldmodel(0, 0)
+        write(51, '("colenhance     ", a1)') yesno(flagcolall)
         if (ldmodel(0,0).le.3) then
           write(51,'("alphald        ",f10.5)') alphald(0,0)
           write(51,'("betald         ",f10.5)') betald(0,0)
@@ -100,17 +94,12 @@ c
         write(51,'("Rspincutff     ",f10.5)') Rspincutff
         write(51,'("cglobal        ",es12.5)') cglobal
         write(51,'("pglobal        ",es12.5)') pglobal
-        if (flagcolall) then
-          write(51,'("Ufermi         ",f10.5)') Ufermi
-          write(51,'("cfermi         ",f10.5)') cfermi
-          write(51,'("Ufermibf       ",f10.5)') Ufermibf
-          write(51,'("cfermibf       ",f10.5)') cfermibf
-        endif
         if (phmodel.eq.1) write(51,'("Kph            ",f10.5)') Kph
         write(51,'("##")')
         write(51,'("## Gamma-ray")')
         write(51,'("##")')
-        write(51,'("gnorm          ",f10.5)') gnorm
+        write(51, '("strength       ", i2)') strength
+        write(51, '("strengthM1     ", i2)') strengthM1
         write(51,'("xscaptherm     ",es12.5)') xscaptherm(-1)
         write(51,'("##")')
         write(51,'("## Pre-equilibrium")')
@@ -123,6 +112,7 @@ c
         write(51,'("Rpinu          ",f10.5)') Rpinu
         write(51,'("Rnupi          ",f10.5)') Rnupi
         write(51,'("Rgamma         ",f10.5)') Rgamma
+        write(51,'("Rspincutpreeq  ",f10.5)') Rspincutpreeq
         write(51,'("Esurf          ",f10.5)') Esurf
         do type=1,6
           write(51,'("Cstrip        ",a1,f10.5)') parsym(type),
@@ -135,10 +125,12 @@ c
         write(51,'("##")')
         write(51,'("## Fission")')
         write(51,'("##")')
+        write(51, '("fismodel       ", i1)') fismodel
         write(51,'("Cnubar1        ",f10.5)') Cnubar1
         write(51,'("Cnubar2        ",f10.5)') Cnubar2
         write(51,'("Tmadjust       ",f10.5)') Tmadjust
         write(51,'("Fsadjust       ",f10.5)') Fsadjust
+        write(51,'("Cbarrier       ",f10.5)') Cbarrier
         write(51,'("##")')
         write(51,'("## Optical model")')
         write(51,'("##")')
@@ -150,6 +142,8 @@ c
           write(51,'("lvsoadjust     ",f10.5)') lvsoadjust
           write(51,'("lwsoadjust     ",f10.5)') lwsoadjust
         endif
+        write(51, '("deuteronomp    ", i1)') deuteronomp
+        write(51, '("alphaomp       ", i1)') alphaomp
         if (alphaomp.ge.3.and.alphaomp.le.5) then
           write(51,'("aradialcor     ",f10.5)') aradialcor
           write(51,'("adepthcor      ",f10.5)') adepthcor
@@ -202,6 +196,10 @@ c
      +        vso1adjust(type)
             write(51,'("vso2adjust    ",a1,f10.5)') parsym(type),
      +        vso2adjust(type)
+            write(51,'("rwsoadjust    ",a1,f10.5)') parsym(type),
+     +        rwsoadjust(type)
+            write(51,'("awsoadjust    ",a1,f10.5)') parsym(type),
+     +        awsoadjust(type)
             write(51,'("wso1adjust    ",a1,f10.5)') parsym(type),
      +        wso1adjust(type)
             write(51,'("wso2adjust    ",a1,f10.5)') parsym(type),
@@ -235,7 +233,7 @@ c
       if (flagomponly) return
       if (flagnatural.or..not.flagexc) return
       write(*,'(/" ########## EXCITATION FUNCTIONS ###########"/)')
-      totfile='total.tot'
+      totfile='all.tot'
       open (unit=1,file=totfile,status='old',iostat=istat)
       if (istat.eq.0) then
         write(*,'(" 1. Total (binary) cross sections"/)')
@@ -282,9 +280,9 @@ c
           write(*,'(" Energy   Cross section Multiplicity"/)')
           read(1,'(////)')
           do 120 nen=1,numinc
-            read(1,'(a80)',iostat=istat) string
+            read(1,'(a)',iostat=istat) string
             if (istat.ne.0) goto 120
-            write(*,'(1x,a80)') string
+            write(*,'(1x,a)') trim(string)
   120     continue
           close (unit=1)
         endif
@@ -297,9 +295,9 @@ c
           write(*,'(" Energy   Cross section "/)')
           read(1,'(////)')
           do 130 nen=1,numinc
-            read(1,'(a80)',iostat=istat) string
+            read(1,'(a)',iostat=istat) string
             if (istat.ne.0) goto 130
-            write(*,'(1x,a80)') string
+            write(*,'(1x,a)') trim(string)
   130     continue
           close (unit=1)
         endif
@@ -346,9 +344,9 @@ c
             write(*,'(" Energy   Cross section"/)')
             read(1,'(////)')
             do 220 nen=1,numinc
-              read(1,'(a80)',iostat=istat) string
+              read(1,'(a)',iostat=istat) string
               if (istat.ne.0) goto 220
-              write(*,'(1x,a80)') string
+              write(*,'(1x,a)') trim(string)
   220       continue
             close (unit=1)
           endif
@@ -356,21 +354,22 @@ c
             if (.not.rpisoexist(Zcomp,Ncomp,nex)) goto 230
             isofile='rp000000.L00'
             write(isofile(3:8),'(2i3.3)') Z,A
-            write(isofile(11:12),'(i2.2)') nex
+            write(isofile(11:12),'(i2.2)') levnum(Zcomp,Ncomp,nex)
             open (unit=1,file=isofile,status='old',iostat=istat)
             if (istat.eq.0) then
               write(*,'(/" Production of Z=",i3," A=",i3," (",i3,a2,
      +        ") - Level",i3,"  (lifetime:",es12.5," sec.)"/)')
-     +          Z,A,A,nuc(Z),nex,tau(Zcomp,Ncomp,nex)
+     +          Z,A,A,nuc(Z),levnum(Zcomp,Ncomp,nex),
+     +          tau(Zcomp,Ncomp,nex)
               write(*,'(" Q-value    =",f11.6)') Qres(Zcomp,Ncomp,nex)
               write(*,'(" E-threshold=",f11.6/)')
      +          Ethresh(Zcomp,Ncomp,nex)
               write(*,'(" Energy   Cross section Branching ratio"/)')
               read(1,'(////)')
               do 240 nen=1,numinc
-                read(1,'(a80)',iostat=istat) string
+                read(1,'(a)',iostat=istat) string
                 if (istat.ne.0) goto 240
-                write(*,'(1x,a80)') string
+                write(*,'(1x,a)') trim(string)
   240         continue
               close (unit=1)
             endif
@@ -401,9 +400,9 @@ c
               write(*,'("  Energy     Cross section"/)')
               read(1,'(////)')
               do 320 nen=1,numinc
-                read(1,'(a80)',iostat=istat) string
+                read(1,'(a)',iostat=istat) string
                 if (istat.ne.0) goto 320
-                write(*,'(1x,a80)') string
+                write(*,'(1x,a)') trim(string)
   320         continue
               close (unit=1)
             endif
@@ -455,9 +454,9 @@ c
      +          parsym(type)
               read(1,'(////)')
               do 430 nen=1,numinc
-                read(1,'(a80)',iostat=istat) string
+                read(1,'(a)',iostat=istat) string
                 if (istat.ne.0) goto 430
-                write(*,'(1x,a80)') string
+                write(*,'(1x,a)') trim(string)
   430         continue
               close (unit=1)
             endif
@@ -477,9 +476,9 @@ c
      +          "      Compound"/)')
               read(1,'(////)')
               do 450 nen=1,numinc
-                read(1,'(a80)',iostat=istat) string
+                read(1,'(a)',iostat=istat) string
                 if (istat.ne.0) goto 450
-                write(*,'(1x,a80)') string
+                write(*,'(1x,a)') trim(string)
   450         continue
               close (unit=1)
             endif
@@ -495,9 +494,9 @@ c
      +          ",g",a1,")"/)') parsym(k0),parsym(type)
               read(1,'(////)')
               do 460 nen=1,numinc
-                read(1,'(a80)',iostat=istat) string
+                read(1,'(a)',iostat=istat) string
                 if (istat.ne.0) goto 460
-                write(*,'(1x,a80)') string
+                write(*,'(1x,a)') trim(string)
   460         continue
               close (unit=1)
             endif
@@ -548,9 +547,9 @@ c
      +            "c.s./res.prod.cs"/)')
                 read(1,'(////)')
                 do 530 nen=1,numinc
-                  read(1,'(a100)',iostat=istat) stringtot
+                  read(1,'(a)',iostat=istat) stringtot
                   if (istat.ne.0) goto 530
-                  write(*,'(1x,a100)') stringtot
+                  write(*,'(1x,a)') trim(stringtot)
   530           continue
                 close (unit=1)
               endif
@@ -559,19 +558,20 @@ c
               isofile='xs000000.tot'
               write(isofile(3:8),'(6i1)') in,ip,id,it,ih,ia
               do 540 nex=0,Nlast(Zcomp,Ncomp,0)
-                write(isofile(11:12),'(i2.2)') nex
+                write(isofile(11:12),'(i2.2)') levnum(Zcomp,Ncomp,nex)
                 open (unit=1,file=isofile,status='old',iostat=istat)
                 if (istat.eq.0) then
-                  write(*,'(/" Level",i3," (lifetime:",
-     +              es12.5," sec.)"/)') nex,tau(Zcomp,Ncomp,nex)
+                  write(*,'(/" Level",i3," (lifetime:",es12.5,
+     +              " sec.)"/)') levnum(Zcomp,Ncomp,nex),
+     +              tau(Zcomp,Ncomp,nex)
                   write(*,'(" Q-value    =",f11.6)') Qexcl(idc,nex)
                   write(*,'(" E-threshold=",f11.6/)') Ethrexcl(idc,nex)
                   write(*,'(" Energy   Cross section  Branching"/)')
                   read(1,'(////)')
                   do 550 nen=1,numinc
-                    read(1,'(a80)',iostat=istat) string
+                    read(1,'(a)',iostat=istat) string
                     if (istat.ne.0) goto 550
-                    write(*,'(1x,a80)') string
+                    write(*,'(1x,a)') trim(string)
   550             continue
                   close (unit=1)
                 endif
@@ -616,9 +616,9 @@ c
                   write(*,'(" Energy   Cross section c.s./res.pr.cs"/)')
                   read(1,'(////)')
                   do 630 nen=1,numinc
-                    read(1,'(a80)',iostat=istat) string
+                    read(1,'(a)',iostat=istat) string
                     if (istat.ne.0) goto 630
-                    write(*,'(1x,a80)') string
+                    write(*,'(1x,a)') trim(string)
   630             continue
                   close (unit=1)
                 endif
@@ -667,9 +667,9 @@ c
                   write(*,'(" Energy   Cross section"/)')
                   read(1,'(////)')
                   do 730 nen=1,numinc
-                    read(1,'(a80)',iostat=istat) string
+                    read(1,'(a)',iostat=istat) string
                     if (istat.ne.0) goto 730
-                    write(*,'(1x,a80)') string
+                    write(*,'(1x,a)') trim(string)
   730             continue
                   close (unit=1)
                 endif

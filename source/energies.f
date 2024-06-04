@@ -58,6 +58,7 @@ c
         wavenum=sqrt(real(2.*amu*redumass(parZ(k0),parN(k0),k0)*
      +    eninccm))/hbarc
       endif
+      if (flaginitpop) eninccm=Einc
       Etotal=eninccm+S(0,0,k0)+targetE
 c
 c ***************** Set upper limit for energy grid ********************
@@ -196,7 +197,7 @@ c
       else
         flagaddel=.true.
       endif
-      if (flagffruns) then
+      if (flagffruns.or.flaginitpop) then
         flagaddel=.false.
         flagadd=.false.
       endif

@@ -9,11 +9,12 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist
-      character*8  decaychar
-      character*80 decayfile,string
-      integer      Zix,Z,Nbegin,Nend,Abegin,Aend,N,Nix,ia,is,NC,iline,i
-      real         TT,rrt
+      logical       lexist
+      character*8   decaychar
+      character*80  string
+      character*132 decayfile
+      integer       Zix,Z,Nbegin,Nend,Abegin,Aend,N,Nix,ia,is,NC,iline,i
+      real          TT,rrt
 c
 c ******************************** Time units **************************
 c
@@ -53,7 +54,7 @@ c A        : mass number of nucleus
 c
 c Read decay constants from JEFF-3.1.1 radioactive decay data library
 c
-      do 10 Zix=-1,maxZ
+      do Zix=-1,maxZ
         Z=Zinit-Zix
         Z=min(Z,numelem)
         Nbegin=Ninit-maxN
@@ -63,7 +64,7 @@ c
         decaychar=trim(nuc(Z))//'.decay'
         decayfile=trim(path)//'decay/'//decaychar
         inquire (file=decayfile,exist=lexist)
-        if (.not.lexist) goto 10
+        if (.not.lexist) cycle
         open (unit=1,file=decayfile,status='old')
   100   read(1,'(a80)',end=200) string
         if (string(72:80).ne.'1451    5') goto 100
@@ -80,9 +81,9 @@ c
         read(string(1:11),*) Thalf(Zix,Nix,is)
         read(string(45:55),'(i11)') NC
         iline=1+(NC-1)/6
-        do 130 i=1,iline
+        do i=1,iline
           read(1,'(a80)',end=200) string
-  130   continue
+        enddo
         read(1,'(a80)',end=200) string
         read(1,'(a80)',end=200) string
         read(string(1:11),*) rrt
@@ -137,7 +138,7 @@ c
             enddo
           endif
         enddo
-   10 continue
+      enddo
       return
       end
-Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

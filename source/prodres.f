@@ -12,7 +12,7 @@ c
       logical      lexist,flagpositive
       character*16 rpfile
       character*18 nonfile
-      character*80 string
+      character*132 string
       integer      iE,Zix,Nix,Z,N,A,is,nen
       real         E,xs
 c
@@ -27,7 +27,7 @@ c maxN        : maximal number of neutrons away from the initial
 c               compound nucleus
 c N           : neutron number of nucleus
 c Ninit       : neutron number of initial compound nucleus
-c numenin     : maximum number of energies
+c numenrp     : maximum number of energies for residual products
 c A           : mass number of nucleus
 c is          : isotope counter: -1=total, 0=ground state 1=isomer
 c Erp         : incident energy
@@ -50,7 +50,7 @@ c
           do 130 is=-1,numisom
             prodexist(Zix,Nix,is)=.false.
             Nenrp(Zix,Nix,is)=0
-            do 140 nen=1,numenin
+            do 140 nen=1,numenrp
               Erp(Zix,Nix,is,nen)=0.
               xsrp(Zix,Nix,is,nen)=0.
   140       continue
@@ -73,11 +73,15 @@ c
             endif
             open (unit=1,file=nonfile,status='old')
             iE=0
-  150       read(1,'(a80)',end=160) string
+  150       read(1,'(a)',end=160) string
             if (string(1:1).eq.'#') goto 150
             read(string,*) E,xs
             iE=iE+1
-            if (iE.gt.numenin) goto 160
+            if (iE.gt.numenrp) then
+              write(*, '(" TALYS-warning: number of energy points ",
+     +          " exceeds ",i3,", incomplete integration")') numenrp
+              goto 160
+            endif
             Erp(Zix,Nix,is,iE)=E
             xsrp(Zix,Nix,is,iE)=xs
             goto 150
@@ -114,13 +118,17 @@ c
               flagpositive=.false.
               iE=0
               open (unit=1,file=rpfile,status='old')
-  180         read(1,'(a80)',end=190) string
+  180         read(1,'(a)',end=190) string
               if (string(1:1).eq.'#') goto 180
               read(string,*,err=200) E,xs
               if (E.ge.Eback.and.E.le.Ebeam.and.xs.gt.0.)
      +          flagpositive=.true.
               iE=iE+1
-              if (iE.gt.numenin) goto 190
+              if (iE.gt.numenrp) then
+                write(*, '(" TALYS-warning: number of energy points ",
+     +            " exceeds ",i3,", incomplete integration")') numenrp
+                goto 190
+              endif
               Erp(Zix,Nix,is,iE)=E
               xsrp(Zix,Nix,is,iE)=xs
 c
@@ -138,8 +146,8 @@ c
   120   continue
   110 continue
       return
-  200 write(*,'(" TALYS-error: Problem in cross section file ",a80)')
-     +  rpfile
+  200 write(*,'(" TALYS-error: Problem in cross section file ",a)')
+     +  trim(rpfile)
       stop
       end
 Copyright (C) 2010  A.J. Koning

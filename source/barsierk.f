@@ -53,11 +53,12 @@ c
       a=amass/400.
       z=zchar/100.
       l=ll/100.
-      do 10 iloop=1,7
-        do 10 jloop=1,7
+      do iloop=1,7
+        do jloop=1,7
           bfis=bfis+barcof(jloop,iloop)*
      +      plegendre(jloop-1,z)*plegendre(iloop-1,a)
- 10   continue
+        enddo
+      enddo
       if (il.lt.1) return
 c
 c L-values corresponding to fission barrier height which is 20% (80%)
@@ -73,21 +74,23 @@ c
       amax2= 20.+3.0*zchar
       if ((amass.lt.amin2-5..or.amass.gt.amax2+10.).and.il.gt.0)
      +  goto 920
-      do 20 iloop=1,4
-        do 20 jloop=1,5
+      do iloop=1,4
+        do jloop=1,5
           l80=l80+l80cof(jloop,iloop)*
      +      plegendre(jloop-1,z)*plegendre(iloop-1,a)
           l20=l20+l20cof(jloop,iloop)*
      +      plegendre(jloop-1,z)*plegendre(iloop-1,a)
- 20   continue
+        enddo
+      enddo
 c
 c L-value for which the fission barrier vanishes
 c
-      do 30 iloop=1,4
-        do 30 jloop=1,6
+      do iloop=1,4
+        do jloop=1,6
           lbar0=lbar0+lmxcof(jloop,iloop)*
      +      plegendre(jloop-1,z)*plegendre(iloop-1,a)
- 30   continue
+        enddo
+      enddo
 c
 c L-dependent fission barrier
 c
@@ -122,13 +125,15 @@ c
 c Rotating ground state energy
 c
       if(ll.gt.lbar0)return
-      do 40 iloop=1,4
-        do 40 jloop=1,6
-          do 40 kloop=1,5
+      do iloop=1,4
+        do jloop=1,6
+          do kloop=1,5
             egs=egs + egscof(kloop,jloop,iloop)*
      +        plegendre(jloop-1,z)*plegendre(iloop-1,a)*
      +        plegendre(2*kloop-2,l)
- 40   continue
+          enddo
+        enddo
+      enddo
       if (egs.lt.0.) egs = 0.
 c
 c warning messages for attempted use outside validity boundaries
@@ -138,13 +143,13 @@ c
       return
  910  write(*,110)
       return
- 920  write(*,120)
+ 920  write(*,120) int(amass),iz
       return
  100  format(/,10x,'*  *  *  barfit called with  z  less than 19 or',
      1 ' greater than 111.  bfis is set to 0.0  *  *  *')
  110  format(/,10x,'*  *  *  barfit called with  z  greater than 102',
      1 ' and  l  not equal to zero.  bfis is set to 0.0,  *  *  *')
- 120  format(/,10x,'*  *  *  barfit called with a =',i3,', outside ',
+ 120  format(/,10x,'*  *  *  barfit called with a = ',i3,', outside ',
      1 'the allowed values for z = ',i3,' *  *  *')
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

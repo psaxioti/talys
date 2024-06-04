@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Goriely
-c | Date  : May 15, 2012
+c | Date  : April 7, 2022
 c | Task  : Calculate default incident energy grid for astrophysical
 c |         rate
 c +---------------------------------------------------------------------
@@ -27,7 +27,11 @@ c astroT9  : temperature, in 10^9 K, for Maxwellian average
 c
       T9(1)=0.0001
       T9min=T9(1)
-      T9max=10.
+      if (astroT9.ne.0.) then
+        T9max=astroT9
+      else
+        T9max=10.
+      endif
       Temp=0.0001
       dTgrid=0.0004
       nen=1

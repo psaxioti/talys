@@ -2,16 +2,16 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : April 19, 2020
+c | Date  : January 24, 2023
 c | Task  : Read input for fourth set of variables
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*1  ch
-      character*80 word(40),key,value
-      integer      i,type
+      character*1   ch
+      character*132 word(40),key,value,line
+      integer       i
 c
 c ************** Defaults for fourth set of input variables ************
 c
@@ -61,9 +61,6 @@ c eaddel      : on-set incident energy for addition of elastic peak
 c               to spectra
 c Emaxtalys   : maximum acceptable energy for TALYS
 c flagelectron: flag for application of electron conversion coefficient
-c flagrot     : flag for use of rotational optical model per
-c               outgoing particle, if available
-c flagspher   : flag to force spherical optical model
 c flagsoukho  : flag for Soukhovitskii OMP for actinides
 c flagcoulomb : flag for Coulomb excitation calculation with ECIS
 c flagcolldamp: flag for damping of collective effects in effective
@@ -133,7 +130,7 @@ c
       if (flagrecoil) flagspec=.true.
       flagres=.false.
       flaggroup=.false.
-      reslib='tendl.2021'
+      reslib='tendl.2023'
       flagddx=.false.
       flagoutdwba=.false.
       flaggamdis=.false.
@@ -158,11 +155,6 @@ c
       eadd=0.
       eaddel=0.
       flagelectron=.true.
-      if (flagrot(k0)) then
-        flagspher=.false.
-      else
-        flagspher=.true.
-      endif
       flagsoukho=.true.
       flagsoukhoinp=.false.
       flagcoulomb=.true.
@@ -175,6 +167,7 @@ c
         fismodel=1
       endif
       if (k0.le.1.and.Atarget.gt.fislim) then
+        fismodel=5
         fismodelalt=4
       else
         fismodel=3
@@ -185,12 +178,10 @@ c
       flagctmglob=.false.
       cglobal=1.e-20
       pglobal=1.e-20
-      Rspincutff=9.
+      Rspincutff=4.
       alphaomp=6
-      deuteronomp=1
-      do 5 type=1,6
-        altomp(type)=.false.
-    5 continue
+      deuteronomp=4
+      altomp=.false.
       altomp(6)=.true.
       soswitch=3.
       if (k0.ne.1.or..not.flagcomp) then
@@ -250,8 +241,9 @@ c The keyword is identified and the corresponding values are read.
 c Erroneous input is immediately checked. The keywords and number of
 c values on each line are retrieved from the input.
 c
-      do 10 i=1,nlines
-        call getkeywords(inline(i),word)
+      do i=1,nlines
+        line = inline(i)
+        call getkeywords(line,word)
         key=word(1)
         value=word(2)
         ch=word(2)(1:1)
@@ -263,126 +255,126 @@ c
           if (ch.eq.'n') flagmain=.false.
           if (ch.eq.'y') flagmain=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outpopulation') then
           if (ch.eq.'n') flagpop=.false.
           if (ch.eq.'y') flagpop=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outcheck') then
           if (ch.eq.'n') flagcheck=.false.
           if (ch.eq.'y') flagcheck=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outomp') then
           if (ch.eq.'n') flagoutomp=.false.
           if (ch.eq.'y') flagoutomp=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outkd') then
           if (ch.eq.'n') flagoutkd=.false.
           if (ch.eq.'y') flagoutkd=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outinverse') then
           if (ch.eq.'n') flaginverse=.false.
           if (ch.eq.'y') flaginverse=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outdecay') then
           if (ch.eq.'n') flagdecay=.false.
           if (ch.eq.'y') flagdecay=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outtransenergy') then
           if (ch.eq.'n') flagtransen=.false.
           if (ch.eq.'y') flagtransen=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outgamma') then
           if (ch.eq.'n') flaggamma=.false.
           if (ch.eq.'y') flaggamma=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outlevels') then
           if (ch.eq.'n') flaglevels=.false.
           if (ch.eq.'y') flaglevels=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outdensity') then
           if (ch.eq.'n') flagdensity=.false.
           if (ch.eq.'y') flagdensity=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outfission') then
           if (ch.eq.'n') flagfisout=.false.
           if (ch.eq.'y') flagfisout=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outpreequilibrium') then
           if (ch.eq.'n') flagpeout=.false.
           if (ch.eq.'y') flagpeout=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outdiscrete') then
           if (ch.eq.'n') flagdisc=.false.
           if (ch.eq.'y') flagdisc=.true.
           if (flagffruns.or.flagrpruns) flagdisc=.false.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outspectra') then
           if (ch.eq.'n') flagspec=.false.
           if (ch.eq.'y') flagspec=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outbinspectra') then
           if (ch.eq.'n') flagbinspec=.false.
           if (ch.eq.'y') flagbinspec=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'resonance') then
           if (ch.eq.'n') flagres=.false.
           if (ch.eq.'y') flagres=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'group') then
           if (ch.eq.'n') flaggroup=.false.
           if (ch.eq.'y') flaggroup=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'reslib') then
           reslib=value
-          goto 10
+          cycle
         endif
         if (key.eq.'outangle') then
           if (ch.eq.'n') flagang=.false.
           if (ch.eq.'y') flagang=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outlegendre') then
           if (ch.eq.'n') flaglegendre=.false.
           if (ch.eq.'y') flaglegendre=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'ddxmode') then
           read(value,*,end=200,err=200) ddxmode
@@ -391,194 +383,183 @@ c
             flagddx=.true.
             flagspec=.true.
           endif
-          goto 10
+          cycle
         endif
         if (key.eq.'incadjust') then
           if (ch.eq.'n') flagincadj=.false.
           if (ch.eq.'y') flagincadj=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outdwba') then
           if (ch.eq.'n') flagoutdwba=.false.
           if (ch.eq.'y') flagoutdwba=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outgamdis') then
           if (ch.eq.'n') flaggamdis=.false.
           if (ch.eq.'y') flaggamdis=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outexcitation') then
           if (ch.eq.'n') flagexc=.false.
           if (ch.eq.'y') flagexc=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outecis') then
           if (ch.eq.'n') flagoutecis=.false.
           if (ch.eq.'y') flagoutecis=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'ecissave') then
           if (ch.eq.'n') flagecissave=.false.
           if (ch.eq.'y') flagecissave=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outdirect') then
           if (ch.eq.'n') flagdirect=.false.
           if (ch.eq.'y') flagdirect=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'adddiscrete') then
           if (ch.eq.'y') then
             eadd=0.
-            goto 10
+            cycle
           endif
           if (ch.eq.'n') then
             eadd=Emaxtalys
-            goto 10
+            cycle
           endif
           read(value,*,end=200,err=200) eadd
-          goto 10
+          cycle
         endif
         if (key.eq.'addelastic') then
           if (ch.eq.'y') then
             eaddel=0.
-            goto 10
+            cycle
           endif
           if (ch.eq.'n') then
             eaddel=Emaxtalys
-            goto 10
+            cycle
           endif
           read(value,*,end=200,err=200) eaddel
-          goto 10
+          cycle
         endif
         if (key.eq.'electronconv') then
           if (ch.eq.'n') flagelectron=.false.
           if (ch.eq.'y') flagelectron=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
-        endif
-        if (key.eq.'spherical') then
-          if (ch.eq.'n') flagspher=.false.
-          if (ch.eq.'y') then
-            flagspher=.true.
-            do 110 type=1,6
-              flagrot(type)=.false.
-  110       continue
-          endif
-          if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'soukho') then
           if (ch.eq.'n') flagsoukho=.false.
           if (ch.eq.'y') flagsoukho=.true.
           flagsoukhoinp=flagsoukho
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'coulomb') then
           if (ch.eq.'n') flagcoulomb=.false.
           if (ch.eq.'y') flagcoulomb=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'colldamp') then
           if (ch.eq.'n') flagcolldamp=.false.
           if (ch.eq.'y') flagcolldamp=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'fispartdamp') then
           if (ch.eq.'n') flagfispartdamp=.false.
           if (ch.eq.'y') flagfispartdamp=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'ctmglobal') then
           if (ch.eq.'n') flagctmglob=.false.
           if (ch.eq.'y') flagctmglob=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'partable') then
           if (ch.eq.'n') flagpartable=.false.
           if (ch.eq.'y') flagpartable=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'urr') then
           flagurr=.true.
-          if (ch.eq.'y') goto 10
+          if (ch.eq.'y') cycle
           if (ch.eq.'n') then
             eurr=0.
             flagurr=.false.
-            goto 10
+            cycle
           endif
           read(value,*,end=200,err=200) eurr
-          goto 10
+          cycle
         endif
         if (key.eq.'lurr') then
           read(value,*,end=200,err=200) lurr
-          goto 10
+          cycle
         endif
         if (key.eq.'urrnjoy') then
           if (ch.eq.'n') flagurrnjoy=.false.
           if (ch.eq.'y') flagurrnjoy=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'production') then
           if (ch.eq.'n') flagprod=.false.
           if (ch.eq.'y') flagprod=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'outfy') then
           if (ch.eq.'n') flagoutfy=.false.
           if (ch.eq.'y') flagoutfy=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'rpevap') then
           if (ch.eq.'n') flagrpevap=.false.
           if (ch.eq.'y') flagrpevap=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 200
-          goto 10
+          cycle
         endif
         if (key.eq.'maxchannel') then
           read(value,*,end=200,err=200) maxchannel
-          goto 10
+          cycle
         endif
         if (key.eq.'pairmodel') then
           read(value,*,end=200,err=200) pairmodel
-          goto 10
+          cycle
         endif
         if (key.eq.'fismodel') then
           read(value,*,end=200,err=200) fismodel
-          goto 10
+          cycle
         endif
         if (key.eq.'fismodelalt') then
           read(value,*,end=200,err=200) fismodelalt
-          goto 10
+          cycle
         endif
         if (key.eq.'cglobal') then
           read(value,*,end=200,err=200) cglobal
-          goto 10
+          cycle
         endif
         if (key.eq.'pglobal') then
           read(value,*,end=200,err=200) pglobal
-          goto 10
+          cycle
         endif
         if (key.eq.'tres') then
           read(value,*,end=200,err=200) Tres
-          goto 10
+          cycle
         endif
         if (key.eq.'alphaomp') then
           read(value,*,end=200,err=200) alphaomp
@@ -587,28 +568,28 @@ c
           else
             altomp(6)=.true.
           endif
-          goto 10
+          cycle
         endif
         if (key.eq.'deuteronomp') then
           read(value,*,end=200,err=200) deuteronomp
           altomp(3)=.true.
-          goto 10
+          cycle
         endif
         if (key.eq.'soswitch') then
           read(value,*,end=200,err=200) soswitch
-          goto 10
+          cycle
         endif
         if (key.eq.'rspincutff') then
           read(value,*,end=200,err=200) Rspincutff
-          goto 10
+          cycle
         endif
         if (key.eq.'gefran') then
           read(value,*,end=200,err=200) gefran
-          goto 10
+          cycle
         endif
-   10 continue
+      enddo
       return
-  200 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
+  200 write(*,'(" TALYS-error: Wrong input: ",a)') trim(line)
       stop
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

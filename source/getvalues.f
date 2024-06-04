@@ -3,7 +3,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 29, 2021
+c | Date  : December 7, 2022
 c | Task  : Assign values to keywords
 c +---------------------------------------------------------------------
 c
@@ -11,10 +11,10 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer      numEkey
-      parameter    (numEkey=79)
+      parameter    (numEkey=81)
       logical      flagassign,lexist
       character*1  ch
-      character*80 keyword(numEkey),word(40),key,adfile,cval
+      character*132 keyword(numEkey),word(40),key,adfile,cval
       integer      class,Zix,Nix,type,ibar,irad,lval,igr,ival,i,iz,ia,
      +             in,k,type2,j
       real         val,Ea,Eb,Em,D,Eadj(0:numenadj),Dadj(numenadj)
@@ -25,20 +25,21 @@ c
      +  'adepthcor', 'aradialcor',
      +  'avadjust', 'avdadjust', 'avsoadjust', 'awadjust', 'awdadjust',
      +  'awsoadjust', 'bdamp', 'bdampadjust',  'betafiscor', 
-     +  'betafiscoradjust', 'cbreak', 'cknock', 'cstrip', 'ctable', 
-     +  'ctableadjust', 'd1adjust', 'd2adjust', 
+     +  'betafiscoradjust', 'cbreak', 'cfermi', 'cknock', 'cstrip',
+     +  'ctable', 'ctableadjust', 'd1adjust', 'd2adjust', 
      +  'd3adjust', 'egr', 'egradjust', 'epr', 'epradjust', 'etable',
      +  'fisbar', 'fisbaradjust', 'fishw', 'fishwadjust', 'fsadjust',
-     +  'ftable', 'ftableadjust',
-     +  'ggr', 'ggradjust', 'gnorm', 'gpr', 'gpradjust', 'krotconstant',
+     +  'ftable', 'ftableadjust', 'ggr', 'ggradjust', 'gpr', 
+     +  'gpradjust', 'krotconstant',
      +  'lv1adjust', 'lvadjust', 'lvsoadjust', 'lw1adjust',
      +  'lwadjust', 'lwsoadjust', 'm2constant', 'ptable', 
      +  'ptableadjust', 'rcadjust', 'rspincut', 'rspincutff',
+     +  'rspincutpreeq', 
      +  'rvadjust', 'rvdadjust', 'rvsoadjust', 'rwadjust',
      +  'rwdadjust', 'rwsoadjust', 's2adjust', 'sgr', 'sgradjust',
-     +  'spr', 'spradjust', 'tjadjust', 'tmadjust', 'v1adjust', 
-     +  'v2adjust', 'v3adjust', 'v4adjust', 'vfiscor', 'vfiscoradjust', 
-     +  'vso1adjust', 'vso2adjust', 
+     +  'spr', 'spradjust', 'tjadjust', 'tmadjust', 'ufermi',
+     +  'v1adjust', 'v2adjust', 'v3adjust', 'v4adjust', 'vfiscor',
+     +  'vfiscoradjust', 'vso1adjust', 'vso2adjust', 
      +  'w1adjust', 'w2adjust', 'w3adjust', 'w4adjust', 'wso1adjust', 
      +  'wso2adjust', 'wtable', 'wtableadjust'/
 c
@@ -291,35 +292,36 @@ c
 c
 c Error and warning messages
 c
-  100 write(*,'(" TALYS-error: Wrong input for: ",a80)') key
+  100 write(*,'(" TALYS-error: Wrong input for: ",a)') trim(key)
       stop
   110 write(*,'(" TALYS-error: 0(1) <= fission barrier <=",i3,
-     +  ", ibar index out of range: ",a80)') numbar,key
+     +  ", ibar index out of range: ",a)') numbar,trim(key)
       stop
   120 write(*,'(" TALYS-error: 0 <= multipole radiation <= ",i1,
-     +  ", lval index out of range: ",a80)') numgam,key
+     +  ", lval index out of range: ",a)') numgam,trim(key)
       stop
   130 write(*,'(" TALYS-error: 0 <= resonance number <= 2",
-     +  ", igr index out of range: ",a80)') key
+     +  ", igr index out of range: ",a)') trim(key)
       stop
-  140 write(*,'(" TALYS-error: parameter file ",a80,
-     +  " does not exist for keyword ",a80)') adfile,key
+  140 write(*,'(" TALYS-error: parameter file ",a,
+     +  " does not exist for keyword ",a)') trim(adfile),trim(key)
       stop
-  150 write(*,'(" TALYS-error: parameter file ",a80,
-     +  " has wrong format for keyword ",a80)') adfile,key
+  150 write(*,'(" TALYS-error: parameter file ",a,
+     +  " has wrong format for keyword ",a)') trim(adfile),trim(key)
       stop
-  160 write(*,'(" TALYS-error: parameter file ",a80,
-     +  " must have energies in increasing order for keyword ",a80)')
-     +  adfile,key
+  160 write(*,'(" TALYS-error: parameter file ",a,
+     +  " must have energies in increasing order for keyword ",a)')
+     +  trim(adfile),trim(key)
       stop
-  170 write(*,'(" TALYS-error: parameter file ",a80,
-     +  " has more than ",i6," energies for keyword ",a80)')
-     +  adfile,numenadj,key
+  170 write(*,'(" TALYS-error: parameter file ",a,
+     +  " has more than ",i6," energies for keyword ",a)')
+     +  trim(adfile),numenadj,trim(key)
       stop
-  180 write(*,'(" TALYS-error: wrong particle symbol for: ",a80)') key
+  180 write(*,'(" TALYS-error: wrong particle symbol for: ",a)') 
+     +  trim(key)
       stop
   200 write(*,'(" TALYS-warning: Z,N index out of range,",
-     +  " keyword ignored: ",a80)') key
+     +  " keyword ignored: ",a)') trim(key)
       return
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

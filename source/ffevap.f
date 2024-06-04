@@ -244,7 +244,7 @@ c
         do 282 iz=1,ZCN-1
           in=ia-iz
           if (in.lt.1.or.in.gt.numneu) goto 282
-          if (xsZApre(iz,in).lt.fiseps.and..not.fpexist(iz,in))
+          if (xsZApre(iz,in).lt.fiseps.and..not.fpexist(iz,in,-1))
      +      goto 282
           do 283 type=0,6
             if (parskip(type)) goto 283
@@ -313,23 +313,30 @@ c
             if (sumpfnscm.gt.0.)
      +        pfnscm(type,nen)=pfnscm(type,nen)/sumpfnscm
             Esumpfns=Esumpfns+Epfns(nen)*pfns(type,nen)*dEpfns(nen)
-            maxpfns(type,nen)=0.
+            if (type.eq.0) then
+              pfns(type,nen)=pfns(type,nen)*nubar(type)
+              maxpfns(type,nen)=1.
+            else
+              maxpfns(type,nen)=0.
+            endif
   293     continue
           Eavpfns(type)=Esumpfns
           Eav=Eavpfns(type)
-          if (Eav.gt.0.) then
-            summax=0.
-            do 294 nen=1,NEpfns
-              E=Epfns(nen)
-              maxwell=sqrt(E)*exp(-E/Eav)
-              summax=summax+maxwell*dEpfns(nen)
-  294       continue
-            do 296 nen=1,NEpfns
-              E=Epfns(nen)
-              maxwell=sqrt(E)*exp(-E/Eav)
-              if (maxwell.gt.0.)
-     +          maxpfns(type,nen)=pfns(type,nen)/maxwell*summax
-  296       continue
+          if (type.gt.0) then
+            if (Eav.gt.0.) then
+              summax=0.
+              do 294 nen=1,NEpfns
+                E=Epfns(nen)
+                maxwell=sqrt(E)*exp(-E/(twothird*Eav))
+                summax=summax+maxwell*dEpfns(nen)
+  294         continue
+              do 296 nen=1,NEpfns
+                E=Epfns(nen)
+                maxwell=sqrt(E)*exp(-E/(twothird*Eav))
+                if (maxwell.gt.0.)
+     +            maxpfns(type,nen)=pfns(type,nen)/maxwell*summax
+  296         continue
+            endif
           endif
         endif
   291 continue

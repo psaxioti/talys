@@ -87,6 +87,16 @@ c
   120   continue
   110 continue
 c
+c The nuclear term is removed from charged-particle elastic scattering,
+c so the nuclear + interference term remains (for data libraries).
+c
+      if (k0.gt.1) then
+        do 170 iang=0,nangle
+          if (ruth(iang).gt.0.) 
+     +      elasni(iang)=discad(k0,0,iang)*(1.-1./ruth(iang))
+  170   continue
+      endif
+c
 c ************ Total Legendre coefficients and normalization ***********
 c
 c tleg     : total Legendre coefficient

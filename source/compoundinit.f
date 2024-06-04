@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 9, 2004
+c | Date  : January 24, 2023
 c | Task  : Initialization of compound model parameters
 c +---------------------------------------------------------------------
 c
@@ -22,9 +22,9 @@ c these cases the enumerator in the expression in which spin2 appears
 c is always zero.
 c
       spin2(0)=1
-      do 10 type=1,5
+      do type=1,5
         spin2(type)=int(2.*parspin(type))
-   10 continue
+      enddo
       spin2(6)=1
 c
 c *********** Initialization for width fluctuation calculation *********
@@ -78,10 +78,10 @@ c
       if (flagang) then
         logfact(1) = 0.
         logfact(2) = 0.
-        do 110 k=3,numfact
+        do k=3,numfact
           logfact(k)=logfact(k-1)+log(float(k-1))
-  110   continue
+        enddo
       endif
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

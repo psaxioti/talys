@@ -10,13 +10,12 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80     key
       integer          Zcomp,Ncomp,idfis,type,Zix,Nix,A,NL,odd,ldmod,
      +                 nexout,Pprime,Ir,l,irad,updown,nen,na,
      +                 nb,nc,ibar,ibk,ibin,J,parity
       real             Ex0plus,Ex0min,Efs,SS,Rodd,dEx,dExhalf,Exout,
      +                 Rboundary,Ex1min,Ex1plus,Eout,emax,emin,Exm,
-     +                 Rspin,Egamma,factor,gn0,fstrength,
+     +                 Rspin,Egamma,fstrength,
      +                 Ea,Eb,Ec,ta,tb,tc,tint,exfis,dExmin,elowest,elow,
      +                 emid
       double precision density
@@ -217,9 +216,6 @@ c Tgam     : gamma transmission coefficients
 c twopi    : 2.*pi
 c gamadjust: logical for energy-dependent gamma adjustment
 c adjust   : subroutine for energy-dependent parameter adjustment
-c factor   : multiplication factor
-c gnorm    : gamma normalization factor
-c gn0      : gamma normalization factor
 c fstrength: gamma ray strength function
 c
           if (type.eq.0) then
@@ -230,16 +226,9 @@ c
                 Tgam(nexout,l,irad)=0.
   210       continue
             if (Egamma.le.0) goto 20
-            if (gamadjust(Zcomp,Ncomp)) then
-              key='gnorm'
-              call adjust(Ecomp,key,0,0,0,0,factor)
-              gn0=factor*gnorm
-            else
-              gn0=gnorm
-            endif
             do 220 l=1,gammax
               do 220 irad=0,1
-                Tgam(nexout,l,irad)=twopi*(Egamma**(2*l+1))*gn0*
+                Tgam(nexout,l,irad)=twopi*(Egamma**(2*l+1))*
      +            fstrength(Zcomp,Ncomp,Efs,Egamma,irad,l)*Fnorm(0)
   220       continue
           else
@@ -271,13 +260,17 @@ c
               Tlnex(type,nexout,l)=0.
   240       continue
             lmaxhf(type,nexout)=0
-            if (Eout.lt.egrid(ebegin(type))) goto 20
             if (ebegin(type).ge.eend(type)) goto 20
 c
 c To get the transmission coefficients on the excitation energy grid,
 c Tjlnex, from those on the emission energy grid, Tjl, we use
 c interpolation of the second order.
 c
+            if (Eout.lt.Egrid(ebegin(type))) then
+              nen=0
+            else
+              call locate(egrid, ebegin(type), eend(type), Eout, nen)
+            endif
             call locate(egrid,ebegin(type),eend(type),Eout,nen)
             if (nen.gt.ebegin(type)+1) then
               na=nen-1

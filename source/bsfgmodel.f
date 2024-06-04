@@ -39,7 +39,7 @@ c Demetriou and Goriely, to avoid the unphysical divergence near zero
 c energy. The contribution given by the 1./term goes rapidly to zero
 c with increasing excitation energy.
 c
-      sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
+      sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar,0))
       an=0.5*ald
       ap=0.5*ald
       term=exp(1.)/24.*(an+ap)**2/sqrt(an*ap)/sigma

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
-c | Date  : June 26, 2007
+c | Date  : January 24, 2023
 c | Task  : Initialization of basic recoil information
 c +---------------------------------------------------------------------
 c
@@ -94,74 +94,22 @@ c
 c
 c **** Initialization of arrays containing the results in the lab ******
 c
-      do iex=0,numenrec
-        do in=0,numN
-          do iz=0,numZ
-            Erec(iz,in,iex)=0.
-            Erecmin(iz,in,iex)=0.
-            Erecmax(iz,in,iex)=0.
-          enddo
-        enddo
-      enddo
-      do iang=0,numangrec
-        do iej=0,numenrec
-          do iex=0,numex
-            do in=0,numN
-              do iz=0,numZ
-                ddxrec(iz,in,iex,iej,iang)=0.
-              enddo
-            enddo
-          enddo
-        enddo
-      enddo
-      do iang=0,2*numangcont+1
-        do iej=0,numen2
-          do type=0,numpar
-            areaejlab(type,iej,iang)=0.
-          enddo
-        enddo
-      enddo
-      do iang=0,2*numangrec+1
-        do iex=0,numenrec
-          do in=0,numN
-            do iz=0,numZ
-              areareclab(iz,in,iex,iang)=0.
-            enddo
-          enddo
-        enddo
-      enddo
-      do iex=0,numex
-        do in=0,numN
-          do iz=0,numZ
-            ddxrectot(iz,in,iex)=0.
-            specrecoil(iz,in,iex)=0.
-          enddo
-        enddo
-      enddo
-      do iang=0,numangcont
-        do type=0,6
-          do iej=0,numen2
-            ddxejlab(type,iej,iang)=0.
-          enddo
-        enddo
-      enddo
-      do type=0,6
-        do iej=0,numen2
-          Eejlab(type,iej)=0.
-          Eejlabmin(type,iej)=0.
-          Eejlabmax(type,iej)=0.
-          dEejlab(type,iej)=0.
-        enddo
-      enddo
-      do in=0,maxN+2
-        do iz=0,maxZ+2
-          Erecmaxmax(iz,in)=0.
-          recoilint(iz,in)=0.
-        enddo
-      enddo
-      do type=0,6
-        Enrjlabmax(type)=0.
-      enddo
+      Erec=0.
+      Erecmin=0.
+      Erecmax=0.
+      ddxrec=0.
+      areaejlab=0.
+      areareclab=0.
+      ddxrectot=0.
+      specrecoil=0.
+      ddxejlab=0.
+      Eejlab=0.
+      Eejlabmin=0.
+      Eejlabmax=0.
+      dEejlab=0.
+      Erecmaxmax=0.
+      recoilint=0.
+      Enrjlabmax=0.
 c
 c ******** Creation of the angular lab grid for the recoil nuclei ******
 c
@@ -169,14 +117,14 @@ c kalbachsep: subroutine for separation energy for kalbach systematics
 c
       call kalbachsep
       dangrec=180.0/nanglerec
-      do 40 iang=0,nanglerec
+      do iang=0,nanglerec
         angval=dangrec*real(iang)
         angrecmin(iang)=max(0.,angval-0.5*dangrec)
         angrecmax(iang)=min(180.,angval+0.5*dangrec)
         cosrecmin(iang)=cos(angrecmin(iang)*deg2rad)
         cosrecmax(iang)=cos(angrecmax(iang)*deg2rad)
         dcosangrec(iang)=abs(cosrecmin(iang)-cosrecmax(iang))
-  40  continue
+      enddo
       do iang=nanglerec+1,2*nanglerec+1
         cosrecmax(iang)=-cosrecmax(iang-nanglerec-1)
         cosrecmin(iang)=-cosrecmin(iang-nanglerec-1)
@@ -191,20 +139,20 @@ c ehigh     : highest energy
 c iejmax    : maximum energy index
 c
       Emaxinc=Einc+S(0,0,k0)+targetE
-      do 50 type=0,6
-        if (parskip(type)) goto 50
+      do type=0,6
+        if (parskip(type)) cycle
         Emaxlab=Emaxinc-S(0,0,type)
         Enrjlabmax(type)=Emaxlab
         iejlab(type)=0
-        if (Emaxlab.lt.0.) goto 50
+        if (Emaxlab.lt.0.) cycle
         maxentype=0
-        do 60 iej=0,maxen
+        do iej=0,maxen
           if (egrid(iej).ge.Emaxlab) then
             maxentype=iej
-            goto 70
+            exit
           endif
-   60   continue
-   70   if (maxen.gt.0.and.egrid(maxen).lt.Emaxlab) maxentype=maxen
+        enddo
+        if (maxen.gt.0.and.egrid(maxen).lt.Emaxlab) maxentype=maxen
         if (maxentype.gt.0) maxentype=max(maxentype,3)
         nl=Nlast(parZ(type),parN(type),0)
         Elast=eoutdis(type,nl)-elwidth
@@ -214,25 +162,25 @@ c
         else
           call locate(egrid,0,maxentype,Elast,nend)
         endif
-        do 80 iej=1,nend
+        do iej=1,nend
           Eejlab(type,iej)=egrid(iej)
-   80   continue
+        enddo
         ehigh=egrid(maxentype)-egrid(nend)
         nhigh=nint(10.*ehigh)
         nhigh=min(nhigh,numendisc)
         iejlab(type)=nend+nhigh
-        do 90 iej=nend+1,nend+nhigh
+        do iej=nend+1,nend+nhigh
           Eejlab(type,iej)=egrid(nend)+0.1*(iej-nend)
           if (Eejlab(type,iej).gt.Emaxlab) then
             iejlab(type)=min(iejlab(type),iej)
           endif
-   90   continue
+        enddo
         iejmax=iejlab(type)
-        do 100 iej=2,iejmax-1
+        do iej=2,iejmax-1
           dEejlab(type,iej)=0.5*(Eejlab(type,iej+1)-Eejlab(type,iej-1))
           Eejlabmax(type,iej)=0.5*(Eejlab(type,iej)+Eejlab(type,iej+1))
           Eejlabmin(type,iej)=0.5*(Eejlab(type,iej)+Eejlab(type,iej-1))
-  100   continue
+        enddo
         dEejlab(type,1)=Eejlab(type,1)+
      +                  0.5*(Eejlab(type,2)-Eejlab(type,1))
         Eejlabmin(type,1)=0.
@@ -244,7 +192,7 @@ c
         dEejlab(type,iejmax)=Eejlabmax(type,iejmax)-
      +                       Eejlabmin(type,iejmax)
         Eejlab(type,iejmax)=0.5*(Emaxlab+Eejlabmin(type,iejmax))
-   50 continue
+      enddo
 c
 c ************ Creation of the area array for the ejectiles ************
 c
@@ -252,8 +200,8 @@ c numres: number of residual bins
 c iej : counter
 c wcos: width of cosine bin
 c
-      do 110 type=0,6
-        if (parskip(type)) goto 110
+      do type=0,6
+        if (parskip(type)) cycle
         do iang=0,2*nanglecont+1
           wcos=dcosangcont(iang)
           do iej=1,iejlab(type)
@@ -261,7 +209,7 @@ c
           enddo
           areaejlab(type,0,iang)=0.
         enddo
-  110 continue
+      enddo
 c
 c *************** Calculate maximum excitation energies ****************
 c ***************   for all possible residual nuclei    ****************
@@ -311,7 +259,7 @@ c numNres: number of neutrons
 c numZk: number of protons
 c numNk: number of neutrons
 c
-  120 do 130 ires=1,numrestot
+  120 do ires=1,numrestot
         iloop=1
         if (ires.eq.numrestot) iloop=0
         numZcomp=numZN(ires,2)+numZN(ires,3)+numZN(ires,4)+
@@ -354,7 +302,7 @@ c
               EexCMmax(k)=max(EexCMmax(k),EexCMloc)
               goto 140
             endif
-  150     continue
+  150     enddo
 c A new residual is reached
           numrestot=numrestot+1
           iloop=1
@@ -363,8 +311,8 @@ c A new residual is reached
           enddo
           numZN(numrestot,type)=numZN(ires,type)+1
           EexCMmax(numrestot)=EexCMloc
-  140   continue
-  130 continue
+  140   enddo
+      enddo
       if (iloop.eq.1) goto 120
 c
 c ******** Define excitation energy bins for all residual nuclei *******
@@ -408,7 +356,7 @@ c
             if (type.eq.4) if4=if4+1
             if (type.eq.5) if5=if5+1
             if (type.eq.6) if6=if6+1
-            do 210 k=1,numrestot
+            do k=1,numrestot
               io1=numZN(k,1)
               io2=numZN(k,2)
               io3=numZN(k,3)
@@ -424,11 +372,11 @@ c
      +                2*(numZN(k,4)+numZN(k,6))
                 goto 220
               endif
-  210       continue
+            enddo
 c
 c If the residual nucleus is not among the considered ones it means
 c that it cannot be obtained because all possible residuals have been
-c defined in loop 130. We thus consider another ejectile.
+c defined in the main loop. We thus consider another ejectile.
 c
 c ifinal: help variable
 c iexfinal: counter
@@ -484,30 +432,30 @@ c
                   eejeclab=EejCM
                   Enrjlabmax(type)=max(Enrjlabmax(type),eejeclab)
               endif
-  230       continue
-  200     continue
-  190   continue
-  180 continue
+  230       enddo
+  200     enddo
+  190   enddo
+  180 enddo
 c
 c Maximum recoil energy for each residual
 c
 c iexc: counter
 c Erecmaxloc: maximum recoil energy
 c
-      do 240 ires=1,numrestot
+      do ires=1,numrestot
         Erecmaxloc(ires)=0.
         numZres=numZN(ires,2)+numZN(ires,3)+numZN(ires,4)+
      +        2*(numZN(ires,5)+numZN(ires,6))
         numNres=numZN(ires,1)+numZN(ires,3)+numZN(ires,5)+
      +        2*(numZN(ires,4)+numZN(ires,6))
         recoilGSmass=nucmass(numZres,numNres)*amu
-        do 250 iexc=0,nbbins
+        do iexc=0,nbbins
           recoilmass=recoilGSmass+EexCM(ires,iexc)
           PrecCM=PCM(ires,iexc)
           Erecbin=PrecCM**2/(2.*recoilmass)
           Erecmaxloc(ires)=max(Erecmaxloc(ires),Erecbin)
-  250   continue
-  240 continue
+        enddo
+      enddo
 c
 c Finally the recoils energy grids are defined and maximum excitation
 c energies are stored
@@ -527,36 +475,36 @@ c
         Erecmaxmax(numZres,numNres)=Erecmaxloc(ires)
         irecmaxmax(numZres,numNres)=ires
       enddo
-      do 460 iz=0,maxZ+2
-        do 470 in=0,maxN+2
-          if (Erecmaxmax(iz,in).le.0.) goto 470
+      do iz=0,maxZ+2
+        do in=0,maxN+2
+          if (Erecmaxmax(iz,in).le.0.) cycle
           derec=Erecmaxmax(iz,in)/(maxenrec+1)
           ires=irecmaxmax(iz,in)
-          if (ires.eq.0) goto 470
-          do 480 iexc=0,numenrec
+          if (ires.eq.0) cycle
+          do iexc=0,numenrec
             Erecmin(iz,in,iexc)=iexc*derec
             Erecmax(iz,in,iexc)=(iexc+1)*derec
             Erec(iz,in,iexc)=iexc*derec+0.5*derec
- 480      continue
- 470    continue
- 460  continue
+          enddo
+        enddo
+      enddo
 c
 c ************* Creation of the area array for the recoils *************
 c
 c wnrj: width of recoil energy bin
 c
-      do 500 iz=0,maxZ+2
-        do 510 in=0,maxN+2
-          if (Erecmaxmax(iz,in).eq.0.) goto 510
-          do 520 ierec=0,maxenrec
+      do iz=0,maxZ+2
+        do in=0,maxN+2
+          if (Erecmaxmax(iz,in).eq.0.) cycle
+          do ierec=0,maxenrec
             wnrj=Erecmax(iz,in,ierec)-Erecmin(iz,in,ierec)
-            do 530 iang=0,2*nanglerec+1
+            do iang=0,2*nanglerec+1
               wcos=dcosangrec(iang)
               areareclab(iz,in,ierec,iang)=wnrj*wcos
-  530       continue
-  520     continue
-  510   continue
-  500 continue
+            enddo
+          enddo
+        enddo
+      enddo
 c
 c ******* Feeding of the first compound nucleus recoil ddx array  ******
 c
@@ -568,4 +516,4 @@ c
       ddxrectot(0,0,maxex(0,0))=xstotinc/twopi
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

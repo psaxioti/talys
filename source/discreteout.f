@@ -111,7 +111,6 @@ c
 c filediscrete: flag for discrete level cross sections on separate file
 c numinclow   : number of incident energies below Elow
 c Atarget     : mass number of target nucleus
-c Starget     : symbol of target nucleus
 c Ztarget     : charge number of target nucleus
 c Qres        : Q-value for residual nucleus
 c Ethresh     : threshold incident energy for residual nucleus
@@ -130,9 +129,9 @@ c
             write(discfile(5:6),'(i2.2)') nex
             if (nin.eq.numinclow+1) then
               open (unit=1,file=discfile,status='replace')
-              write(1,'("# ",a1," + ",i3,a2,": Discrete ",a9,
-     +          " cross section - Level",i3)') parsym(k0),Atarget,
-     +          Starget,reactionstring(type),nex
+              write(1,'("# ",a1," + ",a,": Discrete ",a9,
+     +          " cross section - Level",i3)') parsym(k0),
+     +          trim(targetnuclide),reactionstring(type),nex
               write(1,'("# Q-value    =",es12.5," Spin=",f5.1,
      +          " Parity= ",a1)') Qres(Zix,Nix,nex),jdis(Zix,Nix,nex),
      +          cparity(parlev(Zix,Nix,nex))
@@ -178,8 +177,8 @@ c
           write(contfile(1:2),'(2a1)') parsym(k0),parsym(type)
           if (nin.eq.numinclow+1) then
             open (unit=1,file=contfile,status='replace')
-            write(1,'("# ",a1," + ",i3,a2,": Continuum ",a9,
-     +        " cross section")') parsym(k0),Atarget,Starget,
+            write(1,'("# ",a1," + ",a,": Continuum ",a9,
+     +        " cross section")') parsym(k0),trim(targetnuclide),
      +        reactionstring(type)
             write(1,'("# Q-value    =",es12.5)') Qres(Zix,Nix,NL)
             write(1,'("# E-threshold=",es12.5)') Ethresh(Zix,Nix,NL)
@@ -212,8 +211,8 @@ c
           write(totfile(1:2),'(2a1)') parsym(k0),parsym(type)
           if (nin.eq.numinclow+1) then
             open (unit=1,file=totfile,status='replace')
-            write(1,'("# ",a1," + ",i3,a2,": Total exclusive ",a9,
-     +        " cross section")') parsym(k0),Atarget,Starget,
+            write(1,'("# ",a1," + ",a,": Total exclusive ",a9,
+     +        " cross section")') parsym(k0),trim(targetnuclide),
      +        reactionstring(type)
             write(1,'("#         ")')
             write(1,'("#         ")')

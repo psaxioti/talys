@@ -36,7 +36,7 @@ c
         open (unit=8,file='breakup.dat',status='unknown',
      +    position='append')
       endif
-      write(8,'(3x,"  d +"i3,a2,"")')Atarget,nuc(Ztarget)
+      write(8, '(3x, "  d + ",i3, a2)') Atarget, nuc(Ztarget)
       write(8,*)'  DEUTERON break-up parameterization, M. Avrigeanu',         
      +          ' and V. Avrigeanu'                                           
       write(8,*)'  Phys. Rev. C95, 024607(2017), eqs 1-5, and',               
@@ -101,17 +101,18 @@ c
       xsBUT=0.
       xsaBU=0.
 c
-      do 103 type =1,2
+      do type =1,2
         ebreakLS(type)=0.
         ebreakCM(type)=0.
         sumtest(type)=0.
         speccorCM(type)=0.
         speccorLS(type)=0.
-        do 103 nen=0,eend(type)
+        do nen=0,eend(type)
           spec03LS(type,nen)=0.
           spec03CM(type,nen)=0.
           xspreeqbu(type,nen)=0.
-103   continue
+        enddo
+      enddo
 c
       call checkBU(EnormEB,RnormEB,TnormBU)
 c
@@ -168,7 +169,7 @@ c
 c
 c-------------           deuteron fragments   loop         --------
 c
-      do 301, type=1,2
+      do type=1,2
 c
 c   ******************************
 c
@@ -191,7 +192,7 @@ c
         write(8,*)" xsBUnuc = xsEB + xsBF=",xsBUnuc(Type),
      +            ", Eq. 4,  PRC95, 024607 (2017). "                            
         write(8,*)" xsBUTOTAL = xsEB + 2*xsBF=", xsBUT,
-     +            ", Eq. 5, PRC95,024607 & PRC89,044613."                       
+     +            ", Eq. 5, PRC95, 024607 & PRC89, 044613."                       
       endif
 c
 c  ebreakLS, ebreakCM  : Centroid energy of the breakup nucleon energy
@@ -243,7 +244,7 @@ c speccorLS      : correction factors for breakup spectra
 c sumtest        : check of breakup spectrum
 c
 c
-      DO 501, nen=ebegin(type),eend(type)
+      DO nen=ebegin(type),eend(type)
 c
 c
         Eout=egrid(nen)   !ine breakup
@@ -275,14 +276,14 @@ c
         speccorCM(type)=speccorCM(type)+spec03CM(type,nen)*deltaE(nen)
         speccorLS(type)=speccorLS(type)+spec03LS(type,nen)*deltaE(nen)
 c
-501   continue
+      enddo
 c
 c-------------------  END   breakup nucleon energy  loop ---------------
 c
 299   continue
 c
 c
-301   continue
+      enddo
 c
 c----------------------     END   deuteron fragments      --------------
 c
@@ -320,10 +321,10 @@ c
 c Inelastic Break-up enhancement of Avrigeanu model
 c Included smooth disappearance of enhancement above 80 MeV
 c
-      do 710 Acomp=1,9
-        do 720 Zcomp=0,5
+      do Acomp=1,9
+        do Zcomp=0,5
           Ncomp=Acomp-Zcomp
-          if (Ncomp.lt.0.or.Ncomp.gt.maxN) goto 720
+          if (Ncomp.lt.0.or.Ncomp.gt.maxN) cycle
           Z=ZZ(Zcomp,Ncomp,0)
           N=NN(Zcomp,Ncomp,0)
           BFsum=0.
@@ -341,8 +342,8 @@ c
             endif
           endif
           xsBFnuc(Zcomp,Ncomp)=BFcont
-  720   continue
-  710 continue
+        enddo
+      enddo
       write(8,*)'  end ..ine breakupAVR'
       close (unit=8)
 c

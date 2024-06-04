@@ -9,14 +9,14 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80 key
-      logical      surfwell
-      integer      type,ndelta,ndeltapi,ndeltanu,ppi,hpi,pnu,hnu,A,Z,N,
-     +             i,j,nen,k,l
-      real         proj2sp1,ejecmass,ejec2sp1,term1,Kap,Va,term2,term3,
-     +             term4,base,term5,factor,termps,V1well,surface,XNT,
-     +             gsn,gsp,Ewell,Eout,factor1,Eres,P,preeqpair,omegaNT,
-     +             omegaph,phdens2
+      character*132 key
+      logical       surfwell
+      integer       type,ndelta,ndeltapi,ndeltanu,ppi,hpi,pnu,hnu,A,Z,N,
+     +              i,j,nen,k,l
+      real          proj2sp1,ejecmass,ejec2sp1,term1,Kap,Va,term2,term3,
+     +              term4,base,term5,factor,termps,V1well,surface,XNT,
+     +              gsn,gsp,Ewell,Eout,factor1,Eres,P,preeqpair,omegaNT,
+     +              omegaph,phdens2
 c
 c ************************** Kalbach model *****************************
 c

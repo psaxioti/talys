@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : October 27, 2015
+c | Date  : January 20, 2023
 c | Task  : Constants and initialization
 c +---------------------------------------------------------------------
 c
@@ -56,10 +56,10 @@ c
 c sgn is used in level density and compound nucleus calculations
 c
       sgn(0)=1.
-      do 10 i=2,2*numl,2
+      do i=2,2*numl,2
         sgn(i)=1.
         sgn(i-1)=-1.
-   10 continue
+      enddo
 c
 c ATTENTION: As long as we use an equidistant parity distribution, we
 c            set it equal to 0.5, instead of calling a subroutine.
@@ -77,9 +77,9 @@ c natstring: string extension for file names
 c nlines   : number of input lines
 c
       iso=1
-      do 110 i=1,numiso
+      do i=1,numiso
         natstring(i)='    '
-  110 continue
+      enddo
       nlines=0
 c
 c **************** Set flag for fission fragment evaporation ***********
@@ -104,4 +104,4 @@ c
       Emaxtalys=1000.
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

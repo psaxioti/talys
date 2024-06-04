@@ -40,9 +40,9 @@ ctest racapgsprty=parlev(0,0,0)
 
       if (nin.eq.numinclow+1) then
         open (unit=2,file='racap.tot',status='unknown')
-        write(2,'("Direct capture reaction on target ",i3,a2," (Z =",
+        write(2,'("Direct capture reaction on target ",a," (Z =",
      +    i3,") with projectile ",a1, " (Qvalue=",f7.3," MeV)"/)')
-     +    Atarget,Starget,Ztarget,parsym(k0),Q(0)
+     +    trim(targetnuclide),Ztarget,parsym(k0),Q(0)
 
         write(2,'("Characteristics of the Direct Radiative Capture",
      +   " calculation:")')
@@ -123,11 +123,11 @@ c
       racapfile='racap.out'
       if (nin.eq.numinclow+1) then
         open(unit=1,file=racapfile,status='unknown')
-        write(1,'("# ",a1," + ",i3,a2,": Direct Capture to ",i3,a2)')
-     +    parsym(k0),Atarget,Starget,Acpracap,nuc(Zcpracap)
+        write(1,'("# ",a1," + ",a,": Direct Capture to ",i3,a2)')
+     +    parsym(k0),trim(targetnuclide),Acpracap,nuc(Zcpracap)
         write(1,'("# Q-value    =",es12.5," mass=",f11.6,
      +    " Emax=",f11.6)') Qres(0,0,0),nucmass(0,0),
-     +    min(S(0,0,1),S(0,0,2))
+     +    S(0,0,k0)
         write(1,'("# # transitions from ",f5.1,a1,
      +    " GS to ",i3,a2," levels:",i3)') spintar,cpar,Acpracap,
      +    nuc(Zcpracap),nlevracap(0,0)

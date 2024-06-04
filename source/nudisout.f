@@ -2,15 +2,16 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 23, 2021
+c | Date  : February 28, 2022
 c | Task  : Output of number of fission neutrons
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*90 nufile
-      integer      i,ia,iz,in,type
+      character*8   Estring
+      character*132 nufile,Eline
+      integer       i,ia,iz,in,type
 c
 c Write results to separate files
 c
@@ -22,12 +23,25 @@ c Einc0     : incident energy in MeV
 c parsym    : symbol of particle
 c k0        : index of incident particle
 c Atarget   : mass number of target nucleus
-c Starget   : symbol of target nucleus
 c Ztarget   : charge number of target nucleus
 c
 c nu per number, P(nu) and nubar as function of Z and A
 c
-      write(*,'(/" +++ AVERAGE NUMBER OF PROMPT FISSION NEUTRONS +++")')
+      Estring='0000.000'
+      if (Einc0.lt.0.001) then
+        write(Estring(1:8),'(es8.2)') Einc0
+      else
+        write(Estring(1:8),'(f8.3)') Einc0
+        write(Estring(1:4),'(i4.4)') int(Einc0)
+      endif
+      Eline='# E-incident =          MeV'
+      if (Einc0.lt.0.001) then
+        write(Eline(16:23),'(es8.2)') Einc0
+      else
+        write(Eline(16:23),'(f8.3)') Einc0
+      endif
+      write(*,'(/" +++ NUMBER OF PROMPT FISSION NEUTRONS ",
+     +  "AND GAMMAS +++")')
       do 10 type=0,6
         if (parskip(type)) goto 10
         if (nubar(type).eq.0.) goto 10
@@ -35,22 +49,13 @@ c
 c P(nu)
 c
         write(*,'(/" nubar for ",a8,f10.5)') parname(type),nubar(type)
-        nufile='Pnux0000.000.fis'//natstring(iso)
+        nufile='Pnux'//Estring//'.fis'//natstring(iso)
         nufile(4:4)=parsym(type)
-        if (Einc0.lt.0.001) then
-          write(nufile(5:12),'(es8.2)') Einc0
-        else
-          write(nufile(5:12),'(f8.3)') Einc0
-          write(nufile(5:8),'(i4.4)') int(Einc0)
-        endif
         open (unit=1,file=nufile,status='replace')
-        write(1,'("# ",a1," + ",i3,a2,": Prompt ",a8," multiplicity ",
-     +    "distribution ")') parsym(k0),Atarget,Starget,parname(type)
-        if (Einc0.lt.0.001) then
-          write(1,'("# E-incident = ",es8.2," MeV")') Einc0
-        else
-          write(1,'("# E-incident = ",f8.3," MeV")') Einc0
-        endif
+        write(1,'("# ",a1," + ",a,": Prompt ",a8," multiplicity ",
+     +    "distribution ")') parsym(k0),trim(targetnuclide),
+     +    parname(type)
+        write(1,'(a)') trim(Eline)
         write(1,'("# Mean value (nubar-prompt) = ",f10.5)') nubar(type)
         write(1,'("# Average P(nu)             = ",f10.5)') 
      +    Pdisnuav(type)
@@ -69,23 +74,13 @@ c
 c
 c nu(A)
 c
-        nufile='nuxA0000.000.fis'//natstring(iso)
+        nufile='nuxA'//Estring//'.fis'//natstring(iso)
         nufile(3:3)=parsym(type)
-        if (Einc0.lt.0.001) then
-          write(nufile(5:12),'(es8.2)') Einc0
-        else
-          write(nufile(5:12),'(f8.3)') Einc0
-          write(nufile(5:8),'(i4.4)') int(Einc0)
-        endif
         open (unit=1,file=nufile,status='replace')
-        write(1,'("# ",a1," + ",i3,a2,": Average prompt ",a8,
-     +    " multiplicity as function of mass")') parsym(k0),Atarget,
-     +    Starget,parname(type)
-        if (Einc0.lt.0.001) then
-          write(1,'("# E-incident = ",es8.2," MeV")') Einc0
-        else
-          write(1,'("# E-incident = ",f8.3," MeV")') Einc0
-        endif
+        write(1,'("# ",a1," + ",a,": Average prompt ",a8,
+     +    " multiplicity as function of mass")') parsym(k0),
+     +    trim(targetnuclide),parname(type)
+        write(1,'(a)') trim(Eline)
         write(1,'("# Mean value (nubar-prompt) = ",f10.5)') nubar(type)
         write(1,'("# ")')
         write(*,'(/"  nu(A) for ",a8/)') parname(type)
@@ -99,23 +94,13 @@ c
 c
 c nu(Z,A)
 c
-        nufile='nuxZA0000.000.fis'//natstring(iso)
+        nufile='nuxZA'//Estring//'.fis'//natstring(iso)
         nufile(3:3)=parsym(type)
-        if (Einc0.lt.0.001) then
-          write(nufile(6:13),'(es8.2)') Einc0
-        else
-          write(nufile(6:13),'(f8.3)') Einc0
-          write(nufile(6:9),'(i4.4)') int(Einc0)
-        endif
         open (unit=1,file=nufile,status='replace')
-        write(1,'("# ",a1," + ",i3,a2,": Average prompt ",a8,
-     +    " multiplicity as function of nucleus")') parsym(k0),Atarget,
-     +    Starget,parname(type)
-        if (Einc0.lt.0.001) then
-          write(1,'("# E-incident = ",es8.2," MeV")') Einc0
-        else
-          write(1,'("# E-incident = ",f8.3," MeV")') Einc0
-        endif
+        write(1,'("# ",a1," + ",a,": Average prompt ",a8,
+     +    " multiplicity as function of nucleus")') parsym(k0),
+     +    trim(targetnuclide),parname(type)
+        write(1,'(a)') trim(Eline)
         write(1,'("# Mean value (nubar-prompt) = ",f10.5)') nubar(type)
         write(1,'("# ")')
         write(*,'(/"  nu(Z,A) for ",a8/)') parname(type)
@@ -133,9 +118,18 @@ c
    35   continue
         close (unit=1)
    10 continue
+      if (fymodel <=2) return
 c
 c E-average(Z,A) and E-average(A)
 c
+      nufile='EavZA'//Estring//'.fis'//natstring(iso)
+      open (unit=1,file=nufile,status='replace')
+      write(1,'("# ",a1," + ",a,": Average emission ",
+     +  "energy per (Z,A)")') parsym(k0),trim(targetnuclide)
+      write(1,'(a)') trim(Eline)
+      write(1,'("# ")')
+      write(1,'("# ")')
+      write(1,'("# Z  A      gamma    neutron")')
       write(*,'(/"  Average emission energy per (Z,A)")')
       write(*,'(/"  Z  A      gamma    neutron"/)')
       do 110 iz=1,Ztarget
@@ -143,15 +137,30 @@ c
           in=ia-iz
           if (in.le.numneu) then
             if (EaverageZA(0,iz,in).gt.0..or.EaverageZA(1,iz,in).gt.0.)
-     +        write(*,'(i3,i4,2es12.5)') iz,ia,
-     +        (EaverageZA(type,iz,in),type=0,1)
+     +        then
+                write(*,'(i3,i4,2es12.5)') iz,ia,
+     +            (EaverageZA(type,iz,in),type=0,1)
+                write(1,'(i3,i4,2es12.5)') iz,ia,
+     +            (EaverageZA(type,iz,in),type=0,1)
+            endif
           endif
   110 continue
+      close (unit=1)
+      nufile='EavA'//Estring//'.fis'//natstring(iso)
+      open (unit=1,file=nufile,status='replace')
+      write(1,'("# ",a1," + ",a,": Average emission ",
+     +  "energy per A")') parsym(k0),trim(targetnuclide)
+      write(1,'(a)') trim(Eline)
+      write(1,'("# ")')
+      write(1,'("# ")')
+      write(1,'("# A     gamma    neutron")')
       write(*,'(/"  Average emission energy per A")')
       write(*,'(/"  A     gamma    neutron"/)')
       do 120 ia=1,Atarget
         write(*,'(i3,2es12.5)') ia,(EaverageA(type,ia),type=0,1)
+        write(1,'(i3,2es12.5)') ia,(EaverageA(type,ia),type=0,1)
   120 continue
+      close (unit=1)
       return
       end
 Copyright (C)  2021 A.J. Koning, S. Hilaire and S. Goriely

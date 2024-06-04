@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 27, 2020
+c | Date  : October 26, 2022
 c | Task  : Output of level density
 c +---------------------------------------------------------------------
 c
@@ -15,11 +15,14 @@ c
       character*25     model
       character*30     collstring
       integer          Zix,Nix,Z,N,A,ldmod,ibar,odd,J,ploop,parity,nex,
-     +                 NL,NT,i
+     +                 NL,NT,i,i1(numlev2),k,Nk
       real             aldmatch,SS,P,Eex,ignatyuk,spincut,ald,Krot,Kvib,
-     +                 Kcoll,chi2D0,Dratio,dEx,sigma,Tnuc
+     +                 Kcoll,chi2D0,Dratio,dEx,sigma,Tnuc,Eex1(numlev2),
+     +                 x1(numlev2),x2(numlev2),x3(numlev2),x4(numlev2)
       double precision densitytot,densitytotP,density,dens,Ncum,chi2,
-     +                 avdev,ldtot,ldtotP
+     +                 avdev,ldtot,ldtotP,chi2sum,Frmssum,Ermssum,
+     +                 avdevsum,Ri,Frms,Erms
+
 c
 c ********************** Level density parameters **********************
 c
@@ -105,13 +108,9 @@ c spincut     : spin cutoff factor
 c ignatyuk    : function for energy dependent level density parameter a
 c beta2       : deformation parameter
 c Krotconstant: normalization constant for rotational enhancement
-c Ufermi      : energy of Fermi distribution for damping of ground-state
+c Ufermi      : energy of Fermi distribution for damping of 
 c               rotational effects
-c cfermi      : width of Fermi distribution for damping of ground-state
-c               rotational effects
-c Ufermibf    : energy of Fermi distribution for damping of barrier
-c               rotational effects
-c cfermibf    : width of Fermi distribution for damping of barrier
+c cfermi      : width of Fermi distribution for damping of 
 c               rotational effects
 c
       P=pair(Zix,Nix)
@@ -146,7 +145,7 @@ c
       write(*,'(" Discrete sigma  :",4f10.5)')
      +  (sqrt(scutoffdisc(Zix,Nix,ibar)),ibar=0,nfisbar(Zix,Nix))
       write(*,'(" Sigma (Sn)      :",4f10.5)')
-     +  (sqrt(spincut(Zix,Nix,ignatyuk(Zix,Nix,SS,ibar),SS,ibar)),
+     +  (sqrt(spincut(Zix,Nix,ignatyuk(Zix,Nix,SS,ibar),SS,ibar,0)),
      +  ibar=0,nfisbar(Zix,Nix))
       write(*,'(" Rhotot(Sn=",f5.2,"):",1p,4e10.3)')
      +  SS,(densitytot(Zix,Nix,SS,ibar,ldmod),
@@ -155,12 +154,10 @@ c
         write(*,'(" beta2           :",f10.5)') beta2(Zix,Nix,0)
         write(*,'(" Krotconstant    :",4f10.5)')
      +    (Krotconstant(Zix,Nix,ibar),ibar=0,nfisbar(Zix,Nix))
-        write(*,'(" Ufermi          :",f10.5)') Ufermi
-        write(*,'(" cfermi          :",f10.5)') cfermi
-        if (ibar.gt.0) then
-          write(*,'(" Ufermibf        :",f10.5)') Ufermibf
-          write(*,'(" cfermibf        :",f10.5)') cfermibf
-        endif
+        write(*,'(" Ufermi          :",4f10.5)')
+     +    (Ufermi(Zix,Nix,ibar),ibar=0,nfisbar(Zix,Nix))
+        write(*,'(" cfermi          :",4f10.5)')
+     +    (cfermi(Zix,Nix,ibar),ibar=0,nfisbar(Zix,Nix))
       endif
 c
 c ********************** Total level density ***************************
@@ -217,6 +214,7 @@ c
           write(*,'(/" Normalization:")')
           write(*,'("        ctable=",f10.5)') ctable(Zix,Nix,ibar)
           write(*,'("        ptable=",f10.5)') ptable(Zix,Nix,ibar)
+          write(*,'("      s2adjust=",f10.5)') s2adjust(Zix,Nix,ibar)
         else
 c
 c Analytical level densities
@@ -244,7 +242,7 @@ c
               collstring=' '
             endif
             write(*,'(1x,f6.2,2f7.3,10es10.3,a30)') Eex,ald,
-     +        sqrt(spincut(Zix,Nix,ald,Eex,ibar)),
+     +        sqrt(spincut(Zix,Nix,ald,Eex,ibar,0)),
      +        densitytotP(Zix,Nix,Eex,1,ibar,ldmod),
      +        (density(Zix,Nix,Eex,real(J+0.5*odd),1,ibar,ldmod),
      +        J=0,8),collstring
@@ -326,7 +324,7 @@ c
             write(1,'("# Disc. sigma     :",f10.5,
      +        "   Sigma (Sn)      :",f10.5)')
      +        sqrt(scutoffdisc(Zix,Nix,ibar)),
-     +        sqrt(spincut(Zix,Nix,ignatyuk(Zix,Nix,SS,ibar),SS,ibar))
+     +        sqrt(spincut(Zix,Nix,ignatyuk(Zix,Nix,SS,ibar),SS,ibar,0))
             if (ldmod.eq.3) then
               write(1,'("# Adj. pair shift :",f10.5,
      +          "   delta0          :",f10.5,"   Crit. a:",f10.5)')
@@ -361,8 +359,21 @@ c
      +      "       a            Sigma  ")')
         endif
         Ncum=real(NL)
-        chi2=0.
-        avdev=0.
+        chi2 = 0.
+        Frms = 0.
+        Erms = 0.
+        avdev = 0.
+        k = 0
+        Eex1 = 0.
+        i1 = 0
+        x1 = 0.
+        x2 = 0.
+        x3 = 0.
+        x4 = 0.
+        chi2sum = 0.
+        Frmssum = 0.
+        Ermssum = 0.
+        avdevsum = 0.
         do 220 i=NL+1,nlevmax2(Zix,Nix)-1
           if (edis(Zix,Nix,i+1).eq.0.) goto 220
           Eex=0.5*(edis(Zix,Nix,i)+edis(Zix,Nix,i-1))
@@ -373,27 +384,49 @@ c
             Eex=edis(Zix,Nix,i)
             write(*,'(1x,f8.4,i4,f12.3)') Eex,i,Ncum
             if (filedensity) then
+              k = k + 1
               if (ldmod.le.3) then
                 ald=ignatyuk(Zix,Nix,Eex,ibar)
                 if (ldmod.eq.3.and.Eex.lt.Ucrit(Zix,Nix,ibar)-P-
      +            Pshift(Zix,Nix,ibar)) ald=aldcrit(Zix,Nix,ibar)
                 dens=densitytot(Zix,Nix,Eex,ibar,ldmod)
-                sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
-                write(1,'(f8.4,i4,4f14.3)') Eex,i,Ncum,dens,ald,sigma
-              else
-                write(1,'(f8.4,i4,2f14.3)') Eex,i,Ncum,dens
+                sigma=sqrt(spincut(Zix,Nix,ald,Eex,ibar,0))
+                x3(k) = ald
+                x4(k) = sigma
               endif
+              Eex1(k) = Eex
+              i1(k) = i
+              x1(k) = Ncum
+              x2(k) = dens
             endif
           endif
-          if (i.le.NT) then
-            chi2=chi2+(Ncum-i)**2/i
-            avdev=avdev+abs(Ncum-i)/(NT-NL)
+          if (i > 0 .and. i <= NT) then
+            chi2sum = chi2sum + (Ncum - i) **2
+            Ri = Ncum / i
+            Frmssum = Frmssum + log(Ri)**2
+            Ermssum = Ermssum + log(Ri)
+            avdevsum = avdevsum + abs(Ncum - i)
           endif
   220   continue
+        chi2 = chi2sum / (NT - NL)
+        Frms = exp(sqrt(Frmssum / (NT - NL)))
+        Erms = exp(Ermssum / (NT - NL))
+        avdev = avdevsum / (NT - NL)
+        Nk = k
         if (filedensity) then
-          write(1,'("# Chi-square per point for levels between ",
-     +      "Nlow and Ntop: ",es12.5," Average deviation: ",es12.5)')
-     +      chi2,avdev
+          write(1, '("# Chi-2 per level :", f10.5)') chi2
+          write(1, '("# Frms per level  :", f10.5)') Frms
+          write(1, '("# Erms per level  :", f10.5)') Erms
+          write(1, '("# av dev per level:", f10.5)') avdev
+          do k = 1, Nk
+            if (ldmod <= 3) then
+              write(1, '(es15.6, i6, 9x, 4es15.6)') 
+     +          Eex1(k),i1(k),x1(k),x2(k),x3(k),x4(k)
+            else
+              write(1, '(es15.6, i6, 9x,  2es15.6)') 
+     +          Eex1(k),i1(k),x1(k),x2(k)
+            endif
+          enddo
           close (1)
         endif
   210 continue
@@ -429,7 +462,7 @@ c
             dens=densitytotP(Zix,Nix,Eex,parity,ibar,ldmod)
             Ncum=Ncum+dens*dEx
             ldtot=0.
-            do 330 J=0,29
+            do 330 J=0,numJ
               ldtot=ldtot+(2.*J+1)*
      +          density(Zix,Nix,Eex,real(J+0.5*odd),parity,ibar,ldmod)
   330       continue

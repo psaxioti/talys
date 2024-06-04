@@ -1,30 +1,24 @@
-      function spindis(Zix,Nix,Eex,ald,Rspin,ibar)
+      function spindis(sc,Rspin)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 17, 2004
+c | Date  : July 6, 2022
 c | Task  : Wigner spin distribution
 c +---------------------------------------------------------------------
 c
 c ******************* Declarations and common blocks *******************
 c
-      integer Zix,Nix,ibar
-      real    Eex,ald,Rspin,sigma22,spincut,spindis
+      real    sc,Rspin,sigma22,spindis
 c
 c *********************** Wigner formula ******************************
 c
-c spindis: Wigner spin distribution
-c Zix    : charge number index for residual nucleus
-c Nix    : neutron number index for residual nucleus
-c Eex    : excitation energy
-c ald    : level density parameter
+c sc     : spin cutoff factor
 c Rspin  : spin
-c ibar   : fission barrier
 c sigma22: 2 * spin cutoff factor
-c spincut: spin cutoff factor
+c spindis: Wigner spin distribution
 c
-      sigma22=2.*spincut(Zix,Nix,ald,Eex,ibar)
+      sigma22=2.*sc
       spindis=(2.*Rspin+1.)/sigma22*exp(-(Rspin+0.5)**2/sigma22)
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2022 A.J. Koning, S. Hilaire and S. Goriely

@@ -9,8 +9,8 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*90 nufile
-      integer      type,nen
+      character*132 nufile
+      integer       type,nen
 c
 c Write results to separate files
 c
@@ -22,7 +22,6 @@ c Einc0     : incident energy in MeV
 c parsym    : symbol of particle
 c k0        : index of incident particle
 c Atarget   : mass number of target nucleus
-c Starget   : symbol of target nucleus
 c Ztarget   : charge number of target nucleus
 c
 c nu per number, P(nu) and nubar as function of Z and A
@@ -34,7 +33,8 @@ c
           enddo
         enddo
       endif
-      write(*,'(/" +++ AVERAGE NUMBER OF PROMPT FISSION NEUTRONS +++")')
+      write(*,'(/" +++ AVERAGE NUMBER OF PROMPT FISSION NEUTRONS +++",
+     +  /)')
       do 10 type=0,6
         if (parskip(type)) goto 10
         if (nubar(type).eq.0.) goto 10
@@ -50,9 +50,9 @@ c
         if (.not.nubarexist(type)) then
           nubarexist(type)=.true.
           open (unit=1,file=nufile,status='replace')
-          write(1,'("# ",a1," + ",i3,a2,
+          write(1,'("# ",a1," + ",a,
      +      ": Average prompt ",a8," multiplicity (nubar-prompt)")')
-     +    parsym(k0),Atarget,Starget,parname(type)
+     +    parsym(k0),trim(targetnuclide),parname(type)
           write(1,'("# ")')
           write(1,'("# # energies =",i6)') numinc
           write(1,'("# ")')
@@ -70,7 +70,7 @@ c
    60     continue
         endif
         write(1,'(2es12.5)') Einc0,nubar(type)
-        write(*,'(2es12.5)') Einc0,nubar(type)
+        write(*,'(a8,es12.5)') parname(type),nubar(type)
    70   close (unit=1)
    10 continue
       return

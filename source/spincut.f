@@ -1,18 +1,18 @@
-      function spincut(Zix,Nix,ald,Eex,ibar)
+      function spincut(Zix,Nix,ald,Eex,ibar,ipop)
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : October 10, 2015
+c | Date  : July 6, 2022
 c | Task  : Spin cutoff factor
 c +---------------------------------------------------------------------
 c
 c ******************* Declarations and common blocks *******************
 c
       include "talys.cmb"
-      character*80 key
-      integer      Zix,Nix,ibar,ldmod
-      real         spincut,ald,Eex,factor,Rs,s2,scutconst,Em,aldm,
-     +             ignatyuk,Umatch,s2m,s2d,Ed,U
+      character*132 key
+      integer       Zix,Nix,ibar,ldmod,ipop
+      real          spincut,ald,Eex,factor,Rs,s2,scutconst,Em,aldm,
+     +              ignatyuk,Umatch,s2m,s2d,Ed,U
 c
 c *********************** Spin cutoff parameter ************************
 c
@@ -22,6 +22,7 @@ c Nix         : neutron number index for residual nucleus
 c ald         : level density parameter
 c Eex         : excitation energy
 c ibar        : fission barrier
+c ipop        : 0: normal level density 1: initial population
 c
 c Models for spin cutoff factor:
 c
@@ -68,9 +69,15 @@ c               Only used for Bruyeres-le-Chatel (Pascal Romain) fission
 c               model
 c beta2       : deformation parameter
 c
-      key='rspincut'
-      call adjust(Eex,key,0,0,0,0,factor)
-      Rs=factor*Rspincut
+      if (ipop.eq.1) then
+        key='rspincutff'
+        call adjust(Eex,key,0,0,0,0,factor)
+        Rs=factor*Rspincutff
+      else
+        key='rspincut'
+        call adjust(Eex,key,0,0,0,0,factor)
+        Rs=factor*Rspincut
+      endif
       if (ldadjust(Zix,Nix)) then
         key='s2adjust'
         call adjust(Eex,key,Zix,Nix,0,ibar,factor)

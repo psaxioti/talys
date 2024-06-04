@@ -1,84 +1,103 @@
-     TALYS-1.96 (Version: December 30, 2021)
 
- Copyright (C) 2021  A.J. Koning, S. Hilaire and S. Goriely        
+# TALYS
+TALYS is a software package for the simulation of nuclear reactions below 200 MeV. 
+TALYS is based on state-of-art nuclear structure and reaction models. 
 
-The TALYS package
------------------
+## Documentation and reference
+A description of the code and its options can be found in the [TALYS Tutorial (pdf)](https://github.com/arjankoning1/talys/blob/main/doc/talys.pdf).
+The reference to be used for TALYS is
 
-In what follows we assume TALYS will be installed on a Unix/Linux 
-operating system. The total TALYS package is in the talys/ directory and 
-contains the following directories and files:
+Arjan Koning, Stephane Hilaire and Stephane Goriely, *TALYS: modeling of nuclear reactions*, European Journal of Physics A59 (6), 131 (2023).
 
-- README: this file
+## Installation
 
-- talys.setup is a script that takes care of the installation.
+### Prerequisites:
 
-- source/ contains the source code of TALYS: Fortran subroutines, and the 
-  file talys.cmb, which contains all variable declarations and common blocks.
-  This includes the file ecis06t.f. This is basically Jacques Raynal's code 
-  ECIS-06, which we have transformed into a subroutine and slightly modified 
-  to generate extra output that is not given by the original version of ECIS.
+The following are the prerequisites for compiling TALYS:
+  - git (only if the package is downloaded via Github)
+  - a recent Fortran compiler such as gcc (gfortran)
 
-- structure/ contains the nuclear structure database in various subdirectories. 
+### Downloads:
 
-- doc/ contains the documentation: this manual in pdf format and 
-  the description of ECIS-06.
+To download TALYS, you can use one of the following options:
+#### 1. Download the entire tar file:
+```
+https://nds.iaea.org/talys/talys.tar
+tar zxf talys.tar
+```
+#### 2. Using git:
+```
+git clone https://github.com/arjankoning1/talys.git
+```
+The TALYS structure database and sample cases do not fall under the git repository. Hence, to get a  working system you need to download
+```
+https://nds.iaea.org/talys/structure.tar
+https://nds.iaea.org/talys/talys_samples.tar
+```
+and after
+```
+tar zxf structure.tar
+tar zxf talys_samples.tar
+```
+you should move both *structure/* and *samples/* inside the *talys/* directory.
 
-- samples/ contains the input and output files of the sample cases.
+### Installation instructions :
 
-In total, you will need about 4 Gb of free disk space to install TALYS.
+To install TALYS, you can use one of the following options:
+#### 1. Using make:
+```
+cd talys/source
+make
+```
+#### 2. Using the code_build script:
+```
+cd talys
+code_build talys
+```
 
-Installation
-------------
+The above will produce a *talys* executable in the *talys/bin* directory. 
+The compiler and its flags can be set in either *source/Makefile* or in *code_build*.
 
-The installation of TALYS is straightforward.
-For a Unix/Linux system, the installation is expected to be handled by the 
-talys.setup script. This can be activated by
+### Memory restrictions:
 
-- edit talys.setup and set the first two variables: the name of your compiler 
-  and the place where you want to store the TALYS executable.
+For computers with (very) small RAM, or for installation on Windows, the total allocated memory may be too large. In that case, edit *A0_talys_mod.f90* in the source directory and reduce the value of the *memorypar* variable.
 
-- talys.setup
+## The TALYS package
 
-If this does not work for some reason, we here provide the necessary steps to 
-do the installation manually. For a Unix/Linux system, the following steps 
-should be taken:
+The *talys/* directory contains the following directories and files:
 
-- cd talys/source
++ `README.md` this README file
++ `LICENSE` the License file
++ `code_build` and `path_change` installation scripts
++ `source/` the Fortran source code of TALYS and the Makefile
++ `bin/` the *talys* executable after successful installation
++ `structure/` the nuclear structure and reaction database in various subdirectories
++ `misc/` miscellaneous files such as a gnuplot script to plot results versus EXFOR
++ `doc/` the tutorial in pdf format
++ `samples/` the input and output files of the sample cases, and the *verify* script to run the sample cases
 
-- Ensure that TALYS can read the nuclear structure database. This is done
-  in subroutine machine.f. If talys.setup has not already replaced the path 
-  name in machine.f, do it yourself. We think this is the only Unix/Linux 
-  machine dependence of TALYS. Apart from a few trivial warning messages for 
-  ecis06t.f, we expect no complaints from the compiler. 
+In total, you will need about 8 Gb of free disk space to install TALYS.
 
-- gfortran -c *.f
+## Sample cases
 
-- gfortran *.o -o talys
+The sample cases serve to provide examples of the use of TALYS and to verify a successful installation. The *samples/* directory contains various sample cases with a subdirectory *org/* with our results and a subdirectory *new/* with the results produced by the user. The entire sample set will take about 1 hour.
+```
+cd samples
+./verify
+```
 
-- mv talys /bin 
-  (assuming you have a /bin directory which contains all executables that can 
-  be called from any working directory)
+You may create your own input file, e.g. *talys.inp* after which TALYS works as follows:
+```
+talys < talys.inp > talys.out
+```
+assuming that *talys* is linked to the *talys/bin/talys* executable.
 
-Verification
-------------
+## Plotting
 
-- cd samples
+The cross sections that TALYS calculates can be compared with experimental data from the EXFOR database using the misc/tplot script.
+For this, the [EXFORTABLES](https://github.com/arjankoning1/exfortables) database needs to be installed in your home directory. 
+Type 'misc/tplot' to get all the options for this plotting command. 'tplot' needs to be called from your working directory, 
+i.e. the TALYS output files need to be present.
 
-- verify
-
-Under Linux/Unix, this should run all sample cases (about 1 hour on
-a fast PC).
-
-Should you encounter error messages, upon running TALYS, like 'killed' or
-'segmentation fault', then probably the memory of your processor is not large
-enough (i.e. smaller than 256 Mb). Edit talys.cmb and change the value of 
-memorypar.
-
-Your own calculations
----------------------
-
-- talys < talys.inp > talys.out
-
-where you can make your own input file starting from the many sample cases
-we provide.
+## License and Copyright
+This software is distributed and copyrighted according to the [LICENSE](LICENSE) file.

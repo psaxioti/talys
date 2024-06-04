@@ -9,9 +9,9 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80 key
-      integer      k
-      real         E,factor
+      character*132 key
+      integer       k
+      real          E,factor
 c
 c ******************* Create adjustable OMP factors *********************
 c

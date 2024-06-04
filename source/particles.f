@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 19, 2011
+c | Date  : January 29, 2023
 c | Task  : Determine included light particles
 c +---------------------------------------------------------------------
 c
@@ -30,49 +30,46 @@ c always each others' opposite.
 c
 c 1. Default: All competing channels included
 c
-      do 10 type=-1,6
-        parinclude(type)=.true.
-        parskip(type)=.false.
-   10 continue
+      parinclude=.true.
+      parskip=.false.
       if (.not.flagfission) then
         parinclude(-1)=.false.
         parskip(-1)=.true.
       endif
       if (flagomponly) then
-        do 20 type=-1,6
-          parinclude(type)=.false.
-          parskip(type)=.true.
-   20   continue
+        parinclude=.false.
+        parskip=.true.
       endif
 c
 c Check if default is to be used
 c
       default=.true.
-      do 30 type=0,6
+      do type=0,6
         if (outtype(type).ne.' ') then
           default=.false.
           goto 50
         endif
-   30 continue
-      do 40 type=0,6
+      enddo
+      do type=0,6
         outtype(type)=parsym(type)
-   40 continue
+      enddo
 c
 c 2. No default, but specific competing outgoing particles are
 c    requested. Now, we first turn all competing channels off, and then
 c    determine which are to be included and which are to be skipped.
 c
    50 if (.not.default) then
-        do 60 type=0,6
+        do type=0,6
           parinclude(type)=.false.
-   60   continue
-        do 70 type=0,6
-          do 70 type2=0,6
+        enddo
+        do type=0,6
+          do type2=0,6
             if (outtype(type).eq.parsym(type2)) parinclude(type2)=.true.
-   70   continue
-        do 80 type=0,6
+          enddo
+        enddo
+        do type=0,6
           parskip(type)=.not.parinclude(type)
-   80   continue
+        enddo
       endif
 c
 c The incident particle is always included as outgoing particle
@@ -93,4 +90,4 @@ c
       endif
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

@@ -2,19 +2,19 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 12, 2016
+c | Date  : January 29, 2023
 c | Task  : Best set of branching ratios
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist
-      character*10 branchchar
-      character*80 line,word(40)
-      character*90 branchfile
-      integer      Zix,Nix,iz,ia,iword,ilev0,ilev1,nbr,k
-      real         sum,bra
+      logical       lexist
+      character*10  branchchar
+      character*132 line,word(40)
+      character*132 branchfile
+      integer       Zix,Nix,iz,ia,iword,ilev0,ilev1,nbr,k
+      real          sum,bra
 c
 c ******************** Read best branching ratios **********************
 c
@@ -39,7 +39,7 @@ c
       inquire (file=branchfile,exist=lexist)
       if (lexist) then
         open (unit=2,file=branchfile,status='old')
-   10   read(2,'(a80)',end=100) line
+   10   read(2,'(a)',end=100) line
         call getkeywords(line,word)
         read(word(2),*,end=1000,err=1000) iz
         read(word(3),*,end=1000,err=1000) ia
@@ -54,7 +54,7 @@ c
         if (nbranch(Zix,Nix,ilev0).ne.0) goto 10
         iword=5
         sum=0.
-        do 20 k=1,nbr
+        do k=1,nbr
           iword=iword+1
           read(word(iword),*,end=1000,err=1000) ilev1
           if (ilev1.lt.0..or.ilev1.gt.numlev) goto 1060
@@ -64,26 +64,26 @@ c
           branchlevel(Zix,Nix,ilev0,k)=ilev1
           branchratio(Zix,Nix,ilev0,k)=bra
           sum=sum+bra
-   20   continue
+        enddo
         if (sum.gt.0.) then
-          do 30 k=1,nbr
+          do k=1,nbr
             branchratio(Zix,Nix,ilev0,k)=branchratio(Zix,Nix,ilev0,k)
      +        /sum
-   30     continue
+          enddo
         endif
         nbranch(Zix,Nix,ilev0)=nbr
         goto 10
   100   close (unit=2)
       endif
       return
- 1000 write(*,'(" TALYS-error: Wrong branching ratio: ",a80)') line
+ 1000 write(*,'(" TALYS-error: Wrong branching ratio: ",a)') trim(line)
       stop
  1060 write(*,'(" TALYS-error: 0 <= level number <= ",i4,
-     +  ", ilev0, ilev1 or nbr index out of range: ",a80)')
-     +  numlev,line
+     +  ", ilev0, ilev1 or nbr index out of range: ",a)')
+     +  numlev,trim(line)
       stop
  1070 write(*,'(" TALYS-error: 0 <= branching ratio",
-     +  ", br index out of range: ",a80)') line
+     +  ", br index out of range: ",a)') trim(line)
       stop
       end
-Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

@@ -54,7 +54,6 @@ c parsym     : symbol of particle
 c k0         : index of incident particle
 c Atarget    : mass number of target nucleus
 c Ztarget    : charge number of target nucleus
-c Starget    : symbol of target nucleus
 c numinc     : number of incident energies
 c eninc,Einc : incident energy in MeV
 c
@@ -72,8 +71,8 @@ c
             if (.not.fisexist(Zcomp,Ncomp)) then
               fisexist(Zcomp,Ncomp)=.true.
               open (unit=1,file=rpfile,status='replace')
-              write(1,'("# ",a1," + ",i3,a2,": Fission of ",i3,a2)')
-     +          parsym(k0),Atarget,Starget,A,nuc(Z)
+              write(1,'("# ",a1," + ",a,": Fission of ",i3,a2)')
+     +          parsym(k0),trim(targetnuclide),A,nuc(Z)
               write(1,'("#                 ")')
               write(1,'("#                 ")')
               write(1,'("# # energies =",i6)') numinc

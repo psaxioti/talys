@@ -59,10 +59,11 @@ c
         BFenhance(type)=0.
       enddo
 c
-      do 103 type=1,2
-      do 103 nen=1,numenout
-        sumtest0(type,nen)=0.
-103   continue
+      do type=1,2
+        do nen=1,numenout
+          sumtest0(type,nen)=0.
+        enddo
+      enddo
 c
       Z=Z00
       N=N00

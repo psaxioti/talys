@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 21, 2012
+c | Date  : November 14, 2022
 c | Task  : Processing of pre-equilibrium spectra into population bins
 c +---------------------------------------------------------------------
 c
@@ -127,11 +127,13 @@ c              outgoing energy, spin and parity
 c xsgrstate  : smoothed giant resonance cross section per state
 c preeqpop   : pre-equilibrium population cross section
 c
-          if (pespinmodel.eq.3) then
+          if (pespinmodel.ge.3) then
             do 30 parity=-1,1,2
               do 30 J=0,maxJph
-                xsa=xspreeqJP(type,na1,J,parity)
-                xsb=xspreeqJP(type,nb1,J,parity)
+                xsa=xspreeqJP(type,na1,J,parity)+
+     +            xscollcontJP(type,J,parity,na1)
+                xsb=xspreeqJP(type,nb1,J,parity)+
+     +            xscollcontJP(type,J,parity,nb1)
                 if (flaggiant.and.J.le.3) then
                   xsa=xsa+xsgrstate(type,J,1,na1)+
      +              xsgrstate(type,J,2,na1)
@@ -139,8 +141,10 @@ c
      +              xsgrstate(type,J,2,nb1)
                 endif
                 call pol1(Ea1,Eb1,xsa,xsb,Elow,xslow)
-                xsa=xspreeqJP(type,na2,J,parity)
-                xsb=xspreeqJP(type,nb2,J,parity)
+                xsa=xspreeqJP(type,na2,J,parity)+
+     +            xscollcontJP(type,J,parity,na2)
+                xsb=xspreeqJP(type,nb2,J,parity)+
+     +            xscollcontJP(type,J,parity,nb2)
                 if (flaggiant.and.J.le.3) then
                   xsa=xsa+xsgrstate(type,J,1,na2)+
      +              xsgrstate(type,J,2,na2)
@@ -255,7 +259,7 @@ c
      +    norm=(xspreeqtot(type)+xsgrtot(type))/xscheck(type)
         do 130 nex=NL+1,maxex(Zix,Nix)
           preeqpopex(Zix,Nix,nex)=preeqpopex(Zix,Nix,nex)*norm
-          if (pespinmodel.eq.3) then
+          if (pespinmodel.ge.3) then
             do 140 parity=-1,1,2
               do 140 J=0,maxJph
                 preeqpop(Zix,Nix,nex,J,parity)=

@@ -12,7 +12,7 @@ c
       logical          lexist
       character*6      gschar
       character*8      filen
-      character*90     gsfile,precfile,barfile
+      character*132    gsfile,precfile,barfile
       integer          Zix,Nix,Z,A,Zbrosa,amassmax,numoff,k,i,massdif,
      +                 index1,index2,amassar(1:7),amassdum,iloop,
      +                 numtempsl,numtempst,numtempst2
@@ -94,18 +94,19 @@ c
 c
 c     initialize
 c
-      do 5 k=1,9
+      do k=1,9
         bf_sl(k)=0.
         bf_st(k)=0.
         bf_st2(k)=0.
         bfsplin_sl(k)=0.
         bfsplin_st(k)=0.
         bfsplin_st2(k)=0.
- 5    continue
-      do 7 k=1,9
-         do 7 i=1,2
-         bindgs(k,i)=0.
- 7    continue
+      enddo
+      do k=1,9
+        do i=1,2
+          bindgs(k,i)=0.
+        enddo
+      enddo
 c
 c     reading ground state binding energies
 c
@@ -127,7 +128,7 @@ c
         amassar(k)=amassmax-noff(k)
  8    continue
       massdif=amassmax-A
-      do 9 k=1,numoff
+      do k=1,numoff
          if(massdif.GE.noff(k).and.massdif.LE.noff(k+1))then
             if(massdif.EQ.noff(k))then
                index1=k
@@ -141,7 +142,7 @@ c
                   index2=k+1
                endif
             endif
-            goto 9
+            cycle
          endif
          if(massdif.GT.noff(numoff))then
             index1=numoff
@@ -152,7 +153,7 @@ c
                index2=-1
             endif
          endif
- 9    continue
+      enddo
 c
 c amassdum: dummy mass variable
 c binddum : dummy binding energy variable
@@ -198,15 +199,16 @@ c
 c      superlong (sl), standard 1 (st), standard 2 (st2) loop
 c
       do 1000 iloop=1,3
-         do 18 k=1,9
-            bfsplin(k)=0.
-            hwsplin(k)=0.
-            bf(k)=0.
-            hw(k)=0.
-            do 18 i=1,2
-               bfinter(k,i)=0.
-               hwinter(k,i)=0.
- 18      continue
+         do k=1,9
+           bfsplin(k)=0.
+           hwsplin(k)=0.
+           bf(k)=0.
+           hw(k)=0.
+           do i=1,2
+             bfinter(k,i)=0.
+             hwinter(k,i)=0.
+           enddo
+         enddo
          if(iloop.EQ.1)then
             filen=trim(nuc(Zbrosa))//'.sl '
          else

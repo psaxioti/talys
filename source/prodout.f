@@ -51,7 +51,8 @@ c
       if (yieldunit.eq.'mug') ystr='mug'
       if (yieldunit.eq.'mg') ystr=' mg'
       if (yieldunit.eq.'kg') ystr=' kg'
-      write(*,'(/" Summary of isotope production "/)')
+      write(*,'(/" Summary of isotope production for ",a1," + ",a/)') 
+     +  ptype0, trim(targetnuclide)
       write(*,'(" Maximal irradiation time    : ",i3," years ",i3,
      +  " days ",i3," hours ",i3," minutes ",i3," seconds ")')
      +  (Tirrad(i),i=1,5)
@@ -195,9 +196,13 @@ c
             write(1,'("# Initial production rate: ",es12.5,
      +        " [s^-1] Decay rate: ",es12.5," [s^-1]")')
      +        prate(Zix,Nix,is),lambda(Zix,Nix,is)
+            write(1, '("# Initial production yield: ", 1p, e12.5, 
+     +        1x, a3, "/mAh")') yield(Zix, Nix, is, 1), rstr
+            write(1, '("# Total activity at EOI   : ", 1p, e12.5, 
+     +        1x, a3)') activity(Zix, Nix, is, Ntime), rstr
             write(1,'("# # time points =",i3)') numtime
             write(1,'("# Time [h] Activity [",a3,"] #isotopes [",a3,"]",
-     +        "  Yield [",a3,"/mAh]  Isotopic frac.")') rstr,ystr,rstr
+     +        " Yield [",a3,"/mAh]  Isotopic frac.")') rstr,ystr,rstr
             do 140 it=1,numtime
               write(1,'(f8.1,3es15.5,f15.5)') Tgrid(it),
      +          activity(Zix,Nix,is,it),Niso(Zix,Nix,is,it),

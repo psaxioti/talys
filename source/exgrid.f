@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 24, 2015
+c | Date  : November 8, 2022
 c | Task  : Set excitation energy grid
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       integer          Zcomp,Ncomp,Zdeep,Ndeep,type,Zix,Nix,Zmother,
      +                 Nmother,NL,i,A,odd,nex,Aix,nexbins,ldmod,Pbeg,
-     +                 Pprime,Ir
+     +                 Pprime,Ir,ipop
       real             Edif,Eup(0:numex),eb,ee,dEx,Rodd,Exout,
      +                 Ex1min,Ex1plus,ald,spincut,Rspin
       double precision rho1,rho2,rho3,density,r1log,r2log,r3log
@@ -219,9 +219,14 @@ c energy bin. By default, this maxJ value is set to 3*sigma where
 c sigma is the square root of the spin cut-off parameter of the level
 c density.
 c
-         maxJ(Zix,Nix,nex)=
-     +     max(3.*sqrt(spincut(Zix,Nix,ald,Exout,0)),5.)
-         maxJ(Zix,Nix,nex)=min(maxJ(Zix,Nix,nex),numJ)
+          if (flagffruns) then
+            ipop=1
+          else
+            ipop=0
+          endif
+          maxJ(Zix,Nix,nex)=
+     +      int(4.+3.*sqrt(spincut(Zix,Nix,ald,Exout,0,ipop)))
+          maxJ(Zix,Nix,nex)=min(maxJ(Zix,Nix,nex),numJ)
 c
 c In the compound nucleus subroutines, the particle widths are
 c determined by means of products of level densities and transmission

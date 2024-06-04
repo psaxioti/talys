@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : September 28, 2021
+c | Date  : March 7, 2023
 c | Task  : Read input for third set of variables
 c +---------------------------------------------------------------------
 c
@@ -10,7 +10,7 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       character*1  ch
-      character*80 word(40),key,value
+      character*132 word(40),key,value,line
       integer      Zix,Nix,type,i,i2,iz,ia
 c
 c ************** Defaults for third set of input variables *************
@@ -41,6 +41,7 @@ c k0          : index for incident particle
 c strength    : model for E1 gamma-ray strength function
 c strengthM1  : model for M1 gamma-ray strength function
 c flagpsfglobal: flag for global photon strength functions only
+c flaggnorm   : flag to normalize PSF to average radiative width
 c flagpecomp  : flag for Kalbach complex particle emission model
 c flagsurface : flag for surface effects in exciton model
 c flaggiant0  : flag for collective contribution from giant resonances
@@ -102,11 +103,20 @@ c               to final long-lived excited states
 c nonthermlev : non-thermalized level in the calculation of astrophysics rate
 c flagexpmass : flag for using experimental nuclear mass if available
 c flagjlm     : flag for using semi-microscopic JLM OMP
+c flagspher   : flag to force spherical optical model
 c flagriplrisk: flag for going outside RIPL mass validity range
+c flagfit     : flag to use automatically fitted parameters
 c flagngfit   : flag for using fitted (n,g) nuclear model parameters
 c flagnnfit   : flag for using fitted (n,n'), (n,p) and (n,2n) 
 c               nuclear model parameters
+c flagnffit   : flag for using fitted (n,f) nuclear model parameters
 c flagnafit   : flag for using fitted (n,a) nuclear model parameters
+c flagpnfit   : flag for using fitted (p,n) nuclear model parameters
+c flaggnfit   : flag for using fitted (g,n) nuclear model parameters
+c flagdnfit   : flag for using fitted (d,n) nuclear model parameters
+c flaganfit   : flag for using fitted (a,n) nuclear model parameters
+c flaggamgamfit: flag for using fitted Gamma_gamma nuclear model parameters
+c flagmacsfit : flag for using fitted MACS nuclear model parameters
 c flagomponly : flag to execute ONLY an optical model calculation
 c flagmicro   : flag for completely microscopic Talys calculation
 c flagffruns  : flag to denote that run is for fission fragment
@@ -139,13 +149,17 @@ c
         flagpecomp=.false.
         flagsurface=.false.
       endif
-      strength=9
-      strengthM1=3
+      if (strength.eq.8) then
+        strengthM1=8
+      else
+        strengthM1=3
+      endif
       if (k0.eq.1.or.k0.eq.2) then
         flaggiant0=.true.
       else
         flaggiant0=.false.
       endif
+      flaggnorm=.false.
       flagpsfglobal=.false.
       flag2comp=.true.
       flagchannels=.false.
@@ -160,8 +174,8 @@ c
       else
         flagparity=.false.
       endif
-      flaghbstate=.true.
-      flagclass2=.true.
+      flaghbstate=.false.
+      flagclass2=.false.
       flagbasic=.false.
       flageciscomp=.false.
       flagcpang=.false.
@@ -172,19 +186,9 @@ c
       flagompall=.false.
       flagautorot=.false.
       flagstate=.false.
-      do 10 Zix=0,numZph
-        do 10 Nix=0,numNph
-          do 10 type=1,6
-            optmod(Zix,Nix,type)=
-     +        '                                                        '
-   10 continue
-      do 20 type=0,6
-        flagsys(type)=.false.
-   20 continue
-      do 30 type=0,6
-        flagrot(type)=.false.
-   30 continue
-      if (k0.eq.1.or.k0.eq.2) flagrot(k0)=.true.
+      optmod='                                                        '
+      flagsys=.false.
+      flagrot=.false.
       flagasys=.false.
       if (k0.ge.1) then
         flagupbend=.true.
@@ -217,11 +221,22 @@ c
       nonthermlev=-1
       flagastroex=.false.
       flagexpmass=.true.
-      flagjlm=.false.
+      if (flagjlm) then
+        flagspher=.true.
+      else
+        flagspher=.false.
+      endif
       flagriplrisk=.false.
-      flagngfit=flagbest
-      flagnnfit=.false.
-      flagnafit=.false.
+      flagngfit=(k0.eq.1.and.flagfit.and..not.flagastro)
+      flagnnfit=(k0.eq.1.and.flagfit)
+      flagnffit=(k0.eq.1.and.flagfit)
+      flagnafit=(k0.eq.1.and.flagfit)
+      flagpnfit=(k0.eq.2.and.flagfit)
+      flaggnfit=(k0.eq.0.and.flagfit)
+      flagdnfit=(k0.eq.3.and.flagfit)
+      flaganfit=(k0.eq.6.and.flagfit)
+      flagmacsfit=(k0.eq.1.and.flagfit.and.flagastro)
+      flaggamgamfit=.false.
       if (flagomponly) then
         flagcomp=.false.
         epreeq=Emaxtalys
@@ -229,10 +244,9 @@ c
         flaggiant0=.false.
       endif
       if (flagmicro) then
-        strength=8
-        strengthM1=8
         flagautorot=.true.
-        flagjlm=.true.
+      else
+        flagautorot=.false.
       endif
 c
 c **************** Read third set of input variables *******************
@@ -250,8 +264,9 @@ c The keyword is identified and the corresponding values are read.
 c Erroneous input is immediately checked. The keywords and number of
 c values on each line are retrieved from the input.
 c
-      do 110 i=1,nlines
-        call getkeywords(inline(i),word)
+      do i=1,nlines
+        line = inline(i)
+        call getkeywords(line,word)
         key=word(1)
         value=word(2)
         ch=word(2)(1:1)
@@ -264,25 +279,27 @@ c parsym: symbol of particle
 c
         if (key.eq.'maxband') then
           read(value,*,end=300,err=300) maxband
-          goto 110
+          cycle
         endif
         if (key.eq.'maxrot')  then
           read(value,*,end=300,err=300) maxrot
-          goto 110
-        endif
-        if (key.eq.'strength') then
-          read(value,*,end=300,err=300) strength
-          goto 110
+          cycle
         endif
         if (key.eq.'strengthm1') then
           read(value,*,end=300,err=300) strengthM1
-          goto 110
+          cycle
         endif
         if (key.eq.'psfglobal') then
           if (ch.eq.'n') flagpsfglobal=.false.
           if (ch.eq.'y') flagpsfglobal=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
+        endif
+        if (key.eq.'gnorm') then
+          if (ch.eq.'n') flaggnorm=.false.
+          if (ch.eq.'y') flaggnorm=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          cycle
         endif
         if (key.eq.'eciscalc') then
           if (ch.eq.'n') flageciscalc=.false.
@@ -290,7 +307,7 @@ c
           if (flagffruns) flageciscalc=.true.
           if (flagrpruns) flageciscalc=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'inccalc') then
           if (ch.eq.'n') flaginccalc=.false.
@@ -298,176 +315,176 @@ c
           if (flagffruns) flaginccalc=.true.
           if (flagrpruns) flaginccalc=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'endfecis') then
           if (ch.eq.'n') flagendfecis=.false.
           if (ch.eq.'y') flagendfecis=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'relativistic') then
           if (ch.eq.'n') flagrel=.false.
           if (ch.eq.'y') flagrel=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'compound') then
           if (ch.eq.'n') flagcomp=.false.
           if (ch.eq.'y') flagcomp=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'widthfluc') then
           if (ch.eq.'y') then
             if (k0.gt.1) ewfc=10.
-            goto 110
+            cycle
           endif
           if (ch.eq.'n') then
             ewfc=0.
-            goto 110
+            cycle
           endif
           read(value,*,end=300,err=300) ewfc
-          goto 110
+          cycle
         endif
         if (key.eq.'preequilibrium') then
           if (ch.eq.'y') then
             epreeq=0.
-            goto 110
+            cycle
           endif
           if (ch.eq.'n') then
             epreeq=Emaxtalys
-            goto 110
+            cycle
           endif
           read(value,*,end=300,err=300) epreeq
-          goto 110
+          cycle
         endif
         if (key.eq.'multipreeq') then
           if (ch.eq.'y') then
             emulpre=0.
-            goto 110
+            cycle
           endif
           if (ch.eq.'n') then
             emulpre=Emaxtalys
-            goto 110
+            cycle
           endif
           read(value,*,end=300,err=300) emulpre
-          goto 110
+          cycle
         endif
         if (key.eq.'preeqspin') then
           if (ch.eq.'n') then
             pespinmodel=1
-            goto 110
+            cycle
           endif
           if (ch.eq.'y') then
             pespinmodel=3
-            goto 110
+            cycle
           endif
           read(value,*,end=300,err=300) pespinmodel
-          goto 110
+          cycle
         endif
         if (key.eq.'giantresonance') then
           if (ch.eq.'n') flaggiant0=.false.
           if (ch.eq.'y') flaggiant0=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'preeqsurface') then
           if (ch.eq.'n') flagsurface=.false.
           if (ch.eq.'y') flagsurface=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'preeqcomplex') then
           if (ch.eq.'n') flagpecomp=.false.
           if (ch.eq.'y') flagpecomp=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'twocomponent') then
           if (ch.eq.'n') flag2comp=.false.
           if (ch.eq.'y') flag2comp=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'channels') then
           if (ch.eq.'n') flagchannels=.false.
           if (ch.eq.'y') flagchannels=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'fission') then
           if (ch.eq.'n') flagfission=.false.
           if (ch.eq.'y') flagfission=.true.
           if (flagffruns) flagfission=.false.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'hbstate') then
           if (ch.eq.'n') flaghbstate=.false.
           if (ch.eq.'y') flaghbstate=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'class2') then
           if (ch.eq.'n') flagclass2=.false.
           if (ch.eq.'y') flagclass2=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'outbasic') then
           if (ch.eq.'n') flagbasic=.false.
           if (ch.eq.'y') flagbasic=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'eciscompound') then
           if (ch.eq.'n') flageciscomp=.false.
           if (ch.eq.'y') flageciscomp=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'cpang') then
           if (ch.eq.'n') flagcpang=.false.
           if (ch.eq.'y') flagcpang=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'ecisdwba') then
           if (ch.eq.'n') flagecisdwba=.false.
           if (ch.eq.'y') flagecisdwba=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'onestep') then
           if (ch.eq.'n') flagonestep=.false.
           if (ch.eq.'y') flagonestep=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'localomp') then
           if (ch.eq.'n') flaglocalomp=.false.
           if (ch.eq.'y') flaglocalomp=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'dispersion') then
           if (ch.eq.'n') flagdisp=.false.
           if (ch.eq.'y') flagdisp=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'optmodall') then
           if (ch.eq.'n') flagompall=.false.
           if (ch.eq.'y') flagompall=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'statepot') then
           if (ch.eq.'n') flagstate=.false.
           if (ch.eq.'y') flagstate=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'optmod') then
           read(word(2),*,end=300,err=300) iz
@@ -477,212 +494,281 @@ c
           if (Zix.lt.0.or.Zix.gt.numZph.or.
      +      Nix.lt.0.or.Nix.gt.numNph) then
             write(*,'(" TALYS-warning: Z,N index out of range,",
-     +        " keyword ignored: ",a80)') inline(i)
-            goto 110
+     +        " keyword ignored: ",a)') trim(line)
+            cycle
           else
             ch=word(5)(1:1)
             if (ch.eq.' ') ch='n'
-            do 210 type=1,6
+            do type=1,6
               if (ch.eq.parsym(type)) then
                 optmod(Zix,Nix,type)=word(4)
-                goto 110
+                cycle
               endif
-  210       continue
+            enddo
           endif
         endif
         if (key.eq.'sysreaction') then
-          do 220 type=0,6
-            flagsys(type)=.false.
-  220     continue
+          flagsys=.false.
           do 230 i2=2,40
             ch=word(i2)(1:1)
-            do 240 type=0,6
+            do type=0,6
               if (ch.eq.parsym(type)) then
                 flagsys(type)=.true.
                 goto 230
               endif
-  240       continue
+            enddo
   230     continue
-          goto 110
+          cycle
         endif
         if (key.eq.'rotational') then
-          do 250 type=1,6
-            flagrot(type)=.false.
-  250     continue
           do 260 i2=2,40
             ch=word(i2)(1:1)
-            do 270 type=1,6
+            do type=1,6
               if (ch.eq.parsym(type)) then
                 flagrot(type)=.true.
                 goto 260
               endif
-  270       continue
+            enddo
   260     continue
-          goto 110
+          cycle
         endif
         if (key.eq.'asys') then
           if (ch.eq.'n') flagasys=.false.
           if (ch.eq.'y') flagasys=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'gshell') then
           if (ch.eq.'n') flaggshell=.false.
           if (ch.eq.'y') flaggshell=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'upbend') then
           if (ch.eq.'n') flagupbend=.false.
           if (ch.eq.'y') flagupbend=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'ffevaporation') then
           if (ch.eq.'n') flagffevap=.false.
           if (ch.eq.'y') flagffevap=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'fisfeed') then
           if (ch.eq.'n') flagfisfeed=.false.
           if (ch.eq.'y') flagfisfeed=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'ffspin') then
           if (ch.eq.'n') flagffspin=.false.
           if (ch.eq.'y') flagffspin=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'fymodel') then
           read(value,*,end=300,err=300) fymodel
-          goto 110
+          cycle
         endif
         if (key.eq.'ffmodel') then
           read(value,*,end=300,err=300) ffmodel
-          goto 110
+          cycle
         endif
         if (key.eq.'pfnsmodel') then
           read(value,*,end=300,err=300) pfnsmodel
-          goto 110
+          cycle
         endif
         if (key.eq.'endf') then
           if (ch.eq.'n') flagendf=.false.
           if (ch.eq.'y') flagendf=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'endfdetail') then
           if (ch.eq.'n') flagendfdet=.false.
           if (ch.eq.'y') flagendfdet=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'recoil') then
           if (ch.eq.'n') flagrecoil=.false.
           if (ch.eq.'y') flagrecoil=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'labddx') then
           if (ch.eq.'n') flaglabddx=.false.
           if (ch.eq.'y') flaglabddx=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'recoilaverage') then
           if (ch.eq.'n') flagrecoilav=.false.
           if (ch.eq.'y') flagrecoilav=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'channelenergy') then
           if (ch.eq.'n') flagEchannel=.false.
           if (ch.eq.'y') flagEchannel=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'fullhf') then
           if (ch.eq.'n') flagfullhf=.false.
           if (ch.eq.'y') flagfullhf=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'autorot') then
           if (ch.eq.'n') flagautorot=.false.
           if (ch.eq.'y') flagautorot=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'reaction') then
           if (ch.eq.'n') flagreaction=.false.
           if (ch.eq.'y') flagreaction=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'parity') then
           if (ch.eq.'n') flagparity=.false.
           if (ch.eq.'y') flagparity=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'astrogs') then
           if (ch.eq.'n') flagastrogs=.false.
           if (ch.eq.'y') flagastrogs=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'nonthermlev') then
           read(value,*,end=300,err=300) nonthermlev
-          goto 110
+          cycle
         endif
         if (key.eq.'astroex') then
           if (ch.eq.'n') flagastroex=.false.
           if (ch.eq.'y') flagastroex=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'expmass') then
           if (ch.eq.'n') flagexpmass=.false.
           if (ch.eq.'y') flagexpmass=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
-        if (key.eq.'jlmomp') then
-          if (ch.eq.'n') flagjlm=.false.
-          if (ch.eq.'y') flagjlm=.true.
+        if (key.eq.'spherical') then
+          if (ch.eq.'n') flagspher=.false.
+          if (ch.eq.'y') flagspher=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'riplrisk') then
           if (ch.eq.'n') flagriplrisk=.false.
           if (ch.eq.'y') flagriplrisk=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'ngfit') then
           if (ch.eq.'n') flagngfit=.false.
-          if (ch.eq.'y') flagngfit=.true.
+          if (ch.eq.'y') then
+            flagngfit=.true.
+            flagfit=.true.
+          endif
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'nnfit') then
           if (ch.eq.'n') flagnnfit=.false.
-          if (ch.eq.'y') flagnnfit=.true.
+          if (ch.eq.'y') then
+            flagnnfit=.true.
+            flagfit=.true.
+          endif
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
+        endif
+        if (key.eq.'nffit') then
+          if (ch.eq.'n') flagnffit=.false.
+          if (ch.eq.'y') then
+            flagnffit=.true.
+            flagfit=.true.
+          endif
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          cycle
         endif
         if (key.eq.'nafit') then
           if (ch.eq.'n') flagnafit=.false.
-          if (ch.eq.'y') flagnafit=.true.
+          if (ch.eq.'y') then
+            flagnafit=.true.
+            flagfit=.true.
+          endif
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
-  110 continue
+        if (key.eq.'pnfit') then
+          if (ch.eq.'n') flagpnfit=.false.
+          if (ch.eq.'y') then
+            flagpnfit=.true.
+            flagfit=.true.
+          endif
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          cycle
+        endif
+        if (key.eq.'gnfit') then
+          if (ch.eq.'n') flaggnfit=.false.
+          if (ch.eq.'y') then
+            flaggnfit=.true.
+            flagfit=.true.
+          endif
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          cycle
+        endif
+        if (key.eq.'dnfit') then
+          if (ch.eq.'n') flagdnfit=.false.
+          if (ch.eq.'y') then
+            flagdnfit=.true.
+            flagfit=.true.
+          endif
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          cycle
+        endif
+        if (key.eq.'anfit') then
+          if (ch.eq.'n') flaganfit=.false.
+          if (ch.eq.'y') then
+            flaganfit=.true.
+            flagfit=.true.
+          endif
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          cycle
+        endif
+        if (key.eq.'gamgamfit') then
+          if (ch.eq.'n') flaggamgamfit=.false.
+          if (ch.eq.'y') then
+            flaggamgamfit=.true.
+            flagfit=.true.
+            flagngfit=.false.
+          endif
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          cycle
+        endif
+        if (key.eq.'macsfit') then
+          if (ch.eq.'n') flagmacsfit=.false.
+          if (ch.eq.'y') then
+            flagmacsfit=.true.
+            flagfit=.true.
+            flagngfit=.false.
+          endif
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          cycle
+        endif
+      enddo
       return
-  300 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
+  300 write(*,'(" TALYS-error: Wrong input: ",a)') trim(line)
       stop
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

@@ -59,7 +59,7 @@ c
       if (flaggamdis) call gamdisout
       if (flagracap) call racapout
       if (flagffruns.or.flagrpruns)
-     +  write(*,'(/" End of calculation for ",i3,a2/)') Atarget,Starget
+     +  write(*,'(/" End of calculation for ",a/)') trim(targetnuclide)
       return
       end
 Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely

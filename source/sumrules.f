@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : July 1, 2004
+c | Date  : January 29, 2023
 c | Task  : Giant resonance sum rules
 c +---------------------------------------------------------------------
 c
@@ -63,7 +63,7 @@ c
       Ncomp=0
       Zix=Zindex(Zcomp,Ncomp,k0)
       Nix=Nindex(Zcomp,Ncomp,k0)
-      do 10 i=1,numlev2
+      do i=1,numlev2
         deform1=deform(Zix,Nix,i)
         if (deform1.ne.0.) then
           if (deftype(Zix,Nix).eq.'D')
@@ -75,7 +75,7 @@ c
           if (jdis1.eq.2) Sgqr=Sgqr-betasq*edis1
           if (jdis1.eq.3) Sleor=Sleor-betasq*edis1
         endif
-   10 continue
+      enddo
 c
 c Determine final GR deformation parameters.
 c
@@ -87,4 +87,4 @@ c
       betagr(3,2)=sqrt(Sheor/Egrcoll(3,2))
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

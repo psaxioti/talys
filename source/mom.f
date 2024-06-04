@@ -9,7 +9,7 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80 key
+      character*132 key
       integer      Zix,Nix,Z,N,A,i,j
       double precision       pZ,e,lv,lw,lv1,lw1,lvso,lwso
       real         factor,rhomomn(numjlm,6),rhomomp(numjlm,6),

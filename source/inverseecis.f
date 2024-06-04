@@ -61,17 +61,17 @@ c
         if (jlmexist(Zcomp,Ncomp,1).or.jlmexist(Zcomp,Ncomp,6)) then
           write(*,'(/" Radial densities"/)')
           write(*,'(" Radius   Protons     Neutrons"/)')
-          do 10 i=1,numjlm
+          do i=1,numjlm
             write(*,'(f7.3,2es12.5)') 0.1*real(i),
      +        rhojlmp(Zcomp,Ncomp,i,1),rhojlmn(Zcomp,Ncomp,i,1)
-   10     continue
+          enddo
         endif
       endif
       flagecisinp=.false.
       if (flageciscalc)
      +  open (unit=9,file='ecisinv.inp',status='unknown')
-      do 110 type=1,6
-        if (parskip(type)) goto 110
+      do type=1,6
+        if (parskip(type)) cycle
         Zix=Zindex(Zcomp,Ncomp,type)
         Nix=Nindex(Zcomp,Ncomp,type)
         Z=ZZ(Zcomp,Ncomp,type)
@@ -177,12 +177,12 @@ c
           tarspin=jdis(Zix,Nix,0)
           tarparity=cparity(parlev(Zix,Nix,0))
           i1=0
-          do 120 i=1,ndef(Zix,Nix)
+          do i=1,ndef(Zix,Nix)
             ii=indexlevel(Zix,Nix,i)
             if (leveltype(Zix,Nix,ii).ne.'V'.and.
-     +        leveltype(Zix,Nix,ii).ne.'R') goto 120
+     +        leveltype(Zix,Nix,ii).ne.'R') cycle
             if (colltype(Zix,Nix).eq.'R'.and.
-     +        vibband(Zix,Nix,i).gt.maxband) goto 120
+     +        vibband(Zix,Nix,i).gt.maxband) cycle
             i1=i1+1
             idvib(i1)=vibband(Zix,Nix,i)
             Elevel(i1)=edis(Zix,Nix,ii)
@@ -195,7 +195,7 @@ c
             Kmag(i1)=Kband(Zix,Nix,i)
             vibbeta(i1)=defpar(Zix,Nix,i)
             Nband=max(Nband,iband(i1))
-  120     continue
+          enddo
           ncoll=i1
           if (flagstate) then
             npp=ncoll
@@ -210,9 +210,9 @@ c
             rotational=.false.
             vibrational=.true.
             title='Vibrational optical model                         '
-            do 130 i=1,ncoll
+            do i=1,ncoll
               idvib(i)=0
-  130       continue
+            enddo
           else
 c
 c 2b. Rotational model
@@ -228,9 +228,9 @@ c
             vibrational=.false.
             ecis1(1:1)='T'
             Nrotbeta=nrot(Zix,Nix)
-            do 140 i=1,Nrotbeta
+            do i=1,Nrotbeta
               rotbeta(i)=rotpar(Zix,Nix,i)
-  140       continue
+            enddo
             if (colltype(Zix,Nix).eq.'R') then
               title='Symmetric rotational optical model                '
               iqm=2*Nrotbeta
@@ -275,7 +275,7 @@ c
         spin=parspin(type)
         resmass=nucmass(Zix,Nix)
         prodZ=real(Z*parZ(type))
-        do 210 nen=ebegin(type),eendmax(type)
+        do nen=ebegin(type),eendmax(type)
           e=real(egrid(nen)/specmass(Zix,Nix,type))
 c
 c We use a simple formula to estimate the required number of j-values:
@@ -303,7 +303,7 @@ c
      +        e,v,rv,av,w,rw,aw,vd,rvd,avd,wd,rwd,awd,vso,rvso,
      +        avso,wso,rwso,awso,rc
           endif
-          if (.not.flageciscalc) goto 210
+          if (.not.flageciscalc) cycle
 c
 c ******************* Write ECIS input file ****************************
 c
@@ -333,8 +333,8 @@ c
           endif
           flagecisinp=.true.
           call ecisinput(Zix,Nix,type,e,rotational,vibrational,jlmloc)
-  210   continue
-  110 continue
+        enddo
+      enddo
       flaginvecis=.false.
       if (.not.flageciscalc) return
       if (.not.flagecisinp) then

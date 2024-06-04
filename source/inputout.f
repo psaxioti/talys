@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 28, 2021
+c | Date  : June 28, 2023
 c | Task  : Write input parameters
 c +---------------------------------------------------------------------
 c
@@ -20,9 +20,9 @@ c inline: input line
 c
       write(*,'(/" ########## USER INPUT ##########")')
       write(*,'(/" USER INPUT FILE"/)')
-      do 10 i=1,nlines
+      do i=1,nlines
         write(*,'(1x,a)') trim(inline(i))
-   10 continue
+      enddo
 c
 c ********* All possible input parameters including defaults ***********
 c
@@ -101,14 +101,23 @@ c flaglabddx  : flag for calculation of DDX in LAB system
 c flagrecoilav: flag for average velocity in recoil calculation
 c flagEchannel: flag for channel energy for emission spectrum
 c flagreaction: flag for calculation of nuclear reactions
+c flagfit     : flag to use automatically fitted parameters
 c flagngfit   : flag for using fitted (n,g) nuclear model parameters
+c flagnffit   : flag for using fitted (n,f) nuclear model parameters
 c flagnnfit   : flag for using fitted (n,n'), (n,2n) and (n,p) 
 c               nuclear model parameters
-c flagngfit   : flag for using fitted (n,a) nuclear model parameters
+c flagnafit   : flag for using fitted (n,a) nuclear model parameters
+c flagpnfit   : flag for using fitted (p,n) nuclear model parameters
+c flagdnfit   : flag for using fitted (d,n) nuclear model parameters
+c flaggnfit   : flag for using fitted (g,n) nuclear model parameters
+c flaganfit   : flag for using fitted (a,n) nuclear model parameters
+c flaggamgamfit: flag for using fitted Gamma_gamma nuclear model parameters
+c flagmacsfit : flag for using fitted MACS nuclear model parameters
 c flagastro   : flag for calculation of astrophysics reaction rate
 c flagastrogs : flag for calculation of astrophysics reaction rate with
 c               target in ground state only
-c nonthermlev : non-thermalized level in the calculation of astrophysics rate
+c nonthermlev : non-thermalized level in the calculation of astrophysics
+c               rate
 c flagastroex : flag for calculation of astrophysics reaction rate
 c               to final long-lived excited states
 c massmodel   : model for theoretical nuclear mass
@@ -130,10 +139,10 @@ c
       write(*,'(" ejectiles",7(1x,a1),"   outtype      ",
      +  "outgoing particles")') (outtype(type),type=0,6)
       write(*,'(" maxz              ",i3,"     maxZ         ",
-     +  "maximal number of protons away from the initial",
+     +  "maximal number of protons from the initial",
      +  " compound nucleus")') maxZ
       write(*,'(" maxn              ",i3,"     maxN         ",
-     +  "maximal number of neutrons away from the initial",
+     +  "maximal number of neutrons from the initial",
      +  " compound nucleus")') maxN
       write(*,'(" bins              ",i3,"     nbins        ",
      +  "number of continuum excitation energy bins")') nbins0
@@ -154,11 +163,11 @@ c
       write(*,'(" maxlevelsres      ",i3,"     nlevmaxres",
      +  "   maximum number of included discrete levels",
      +  " for residual nucleus")') nlevmaxres
-      do 20 type=0,6
+      do type=0,6
         write(*,'(" maxlevelsbin ",a1,"    ",i3,"     nlevbin   ",
      +    "   maximum number of included discrete levels for ",
      +    a8," channel")') parsym(type),nlevbin(type),parname(type)
-   20 continue
+      enddo
       write(*,'(" ltarget           ",i3,"     ltarget",
      +  "      excited level of target")') Ltarget
       write(*,'(" isomer          ",es9.2," isomer ",
@@ -212,15 +221,38 @@ c
      +  " channel energy for emission spectrum")') yesno(flagEchannel)
       write(*,'(" reaction            ",a1,"     flagreaction flag",
      +  " for calculation of nuclear reactions")') yesno(flagreaction)
+      write(*,'(" fit                 ",a1,"     flagfit      flag to ",
+     +  "use automatically fitted parameters")') yesno(flagfit)
       write(*,'(" ngfit               ",a1,"     flagngfit    flag for",
      +  " using fitted (n,g) nuclear model parameters")') 
      +  yesno(flagngfit)
+      write(*,'(" nffit               ",a1,"     flagnffit    flag for",
+     +  " using fitted (n,f) nuclear model parameters")') 
+     +  yesno(flagnffit)
       write(*,'(" nnfit               ",a1,"     flagnnfit    flag for",
      +  " using fitted (n,n), (n,2n) and (n,p) nuclear model",
      +  " parameters")') yesno(flagnnfit)
       write(*,'(" nafit               ",a1,"     flagnafit    flag for",
      +  " using fitted (n,a) nuclear model parameters")') 
      +  yesno(flagnafit)
+      write(*,'(" pnfit               ",a1,"     flagpnfit    flag for",
+     +  " using fitted (p,n) nuclear model parameters")') 
+     +  yesno(flagpnfit)
+      write(*,'(" dnfit               ",a1,"     flagdnfit    flag for",
+     +  " using fitted (d,n) nuclear model parameters")') 
+     +  yesno(flagdnfit)
+      write(*,'(" gnfit               ",a1,"     flaggnfit    flag for",
+     +  " using fitted (g,n) nuclear model parameters")') 
+     +  yesno(flaggnfit)
+      write(*,'(" anfit               ",a1,"     flaganfit    flag for",
+     +  " using fitted (a,n) nuclear model parameters")') 
+     +  yesno(flaganfit)
+      write(*,'(" gamgamfit           ",a1,"    flaggamgamfit flag for",
+     +  " using fitted Gamma_gamma nuclear model parameters")') 
+     +  yesno(flaggamgamfit)
+      write(*,'(" macsfit             ",a1,"     flagmacsfit  flag for",
+     +  " using fitted MACS nuclear model parameters")') 
+     +  yesno(flagmacsfit)
       write(*,'(" astro               ",a1,"     flagastro    flag for",
      +  " calculation of astrophysics reaction rate")') yesno(flagastro)
       write(*,'(" astrogs             ",a1,"     flagastrogs  flag for",
@@ -252,10 +284,10 @@ c
      +  " flag for evaporation of residual products at high",
      +  " incident energies")') yesno(flagrpevap)
       write(*,'(" maxZrp            ",i3,"     maxZrp       ",
-     +  "maximal number of protons away from the initial",
+     +  "maximal number of protons from the initial",
      +  " compound nucleus before residual evaporation")') maxZrp
       write(*,'(" maxNrp            ",i3,"     maxNrp       ",
-     +  "maximal number of neutrons away from the initial",
+     +  "maximal number of neutrons from the initial",
      +  " compound nucleus before residual evaporation")') maxNrp
 c
 c Isotope production
@@ -287,17 +319,17 @@ c
      +    "   unit for isotope yield")') yieldunit
         write(*,'(" Ibeam            ",f8.3," Ibeam ",
      +    "       beam current in mA")') Ibeam
-        do 30 i=1,5
+        do i=1,5
           if (Tirrad(i).gt.0) write(*,'(" Tirrad      ",i9,
      +      "     Tirrad       ",a1," of irradiation time")')
      +      Tirrad(i),unitTirrad(i)
-   30   continue
+        enddo
         write(*,'(" Area             ",f8.3," Area  ",
      +    "       target area in cm^2")') Area
-        do 40 i=1,5
+        do i=1,5
           if (Tcool(i).gt.0) write(*,'(" Tcool       ",i9,"     Tcool ",
      +      "       ",a1," of cooling time")') Tcool(i),unitTcool(i)
-   40   continue
+        enddo
         write(*,'(" rho               ",f7.3," rhotarget",
      +    "    target density [g/cm^3] ")') rhotarget
       endif
@@ -378,22 +410,22 @@ c
      +  " number of included excited rotational levels")') maxrot
       sysstring='            '
       i=-1
-      do 110 type=1,6
+      do type=1,6
         if (flagsys(type)) then
           i=i+2
           write(sysstring(i:i),'(a1)') parsym(type)
         endif
-  110 continue
+      enddo
       write(*,'(" sysreaction  ",a12," sysreaction  particles",
      +  " with reaction cross section from systematics")') sysstring
       rotstring='            '
       i=-1
-      do 120 type=1,6
+      do type=1,6
         if (flagrot(type)) then
           i=i+2
           write(rotstring(i:i),'(a1)') parsym(type)
         endif
-  120 continue
+      enddo
       write(*,'(" rotational   ",a12," rotational   ",
      +  "particles with possible rotational optical model")') rotstring
       write(*,'(" core              ",i3,"     core   ",
@@ -431,6 +463,8 @@ c               calculation
 c enincmax    : maximum incident energy
 c flagwidth   : flag for width fluctuation calculation
 c wmode       : designator for width fluctuation model
+c WFCfactor   : enhancement factor for WFC: 1: Moldauer, 
+c               2: Ernebjerg and Herman
 c flagcomp    : flag for compound nucleus calculation
 c flagfullhf  : flag for full spin dependence of transmission
 c               coefficients
@@ -452,6 +486,9 @@ c
       endif
       write(*,'(" widthmode          ",i2,"     wmode      ",
      +  "  designator for width fluctuation model")') wmode
+      write(*,'(" WFCfactor          ",i2,"     WFCfactor  ",
+     +  "  enhancement factor for WFC: 1: Original, ",
+     +  "2: Ernebjerg and Herman")') WFCfactor
       write(*,'(" compound            ",a1,"     flagcomp     ",
      +  "flag for compound nucleus model")') yesno(flagcomp)
       write(*,'(" fullhf              ",a1,"     flagfullhf   ",
@@ -485,6 +522,7 @@ c flagracap   : flag for radiative capture model
 c ldmodelracap: level density model for direct radiative capture
 c flagupbend  : flag for low-energy upbend of photon strength function
 c flagpsfglobal: flag for global photon strength functions only
+c flaggnorm   : flag to normalize PSF to average radiative width
 c
       write(*,'(" #"/" # Gamma emission"/" #")')
       write(*,'(" gammax             ",i2,"     gammax",
@@ -507,6 +545,9 @@ c
       write(*,'(" psfglobal           ",a1,"    flagpsfglobal ",
      +    "flag for global photon strength functions only")') 
      +    yesno(flagpsfglobal)
+      write(*,'(" gnorm               ",a1,"     flaggnorm ",
+     +    "   flag to normalize PSF to average radiative width")') 
+     +    yesno(flaggnorm)
 c
 c 6. Pre-equilibrium
 c
@@ -634,7 +675,8 @@ c flagffevap : flag for calculation of particle evaporation from
 c              fission fragment mass yields
 c flagfisfeed: flag for output of fission per excitation bin
 c fymodel    : fission yield model, 1: Brosa 2: GEF
-c ffmodel    : fission fragment model, 1: GEF 2: HF3D (Okumura) 3: SPY
+c ffmodel    : fission fragment model, 1: GEF 2: HF3D (Okumura) 
+c              3: SPY 0: local (your own files)
 c pfnsmodel  : PFNS  model, 1: Iwamoto 2: from FF decay
 c flagffspin : flag to use spin distribution in initial FF population
 c
@@ -662,8 +704,9 @@ c
      +  yesno(flagfisfeed)
       write(*,'(" fymodel             ",i1,"     fymodel    ",
      +  "  fission yield model, 1: Brosa 2: GEF")') fymodel
-      write(*,'(" ffmodel             ",i1,"     ffmodel    ",
-     +  "  fission fragment model, 1: GEF 2: HF3D (Okumura) 3: SPY")') 
+      write(*, '(" ffmodel             ", i1, 
+     +  "     ffmodel      fission fragment model, 1: GEF ",
+     +  "2: HF3D (Okumura) 3: SPY", " 4: Langevin-4D 0: own files")') 
      +  ffmodel
       write(*,'(" pfnsmodel           ",i1,"     pfnsmodel  ",
      +  "  PFNS model, 1: Iwamoto 2: from FF decay")') pfnsmodel
@@ -774,7 +817,7 @@ c
      +    "incident energy for addition of discrete peaks to spectra")')
      +    eadd
       else
-        write(*,'(" addiscrete          ",a1,"     flagadd      ",
+        write(*,'(" adddiscrete         ",a1,"     flagadd      ",
      +    "flag for addition of discrete states to spectra")')
      +    yesno(flagadd)
       endif
@@ -823,4 +866,4 @@ c
      +  yesno(flagblock)
       return
       end
-Copyright (C)  2020 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

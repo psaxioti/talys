@@ -9,8 +9,8 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80 key
-      real         cmsd,Ein,factor,M2c
+      character*132 key
+      real          cmsd,Ein,factor,M2c
 c
 c ***************** Normalization factor for MSD ***********************
 c

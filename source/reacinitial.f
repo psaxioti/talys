@@ -2,15 +2,13 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : April 7, 2019
+c | Date  : January 19, 2023
 c | Task  : Initialization of arrays for various cross sections
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer l,ispin,LL,i,type,iang,Nix,Zix,nen,n1,n2,parity,J,p,nex,
-     +        n3,n4,nen1,nen2,nexout,in,ip,id,it,ih,ia
 c
 c *************** Initialization of primary reaction *******************
 c
@@ -64,48 +62,28 @@ c
       xsoptinc=0.
       xselasinc=0.
       xsinitpop=0.
-      do 10 l=0,numl
-        Sstrength(l)=0.
-        strengthl(l)=0.
-        do 20 ispin=-1,1
-          Tjlinc(ispin,l)=0.
-   20   continue
-        do 30 J=0,numJ
-          strengthlj(l,J)=0.
-          sigurrs(l,j)=0.
-          sigurrc(l,j)=0.
-          sigurrf(l,j)=0.
-          Turrljinc(l,J)=0.
-          Purrlj(l,J)=1
-          do 30 type=-1,numpar
-            Turrlj(type,l,J)=0.
-            xsbinarylj(type,l,J)=0.
-            nulj(type,l,J)=0
-            urrwidth(type,l,J)=0.
-   30   continue
-        Tlinc(l)=0.
-        spot(l)=0.
-   10 continue
-      do 40 LL=0,3*numl
-        do 40 i=0,numlev2
-          do 40 type=0,numpar
-            dleg(type,i,LL)=0.
-   40 continue
-      do 50 iang=0,numang
-        do 60 i=0,numlev2
-          do 60 type=0,numpar
-            directad(type,i,iang)=0.
-   60   continue
-        ruth(iang)=0.
-   50 continue
-      do 70 i=0,numlev2
-        do 70 type=0,numpar
-          dorigin(type,i)='      '
-          xsdirdisc(type,i)=0.
-   70 continue
-      do 80 type=0,numpar
-        xsdirdisctot(type)=0.
-   80 continue
+      Sstrength=0.
+      strengthl=0.
+      Tjlinc=0.
+      strengthlj=0.
+      sigurrs=0.
+      sigurrc=0.
+      sigurrf=0.
+      Turrljinc=0.
+      Purrlj=1
+      Turrlj=0.
+      xsbinarylj=0.
+      nulj=0
+      urrwidth=0.
+      Tlinc=0.
+      spot=0.
+      dleg=0.
+      directad=0.
+      ruth=0.
+      elasni=0.
+      dorigin='      '
+      xsdirdisc=0.
+      xsdirdisctot=0.
       xsdirdiscsum=0.
 c
 c ********************** Initialization of energies ********************
@@ -126,21 +104,14 @@ c Etotal : total energy of compound system (target + projectile)
 c Exinc  : excitation energy of entrance bin
 c deltaEx: excitation energy bin for population arrays
 c
-      do 90 Nix=0,numN
-        do 90 Zix=0,numZ
-          Exmax0(Zix,Nix)=0.
-          Exmax(Zix,Nix)=0.
-          maxex(Zix,Nix)=0
-          do 100 i=0,numex
-            Ex(Zix,Nix,i)=0.
-  100     continue
-   90 continue
+      Exmax0=0.
+      Exmax=0.
+      maxex=0
+      Ex=0.
       Exmax0(0,0)=Etotal
       Exmax(0,0)=Etotal
       Exinc=Etotal
-      do 105 i=0,numex
-        deltaEx(0,0,i)=0.
-  105 continue
+      deltaEx=0.
 c
 c ****************** Initialize giant resonance arrays *****************
 c
@@ -159,47 +130,18 @@ c collcontad   : collective angular distribution in the continuum
 c xsgrsum      : sum over giant resonance cross sections
 c xscollcont   : collective cross section in the continuum
 c
+      xsgrcoll=0.
+      eoutgr=0.
+      if (flagddx) grcollad=0.
+      xsgrstate=0.
+      xsgr=0.
+      xsgrad=0.
       xscollconttot=0.
-      do 110 i=1,2
-        do 110 l=0,3
-          do 110 type=0,numpar
-            xsgrcoll(type,l,i)=0.
-            eoutgr(type,l,i)=0.
-  110 continue
-      if (flagddx) then
-        do 120 iang=0,numangcont
-          do 120 i=1,2
-            do 120 l=0,3
-              do 120 type=0,numpar
-                grcollad(type,l,i,iang)=0.
-  120   continue
-      endif
-      do 130 nen=0,numen
-        do 130 i=1,2
-          do 130 l=0,3
-            do 130 type=0,numpar
-              xsgrstate(type,l,i,nen)=0.
-  130 continue
-      do 140 nen=0,numen
-        do 140 type=0,numpar
-          xsgr(type,nen)=0.
-  140 continue
-      do 150 iang=0,numangcont
-        do 150 nen=0,numen
-          do 150 type=0,numpar
-            xsgrad(type,nen,iang)=0.
-  150 continue
-      do 160 type=0,numpar
-        xsgrtot(type)=0.
-  160 continue
-      do 170 iang=0,numangcont
-        do 170 nen=0,numen
-          collcontad(nen,iang)=0.
-  170 continue
+      xsgrtot=0.
+      collcontad=0.
       xsgrsum=0.
-      do 180 nen=0,numen
-        xscollcont(nen)=0.
-  180 continue
+      xscollcont=0.
+      xscollcontJP=0.
 c
 c *************** Initialize pre-equilibrium arrays ********************
 c
@@ -264,85 +206,38 @@ c Esurf         : well depth for surface interaction
 c n3            : counter
 c n4            : counter
 c
-      do 210 nen=0,numen
-        do 210 n1=1,numparx
-          do 210 type=0,numpar
-          xsstep(type,n1,nen)=0.
-  210 continue
-      do 220 nen=0,numen
-        do 220 n2=0,numparx
-          do 220 n1=0,numparx
-            do 220 type=0,numpar
-              xsstep2(type,n1,n2,nen)=0.
-              wemission(type,n1,n2,nen)=0.
-              do 220 n4=0,numparx
-                do 220 n3=0,numparx
-                  wemission2(type,n1,n2,n3,n4,nen)=0.
-  220 continue
-      do 230 nen=0,numen
-        do 230 type=0,numpar
-          xspreeq(type,nen)=0.
-          xsmpreeq(type,nen)=0.
-          xspreeqps(type,nen)=0.
-          xspreeqki(type,nen)=0.
-          xspreeqbu(type,nen)=0.
-  230 continue
-      do 240 parity=-1,1,2
-        do 240 J=0,numJph
-          do 240 nen=0,numen
-            do 240 type=0,numpar
-              xspreeqJP(type,nen,J,parity)=0.
-  240 continue
-      do 250 type=0,numpar
-        xspreeqtot(type)=0.
-        xspreeqtotps(type)=0.
-        xspreeqtotki(type)=0.
-        xspreeqtotbu(type)=0.
-        xsBUnuc(type)=0.
-        xsEB(type)=0.
-        xsBF(type)=0.
-  250 continue
-      do 260 p=1,numparx
-        do 260 type=0,numpar
-          xssteptot(type,p)=0.
-  260 continue
+      xsstep=0.
+      xsstep2=0.
+      wemission=0.
+      wemission2=0.
+      xspreeq=0.
+      xsmpreeq=0.
+      xspreeqps=0.
+      xspreeqki=0.
+      xspreeqbu=0.
+      xspreeqJP=0.
+      xspreeqtot=0.
+      xspreeqtotps=0.
+      xspreeqtotki=0.
+      xspreeqtotbu=0.
+      xsBUnuc=0.
+      xsEB=0.
+      xsBF=0.
+      xssteptot=0.
       if (flagang.or.flagddx) then
-        do 270 iang=0,numangcont
-          do 270 nen=0,numen
-            do 270 type=0,numpar
-              xscompad(type,nen,iang)=0.
-              xsbinemisad(type,nen,iang)=0.
-              xspreeqad(type,nen,iang)=0.
-              xsmpreeqad(type,nen,iang)=0.
-  270   continue
+        xscompad=0.
+        xsbinemisad=0.
+        xspreeqad=0.
+        xsmpreeqad=0.
       endif
-      do 300 i=0,numlev2
-        do 300 type=0,numpar
-          xspreeqdisc(type,i)=0.
-  300 continue
-      do 310 type=0,numpar
-        xspreeqdisctot(type)=0.
-  310 continue
+      xspreeqdisc=0.
+      xspreeqdisctot=0.
       xspreeqdiscsum=0.
       if (flagmulpre) then
-        do 320 n2=0,numparx
-          do 320 n1=0,numparx
-            do 320 nex=0,numex
-              do 320 Nix=0,numNph
-                do 320 Zix=0,numZph
-                  xspopph(Zix,Nix,nex,n1,n2)=0.
-  320   continue
-        do 330 n4=0,numparx
-          do 330 n3=0,numparx
-            do 330 n2=0,numparx
-              do 330 n1=0,numparx
-                PP2(n1,n2,n3,n4)=0.
-                Spre(n1,n2,n3,n4)=0.
-                do 330 nex=0,numex
-                  do 330 Nix=0,numNph
-                    do 330 Zix=0,numZph
-                      xspopph2(Zix,Nix,nex,n1,n2,n3,n4)=0.
-  330   continue
+        xspopph=0.
+        PP2=0.
+        Spre=0.
+        xspopph2=0.
       endif
       xspreeqsum=0.
       Esurf=0.
@@ -373,54 +268,19 @@ c msdstepad0: n-step angular distribution for MSD
 c msdstepad : continuum n-step direct angular distribution
 c
       if (preeqmode.eq.4) then
-        do 410 i=0,2
-          do 410 J=0,numJmsd
-            do 410 nen2=0,numenmsd
-              do 410 nen1=0,numenmsd
-                xsdwin(nen1,nen2,J,i)=0.
-  410   continue
-        do 420 i=0,2
-          do 420 iang=0,numangcont
-            do 420 J=0,numJmsd
-              do 420 nen2=0,numenmsd
-                do 420 nen1=0,numenmsd
-                  xsdw(nen1,nen2,J,iang,i)=0.
-  420   continue
-        do 430 nen2=0,numenmsd
-          Emsd(nen2)=0.
-          do 430 nen1=0,numenmsd
-            do 430 J=0,numpar
-              do 430 i=0,numpar
-                xscont(i,J,nen1,nen2)=0.
-                xscont1(i,J,nen1,nen2)=0.
-                do 440 iang=0,numangcont
-                  xscontad(i,J,nen1,nen2,iang)=0.
-                  xscontad1(i,J,nen1,nen2,iang)=0.
-  440           continue
-  430   continue
-        do 450 nen=0,numen
-          do 450 i=0,numpar
-            msdstep1(i,nen)=0.
-            do 460 iang=0,numangcont
-              msdstepad1(i,nen,iang)=0.
-  460       continue
-  450   continue
-        do 470 nen=0,numen
-          do 470 J=1,nummsd
-            do 470 i=0,numpar
-              msdstep(i,J,nen)=0.
-              do 480 iang=0,numangcont
-                msdstepad(i,J,nen,iang)=0.
-  480         continue
-  470   continue
-        do 490 nen=0,numenmsd
-          do 490 J=1,nummsd
-            do 490 i=0,numpar
-              msdstep0(i,J,nen)=0.
-              do 500 iang=0,numangcont
-                msdstepad0(i,J,nen,iang)=0.
-  500         continue
-  490   continue
+        xsdwin=0.
+        xsdw=0.
+        Emsd=0.
+        xscont=0.
+        xscont1=0.
+        xscontad=0.
+        xscontad1=0.
+        msdstep1=0.
+        msdstepad1=0.
+        msdstep=0.
+        msdstepad=0.
+        msdstep0=0.
+        msdstepad0=0.
       endif
 c
 c ********* Initialization of primary compound and binary arrays *******
@@ -489,108 +349,61 @@ c transjl    : array for width fluctuation calculation
 c
       J2beg=0
       J2end=0
-      do 510 Nix=0,numN
-        do 510 Zix=0,numZ
-          xspopnuc(Zix,Nix)=0.
-          xspopdir(Zix,Nix)=0.
-          xspoppreeq(Zix,Nix)=0.
-          xspopcomp(Zix,Nix)=0.
-          Fdir(Zix,Nix)=0.
-          Fpreeq(Zix,Nix)=0.
-          Fcomp(Zix,Nix)=0.
-          xsBFnuc(Zix,Nix)=0.
-          xspopnucT(Zix,Nix)=0.
-          do 512 parity=-1,1,2
-            xspopnucP(Zix,Nix,parity)=0.
-  512     continue
-  510 continue
-      do 514 parity=-1,1,2
-        do 514 J=0,numJ
-          CNterm(parity,J)=0.
-  514 continue
-      do 520 nex=0,numex
-        xsracappopex(nex)=0.
-        do 520 Nix=0,numN
-          do 520 Zix=0,numZ
-            xspopex(Zix,Nix,nex)=0.
-            xsisoBU(Zix,Nix,nex)=0.
-            preeqpopex(Zix,Nix,nex)=0.
-            maxJ(Zix,Nix,nex)=numJ
-            do 522 parity=-1,1,2
-              xspopexP(Zix,Nix,nex,parity)=0.
-  522       continue
-  520 continue
-      do 530 parity=-1,1,2
-        do 530 J=0,numJ
-          do 530 nex=0,numex
-            xsracappop(nex,J,parity)=0.
-            do 530 Nix=0,numN
-              do 530 Zix=0,numZ
-                xspop(Zix,Nix,nex,J,parity)=0.
-                preeqpop(Zix,Nix,nex,J,parity)=0.
-  530 continue
+      xspopnuc=0.
+      xspopdir=0.
+      xspoppreeq=0.
+      xspopcomp=0.
+      Fdir=0.
+      Fpreeq=0.
+      Fcomp=0.
+      xsBFnuc=0.
+      xspopnucT=0.
+      xspopnucP=0.
+      CNterm=0.
+      xsracappopex=0.
+      xspopex=0.
+      xsisoBU=0.
+      preeqpopex=0.
+      maxJ=numJ
+      xspopexP=0.
+      xsracappop=0.
+      xspop=0.
+      preeqpop=0.
       xscompel=0.
       xselastot=0.
       xsnonel=0.
       xscompnonel=0.
-      xsbinary(-1)=0.
-      do 540 type=0,numpar
-        xsbinary(type)=0.
-        xsdisctot(type)=0.
-        xsdircont(type)=0.
-        xsdirect(type)=0.
-        xsconttot(type)=0.
-        xscompound(type)=0.
-        xscompcont(type)=0.
-        Eaveragebin(type)=0.
-        Eaverage(type)=0.
-  540 continue
-      do 550 nex=0,numex
-        do 550 type=0,numpar
-          lmaxhf(type,nex)=0
-          contrib(type,nex)=0.
-          feedbinary(type,nex)=0.
-  550 continue
+      xsbinary=0.
+      xsdisctot=0.
+      xsdircont=0.
+      xsdirect=0.
+      xsconttot=0.
+      xscompound=0.
+      xscompcont=0.
+      Eaveragebin=0.
+      Eaverage=0.
+      lmaxhf=0
+      contrib=0.
+      feedbinary=0.
       if (flagspec) then
-        do 560 nen=0,numen
-          do 560 nex=0,numex
-            do 560 type=0,numpar
-              binemis(type,nex,nen)=0.
-  560   continue
-        do 570 nen=0,numen
-          do 570 type=0,numpar
-            xscomp(type,nen)=0.
-            xsbinemis(type,nen)=0.
-            xsemis(type,nen)=0.
-            xsngnspec(type,nen)=0.
-  570   continue
+        binemis=0.
+        xscomp=0.
+        xsbinemis=0.
+        xsemis=0.
+        xsngnspec=0.
       endif
-      do 580 nex=0,numlev
-        do 580 type=0,numpar
-          xspopex0(type,nex)=0.
-          xsdisc(type,nex)=0.
-          xscompdisc(type,nex)=0.
-  580 continue
+      xspopex0=0.
+      xsdisc=0.
+      xscompdisc=0.
       if (flagang.or.flagddx) then
-        do 590 iang=0,numang
-          do 590 nex=0,numlev
-            do 590 type=0,numpar
-              compad(type,nex,iang)=0.
-              discad(type,nex,iang)=0.
-  590   continue
+        compad=0.
+        discad=0.
       endif
-      do 600 LL=0,3*numl
-        do 600 nex=0,numlev
-          do 600 type=0,numpar
-            cleg(type,nex,LL)=0.
-            tleg(type,nex,LL)=0.
-            tlegnor(type,nex,LL)=0.
-            cleg0(type,nex,LL)=0.
-  600 continue
-      do 610 l=1,numtrans
-        do 610 i=0,5
-          transjl(i,l)=0.
-  610 continue
+      cleg=0.
+      tleg=0.
+      tlegnor=0.
+      cleg0=0.
+      transjl=0.
 c
 c ************* Initialization of multiple mission arrays **************
 c
@@ -620,53 +433,26 @@ c
       if (flagchannels) then
         channelsum=0.
         xsabs=0.
-        do 710 nexout=0,numex+1
-          do 710 nex=0,numex+1
-            do 710 type=0,numpar
-              do 710 Nix=0,numNchan
-                do 710 Zix=0,numZchan
-                  feedexcl(Zix,Nix,type,nex,nexout)=0.
-  710   continue
-        do 720 nex=0,numex
-          do 720 Nix=0,numN
-            do 720 Zix=0,numZ
-              popexcl(Zix,Nix,nex)=0.
-  720   continue
+        feedexcl=0.
+        popexcl=0.
       endif
       if (flagfission) then
-        do 730 nex=0,numex+1
-          do 730 Nix=0,numN
-            do 730 Zix=0,numZ
-              fisfeedex(Zix,Nix,nex)=0.
-              do 735 parity=-1,1,2
-                do 735 J=0,numJ
-                  fisfeedJP(Zix,Nix,nex,J,parity)=0.
-  735         continue
-  730   continue
+        denfis=0.
+        gamfis=0.
+        taufis=0.
+        tfisA=0.
+        rhofisA=0.
+        tfisdown=0.
+        tfisup=0.
+        fisfeedex=0.
+        fisfeedJP=0.
       endif
-      do 740 parity=-1,1,2
-        do 740 J=0,numJ
-          tfis(J,parity)=0.
-  740 continue
-      do 750 type=-1,6
-        do 750 Nix=0,numN-2
-          do 750 Zix=0,numZ-2
-            xsfeed(Zix,Nix,type)=0.
-            if (type.ge.0) Eaveragemul(Zix,Nix,type)=0.
-  750 continue
-      do 760 type=-1,6
-        xsngn(type)=0.
-  760 continue
-      do 770 n2=0,numlev
-        do 770 n1=0,numlev
-          do 770 Nix=0,numN
-            do 770 Zix=0,numZ
-              xsgamdis(Zix,Nix,n1,n2)=0.
-  770 continue
-      do 780 Nix=0,numN
-        do 780 Zix=0,numZ
-          xsgamdistot(Zix,Nix)=0.
-  780 continue
+      tfis=0.
+      xsfeed=0.
+      Eaveragemul=0.
+      xsngn=0.
+      xsgamdis=0.
+      xsgamdistot=0.
 c
 c ************* Initialization of channels and total arrays ************
 c
@@ -688,53 +474,29 @@ c
       if (nin.eq.1) then
         idnumfull=.false.
         opennum=-1
-        do 810 in=0,numin
-          do 810 ip=0,numip
-            do 810 id=0,numid
-              do 810 it=0,numit
-                do 810 ih=0,numih
-                  do 810 ia=0,numia
-                    chanopen(in,ip,id,it,ih,ia)=.false.
-  810   continue
+        chanopen=.false.
       endif
       if (flagang.or.flagddx) then
-        do 820 iang=0,numangcont
-          do 840 nen=0,numen2
-            do 840 type=0,numpar
-              xssumoutad(type,nen,iang)=0.
-              xsdiscoutad(type,nen,iang)=0.
-              xscompoutad(type,nen,iang)=0.
-              xspreeqoutad(type,nen,iang)=0.
-              xsmpreeqoutad(type,nen,iang)=0.
-  840     continue
-  820   continue
+        xssumoutad=0.
+        xsdiscoutad=0.
+        xscompoutad=0.
+        xspreeqoutad=0.
+        xsmpreeqoutad=0.
       endif
-      do 850 n1=0,numlev
-        do 850 Nix=0,numN
-          do 850 Zix=0,numZ
-            xsbranch(Zix,Nix,n1)=0.
-  850 continue
-      do 860 type=0,numpar
-        xsparcheck(type)=0.
-        do 870 nen=0,numen
-          xsspeccheck(type,nen)=0.
-  870   continue
-  860 continue
-      do 880 nen=0,numen2
-        do 890 type=0,numpar
-          espec(type,nen)=0.
-          xsmpreeqout(type,nen)=0.
-          xssumout(type,nen)=0.
-          xscompout(type,nen)=0.
-          xsdiscout(type,nen)=0.
-          xspreeqout(type,nen)=0.
-          xspreeqpsout(type,nen)=0.
-          xspreeqkiout(type,nen)=0.
-          xspreeqbuout(type,nen)=0.
-          preeqratio(type,nen)=0.
-          buratio(type,nen)=0.
-  890   continue
-  880 continue
+      xsbranch=0.
+      xsparcheck=0.
+      xsspeccheck=0.
+      espec=0.
+      xsmpreeqout=0.
+      xssumout=0.
+      xscompout=0.
+      xsdiscout=0.
+      xspreeqout=0.
+      xspreeqpsout=0.
+      xspreeqkiout=0.
+      xspreeqbuout=0.
+      preeqratio=0.
+      buratio=0.
 c
 c ************* Initialization of total cross section arrays ***********
 c
@@ -802,102 +564,61 @@ c                particles
 c fxsracape    : direct capture cross section
 c fisstring    : string for exclusive fission reaction channel
 c
-      do 910 type=0,numpar
-        nexmax(type)=-1
-        xsexclusive(type)=0.
-        xsexclcont(type)=0.
-        multiplicity(type)=0.
-        xsparticle(type)=0.
-  910 continue
+      nexmax=-1
+      xsexclusive=0.
+      xsexclcont=0.
+      multiplicity=0.
+      xsparticle=0.
       xsfistot=0.
       if (.not.flagffruns) xsfistot0=0.
-      if (.not.flagrpruns) then
-        do i=1,numelem
-          do ia=1,nummass
-            xspopnuc0(i,ia)=0.
-          enddo
-        enddo
-      endif
+      if (.not.flagrpruns) xspopnuc0=0.
       maxA=maxZ+maxN
       xsresprod=0.
-      do 920 ia=0,numA
-        xsmassprod(ia)=0.
-        xsmassprodT(ia)=0.
-  920 continue
+      xsmassprod=0.
+      xsmassprodT=0.
       if (nin.eq.1) then
-        do 930 nen=1,numen6
-          xstot6(nen)=0.
-          xsreac6(nen)=0.
-          xsnon6(nen)=0.
-          xsnonel6(nen)=0.
-          xsopt6(nen)=0.
-          xselassh6(nen)=0.
-          xselas6(nen)=0.
-          xscompel6(nen)=0.
-          e6(nen)=0.
-  930   continue
-        do 940 nen=1,numenlow
-          do 950 type=0,numpar
-            fxsbinary(nen,type)=0.
-            fxsexclusive(nen,type)=0.
-            fxsdisctot(nen,type)=0.
-            fxsexclcont(nen,type)=0.
-            fxsngn(nen,type)=0.
-            fnubar(nen,type)=0.
-            do 960 n1=0,numlev
-              fxsdisc(nen,type,n1)=0.
-              fxsdirdisc(nen,type,n1)=0.
-              fxscompdisc(nen,type,n1)=0.
-  960       continue
-  950     continue
-          fxsngn(nen,-1)=0.
-          fxsreacinc(nen)=0.
-          fxselastot(nen)=0.
-          fxsnonel(nen)=0.
-          fxscompel(nen)=0.
-          fxselasinc(nen)=0.
-          fxstotinc(nen)=0.
-          fxscompnonel(nen)=0.
-          fxsdirdiscsum(nen)=0.
-          fxspreeqsum(nen)=0.
-          fxsracape(nen)=0.
-          do 970 Nix=0,numN
-            do 970 Zix=0,numZ
-              fxspopnuc(nen,Zix,Nix)=0.
-              do 980 n1=0,numlev
-                fxspopex(nen,Zix,Nix,n1)=0.
-                fxsisoBU(nen,Zix,Nix,n1)=0.
-                fxsbranch(nen,Zix,Nix,n1)=0.
-  980         continue
-  970     continue
-          do 990 i=0,numchantot
-            idchannel(i)=-1
-            fxschannel(nen,i)=0.
-            fxsgamchannel(nen,i)=0.
-            fxsratio(nen,i)=0.
-  990     continue
-  940   continue
+        xstot6=0.
+        xsreac6=0.
+        xsnon6=0.
+        xsnonel6=0.
+        xsopt6=0.
+        xselassh6=0.
+        xselas6=0.
+        xscompel6=0.
+        e6=0.
+        fxsbinary=0.
+        fxsexclusive=0.
+        fxsdisctot=0.
+        fxsexclcont=0.
+        fxsngn=0.
+        fnubar=0.
+        fxsdisc=0.
+        fxsdirdisc=0.
+        fxscompdisc=0.
+        fxsngn=0.
+        fxsreacinc=0.
+        fxselastot=0.
+        fxsnonel=0.
+        fxscompel=0.
+        fxselasinc=0.
+        fxstotinc=0.
+        fxscompnonel=0.
+        fxsdirdiscsum=0.
+        fxspreeqsum=0.
+        fxsracape=0.
+        fxspopnuc=0.
+        fxspopex=0.
+        fxsisoBU=0.
+        fxsbranch=0.
+        idchannel=-1
+        fxschannel=0.
+        fxsgamchannel=0.
+        fxsratio=0.
       endif
-      do 1010 n2=0,numlev
-        do 1020 n1=0,numlev
-          do 1030 i=0,numchantot
-            do 1040 nen=1,numenlow
-              fxsgamdischan(nen,i,n1,n2)=0.
- 1040       continue
- 1030     continue
- 1020   continue
- 1010 continue
-      do 1050 n1=0,numlev
-        do 1060 i=0,numchantot
-          do 1070 nen=1,numenlow
-            fxschaniso(nen,i,n1)=0.
-            fexclbranch(nen,i,n1)=0.
- 1070     continue
- 1060   continue
- 1050 continue
-      do 1080 i=0,numchantot
-        fisstring(i)='                  '
- 1080 continue
+      fxsgamdischan=0.
+      fxschaniso=0.
+      fexclbranch=0.
+      fisstring='                  '
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

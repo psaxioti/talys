@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 21, 2004
+c | Date  : September 20, 2022
 c | Task  : Preparation of width fluctuation corrections
 c +---------------------------------------------------------------------
 c
@@ -39,13 +39,13 @@ c First, all width fluctuation variables that only depend on J and P and
 c not on the other angular momentum quantum numbers are calculated.
 c
       if (wmode.eq.1) call molprepare(transjl,tnum,denomhf,nmold,xmold,
-     +  wmold,tjlav,freedom,prodwidth,numtrans,tnuminc)
+     +  wmold,tjlav,freedom,prodwidth,numtrans,tnuminc,WFCfactor)
       if (wmode.eq.2) call hrtwprepare(transjl,tnum,denomhf,tjlav,
-     +  sumhrtw,vhrtw,whrtw,numtrans,tnuminc)
+     +  sumhrtw,vhrtw,whrtw,numtrans,tnuminc,WFCfactor)
       if (wmode.eq.3) call goeprepare(transjl,tnum,denomhf,ngoep,
      +  ngoes,ngoet,xgoep,xgoes,xgoet,wgoep,wgoes,wgoet,tjlav,agoe1,
      +  agoe2,agoe3,agoe4,agoe5,agoe6,agoe7,agoe8,sgoe1,sgoe2,sgoe3,
      +  sgoe4,sgoe5,numtrans,tnuminc)
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2022 A.J. Koning, S. Hilaire and S. Goriely

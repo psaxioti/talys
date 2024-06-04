@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire, Marieke Duijvestijn and Arjan Koning
-c | Date  : August 10, 2015
+c | Date  : July 8, 2022
 c | Task  : Effective level density parameter
 c +---------------------------------------------------------------------
 c
@@ -14,7 +14,7 @@ c
       integer          Zix,Nix,ibar,A,j
       real             aldmatch,Eex,rjbegin,rj,aldref,ignatyuk,spindis,
      +                 sigma,spincut,Krot,Kvib,Kcoll,aldacc,ald1,ald2,
-     +                 dald,aldmid,sigmamid
+     +                 dald,aldmid,sigmamid,sc
       double precision rhosum,factor,fermi,rhoref,fdiff,fmid
 c
 c ************ Search for effective level density parameter ************
@@ -40,8 +40,9 @@ c
       rhosum=0.
       aldref=ignatyuk(Zix,Nix,Eex,ibar)
    10 rj=rj+1.
+      sc=spincut(Zix,Nix,aldref,Eex,ibar,0)
       factor=(2.*rj+1.)*fermi(Zix,Nix,aldref,Eex,pair(Zix,Nix),ibar)*
-     +  spindis(Zix,Nix,Eex,aldref,rj,ibar)
+     +  spindis(sc,rj)
       rhosum=rhosum+factor
       if (factor.gt.0.00001) goto 10
 c
@@ -79,7 +80,7 @@ c
       aldacc=0.001
       ald1=0.5*aldref
       ald2=2.0*aldref
-      sigma=sqrt(spincut(Zix,Nix,ald1,Eex,ibar))
+      sigma=sqrt(spincut(Zix,Nix,ald1,Eex,ibar,0))
       fdiff=fermi(Zix,Nix,ald1,Eex,pair(Zix,Nix),ibar)*sigma*
      +  sqrttwopi-rhoref
       if (fdiff.lt.0.) then
@@ -92,7 +93,7 @@ c
       do 20 j=1,jmax
         dald=dald*0.5
         aldmid=aldmatch+dald
-        sigmamid=sqrt(spincut(Zix,Nix,aldmid,Eex,ibar))
+        sigmamid=sqrt(spincut(Zix,Nix,aldmid,Eex,ibar,0))
         fmid=fermi(Zix,Nix,aldmid,Eex,pair(Zix,Nix),ibar)*sigmamid*
      +    sqrttwopi-rhoref
         if (fmid.le.0.) aldmatch=aldmid

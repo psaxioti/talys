@@ -2,17 +2,17 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 19, 2020
+c | Date  : September 23, 2022
 c | Task  : Info for ENDF-6 file
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      flagel
-      character*1  yesno
-      character*40 endfenergyfile
-      integer      nen
+      logical       flagel
+      character*1   yesno
+      character*132 endfenergyfile
+      integer       nen
 c
 c ****************** Reaction information for ENDF-6 file **************
 c
@@ -53,7 +53,8 @@ c
       close (unit=2)
       write(1,'(i4,"      : number of incident energies")') numinc
       write(1,'(i4,"      : number of discrete levels")') nlevmax
-      write(1,'(a40,": file with incident energies")') endfenergyfile
+      write(1,'(a," : file with incident energies")') 
+     +  trim(endfenergyfile)
       write(1,'(a1,"         : detailed ENDF-6 information",
      + " per channel")') yesno(flagendfdet)
       if (Nrescue(1,-1).ne.0) then

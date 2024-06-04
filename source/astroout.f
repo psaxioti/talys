@@ -2,25 +2,25 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Goriely, Stephane Hilaire, Arjan Koning
-c | Date  : December 12, 2016
+c | Date  : April 7, 2022
 c | Task  : Output of astrophysical reaction rates
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer      numZ1,numN1
-      parameter    (numZ1=numZ+1,numN1=numN+1)
-      logical      lexist
-      character*4  machar
-      character*90 mafile
-      character*13 astrofile
-      character*1  targetparity,yesno
-      integer      Acomp,Zcomp,Ncomp,i,Z,A,ires,iresprod,iwriterp,ia,
-     +             zrespro(numZ1*numN1),arespro(numZ1*numN1),nex,
-     +             maxAastro
-      real         rateastrorp(numT,numZ1*numN1),rateastroeps,
-     +             ratio,macs,dmacs,xs,dxs,branch
+      integer       numZ1,numN1
+      parameter     (numZ1=numZ+1,numN1=numN+1)
+      logical       lexist
+      character*7   machar
+      character*132 mafile
+      character*13  astrofile
+      character*1   targetparity,yesno
+      integer       Acomp,Zcomp,Ncomp,i,Z,A,ires,iresprod,iwriterp,ia,
+     +              zrespro(numZ1*numN1),arespro(numZ1*numN1),nex,
+     +              maxAastro
+      real          rateastrorp(numT,numZ1*numN1),rateastroeps,
+     +              ratio,macs,dmacs,xs,dxs,branch
 c
 c ************************ Output of reaction rates ********************
 c
@@ -52,39 +52,39 @@ c branch     : branching ratio to a given excited state
 c
       write(*,'(/" 8. Thermonuclear reaction rates")')
       maxAastro=maxZastro+maxNastro
-      do 10 Acomp=0,maxAastro
+      do Acomp=0,maxAastro
         do 20 Zcomp=0,maxZastro
           Ncomp=Acomp-Zcomp
           if (Ncomp.lt.0.or.Ncomp.gt.maxNastro) goto 20
-          do 30 i=1,nTmax
+          do i=1,nTmax
             if (rateastro(Zcomp,Ncomp,i).gt.0.) goto 40
-   30     continue
+          enddo
           goto 20
    40     Z=ZZ(Zcomp,Ncomp,0)
           A=AA(Zcomp,Ncomp,0)
          if (nTmax.eq.1) then
             write(*,'(/" Reaction rate for Z=",i3," A=",i3," (",i3,a2,
      +        ") at <E>=",f8.5," MeV (Excited States Contribution : ",
-     +        a1,")"/)') Z,A,A,nuc(Z),astroE,yesno(.not.flagastrogs)
+     +        a1,")"/)') Z,A,A,nuc(Z),astroE,yesno(flagastrogs)
           else
             write(*,'(/" Reaction rate for Z=",
      +        i3," A=",i3," (",i3,a2,")"/)') Z,A,A,nuc(Z)
           endif
           write(*,'("    T        G(T)        Rate       MACS "/)')
-          do 50 i=1,nTmax
+          do i=1,nTmax
             write(*,'(1x,f8.4,3es12.5)') T9(i),partf(i),
      +        rateastro(Zcomp,Ncomp,i),macsastro(Zcomp,Ncomp,i)
-   50     continue
+          enddo
           if (flagastroex) then
-            do 200 nex=0,Nlast(Zcomp,Ncomp,0)
-              if (nex.gt.0.and.tau(Zcomp,Ncomp,nex).eq.0.) goto 200
+            do nex=0,Nlast(Zcomp,Ncomp,0)
+              if (nex.gt.0.and.tau(Zcomp,Ncomp,nex).eq.0.) cycle
               write(*,'(/" Reaction rate for Z=",
      +          i3," A=",i3," (",i3,a2,") to the excited states L",
      +          i2.2," at E=",f12.5," MeV",/)') Z,A,A,nuc(Z),nex,
      +          edis(Zcomp,Ncomp,nex)
               write(*,'("    T       Rate         MACS      ",
      +          "Branching"/)')
-              do 210 i=1,nTmax
+              do i=1,nTmax
                 branch=0.
                 if (rateastro(Zcomp,Ncomp,i).gt.0.) branch=
      +            rateastroex(Zcomp,Ncomp,i,nex)/
@@ -92,22 +92,22 @@ c
                 write(*,'(1x,f8.4,3es12.5)') T9(i),
      +            rateastroex(Zcomp,Ncomp,i,nex),
      +            macsastroex(Zcomp,Ncomp,i,nex),branch
-  210         continue
-  200       continue
+              enddo
+            enddo
           endif
           if (flagracap.and.Zcomp.eq.0.and.Acomp.eq.0) then
             write(*,'(/"    T      Rate(Eq)    Rate(DC)  ",
      +        "  MACS(Eq)    MACS(DC)  "/)')
-            do 60 i=1,nTmax
+            do i=1,nTmax
               write(*,'(1x,f8.4,4es12.5)') T9(i),
      +          rateastro(Zcomp,Ncomp,i)-rateastroracap(i),
      +          rateastroracap(i),
      +          macsastro(Zcomp,Ncomp,i)-macsastroracap(i),
      +          macsastroracap(i)
-   60       continue
+            enddo
           endif
    20   continue
-   10 continue
+      enddo
 c
 c Comparison with experimental MACS at 30 keV
 c
@@ -122,8 +122,7 @@ c
         ratio=0.
         macs=0.
         dmacs=0.
-        machar='z   '
-        write(machar(2:4),'(i3.3)') Z
+        machar=trim(nuc(Z))//'.macs'
         mafile=trim(path)//'gamma/macs/'//machar
         inquire (file=mafile,exist=lexist)
         if (lexist) then
@@ -150,7 +149,6 @@ c rateastroeps: cutoff value
 c zresprod    : help variable
 c Atarget     : mass number of target nucleus
 c Ztarget     : charge number of target nucleus
-c Starget     : symbol of target nucleus
 c parsym      : symbol of particle
 c k0          : index of incident particle
 c flagfission : flag for fission
@@ -158,122 +156,122 @@ c
       astrofile='astrorate.g'
       open (unit=1,file=astrofile,status='replace')
       if (nTmax.eq.1) then
-        write(1,'("# Reaction rate for ",i3,a2,"(",a1,",g) at <E>=",
+        write(1,'("# Reaction rate for ",a,"(",a1,",g) at <E>=",
      +    f8.5," MeV (Excited States Contribution : ",a1,")")')
-     +    Atarget,Starget,parsym(k0),astroE,yesno(.not.flagastrogs)
+     +    trim(targetnuclide),parsym(k0),astroE,yesno(flagastrogs)
       else
-        write(1,'("# Reaction rate for ",i3,a2,"(",a1,",g)")')
-     +    Atarget,Starget,parsym(k0)
+        write(1,'("# Reaction rate for ",a,"(",a1,",g)")')
+     +    trim(targetnuclide),parsym(k0)
       endif
-      write(1,'("#    T       Rate       MACS")')
-      do 110 i=1,nTmax
-        write(1,'(f8.4,2es12.5)') T9(i),rateastro(0,0,i),
-     +    macsastro(0,0,i)
-  110 continue
+      write(1,'("#    T       Rate       MACS       G(T)")')
+      do i=1,nTmax
+        write(1,'(f8.4,3es12.5)') T9(i),rateastro(0,0,i),
+     +    macsastro(0,0,i),partf(i)
+      enddo
       close (unit=1)
 c
 c output partial rates(n,g) to given excited states in a specific file
 c
       if (.not.flagastroex) goto 240
-      do 220 nex=1,Nlast(0,0,0)
+      do nex=1,Nlast(0,0,0)
         if (tau(0,0,nex).ne.0.) goto 230
-  220 continue
+      enddo
       goto 240
-  230 do 250 nex=0,Nlast(0,0,0)
+  230 do nex=0,Nlast(0,0,0)
         if (nex.eq.0.or.tau(0,0,nex).ne.0.) then
           astrofile='astrorate.g'
           write(astrofile(12:13),'(i2.2)') nex
           open (unit=1,file=astrofile,status='replace')
           if (nTmax.eq.1) then
-            write(1,'("# Reaction rate for ",i3,a2,"(",a1,",g) at <E>=",
+            write(1,'("# Reaction rate for ",a,"(",a1,",g) at <E>=",
      +        f8.5," MeV (Exc. States Cont. : ",a1,
      +        ") to final level L",i2.2," at E=",f12.5," MeV")')
-     +        Atarget,Starget,parsym(k0),astroE,yesno(.not.flagastrogs),
-     +        nex,edis(0,0,nex)
+     +        trim(targetnuclide),parsym(k0),astroE,
+     +        yesno(flagastrogs),nex,edis(0,0,nex)
           else
-            write(1,'("# Reaction rate for Z=",i3," A=",i3,2x,i3,a2,"(",
+            write(1,'("# Reaction rate for Z=",i3," A=",i3,2x,a,"(",
      +        a1,",g) to the excited state L",i2.2," at E=",f12.5,
-     +        " MeV")') Ztarget,Atarget,Atarget,Starget,parsym(k0),
+     +        " MeV")') Ztarget,Atarget,trim(targetnuclide),parsym(k0),
      +        nex,edis(0,0,nex)
           endif
           write(1,'("#   T9      Rate         MACS      Branching")')
-          do 260 i=1,nTmax
+          do i=1,nTmax
             write(1,'(1x,f8.4,3es12.5)') T9(i),
      +        rateastroex(0,0,i,nex),
      +        macsastroex(0,0,i,nex),
      +        rateastroex(0,0,i,nex)/rateastro(0,0,i)
-  260     continue
+          enddo
           close (unit=1)
         endif
-  250 continue
+      enddo
   240 continue
       astrofile='astrorate.p'
       open (unit=1,file=astrofile,status='replace')
       if (nTmax.eq.1) then
-        write(1,'("# Reaction rate for ",i3,a2,"(",a1,",p) at <E>=",
+        write(1,'("# Reaction rate for ",a,"(",a1,",p) at <E>=",
      +    f8.5," MeV (Excited States Contribution : ",a1,")")')
-     +    Atarget,Starget,parsym(k0),astroE,yesno(.not.flagastrogs)
+     +    trim(targetnuclide),parsym(k0),astroE,yesno(flagastrogs)
       else
-        write(1,'("# Reaction rate for ",i3,a2,"(",a1,",p)")')
-     +    Atarget,Starget,parsym(k0)
+        write(1,'("# Reaction rate for ",a,"(",a1,",p)")')
+     +    trim(targetnuclide),parsym(k0)
       endif
-      write(1,'("#    T       Rate       MACS")')
-      do 120 i=1,nTmax
-        write(1,'(f8.4,2es12.5)') T9(i),rateastro(1,0,i),
-     +    macsastro(1,0,i)
-  120 continue
+      write(1,'("#    T       Rate       MACS       G(T)")')
+      do i=1,nTmax
+        write(1,'(f8.4,3es12.5)') T9(i),rateastro(1,0,i),
+     +    macsastro(1,0,i),partf(i)
+      enddo
       close (unit=1)
 c
 c output partial rates(p,g) to given excited states in a specific file
 c
       if (.not.flagastroex) goto 340
-      do 320 nex=1,Nlast(1,0,0)
+      do nex=1,Nlast(1,0,0)
         if (tau(1,0,nex).ne.0.) goto 330
-  320 continue
+      enddo
       goto 340
-  330 do 350 nex=0,Nlast(1,0,0)
+  330 do nex=0,Nlast(1,0,0)
         if (nex.eq.0.or.tau(1,0,nex).ne.0.) then
           astrofile='astrorate.p'
           write(astrofile(12:13),'(i2.2)') nex
           open (unit=1,file=astrofile,status='replace')
           if (nTmax.eq.1) then
-            write(1,'("# Reaction rate for ",i3,a2,"(",a1,",p) at <E>=",
+            write(1,'("# Reaction rate for ",a,"(",a1,",p) at <E>=",
      +        f8.5," MeV (Exc. States Cont. : ",a1,
      +        ") to final level L",i2.2," at E=",f12.5," MeV")')
-     +        Atarget,Starget,parsym(k0),astroE,yesno(.not.flagastrogs),
-     +        nex,edis(1,0,nex)
+     +        trim(targetnuclide),parsym(k0),astroE,
+     +        yesno(flagastrogs),nex,edis(1,0,nex)
           else
-            write(1,'("# Reaction rate for Z=",i3," A=",i3,2x,i3,a2,"(",
+            write(1,'("# Reaction rate for Z=",i3," A=",i3,2x,a,"(",
      +        a1,",p) to the excited state L",i2.2," at E=",f12.5,
-     +        " MeV")') Ztarget,Atarget,Atarget,Starget,parsym(k0),
+     +        " MeV")') Ztarget,Atarget,trim(targetnuclide),parsym(k0),
      +        nex,edis(1,0,nex)
           endif
           write(1,'("#   T       Rate         MACS      Branching")')
-          do 360 i=1,nTmax
+          do i=1,nTmax
             write(1,'(1x,f8.4,3es12.5)') T9(i),
      +        rateastroex(1,0,i,nex),
      +        macsastroex(1,0,i,nex),
      +        rateastroex(1,0,i,nex)/rateastro(1,0,i)
-  360     continue
+          enddo
           close (unit=1)
         endif
-  350 continue
+      enddo
   340 continue
       astrofile='astrorate.a'
       open (unit=1,file=astrofile,status='replace')
       if (nTmax.eq.1) then
-        write(1,'("# Reaction rate for ",i3,a2,"(",a1,",a) at <E>=",
+        write(1,'("# Reaction rate for ",a,"(",a1,",a) at <E>=",
      +    f8.5," MeV (Excited States Contribution : ",a1,")")')
-     +    Atarget,Starget,parsym(k0),astroE,yesno(.not.flagastrogs)
+     +    trim(targetnuclide),parsym(k0),astroE,yesno(flagastrogs)
       else
-        write(1,'("# Reaction rate for ",i3,a2,"(",a1,",a)")')
-     +  Atarget,Starget,parsym(k0)
+        write(1,'("# Reaction rate for ",a,"(",a1,",a)")')
+     +  trim(targetnuclide),parsym(k0)
       endif
-      write(1,'("#    T       Rate       MACS")')
-      do 130 i=1,nTmax
-        write(1,'(f8.4,2es12.5)') T9(i),rateastro(2,2,i),
-     +    macsastro(2,2,i)
-  130 continue
+      write(1,'("#    T       Rate       MACS       G(T)")')
+      do i=1,nTmax
+        write(1,'(f8.4,3es12.5)') T9(i),rateastro(2,2,i),
+     +    macsastro(2,2,i),partf(i)
+      enddo
       close (unit=1)
 c
 c output partial rates(p,g) to given excited states in a specific file
@@ -285,80 +283,81 @@ c zrespro: Z of residual product
 c arespro: A of residual product
 c
       if (.not.flagastroex) goto 440
-      do 420 nex=1,Nlast(2,2,0)
+      do nex=1,Nlast(2,2,0)
         if (tau(2,2,nex).ne.0.) goto 430
-  420 continue
+      enddo
       goto 440
-  430 do 450 nex=0,Nlast(2,2,0)
+  430 do nex=0,Nlast(2,2,0)
         if (nex.eq.0.or.tau(2,2,nex).ne.0.) then
           astrofile='astrorate.a'
           write(astrofile(12:13),'(i2.2)') nex
           open (unit=1,file=astrofile,status='replace')
           if (nTmax.eq.1) then
-            write(1,'("# Reaction rate for ",i3,a2,"(",a1,",a) at <E>=",
+            write(1,'("# Reaction rate for ",a,"(",a1,",a) at <E>=",
      +        f8.5," MeV (Exc. States Cont. : ",a1,
      +        ") to final level L",i2.2," at E=",f12.5," MeV")')
-     +        Atarget,Starget,parsym(k0),astroE,yesno(.not.flagastrogs),
-     +        nex,edis(2,2,nex)
+     +        trim(targetnuclide),parsym(k0),astroE,
+     +        yesno(flagastrogs),nex,edis(2,2,nex)
           else
-            write(1,'("# Reaction rate for Z=",i3," A=",i3,2x,i3,a2,"(",
+            write(1,'("# Reaction rate for Z=",i3," A=",i3,2x,a,"(",
      +        a1,",a) to the excited state L",i2.2," at E=",f12.5,
-     +        " MeV")') Ztarget,Atarget,Atarget,Starget,parsym(k0),
+     +        " MeV")') Ztarget,Atarget,trim(targetnuclide),parsym(k0),
      +        nex,edis(2,2,nex)
           endif
           write(1,'("#   T       Rate         MACS      Branching")')
-          do 460 i=1,nTmax
+          do i=1,nTmax
             write(1,'(1x,f8.4,3es12.5)') T9(i),
      +        rateastroex(2,2,i,nex),
      +        macsastroex(2,2,i,nex),
      +        rateastroex(2,2,i,nex)/rateastro(2,2,i)
-  460     continue
+          enddo
           close (unit=1)
         endif
-  450 continue
+      enddo
   440 continue
       if (flagfission) then
         astrofile='astrorate.f'
         open (unit=1,file=astrofile,status='replace')
         if (nTmax.eq.1) then
-          write(1,'("# Reaction rate for ",i3,a2,"(",a1,",f) at <E>=",
+          write(1,'("# Reaction rate for ",a,"(",a1,",f) at <E>=",
      +      f8.5," MeV (Excited States Contribution : ",a1,")")')
-     +      Atarget,Starget,parsym(k0),astroE,
-     +      yesno(.not.flagastrogs)
+     +      trim(targetnuclide),parsym(k0),astroE,
+     +      yesno(flagastrogs)
         else
-          write(1,'("# Reaction rate for ",i3,a2,"(",a1,",a)")')
-     +    Atarget,Starget,parsym(k0)
+          write(1,'("# Reaction rate for ",a,"(",a1,",a)")')
+     +    trim(targetnuclide),parsym(k0)
         endif
-        write(1,'("#    T       Rate       MACS")')
-        do 140 i=1,nTmax
-          write(1,'(f8.4,2es12.5)') T9(i),rateastrofis(i),
-     +      macsastrofis(i)
-  140   continue
+        write(1,'("#    T       Rate       MACS       G(T)")')
+        do i=1,nTmax
+          write(1,'(f8.4,3es12.5)') T9(i),rateastrofis(i),
+     +      macsastrofis(i),partf(i)
+        enddo
         close (unit=1)
       endif
       rateastroeps=1.e-10
       iresprod=0
-      do 150 Acomp=0,maxAastro
-        do 150 Zcomp=0,maxZastro
+      do Acomp=0,maxAastro
+        do Zcomp=0,maxZastro
           Ncomp=Acomp-Zcomp
-          if (Ncomp.lt.0.or.Ncomp.gt.maxNastro) goto 150
-          if (Zcomp.eq.0.and.Ncomp.eq.0) goto 150
-          if (Zcomp.eq.0.and.Ncomp.eq.1) goto 150
-          if (Zcomp.eq.1.and.Ncomp.eq.0) goto 150
-          if (Zcomp.eq.2.and.Ncomp.eq.2) goto 150
+          if (Ncomp.lt.0.or.Ncomp.gt.maxNastro) cycle
+          if (Zcomp.eq.0.and.Ncomp.eq.0) cycle
+          if (Zcomp.eq.0.and.Ncomp.eq.1) cycle
+          if (Zcomp.eq.1.and.Ncomp.eq.0) cycle
+          if (Zcomp.eq.2.and.Ncomp.eq.2) cycle
           iwriterp=0
-          do 160 i=1,nTmax
+          do i=1,nTmax
             if (rateastro(Zcomp,Ncomp,i).gt.rateastroeps) iwriterp=1
-  160     continue
+          enddo
           if (iwriterp.eq.1) then
             iresprod=iresprod+1
-            do 170 i=1,nTmax
+            do i=1,nTmax
               rateastrorp(i,iresprod)=rateastro(Zcomp,Ncomp,i)
-  170       continue
+            enddo
             zrespro(iresprod)=ZZ(Zcomp,Ncomp,0)
             arespro(iresprod)=AA(Zcomp,Ncomp,0)
           endif
-  150 continue
+        enddo
+      enddo
       astrofile='astrorate.tot'
       targetparity='+'
       if (targetP.eq.-1) targetparity='-'
@@ -368,7 +367,7 @@ c
      +    " reactions  Jp(GS)=",f5.1,a1," at <E>=",f8.5,
      +    " MeV (Excited States Contribution : ",a1,")")')
      +    Ztarget,Atarget,Starget,parsym(k0),iresprod+5,targetspin,
-     +    targetparity,astroE,yesno(.not.flagastrogs)
+     +    targetparity,astroE,yesno(flagastrogs)
       else
         if (.not.flagastrogs) then
           if (nonthermlev.eq.-1) then
@@ -421,11 +420,11 @@ c
      +  parsym(k0),AA(1,0,0),nuc(ZZ(1,0,0)),
      +  parsym(k0),AA(2,2,0),nuc(ZZ(2,2,0)),
      +  (arespro(ires),nuc(zrespro(ires)),ires=1,iresprod)
-      do 180 i=1,nTmax
+      do i=1,nTmax
         write(1,'(f8.4,200es12.5)') T9(i),partf(i),rateastro(0,0,i),
      +    rateastro(0,1,i),rateastro(1,0,i),rateastro(2,2,i),
      +    rateastrofis(i),(rateastrorp(i,ires),ires=1,iresprod)
-  180 continue
+      enddo
       close (unit=1)
       return
       end

@@ -9,8 +9,8 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*90 pfnsfile
-      integer      type,nen
+      character*132 pfnsfile
+      integer       type,nen
 c
 c Write results to separate files
 c
@@ -36,8 +36,8 @@ c
           write(pfnsfile(5:8),'(i4.4)') int(Einc0)
         endif
         open (unit=1,file=pfnsfile,status='replace')
-        write(1,'("# ",a1," + ",i3,a2,": Prompt fission ",a8,
-     +    " spectrum ")') parsym(k0),Atarget,Starget,parname(type)
+        write(1,'("# ",a1," + ",a,": Prompt fission ",a8,
+     +    " spectrum ")') parsym(k0),trim(targetnuclide),parname(type)
         if (Einc0.lt.0.001) then
           write(1,'("# E-incident = ",es8.2," MeV")') Einc0
         else

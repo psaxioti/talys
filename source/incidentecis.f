@@ -81,8 +81,7 @@ c
 c ecis1,ecis2: 100 input flags ('T' or 'F') for ECIS
 c jlmloc     : flag for JLM OMP
 c colltype   : type of collectivity (D, V or R)
-c flagrot    : flag for use of rotational optical model per
-c              outgoing particle, if available
+c flagspher  : flag to force spherical optical model
 c rotational : flag for rotational input
 c vibrational: flag for vibrational input
 c title      : title of ECIS input file
@@ -104,7 +103,7 @@ c
 c 1. Spherical nucleus
 c
       jlmloc=.false.
-      if (colltype(Zix,Nix).eq.'S'.or..not.flagrot(k0)) then
+      if (colltype(Zix,Nix).eq.'S'.or.flagspher) then
         rotational=.false.
         vibrational=.false.
         title='Spherical optical model                           '
@@ -153,12 +152,12 @@ c
         tarspin=jdis(Zix,Nix,0)
         tarparity=cparity(parlev(Zix,Nix,0))
         i1=0
-        do 10 i=1,ndef(Zix,Nix)
+        do i=1,ndef(Zix,Nix)
           ii=indexlevel(Zix,Nix,i)
           if (leveltype(Zix,Nix,ii).ne.'V'.and.
-     +      leveltype(Zix,Nix,ii).ne.'R') goto 10
+     +      leveltype(Zix,Nix,ii).ne.'R') cycle
           if (colltype(Zix,Nix).eq.'R'.and.
-     +      vibband(Zix,Nix,i).gt.maxband) goto 10
+     +      vibband(Zix,Nix,i).gt.maxband) cycle
           i1=i1+1
           idvib(i1)=vibband(Zix,Nix,i)
           Elevel(i1)=edis(Zix,Nix,ii)
@@ -171,7 +170,7 @@ c
           Kmag(i1)=Kband(Zix,Nix,i)
           vibbeta(i1)=defpar(Zix,Nix,i)
           Nband=max(Nband,iband(i1))
-   10   continue
+        enddo
         ncoll=i1
         if (flagstate) then
           npp=ncoll
@@ -186,9 +185,9 @@ c
           rotational=.false.
           vibrational=.true.
           title='Vibrational optical model                         '
-          do 20 i=1,ncoll
+          do i=1,ncoll
             idvib(i)=0
-   20     continue
+          enddo
         else
 c
 c 2b. Rotational model
@@ -227,9 +226,9 @@ c
           if (k0.gt.1.and.Ein.le.0.05*coulbar(k0).and.
      +      Ein.le.2.*Elevel(ncoll)) Ein=0.1*Elevel(ncoll)
           Nrotbeta=nrot(Zix,Nix)
-          do 30 i=1,Nrotbeta
+          do i=1,Nrotbeta
             rotbeta(i)=rotpar(Zix,Nix,i)
-   30     continue
+          enddo
           if (colltype(Zix,Nix).eq.'R') then
             title='Symmetric rotational optical model                '
             iqm=2*Nrotbeta
@@ -290,13 +289,13 @@ c
           endif
           write(*,'(/11x,a8," on ",i3,a2/)') parname(k0),A,nuc(Z)
           write(*,'("  Radius ",4x,"V",6x,"W",7x,"Vso",5x,"Wso"/)')
-          do 110 i=1,numjlm
-          write(*,'(f7.3,2x,4(f8.3))') radjlm(Zix,Nix,i),
-     +      normjlm(Zix,Nix,1)*potjlm(Zix,Nix,i,1),
-     +      normjlm(Zix,Nix,2)*potjlm(Zix,Nix,i,2),
-     +      normjlm(Zix,Nix,5)*potjlm(Zix,Nix,i,5),
-     +      normjlm(Zix,Nix,6)*potjlm(Zix,Nix,i,6)
-  110     continue
+          do i=1,numjlm
+            write(*,'(f7.3,2x,4(f8.3))') radjlm(Zix,Nix,i),
+     +        normjlm(Zix,Nix,1)*potjlm(Zix,Nix,i,1),
+     +        normjlm(Zix,Nix,2)*potjlm(Zix,Nix,i,2),
+     +        normjlm(Zix,Nix,5)*potjlm(Zix,Nix,i,5),
+     +        normjlm(Zix,Nix,6)*potjlm(Zix,Nix,i,6)
+          enddo
         else
           write(*,'(/" +++++++++ OPTICAL MODEL PARAMETERS FOR ",
      +      "INCIDENT CHANNEL ++++++++++")')

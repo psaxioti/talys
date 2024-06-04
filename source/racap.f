@@ -24,6 +24,10 @@ c jlmracap1: JLMB potential for the radial grid: [0.1, 20], step of 0.1
 c
 c Calculation the initial wood saxon potential parameter
 c
+      xsall = 0.
+      xsp = 0.
+      xspex = 0.
+      exfin = 0.
       iopt=racopt
       Zix=parZ(k0)
       Nix=parN(k0)
@@ -60,6 +64,10 @@ c
       do i=1,numlev2
         spfacst(i)=0.
       enddo
+      jrac=0.
+      prac=0
+      erac=0.
+      spfacst=0.
       do i=1,nlevexpracap
         jrac(i)=jdis(0,0,i)
         prac(i)=parlev(0,0,i)
@@ -69,7 +77,7 @@ c
       do i= nlevexpracap,maxex(0,0)+1
         spfacst(i)=spectfac(0,0,i-1)
       enddo
-      qq=min(S(0,0,1),S(0,0,2))
+      qq=S(0,0,k0)
 c
 c End of initial setting and begin to racap calculation.
 c
@@ -83,13 +91,13 @@ c exfin: energy
 c qq: help variable
 c xspex: help variable
 c
-      call racapcalc(Einc,Ztarget,Atarget,beta2(Zix,Nix,0),
+      call racapcalc(k0,Einc,Ztarget,Atarget,beta2(Zix,Nix,0),
      &  jdis(Zix,Nix,0),parlev(Zix,Nix,0),gsspin(Zix,Nix),
      &  gsparity(Zix,Nix),expmass(Zix,Nix),thmass(Zix,Nix),
      &  Zix,parA(k0),parspin(k0),parmass(k0),jdis(0,0,0),parlev(0,0,0),
      &  gsspin(0,0),gsparity(0,0),expmass(0,0),thmass(0,0),qq,
-     &  numlev2,nlevexpracap,erac,jrac,prac,exfin,
-     &  numjlm,jlmracap1,jlmracap2,numJ,numdensracap,chglposj,chglnegj,
+     &  numlev2,nlevexpracap,erac,jrac,prac,exfin,numjlm,
+     &  jlmracap1,jlmracap2,numJph,numdensracap,chglposj,chglnegj,
      &  vncap1,rvncap1,avncap1,vncap2,rvncap2,avncap2,xsall,xsracape,
      &  xspex,xsp,iopt,pi,e2,amu,hbarc,nlevracap(0,0),spfacst,ispect)
 c
@@ -107,7 +115,7 @@ c
 c          spectfac(0,0,i-1)=spfacst(i)
           xsracapedisc=xsracapedisc+xspex(i)*1000.0
           xsracappopex(i-1)=xspex(i)*1000.0
-          do J=0,numJ
+          do J=0,numJph
           do parity=-1,1,2
             if (parity.eq.-1) par=1
             if (parity.eq.1) par=2
@@ -121,7 +129,7 @@ c            spectfac(0,0,nex)=spfacst(i)
             if (exfin(i).lt.Ex(0,0,nex)+deltaEx(0,0,nex)/2..and.
      +        exfin(i).ge.Ex(0,0,nex)-deltaEx(0,0,nex)/2.) then
               xsracappopex(nex)=xsracappopex(nex)+xspex(i)*1000.0
-              do J=0,numJ
+              do J=0,numJph
               do parity=-1,1,2
                 if (parity.eq.-1) par=1
                 if (parity.eq.1) par=2

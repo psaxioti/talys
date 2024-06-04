@@ -68,7 +68,7 @@ c
       if (flagcolldamp) then
         A=AA(Zix,Nix,0)
         aldlow=A/13.
-        expo=(U-Ufermi)/cfermi
+        expo=(U-Ufermi(Zix,Nix,0))/cfermi(Zix,Nix,0)
         qfermi=0.
         if (expo.gt.-80.) qfermi=1./(1.+exp(-expo))
         aldlim=aldlow*qfermi+aldlim*(1.-qfermi)

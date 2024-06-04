@@ -63,8 +63,7 @@ c
 c ecis1,ecis2: 100 input flags ('T' or 'F') for ECIS
 c jlmloc     : flag for JLM OMP
 c colltype   : type of collectivity (D, V or R)
-c flagrot    : flag for use of rotational optical model per
-c              outgoing particle, if available
+c flagspher  : flag to force spherical optical model
 c rotational : flag for rotational input
 c vibrational: flag for vibrational input
 c title      : title of ECIS input file
@@ -88,7 +87,7 @@ c
 c 1. Spherical nucleus
 c
       jlmloc=.false.
-      if (colltype(Zix,Nix).eq.'S'.or..not.flagrot(k0)) then
+      if (colltype(Zix,Nix).eq.'S'.or.flagspher) then
         rotational=.false.
         vibrational=.false.
         title='Spherical optical model                           '
@@ -137,12 +136,12 @@ c
         tarspin=jdis(Zix,Nix,0)
         tarparity=cparity(parlev(Zix,Nix,0))
         i1=0
-        do 10 i=1,ndef(Zix,Nix)
+        do i=1,ndef(Zix,Nix)
           ii=indexlevel(Zix,Nix,i)
           if (leveltype(Zix,Nix,ii).ne.'V'.and.
-     +      leveltype(Zix,Nix,ii).ne.'R') goto 10
+     +      leveltype(Zix,Nix,ii).ne.'R') cycle
           if (colltype(Zix,Nix).eq.'R'.and.
-     +      vibband(Zix,Nix,i).gt.maxband) goto 10
+     +      vibband(Zix,Nix,i).gt.maxband) cycle
           i1=i1+1
           idvib(i1)=vibband(Zix,Nix,i)
           Elevel(i1)=edis(Zix,Nix,ii)
@@ -155,7 +154,7 @@ c
           Kmag(i1)=Kband(Zix,Nix,i)
           vibbeta(i1)=defpar(Zix,Nix,i)
           Nband=max(Nband,iband(i1))
-   10   continue
+        enddo
         ncoll=i1
         if (flagstate) then
           npp=ncoll
@@ -170,9 +169,9 @@ c
           rotational=.false.
           vibrational=.true.
           title='Vibrational optical model                         '
-          do 20 i=1,ncoll
+          do i=1,ncoll
             idvib(i)=0
-   20     continue
+          enddo
         else
 c
 c 2b. Rotational model
@@ -188,9 +187,9 @@ c
           vibrational=.false.
           ecis1(1:1)='T'
           Nrotbeta=nrot(Zix,Nix)
-          do 30 i=1,Nrotbeta
+          do i=1,Nrotbeta
             rotbeta(i)=rotpar(Zix,Nix,i)
-   30     continue
+          enddo
           if (colltype(Zix,Nix).eq.'R') then
             title='Symmetric rotational optical model                '
             iqm=2*Nrotbeta
@@ -230,9 +229,9 @@ c
         d2disp=d2(Zix,Nix,k0)
       endif
       flagecisinp=.false.
-      do 110 nen=1,nen6
+      do nen=1,nen6
         e=real(e6(nen))
-        if (k0.gt.1.and.e.lt.coullimit(k0)) goto 110
+        if (k0.gt.1.and.e.lt.coullimit(k0)) cycle
 c
 c We use a simple formula to estimate the required number of j-values:
 c    njmax=2.4*k*R;  R=1.25*A**1/3 ; k=0.22*sqrt(m(in amu)E(in MeV))
@@ -261,7 +260,7 @@ c
 c For rotational nuclei, the switch at soswitch MeV needs to be made
 c according to Pascal Romain.
 c
-        if (colltype(Zix,Nix).eq.'R'.and.flagrot(k0)) then
+        if (colltype(Zix,Nix).eq.'R'.and..not.flagspher) then
           if (k0.gt.1.and.flagcoulomb) ecis1(11:11)='T'
           if ((k0.eq.1.and.e.le.soswitch).or.
      +        (k0.gt.1.and.e.le.coulbar(k0))) then
@@ -279,10 +278,10 @@ c
         endif
         flagecisinp=.true.
         call ecisinput(Zix,Nix,k0,e,rotational,vibrational,jlmloc)
-  110 continue
+      enddo
       if (.not.flagendfecis) return
       if (.not.flagecisinp) then
-        close (unit=9)
+        close (unit=9,status=ecisstatus)
         return
       endif
       write(9,'("fin")')

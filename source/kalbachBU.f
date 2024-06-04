@@ -10,14 +10,13 @@ c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
       integer type,Ap,Npr,Ab,Za,Zb
-      real    kalbachBU,Ein,ang,K,term,abu,K1,K2,K3,ang0,wang,Tc
+      real    kalbachBU,Ein,ang,term,abu,K1,K2,K3,ang0,wang,Tc
 c
 c ************************ Kalbach systematics *************************
 c
 c kalbachBU : Kalbach function for break-up
 c Ein       : incident energy
 c ang       : angle
-c K         : constant of Kalbach systematics
 c Za        : charge of projectile
 c Npr       : neutron number of projectile
 c Zb        : charge of ejectile
@@ -37,10 +36,9 @@ c ang0      : angular barrier
 c wang      : angular width
 c Tc        : function for Coulomb dip
 c
-c  Systematics of Kalbach: Phys. Rev. Cxx, xxxxx, (2017)
+c  Systematics of Kalbach: Phys. Rev. C95, 014606, (2017)
 c
       kalbachBU=1./fourpi
-      K=1.4
       Ap=parA(k0)
       Npr=parN(k0)
       Za=parZ(k0)

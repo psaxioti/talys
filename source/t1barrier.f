@@ -10,7 +10,7 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80     key
+      character*132    key
       integer          Zcomp,Ncomp,J2,parity,ibar,iloop,J,itr,j2trans,
      +                 pitrans,ihill,i
       real             Eex,fbar,factor1,factor2,bfis,wfis,etrans,Eeff,

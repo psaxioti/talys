@@ -9,12 +9,12 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist
-      character*1  ch
-      character*7  abchar
-      character*90 abfile
-      integer      i,i2,ia
-      real         ab,abtot
+      logical       lexist
+      character*1   ch
+      character*7   abchar
+      character*132 abfile
+      integer       i,i2,ia
+      real          ab,abtot
 c
 c ****************************** Abundances ****************************
 c
@@ -97,8 +97,8 @@ c
   200 write(*,'(" TALYS-error: No natural isotopes for this",
      +  " element, the mass keyword must be different from 0")')
       stop
-  210 write(*,'(" TALYS-error: Format error in abundance file ",a72)')
-     +  abfile
+  210 write(*,'(" TALYS-error: Format error in abundance file ",a)')
+     +  trim(abfile)
       stop
       end
 Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely

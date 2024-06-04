@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : September 28, 2021
+c | Date  : October 20, 2022
 c | Task  : Nuclear structure parameters
 c +---------------------------------------------------------------------
 c
@@ -54,12 +54,11 @@ c
       call levels(Zix,Nix)
       if (flagendf.and.primary) call gammadecay(Zix,Nix)
       call deformpar(Zix,Nix)
+      if (flagfit.and.Zix.eq.0.and.Nix.eq.0) call xsfit(Ztarget,Atarget)
       if (parinclude(0).or.flagcomp) then
         call resonancepar(Zix,Nix)
         call gammapar(Zix,Nix)
       endif
-      if ((flagnnfit.or.flagnafit).and.k0.eq.1.and.
-     +  Zix.eq.0.and.Nix.eq.0) call xsfit(Ztarget,Atarget)
       if ((Zix.le.2.and.Nix.le.2).or.flagompall) call omppar(Zix,Nix)
       if (flagjlm.or.alphaomp.ge.3.and.alphaomp.le.5)
      +  call radialtable(Zix,Nix)

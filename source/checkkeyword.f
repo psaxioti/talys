@@ -2,17 +2,17 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 29, 2021
+c | Date  : March 7, 2023
 c | Task  : Check for errors in keywords
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer      numkey
-      parameter    (numkey=388)
-      integer      i,j
-      character*80 keyword(numkey),word(40),key
+      integer       numkey
+      parameter     (numkey=398)
+      integer       i,j
+      character*132 keyword(numkey),word(40),key
 c
 c Although it is difficult to prevent the user from all possible input
 c errors, we can check for the use of wrong keywords and for unphysical
@@ -27,7 +27,7 @@ c TALYS will stop if a keyword is incorrect
 c
       data (keyword(i),i=1,numkey) /
      +  ' ', 'a', 'aadjust', 'abundance', 'adddiscrete', 'addelastic',
-     +  'adepthcor', 'alimit', 'alphald', 'alphaomp', 'angles',
+     +  'adepthcor', 'alimit', 'alphald', 'alphaomp', 'anfit', 'angles',
      +  'anglescont', 'anglesrec', 'aradialcor', 'area', 'astro',
      +  'astroe', 'astroex', 'astrogs', 'astrot', 'asys', 
      +  'autorot', 'avadjust', 'avadjustf', 'avdadjust', 'avdadjustf',
@@ -37,7 +37,7 @@ c
      +  'bdampadjust', 'best', 'bestbranch', 'bestend', 'bestpath', 
      +  'beta2', 'betafiscor', 'betafiscoradjust', 'betald', 'bins', 
      +  'block', 'branch', 
-     +  'breakupmodel', 'cbreak', 'cfermi', 'cfermibf', 'cglobal', 
+     +  'breakupmodel', 'cbarrier', 'cbreak', 'cfermi', 'cglobal', 
      +  'channelenergy', 'channels', 'cknock', 'class2', 'class2file', 
      +  'class2width', 'cnubar1', 'cnubar2', 'colenhance', 'colldamp',
      +  'components', 'compound',
@@ -45,7 +45,7 @@ c
      +  'ctableadjust', 'ctmglobal', 'd0', 'd1adjust', 'd2adjust', 
      +  'd3adjust', 'ddxmode', 'deformfile', 'deltaw', 'densfile', 
      +  'deuteronomp', 
-     +  'disctable', 'dispersion', 'e0', 'e0adjust', 'e1file', 
+     +  'disctable', 'dispersion', 'dnfit', 'e0', 'e0adjust', 'e1file', 
      +  'eciscalc', 'eciscompound', 'ecisdwba', 'ecissave', 'eback', 
      +  'ebeam', 'egr', 'egradjust', 'ejectiles', 'ejoin', 
      +  'electronconv', 'element', 'elow', 'elwidth', 'emsdmin', 
@@ -60,26 +60,27 @@ c
      +  'filetotal', 
      +  'fisbar', 'fisbaradjust', 'fisfeed', 'fishw', 'fishwadjust', 
      +  'fismodel', 'fismodelalt', 'fispartdamp', 'fiso', 'fisom',
-     +  'fission', 'fsadjust',
+     +  'fission', 'fit', 'fsadjust',
      +  'ftable', 'ftableadjust', 'fullhf', 'fymodel', 'g', 'gadjust',
-     +  'gamgam', 'gamgamadjust', 'gammald', 'gammashell1', 
+     +  'gamgam', 'gamgamadjust', 'gamgamfit', 'gammald', 'gammashell1', 
      +  'gammashell2', 
      +  'gammax', 'gefran', 'ggr', 'ggradjust', 'giantresonance', 
-     +  'gn', 'gnadjust', 'gnorm', 'gp', 'gpadjust',
+     +  'gn', 'gnadjust', 'gnfit', 'gnorm', 'gp', 'gpadjust',
      +  'gpr', 'gpradjust', 'group', 'gshell', 'hbstate', 
      +  'hbtransfile', 'ibeam','incadjust', 'inccalc', 'integral', 
-     +  'isomer', 'jlmmode', 'jlmomp', 'kph', 'krotconstant', 
+     +  'isomer', 'jlmmode', 'jlmomp',
+     +  'kph', 'krotconstant', 
      +  'kvibmodel', 'labddx', 'ldmodel', 'ldmodelcn', 'ldmodelracap',
      +  'levelfile', 'liso', 'localomp', 'ltarget', 'lurr', 'lv1adjust', 
      +  'lvadjust', 'lvsoadjust', 'lw1adjust', 'lwadjust', 'lwsoadjust',
-     +  'm1file', 'm2constant', 'm2limit', 'm2shift', 'mass', 
+     +  'm1file', 'm2constant', 'm2limit', 'm2shift', 'macsfit', 'mass', 
      +  'massdir', 'massdis', 'massexcess', 'massmodel', 'massnucleus', 
      +  'maxband', 'maxchannel', 'maxenrec', 'maxlevelsbin', 
      _  'maxlevelsres',
      +  'maxlevelstar', 'maxn', 'maxnrp', 'maxrot', 'maxz', 
      +  'maxzrp', 'micro', 'mpreeqmode', 'msdbins', 'multipreeq', 
-     +  'nafit', 'ngfit', 'nlevels', 'nlow', 'nnfit', 'nonthermlev', 
-     +  'ntop', 'nulldev', 
+     +  'nafit', 'nffit', 'ngfit', 'nlevels', 'nlow', 'nnfit', 
+     +  'nonthermlev', 'ntop', 'nulldev', 
      +  'ompenergyfile', 'omponly', 'onestep', 'optmod', 'optmodall', 
      +  'optmodfilen', 'optmodfilep', 'outangle', 'outbasic', 
      +  'outbinspectra', 
@@ -90,8 +91,8 @@ c
      +  'outmain', 'outomp', 'outpopulation', 'outpreequilibrium',
      +  'outspectra', 
      +  'outtransenergy', 'pair', 'pairconstant', 'pairmodel', 'parity',
-     +  'partable', 'pfnsmodel', 'pglobal', 'phmodel', 'popeps', 
-     +  'popmev', 'preeqcomplex', 'preeqmode', 'preeqspin', 
+     +  'partable', 'pfnsmodel', 'pglobal', 'phmodel', 'pnfit', 
+     +  'popeps', 'popmev', 'preeqcomplex', 'preeqmode', 'preeqspin', 
      +  'preeqsurface', 'preequilibrium', 
      +  'production', 'projectile', 'pshift', 'pshiftadjust', 
      +  'pshiftconstant', 
@@ -101,10 +102,11 @@ c
      +  'recoil', 'recoilaverage', 'relativistic', 'rescuefile', 
      +  'reslib',
      +  'resonance', 'rfiseps', 'rgamma', 'rho', 'riplomp', 'riplrisk', 
+     +  'risomer',
      +  'rnunu', 'rnupi', 'rotational', 'rpevap', 'rpinu', 'rpipi', 
-     +  'rprime', 'rspincut', 'rspincutff', 'rtransmom', 'rvadjust', 
-     +  'rvadjustf', 'rvdadjust', 'rvdadjustf', 'rvsoadjust', 
-     +  'rvsoadjustf', 'rwadjust', 
+     +  'rprime', 'rspincut', 'rspincutff', 'rspincutpreeq', 
+     +  'rtransmom', 'rvadjust', 'rvadjustf', 'rvdadjust', 'rvdadjustf',
+     +  'rvsoadjust', 'rvsoadjustf', 'rwadjust', 
      +  'rwadjustf', 'rwdadjust', 'rwdadjustf', 'rwsoadjust', 
      +  'rwsoadjustf',
      +  's2adjust', 'sacs', 'segment', 'sfexp', 'sfth', 
@@ -114,14 +116,14 @@ c
      +  'strength', 'strengthm1', 'strucpath', 'sysreaction', 't', 
      +  'tadjust', 'tcool', 'tirrad', 'tjadjust', 'tmadjust', 
      +  'transeps', 'transpower', 'tres', 'twocomponent', 'ufermi', 
-     +  'ufermibf', 'upbend', 'upbendc', 'upbende', 'upbendf',  'urr',
+     +  'upbend', 'upbendc', 'upbende', 'upbendf',  'urr',
      +  'urrnjoy', 'v1adjust', 'v2adjust', 'v3adjust', 'v4adjust', 
      +  'vfiscor', 'vfiscoradjust', 'vso1adjust', 'vso2adjust', 
      +  'vinfadjust', 'w1adjust', 
-     +  'w2adjust', 'w3adjust', 'w4adjust', 'wso1adjust', 'wso2adjust', 
-     +  'widthfluc', 'widthmode', 'wtable', 'wtableadjust', 
-     +  'xsalphatherm', 'xscaptherm', 'xseps', 'xsptherm', 
-     +  'yieldfile', 'yieldunit'/
+     +  'w2adjust', 'w3adjust', 'w4adjust', 'wfcfactor', 'widthfluc',
+     +  'widthmode', 'wso1adjust', 'wso2adjust', 'wtable', 
+     +  'wtableadjust', 'xsalphatherm', 'xscaptherm', 'xseps', 
+     +  'xsptherm', 'yieldfile', 'yieldunit'/
 c
 c A keyword can be de-activated by putting a # in front of it.
 c All first words of the input lines are checked against the list
@@ -136,16 +138,16 @@ c key        : keyword
 c
 c The keyword is identified.
 c
-      do 10 i=1,nlines
+      Loop1: do i=1,nlines
         call getkeywords(inline(i),word)
         key=word(1)
-        if (key(1:1).eq.'#') goto 10
-        do 20 j=1,numkey
-          if (keyword(j).eq.key) goto 10
-   20   continue
+        if (key(1:1).eq.'#') cycle Loop1
+        do j=1,numkey
+          if (keyword(j).eq.key) cycle Loop1
+        enddo
         write(*,'(/" TALYS-error: Wrong keyword: ",a20)') key
         stop
-   10 continue
+      enddo Loop1
       return
       end
-Copyright (C)  2019 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

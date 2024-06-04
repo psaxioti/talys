@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 11, 2021
+c | Date  : January 24, 2023
 c | Task  : Read input for second set of variables
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       logical      fcol,flagassign
       character*1  ch
-      character*80 word(40),key,value,cval
+      character*132 word(40),key,value,cval,line
       integer      type,Zix,Nix,col(0:numZ,0:numN),i,ip,i2,iz,ia,ldmod,
      +             nex,class,ival,ibar,irad,lval,igr
       real         val,sfthall,sfexpall,sfth,sfexp
@@ -48,6 +48,8 @@ c flagcolall  : flag for collective enhancement of level density for all
 c               nuclides
 c fislim      : mass above which nuclide fissions
 c wmode       : designator for width fluctuation model
+c WFCfactor   : enhancement factor for WFC: 1: Moldauer, 
+c               2: Ernebjerg and Herman
 c preeqmode   : designator for pre-equilibrium model
 c mpreeqmode  : designator for multiple pre-equilibrium model
 c phmodel     : particle-hole state density model
@@ -57,7 +59,9 @@ c skipCN      : flag to skip compound nucleus in evaporation chain
 c col         : help variable
 c flagcol     : flag for collective enhancement of level density
 c numlev      : maximum number of included discrete levels
+c strength    : model for E1 gamma-ray strength function
 c flagomponly : flag to execute ONLY an optical model calculation
+c flagjlm     : flag for using semi-microscopic JLM OMP
 c flagequi    : flag to use equidistant excitation bins instead of
 c               logarithmic bins
 c flagequispec: flag to use equidistant bins for emission spectra
@@ -73,28 +77,21 @@ c               compound nucleus before new residual evaporation
 c maxNrp      : maximal number of neutrons away from the initial
 c               compound nucleus before new residual evaporation
 c
-      do 10 type=0,6
-        outtype(type)=' '
-   10 continue
+      outtype=' '
       maxZ=numZ-2
       maxN=numN-2
       nbins0=40
-      if (flagffruns.or.flagrpruns) then
-        segment=2
-        flagequispec=.true.
-      else
-        segment=1
-        flagequispec=.false.
-      endif
+      flagequispec=.false.
+      segment=1
       nlevmax=max(30,Ltarget)
       nlevmaxres=10
-      do 20 type=0,6
+      do type=0,6
         if (type.le.2.or.type.eq.6) then
           nlevbin(type)=10
         else
           nlevbin(type)=5
         endif
-   20 continue
+      enddo
       nlevbin(k0)=nlevmax
       Lisoinp=-1
       isomer=1.
@@ -108,9 +105,14 @@ c
       phmodel=1
       if (flagmicro) then
         ldmodelall=5
+        strength=8
+        flagjlm=.true.
       else
         ldmodelall=1
+        strength=9
+        flagjlm=.false.
       endif
+      if (k0.le.1 .and. Atarget.gt.fislim) ldmodelall = 5
       ldmodelCN=0
       if (Atarget.gt.fislim) then
         flagcolall=.true.
@@ -118,28 +120,29 @@ c
         flagcolall=.false.
       endif
       preeqmode=2
-      wmode=1
+      if (k0.eq.1) then
+        wmode=1
+      else
+        wmode=2
+      endif
+      WFCfactor=1
       mpreeqmode=2
       sfthall=1.
       sfexpall=0.347
       if (mod(Atarget,2).ne.0) sfexpall=1.
-      do 30 Nix=0,numN
-        do 30 Zix=0,numZ
-          nlev(Zix,Nix)=0
-          ldmodel(Zix,Nix)=0
-          skipCN(Zix,Nix)=0
-          col(Zix,Nix)=0
-          flagcol(Zix,Nix)=flagcolall
-          spectfacth(Zix,Nix)=0.
-          do 30 nex=0,numlev
-            spectfacexp(Zix,Nix,nex)=0.
-   30 continue
+      nlev=0
+      ldmodel=0
+      skipCN=0
+      col=0
+      flagcol=flagcolall
+      spectfacth=0.
+      spectfacexp=0.
       flagomponly=.false.
       flagequi=.true.
       flagpopMeV=.false.
       flagmassdis=.false.
       flagracap=.false.
-      ldmodelracap=1
+      ldmodelracap=3
       maxZrp=numZ-2
       maxNrp=numN-2
 c
@@ -158,8 +161,9 @@ c The keyword is identified and the corresponding values are read.
 c Erroneous input is immediately checked. The keywords and number of
 c values on each line are retrieved from the input.
 c
-      do 110 i=1,nlines
-        call getkeywords(inline(i),word)
+      do i=1,nlines
+        line = inline(i)
+        call getkeywords(line,word)
         key=word(1)
         value=word(2)
         ch=word(2)(1:1)
@@ -180,78 +184,78 @@ c
           ip=-1
           do 210 i2=2,40
             ch=word(i2)(1:1)
-            do 220 type=0,6
+            do type=0,6
               if (ch.eq.parsym(type)) then
                 ip=ip+1
                 if (ip.le.6) outtype(ip)=ch
                 goto 210
               endif
-  220       continue
+            enddo
             if (ip.eq.-1) goto 300
   210     continue
-          goto 110
+          cycle
         endif
         if (key.eq.'maxz') then
           read(value,*,end=300,err=300) maxZ
-          goto 110
+          cycle
         endif
         if (key.eq.'maxn') then
           read(value,*,end=300,err=300) maxN
-          goto 110
+          cycle
         endif
         if (key.eq.'bins') then
           read(value,*,end=300,err=300) nbins0
-          goto 110
+          cycle
         endif
         if (key.eq.'segment') then
           read(value,*,end=300,err=300) segment
-          goto 110
+          cycle
         endif
         if (key.eq.'maxlevelstar') then
           read(value,*,end=300,err=300) nlevmax
           nlevmax=max(nlevmax,Ltarget)
           nlevbin(k0)=nlevmax
-          goto 110
+          cycle
         endif
         if (key.eq.'maxlevelsres') then
           read(value,*,end=300,err=300) nlevmaxres
-          goto 110
+          cycle
         endif
         if (key.eq.'liso') then
           read(value,*,end=300,err=300) Lisoinp
-          goto 110
+          cycle
         endif
         if (key.eq.'isomer') then
           read(value,*,end=300,err=300) isomer
-          goto 110
+          cycle
         endif
         if (key.eq.'core') then
           read(value,*,end=300,err=300) core
-          goto 110
+          cycle
         endif
         if (key.eq.'gammax') then
           read(value,*,end=300,err=300) gammax
-          goto 110
+          cycle
         endif
         if (key.eq.'angles') then
           read(value,*,end=300,err=300) nangle
-          goto 110
+          cycle
         endif
         if (key.eq.'anglescont') then
           read(value,*,end=300,err=300) nanglecont
-          goto 110
+          cycle
         endif
         if (key.eq.'maxenrec') then
           read(value,*,end=300,err=300) maxenrec
-          goto 110
+          cycle
         endif
         if (key.eq.'massmodel') then
           read(value,*,end=300,err=300) massmodel
-          goto 110
+          cycle
         endif
         if (key.eq.'disctable') then
           read(value,*,end=300,err=300) disctable
-          goto 110
+          cycle
         endif
         if (key.eq.'ldmodel') then
           read(value,*,end=300,err=300) ldmod
@@ -268,11 +272,11 @@ c
               ldmodel(Zix,Nix)=ldmod
             endif
           endif
-          goto 110
+          cycle
         endif
         if (key.eq.'ldmodelcn') then
           read(value,*,end=300,err=300) ldmodelCN
-          goto 110
+          cycle
         endif
         if (key.eq.'colenhance') then
           if (ch.eq.'n') fcol=.false.
@@ -292,7 +296,7 @@ c
               col(Zix,Nix)=1
             endif
           endif
-          goto 110
+          cycle
         endif
         if (key.eq.'skipcn') then
           read(word(2),*,end=300,err=300) iz
@@ -304,85 +308,99 @@ c
           else
             skipCN(Zix,Nix)=1
           endif
-          goto 110
+          cycle
         endif
         if (key.eq.'widthmode') then
           read(value,*,end=300,err=300) wmode
-          goto 110
+          cycle
+        endif
+        if (key.eq.'wfcfactor') then
+          read(value,*,end=300,err=300) WFCfactor
+          cycle
         endif
         if (key.eq.'preeqmode') then
           read(value,*,end=300,err=300) preeqmode
-          goto 110
+          cycle
         endif
         if (key.eq.'mpreeqmode') then
           read(value,*,end=300,err=300) mpreeqmode
-          goto 110
+          cycle
         endif
         if (key.eq.'phmodel') then
           read(value,*,end=300,err=300) phmodel
-          goto 110
+          cycle
         endif
         if (key.eq.'nlevels') then
           class=2
           call getvalues(class,word,Zix,Nix,type,
      +      ibar,irad,lval,igr,val,ival,cval,flagassign)
           if (flagassign) nlev(Zix,Nix)=ival
-          goto 110
+          cycle
         endif
         if (key.eq.'maxlevelsbin') then
           class=7
           call getvalues(class,word,Zix,Nix,type,
      +      ibar,irad,lval,igr,val,ival,cval,flagassign)
           if (flagassign) nlevbin(type)=ival
-          goto 110
+          cycle
+        endif
+        if (key.eq.'strength') then
+          read(value,*,end=300,err=300) strength
+          cycle
         endif
         if (key.eq.'omponly') then
           if (ch.eq.'n') flagomponly=.false.
           if (ch.eq.'y') flagomponly=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
+        endif
+        if (key.eq.'jlmomp') then
+          if (ch.eq.'n') flagjlm=.false.
+          if (ch.eq.'y') flagjlm=.true.
+          if (ch.ne.'y'.and.ch.ne.'n') goto 300
+          cycle
         endif
         if (key.eq.'equidistant') then
           if (ch.eq.'n') flagequi=.false.
           if (ch.eq.'y') flagequi=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'equispec') then
           if (ch.eq.'n') flagequispec=.false.
           if (ch.eq.'y') flagequispec=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'popmev') then
           if (ch.eq.'n') flagpopMeV=.false.
           if (ch.eq.'y') flagpopMeV=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'massdis') then
           if (ch.eq.'n') flagmassdis=.false.
           if (ch.eq.'y') flagmassdis=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'racap') then
           if (ch.eq.'n') flagracap=.false.
           if (ch.eq.'y') flagracap=.true.
           if (ch.ne.'y'.and.ch.ne.'n') goto 300
-          goto 110
+          cycle
         endif
         if (key.eq.'ldmodelracap') then
           read(value,*,end=300,err=300) ldmodelracap
-          goto 110
+          cycle
         endif
         if (key.eq.'maxzrp') then
           read(value,*,end=300,err=300) maxZrp
-          goto 110
+          cycle
         endif
         if (key.eq.'maxnrp') then
           read(value,*,end=300,err=300) maxNrp
-          goto 110
+          cycle
         endif
         if (key.eq.'sfth') then
           read(value,*,end=300,err=300) sfth
@@ -399,7 +417,7 @@ c
               spectfacth(Zix,Nix)=sfth
             endif
           endif
-          goto 110
+          cycle
         endif
         if (key.eq.'sfexp') then
           nex=-1
@@ -421,20 +439,20 @@ c
               sfexpall=sfexp
             else
               if (nex.lt.0.or.nex.gt.numlev) then
-                write(*,'(" TALYS-error: 0 <= nex <= numlev ",a80)')
-     +            inline(i)
+                write(*,'(" TALYS-error: 0 <= nex <= numlev ",a)')
+     +            trim(line)
                 stop
               else
                 spectfacexp(Zix,Nix,nex)=sfexp
               endif
             endif
           endif
-          goto 110
+          cycle
         endif
-        goto 110
+        cycle
  1000   write(*,'(" TALYS-warning: Z,N index out of range,",
-     +    " keyword ignored: ",a80)') inline(i)
-  110 continue
+     +    " keyword ignored: ",a)') trim(line)
+      enddo
 c
 c Set level density models and spectroscopic factors per nucleus
 c
@@ -443,17 +461,19 @@ c
       else
         ldmodelCN=ldmodelall
       endif
-      do 310 Nix=0,numN
-        do 310 Zix=0,numZ
+      do Nix=0,numN
+        do Zix=0,numZ
           if (ldmodel(Zix,Nix).eq.0) ldmodel(Zix,Nix)=ldmodelall
           if (col(Zix,Nix).eq.0) flagcol(Zix,Nix)=flagcolall
           if (spectfacth(Zix,Nix).eq.0.) spectfacth(Zix,Nix)=sfthall
-          do 310 nex=0,numlev
+          do nex=0,numlev
             if (spectfacexp(Zix,Nix,nex).eq.0.)
      +        spectfacexp(Zix,Nix,nex)=sfexpall
-  310 continue
+          enddo
+        enddo
+      enddo
       return
-  300 write(*,'(" TALYS-error: Wrong input: ",a80)') inline(i)
+  300 write(*,'(" TALYS-error: Wrong input: ",a)') trim(line)
       stop
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

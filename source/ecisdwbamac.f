@@ -55,7 +55,7 @@ c
       write(9,'(f5.2,2i2,a1,5f10.5)') 0.,1,2,'+',Emsdin,
      +  parspin(itype),parmass(itype),nucmass(parZ(itype),parN(itype)),
      +  real(Zinit-parZ(itype))*parZ(itype)
-      do 10 J=0,maxJmsd
+      do J=0,maxJmsd
         if (mod(J,2).eq.0) then
           ch='+'
         else
@@ -65,11 +65,11 @@ c
      +    parspin(type),parmass(type),nucmass(Zix,Nix),
      +    real(Z*parZ(type))
         write(9,'(2i5)') 1,J+1
-   10 continue
-      do 20 J=0,maxJmsd
+      enddo
+      do J=0,maxJmsd
         write(9,'(i5,5x,f10.5)') J,betamsd
-   20 continue
-      do 30 i=1,3
+      enddo
+      do i=1,3
 c
 c Transition potential and potential for incident channel
 c
@@ -118,16 +118,16 @@ c
         write(9,'(3f10.5)') wso,rwso,awso
         write(9,'(3f10.5)') rc,0.,0.
         write(9,'(3f10.5)') 0.,0.,0.
-   30 continue
+      enddo
       write(9,'(3f10.5)') angbeg,anginc,angend
       if (disp(Zixi,Nixi,itype)) then
-        do 40 i=1,3
+        do i=1,3
           write(9,'(10x,2i5)') 2,2
           write(9,'(10x,f10.5,40x,f10.5)') ef(Zixi,Nixi,itype),
      +      w2(Zixi,Nixi,itype)
           write(9,'(20x,2f10.5)') d3(Zixi,Nixi,itype),
      +      d2(Zixi,Nixi,itype)
-   40   continue
+        enddo
       endif
       return
       end

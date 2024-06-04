@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Marieke Duijvestijn
-c | Date  : December 3, 2021
+c | Date  : November 8, 2022
 c | Task  : Tabulated level densities
 c +---------------------------------------------------------------------
 c
@@ -11,11 +11,13 @@ c
       include "talys.cmb"
       logical          lexist
       character*2      denchar
-      character*90     denfile
+      character*132    denfile
       integer          Zix,Nix,Z,A,ibar,nloop,ldmod,ploop,ia,parity,
-     +                 nex,J
-      real             Ktriax,Eex,ald,ignatyuk,spincut,term
-      double precision pardisloc,ldtot,ld2j1(0:numJ)
+     +                 nex,J,Jmid,JJ
+      real             Ktriax,Eex,ald,ignatyuk,spincut,term,dJ,Jold,
+     +                 factor
+      double precision pardisloc,ldtot,ld2j1(0:numJ),Rdis(0:numJ),Rsum,
+     +                 jt,sumJ,Rdisnew(0:numJ),Rd,ldsum
 c
 c *********** Tabulated level densities from Goriely *******************
 c
@@ -121,8 +123,69 @@ c
             else
               ldexist(Zix,Nix,ibar)=.true.
               do 50 nex=1,nendens(Zix,Nix)
+                ld2j1=0.
                 read(2,'(24x,e9.2,9x,30e9.2)',err=100)
      +            ldtot,(ld2j1(J),J=0,29)
+c
+c Extend tabulated level densities up to numJ using linear extrapolation
+c
+                ldsum=ldtot
+                do J=30,numJ
+                  factor=1.-(J-29.)/(numJ-29.)
+                  ld2j1(J)=ld2j1(29)*factor
+                  ldsum=ldsum+ld2j1(J)
+                enddo
+                if (ldsum.gt.0.) then
+                  do J=0,numJ
+                    ld2j1(J)=ld2j1(J)*ldtot/ldsum
+                  enddo
+                endif
+c
+c Adjust spin distribution if requested
+c
+                if ((Rspincut /= 1. .or. s2adjust(Zix,Nix,ibar) /= 1.) 
+     +            .and. ldtot > 0.) then
+                  jt=Rspincut * s2adjust(Zix,Nix,ibar)
+                  Jmid=0
+                  Rsum=0.
+                  do J=0,numJ
+                    Rdis(J)=ld2j1(J)/ldtot
+                    Rsum=Rsum+Rdis(J)
+                  enddo
+                  if (Rsum.gt.0.) then
+                    do J=0,numJ
+                      Rdis(J)=Rdis(J)/Rsum
+                    enddo
+                    sumJ=0.
+                    do J=0,numJ
+                      sumJ=sumJ+Rdis(J)
+                      if (sumJ.ge.0.5) then
+                        Jmid=max(J-1,0)
+                        exit
+                      endif
+                    enddo
+                    sumJ=0.
+                    Rdisnew=0.
+                    do J=0,numJ-1
+                      dJ=real(J-Jmid)
+                      Jold=Jmid+dJ/jt
+                      JJ=int(Jold)
+                      if (JJ.lt.0) cycle
+                      if (JJ.gt.28) cycle
+                      Rd=Rdis(JJ)+(Jold-JJ)*(Rdis(JJ+1)-Rdis(JJ))
+                      Rdisnew(J)=Rd
+                      sumJ=sumJ+Rdisnew(J)
+                    enddo
+                    if (sumJ.gt.0.) then
+                      do J=0,numJ
+                        Rdisnew(J)=Rdisnew(J)/sumJ
+                      enddo
+                      do J=0,numJ
+                        ld2j1(J)=ldtot*Rdisnew(J)
+                      enddo
+                    endif
+                  endif
+                endif
 c
 c Determination of the mass-asymmetric enhancement factor for fission
 c barrier
@@ -139,7 +202,7 @@ c
                   if (axtype(Zix,Nix,ibar).ge.3) then
                     Eex=edens(nex)
                     ald=ignatyuk(Zix,Nix,Eex,ibar)
-                    term=sqrt(spincut(Zix,Nix,ald,Eex,ibar))
+                    term=sqrt(spincut(Zix,Nix,ald,Eex,ibar,0))
                     if (axtype(Zix,Nix,ibar).eq.3)
      +                Ktriax=0.5*sqrt(twopi)*term
                     if (axtype(Zix,Nix,ibar).eq.4)
@@ -154,12 +217,12 @@ c
      +            pardisloc*ldtot*Ktriax
                 ldtottable(Zix,Nix,nex,ibar)=
      +            ldtottable(Zix,Nix,nex,ibar)+ldtot
-                do 60 J=0,29
+                do 60 J=0,numJ
                   ldtable(Zix,Nix,nex,J,parity,ibar)=
      +              pardisloc*ld2j1(J)*Ktriax
    60           continue
                 if (ploop.eq.1) then
-                  do 70 J=0,29
+                  do 70 J=0,numJ
                     ldtable(Zix,Nix,nex,J,-1,ibar)=
      +                pardisloc*ld2j1(J)*Ktriax
    70             continue
@@ -181,7 +244,7 @@ c
             ldtottableP(Zix,Nix,nex,1,ibar)=0.5*
      +        (ldtottableP(Zix,Nix,nex,-1,ibar)+
      +        ldtottableP(Zix,Nix,nex,1,ibar))
-            do 120 J=0,29
+            do 120 J=0,numJ
               ldtable(Zix,Nix,nex,J,1,ibar)=0.5*
      +          (ldtable(Zix,Nix,nex,J,-1,ibar)+
      +          ldtable(Zix,Nix,nex,J,1,ibar))

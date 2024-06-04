@@ -9,9 +9,9 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*12 isostring(0:1)
-      character*90 fpyieldfile,fpfile
-      integer      iz,ia,in,nen,nex
+      character*12  isostring(0:1)
+      character*132 fpyieldfile,fpfile
+      integer       iz,ia,in,nen,nex
 c
 c ****************** Output of fission yields **************************
 c
@@ -28,7 +28,6 @@ c Einc0     : incident energy in MeV
 c parsym    : symbol of particle
 c k0        : index of incident particle
 c Atarget   : mass number of target nucleus
-c Starget   : symbol of target nucleus
 c Ztarget   : charge number of target nucleus
 c yieldApre : pre-neutron emission mass yield
 c yieldApost: post-neutron emission corrected mass yield
@@ -41,8 +40,8 @@ c
         write(fpyieldfile(7:10),'(i4.4)') int(Einc0)
       endif
       open (unit=1,file=fpyieldfile,status='replace')
-      write(1,'("# ",a1," + ",i3,a2,": Fission yields")')
-     +  parsym(k0),Atarget,Starget
+      write(1,'("# ",a1," + ",a,": Fission yields")')
+     +  parsym(k0),trim(targetnuclide)
       write(1,'("# E-incident = ",es12.5)') Einc0
       write(1,'("# Number of nuclides: ",i3)') Atarget
       write(1,'("# ")')
@@ -81,8 +80,8 @@ c
         write(fpyieldfile(8:11),'(i4.4)') int(Einc0)
       endif
       open (unit=2,file=fpyieldfile,status='replace')
-      write(2,'("# ",a1," + ",i3,a2,": Z, A Fission yields")')
-     +  parsym(k0),Atarget,Starget
+      write(2,'("# ",a1," + ",a,": Z, A Fission yields")')
+     +  parsym(k0),trim(targetnuclide)
       write(2,'("# E-incident = ",es12.5)') Einc0
       write(2,'("# ")')
       write(2,'("# ")')
@@ -92,15 +91,15 @@ c
         do 220 iz=1,Ztarget
           in=ia-iz
           if (in.lt.1.or.in.gt.Ninit) goto 220
-          if (xsZApre(iz,in).lt.fpeps.and.
-     +      xsZApost(iz,in).lt.fpeps.and..not.fpexist(iz,in))
+          if (xsZApre(iz,in).le.fpeps.and.
+     +      xsZApost(iz,in).le.fpeps.and..not.fpexist(iz,in,-1))
      +      goto 220
           fpfile='fp000000.tot'//natstring(iso)
           write(fpfile(3:8),'(2i3.3)') iz,ia
-          if (.not.fpexist(iz,in)) then
+          if (.not.fpexist(iz,in,-1)) then
             open (unit=1,file=fpfile,status='replace')
-            write(1,'("# ",a1," + ",i3,a2,": Fission product yield of ",
-     +        i3,a2)') parsym(k0),Atarget,Starget,ia,nuc(iz)
+            write(1,'("# ",a1," + ",a,": Fission product yield of ",
+     +        i3,a2)') parsym(k0),trim(targetnuclide),ia,nuc(iz)
             write(1,'("# ")')
             write(1,'("# # energies =",i6)') numinc
             write(1,'("# ")')
@@ -126,12 +125,12 @@ c
   250     close (unit=1)
           if (xsfpex(iz,in,1).gt.0.) then
             do 260 nex=0,1
-              write(fpfile(10:12),'("L",i2.2)') nex
-              if (.not.fpexist(iz,in)) then
+              write(fpfile(10:12),'("i",i2.2)') nex
+              if (.not.fpexist(iz,in,nex)) then
                 open (unit=1,file=fpfile,status='replace')
-                write(1,'("# ",a1," + ",i3,a2,": Fission product yield",
-     +            " of ",i3,a2,1x,a12)') parsym(k0),Atarget,Starget,ia,
-     +            nuc(iz),isostring(nex)
+                write(1,'("# ",a1," + ",a,": Fission product yield",
+     +            " of ",i3,a2,1x,a12)') parsym(k0),
+     +            trim(targetnuclide),ia,nuc(iz),isostring(nex)
                 write(1,'("# ")')
                 write(1,'("# # energies =",i6)') numinc
                 write(1,'("# ")')
@@ -140,6 +139,7 @@ c
                 do 270 nen=1,nin0-1
                   write(1,'(5es12.5)') eninc(nen),0.,0.,0.,0.
   270           continue
+                fpexist( iz, in, nex) = .true.
               else
                 open (unit=1,file=fpfile,status='old')
                 do 280 nen=1,nin0+4
@@ -160,7 +160,7 @@ c
   290         close (unit=1)
   260       continue
           endif
-          if (.not.fpexist(iz,in)) fpexist(iz,in)=.true.
+          if (.not.fpexist(iz,in,-1)) fpexist(iz,in,-1)=.true.
   220   continue
 c
 c Write cumulative ff/fp production
@@ -172,8 +172,8 @@ c
         if (.not.fpaexist(ia)) then
           fpaexist(ia)=.true.
           open (unit=1,file=fpfile,status='replace')
-          write(1,'("# ",a1," + ",i3,a2,": Fission product yield of A=",
-     +      i3)') parsym(k0),Atarget,Starget,ia
+          write(1,'("# ",a1," + ",a,": Fission product yield of A=",
+     +      i3)') parsym(k0),trim(targetnuclide),ia
           write(1,'("# ")')
           write(1,'("# # energies =",i6)') numinc
           write(1,'("# ")')
@@ -193,7 +193,7 @@ c
   330   close (unit=1)
   210 continue
       close (unit=2)
-      write(*,'(/"Total     ",4es15.4)') yieldtotpost,yieldtotpre,
+      write(*,'(/"Total        ",4es15.4)') yieldtotpost,yieldtotpre,
      +  xstotpost,xstotpre
       return
       end

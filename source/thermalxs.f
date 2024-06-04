@@ -9,11 +9,11 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist
-      character*8  thchar
-      character*90 thfile
-      integer      Z,A,ia,isoT,isoR,i
-      real         xs,xsp,xsalpha,ald,Spair,sumcap,sump,sumalpha
+      logical       lexist
+      character*8   thchar
+      character*132 thfile
+      integer       Z,A,ia,isoT,isoR,i
+      real          xs,xsp,xsalpha,ald,Spair,sumcap,sump,sumalpha
 c
 c ********** Resonance spacings and total radiative widths *************
 c

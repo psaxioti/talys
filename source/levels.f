@@ -2,20 +2,20 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 18, 2019
+c | Date  : April 3, 2023
 c | Task  : Discrete levels
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist
-      character*1  bas(numlev)
-      character*6  levelchar
-      character*90 levfile
-      integer      Zix,Nix,Z,A,nlev2,ia,nlevlines,nnn,i,j,klev(numlev),
-     +             ii,nb,Lis,N
-      real         br(numlev),con(numlev)
+      logical       lexist,brexist(0:numlev)
+      character*1   bas(numlev)
+      character*6   levelchar
+      character*132 levfile
+      integer       Zix,Nix,Z,A,nlev2,ia,nlevlines,nnn,i,j,klev(numlev),
+     +              ii,nb,Lis,N,k,lbr
+      real          br(numlev),con(numlev),sum
 c
 c ******************** Default nuclear levels **************************
 c
@@ -29,6 +29,7 @@ c Zix     : charge number index for residual nucleus
 c Nix     : neutron number index for residual nucleus
 c ZZ,Z    : charge number of residual nucleus
 c AA,A    : mass number of residual nucleus
+c levnum  : number of level
 c edis    : energy of level
 c jdis    : spin of level
 c parlev  : parity of level
@@ -37,6 +38,7 @@ c gsparity: ground state parity
 c
       Z=ZZ(Zix,Nix,0)
       A=AA(Zix,Nix,0)
+      levnum(Zix,Nix,0)=0
       edis(Zix,Nix,0)=0.
       jdis(Zix,Nix,0)=gsspin(Zix,Nix)
       parlev(Zix,Nix,0)=gsparity(Zix,Nix)
@@ -52,6 +54,7 @@ c bassign    : flag for assignment of branching ratio
 c conv       : conversion coefficient
 c tau        : lifetime of state in seconds
 c
+      levnum(Zix,Nix,1)=1
       edis(Zix,Nix,1)=min(26./A,10.)
       jdis(Zix,Nix,1)=jdis(Zix,Nix,0)+2.
       parlev(Zix,Nix,1)=parlev(Zix,Nix,0)
@@ -173,11 +176,6 @@ c
         if (Ltarget0.ne.0.and.Zix.eq.parZ(k0).and.Nix.eq.parN(k0)
      +    .and.i.eq.Ltarget0.and.tau(Zix,Nix,i).lt.isomer)
      +    isomer=tau(Zix,Nix,i)
-c
-c Set highest discrete level equal to isomer if that exists
-c
-ctest   if (i.gt.nlev(Zix,Nix).and.tau(Zix,Nix,i).ge.isomer)
-c    +    nlev(Zix,Nix)=i
    30 continue
 c
 c Lifetimes below the isomeric definition are set to zero.
@@ -185,6 +183,7 @@ c The isomeric number is determined.
 c
       do 70 i=0,nlev2
         if (tau(Zix,Nix,i).lt.isomer) tau(Zix,Nix,i)=0.
+        levnum(Zix,Nix,i)=i
    70 continue
       if (massmodel.le.1) then
         if (jassign(Zix,Nix,0).eq.'J'.and.passign(Zix,Nix,0).eq.'P')
@@ -261,17 +260,18 @@ c
 c Lisoinp: user assignment of target isomer number
 c Liso   : isomeric number of target
 c
-      if (Lisoinp.eq.-1) then
-        if (Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) then
+      if (Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) then
+        if (Lisoinp.eq.-1) then
           Liso=0
           if (Ltarget.ne.0) then
             do 120 i=1,Lis
               if (Ltarget.eq.Lisomer(Zix,Nix,i)) Liso=i
   120       continue
           endif
+        else
+          Liso=Lisoinp
         endif
-      else
-        Liso=Lisoinp
+        if (Liso.gt.0) targetnuclide=trim(targetnuclide0)//isochar(Liso)
       endif
 c
 c Special treatment for isomers in the continuum. There are about 10
@@ -280,16 +280,17 @@ c wasting too much memory we renumber the isomer in the continuum
 c to the last discrete level taken into account in the calculation.
 c
       Lis=Nisomer(Zix,Nix)+1
-ctest do 210 i=nlevmax2(Zix,Nix),nlev2+1,-1
       do 210 i=nlevmax2(Zix,Nix),nlev(Zix,Nix)+1,-1
         if (tau(Zix,Nix,i).ge.isomer) then
           Lis=Lis-1
           N=nlev(Zix,Nix)-Nisomer(Zix,Nix)+Lis
           if (Lis.ge.0.and.N.ge.0) then
+            levnum(Zix,Nix,N)=min(i,99)
             edis(Zix,Nix,N)=edis(Zix,Nix,i)
             jdis(Zix,Nix,N)=jdis(Zix,Nix,i)
             parlev(Zix,Nix,N)=parlev(Zix,Nix,i)
             tau(Zix,Nix,N)=tau(Zix,Nix,i)
+            if (N.ne.i) tau(Zix,Nix,i)=0.
             jassign(Zix,Nix,N)=' '
             passign(Zix,Nix,N)=' '
             if (Ltarget0.eq.Lisomer(Zix,Nix,Lis).and.
@@ -297,6 +298,43 @@ ctest do 210 i=nlevmax2(Zix,Nix),nlev2+1,-1
           endif
         endif
   210 continue
+c
+c Adjust branching ratios for isomeric cross sections
+c
+c Risomer       : adjustable correction to level branching ratios
+c
+      if (Lis.gt.0.and.Risomer(Zix,Nix).ne.1.) then
+        do 310 i=1,nlev2
+          if (tau(Zix,Nix,i).ge.isomer) then
+            brexist=.false.
+            brexist(i)=.true.
+            do 320 j=1+1,nlev2
+              do 330 k=1,nbranch(Zix,Nix,j)
+                lbr=branchlevel(Zix,Nix,j,k)
+                if (brexist(lbr)) brexist(j)=.true.
+  330         continue
+  320       continue
+            do 340 j=1+1,nlev2
+              do 350 k=1,nbranch(Zix,Nix,j)
+                lbr=branchlevel(Zix,Nix,j,k)
+                if (brexist(lbr)) branchratio(Zix,Nix,j,k)=
+     +            Risomer(Zix,Nix)*branchratio(Zix,Nix,j,k)
+  350         continue
+  340       continue
+          endif
+  310   continue
+        do 410 i=1,nlev2
+          sum=0.
+          do 420 k=1,nbranch(Zix,Nix,i)
+            sum=sum+branchratio(Zix,Nix,i,k)
+  420     continue
+          if (sum.gt.0.) then
+            do 430 k=1,nbranch(Zix,Nix,i)
+              branchratio(Zix,Nix,i,k)=branchratio(Zix,Nix,i,k)/sum
+  430       continue
+          endif
+  410   continue
+      endif
       return
       end
 Copyright (C)  2019 A.J. Koning, S. Hilaire and S. Goriely

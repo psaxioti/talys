@@ -24,7 +24,7 @@ c
       double precision ldbpos, ldbneg, ldepos, ldeneg
       double precision lldbpos,lldepos,lldbneg,lldeneg
       double precision ldtabpos,ldtabneg,density
-      character*100 filespec
+      character*132 filespec
       double precision ldmdposj(numdensracap,0:numJph),
      +          ldmdnegj(numdensracap,0:numJph),
      +          phmdposj(numdensracap,0:numJph),
@@ -425,8 +425,8 @@ c
         endif
       enddo
       if (ispect.ne.2) then
-        write(filespec,'("levels/spect",a1,"/",a2,".spect",a1)')
-     +    parsym(k0),nuc(ZZ(0,0,0)),parsym(k0)
+        write(filespec,'("levels/spect",a1,"/",a,".spect",a1)')
+     +    parsym(k0),trim(nuc(ZZ(0,0,0))),parsym(k0)
       acp=AA(0,0,0)
       filespec=trim(path)//filespec
       inquire (file=filespec,exist=lexist)
@@ -434,21 +434,21 @@ c
       open(unit=10,file=filespec,status='old')
   100 read(10,*,end=110) i,ka,jlev
       if (ka.ne.acp) then
-        do 120 i=1,jlev+1
+        do i=1,jlev+1
           read(10,*,end=110)
-  120   continue
+        enddo
         goto 100
       else
-        do 130 i=1,jlev
+        do i=1,jlev
           read(10,'(2x,i3,f8.4,f6.2,2x,i2,f10.5)') j,e,spinf,parity,sf
           do nex=0,Nlast(0,0,0)
             if (abs(edis(0,0,nex)-e).lt.1.d-1.and.jdis(0,0,nex)
      +        .eq.spinf.and.parlev(0,0,nex).eq.parity) then
               spectfac(0,0,nex)=sf
-              goto 130
+              cycle
             endif
           enddo
-  130   continue
+        enddo
       endif
   110 close(10)
       endif

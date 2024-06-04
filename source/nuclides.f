@@ -2,14 +2,15 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 16, 2018
+c | Date  : April 3, 2023
 c | Task  : Properties of nuclides
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer Zcomp,Ncomp,type,Zix,Nix,A,odd,NL
+      character*3 massstring
+      integer     Zcomp,Ncomp,type,Zix,Nix,A,odd,NL
 c
 c ************************ Properties of nuclides **********************
 c
@@ -54,16 +55,18 @@ c ZZ       : charge number of residual nucleus
 c NN       : neutron number of residual nucleus
 c AA       : mass number of residual nucleus
 c
-      do 10 Zcomp=0,numZ
-        do 10 Ncomp=0,numN
-          do 10 type=0,6
+      do Zcomp=0,numZ
+        do Ncomp=0,numN
+          do type=0,6
             Zindex(Zcomp,Ncomp,type)=Zcomp+parZ(type)
             Nindex(Zcomp,Ncomp,type)=Ncomp+parN(type)
             ZZ(Zcomp,Ncomp,type)=Zinit-Zindex(Zcomp,Ncomp,type)
             NN(Zcomp,Ncomp,type)=Ninit-Nindex(Zcomp,Ncomp,type)
             AA(Zcomp,Ncomp,type)=ZZ(Zcomp,Ncomp,type)+
      +        NN(Zcomp,Ncomp,type)
-   10 continue
+          enddo
+        enddo
+      enddo
 c
 c We make sure the lightest possible residual nucleus is heavier than
 c an alpha particle. Also, we set that at the beginning no structure
@@ -77,12 +80,13 @@ c             section and transmission coefficients calculation
 c
       maxZ=min(maxZ,Zinit-3)
       maxN=min(maxN,Ninit-3)
-      do 20 Zix=0,numZ
-        do 20 Nix=0,numN
+      do Zix=0,numZ
+        do Nix=0,numN
           strucexist(Zix,Nix)=.false.
           strucwrite(Zix,Nix)=.false.
           invexist(Zix,Nix)=.false.
-   20 continue
+        enddo
+      enddo
 c
 c Set the maximum number of discrete levels for each residual nucleus
 c
@@ -100,17 +104,17 @@ c particular binary channels.
 c
       Zcomp=0
       Ncomp=0
-      do 30 type=0,6
+      do type=0,6
         Zix=Zindex(Zcomp,Ncomp,type)
         Nix=Nindex(Zcomp,Ncomp,type)
         if (nlev(Zix,Nix).eq.0) nlev(Zix,Nix)=nlevbin(type)
-   30 continue
-      do 40 Zix=0,numZ
-        do 45 Nix=0,numN
-          if (Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) goto 45
+      enddo
+      do Zix=0,numZ
+        do Nix=0,numN
+          if (Zix.eq.parZ(k0).and.Nix.eq.parN(k0)) cycle
           if (nlev(Zix,Nix).eq.0) nlev(Zix,Nix)=nlevmaxres
-   45   continue
-   40 continue
+        enddo
+      enddo
       nlev(parZ(k0),parN(k0))=nlevmax
 c
 c ************ Nuclear structure for first set of nuclides *************
@@ -163,9 +167,13 @@ c
       if (flagpartable) open (unit=51,file='parameters.dat',
      +  status='unknown')
       if (flagbestbr) call branching
+      massstring='   '
+      write(massstring,'(i3)') Atarget
+      targetnuclide=trim(Starget)//adjustl(massstring)
+      targetnuclide0=targetnuclide
       Einc=enincmin
-      do 110 type=0,6
-        if (parskip(type).and.type.ne.0) goto 110
+      do type=0,6
+        if (parskip(type).and.type.ne.0) cycle
         Zix=Zindex(Zcomp,Ncomp,type)
         Nix=Nindex(Zcomp,Ncomp,type)
         call structure(Zix,Nix)
@@ -173,7 +181,7 @@ c
         A=AA(Zcomp,Ncomp,type)
         odd=mod(A,2)
         if (type.eq.k0.and.odd.eq.1) call weakcoupling(Zix,Nix,type)
-  110 continue
+      enddo
       if (parinclude(0).or.flagcomp) 
      +  call radwidtheory(Zcomp,Ncomp,Eavres)
       if (flaggiant0) call sumrules
@@ -195,11 +203,11 @@ c Atarget : mass number of target nucleus
 c onethird: 1/3
 c
       tarmass=nucmass(parZ(k0),parN(k0))
-      do 210 type=0,6
-        if (parskip(type)) goto 210
+      do type=0,6
+        if (parskip(type)) cycle
         Q(type)=S(0,0,k0)-S(0,0,type)
         coulbar(type)=Ztarget*parZ(type)*e2/(1.25*Atarget**onethird)
-  210 continue
+      enddo
 c
 c * Off- and on-set energies for preequilibrium and width fluctuations *
 c
@@ -237,4 +245,4 @@ c
       if (flagprod) call decaydata
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

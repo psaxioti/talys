@@ -9,8 +9,8 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      character*80 str
-      integer      i,k
+      character*132 str
+      integer       i,k
 c
 c ************** Convert uppercase to lowercase characters *************
 c

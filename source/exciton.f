@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 21, 2012
+c | Date  : August 15, 2023
 c | Task  : Exciton model
 c +---------------------------------------------------------------------
 c
@@ -87,7 +87,7 @@ c              outgoing energy, spin and parity
 c RnJ        : spin distribution for particle-hole states
 c RnJsum     : (2J+1)*sum over spin distributions
 c
-            if (pespinmodel.eq.3) then
+            if (pespinmodel.ge.3) then
               do 140 parity=-1,1,2
                 do 140 J=0,maxJph
                   xspreeqJP(type,nen,J,parity)=

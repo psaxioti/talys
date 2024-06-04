@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 21, 2020
+c | Date  : June 19, 2022
 c | Task  : Output of exclusive reaction channels
 c +---------------------------------------------------------------------
 c
@@ -74,8 +74,9 @@ c
             do 50 nex=1,NL
               if (tau(Zcomp,Ncomp,nex).ne.0.) then
                 write(*,'(59x,i3,4x,es12.5,f9.5,2x,es12.5,
-     +            " sec. ")') nex,xschaniso(idc,nex),
-     +            exclbranch(idc,nex),tau(Zcomp,Ncomp,nex)
+     +            " sec. ")') levnum(Zcomp,Ncomp,nex),
+     +            xschaniso(idc,nex),exclbranch(idc,nex),
+     +            tau(Zcomp,Ncomp,nex)
               endif
    50       continue
           endif
@@ -101,7 +102,6 @@ c parsym       : symbol of particle
 c k0           : index of incident particle
 c Atarget      : mass number of target nucleus
 c Ztarget      : charge number of target nucleus
-c Starget      : symbol of target nucleus
 c Qexcl        : Q-value for exclusive channel
 c Ethrexc      : threshold incident energy for exclusive channel
 c flagcompo    : flag for output of cross section components
@@ -146,8 +146,9 @@ c
               if (.not.chanexist(in,ip,id,it,ih,ia)) then
                 chanexist(in,ip,id,it,ih,ia)=.true.
                 open (unit=1,file=xsfile,status='unknown')
-                write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Total")')
-     +            parsym(k0),Atarget,Starget,isostring,reacstring(idc)
+                write(1,'("# ",a1," + ",a,a3,": ",a17," Total")')
+     +            parsym(k0),trim(targetnuclide),isostring,
+     +            reacstring(idc)
                 write(1,'("# Q-value    =",es12.5)') Qexcl(idc,0)
                 write(1,'("# E-threshold=",es12.5)') Ethrexcl(idc,0)
                 write(1,'("# # energies =",i6)') numinc
@@ -219,13 +220,13 @@ c
                 if (nex.eq.0.or.tau(Zcomp,Ncomp,nex).ne.0.) then
                   isofile='xs000000.L00'
                   write(isofile(3:8),'(6i1)') in,ip,id,it,ih,ia
-                  write(isofile(11:12),'(i2.2)') nex
+                  write(isofile(11:12),'(i2.2)') levnum(Zcomp,Ncomp,nex)
                   if (.not.chanisoexist(in,ip,id,it,ih,ia,nex)) then
                     chanisoexist(in,ip,id,it,ih,ia,nex)=.true.
                     open (unit=1,file=isofile,status='unknown')
-                    write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Level",
-     +               i3)') parsym(k0),Atarget,Starget,isostring,
-     +               reacstring(idc),nex
+                    write(1,'("# ",a1," + ",a,a3,": ",a17," Level",
+     +               i3)') parsym(k0),trim(targetnuclide),isostring,
+     +               reacstring(idc),levnum(Zcomp,Ncomp,nex)
                     write(1,'("# Q-value    =",es12.5," Elevel=",
      +                f11.6)') Qexcl(idc,nex),edis(Zcomp,Ncomp,nex)
                     write(1,'("# E-threshold=",es12.5)')
@@ -265,9 +266,9 @@ c
                 if (.not.gamchanexist(in,ip,id,it,ih,ia)) then
                   gamchanexist(in,ip,id,it,ih,ia)=.true.
                   open (unit=1,file=gamfile,status='unknown')
-                  write(1,'("# ",a1," + ",i3,a2,a3,": ",a17,
-     +              " Discrete gamma-rays")') parsym(k0),Atarget,
-     +              Starget,isostring,reacstring(idc)
+                  write(1,'("# ",a1," + ",a,a3,": ",a17,
+     +              " Discrete gamma-rays")') parsym(k0),
+     +              trim(targetnuclide),isostring,reacstring(idc)
                   write(1,'("# Q-value    =",es12.5)') Qexcl(idc,0)
                   write(1,'("# E-threshold=",es12.5)') Ethrexcl(idc,0)
                   write(1,'("# # energies =",i6)') numinc
@@ -414,8 +415,9 @@ c
               if (.not.chanfisexist(in,ip,id,it,ih,ia)) then
                 chanfisexist(in,ip,id,it,ih,ia)=.true.
                 open (unit=1,file=xsfile,status='unknown')
-                write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Fission")')
-     +            parsym(k0),Atarget,Starget,isostring,fisstring(idc)
+                write(1,'("# ",a1," + ",a,a3,": ",a17," Fission")')
+     +            parsym(k0),trim(targetnuclide),isostring,
+     +            fisstring(idc)
                 write(1,'("# Q-value    =",es12.5)') Qexcl(idc,0)
                 write(1,'("# E-threshold=",es12.5)') Ethrexcl(idc,0)
                 write(1,'("# # energies =",i6)') numinc
@@ -524,8 +526,8 @@ c
               write(spfile(10:13), '(i4.4)') int(Einc)
               open (unit=1,file=spfile,status='unknown')
             endif
-            write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Spectra")')
-     +        parsym(k0),Atarget,Starget,isostring,reacstring(idc)
+            write(1,'("# ",a1," + ",a,a3,": ",a17," Spectra")')
+     +        parsym(k0),trim(targetnuclide),isostring,reacstring(idc)
             write(1,'("# E-incident = ",f10.5)') Einc
             write(1,'("# ")')
             write(1,'("# # energies =",i6)') eendhigh-ebegin(0)+1
@@ -647,8 +649,8 @@ c
                 write(spfile(10:13), '(i4.4)') int(Einc)
                 open (unit=1,file=spfile,status='unknown')
               endif
-              write(1,'("# ",a1," + ",i3,a2,a3,": ",a17," Spectra")')
-     +          parsym(k0),Atarget,Starget,isostring,fisstring(idc)
+              write(1,'("# ",a1," + ",a,a3,": ",a17," Spectra")')
+     +          parsym(k0),trim(targetnuclide),isostring,fisstring(idc)
               write(1,'("# E-incident = ",f10.5)') Einc
               write(1,'("# ")')
               write(1,'("# # energies =",i6)') eendhigh-ebegin(0)+1
@@ -760,8 +762,8 @@ c
               write(spfile(10:13), '(i4.4)') int(Einc)
               open (unit=1,file=spfile,status='unknown')
             endif
-            write(1,'("# ",a1," + ",i3,a2,a3,": ",a17,
-     +        " Recoil Spectrum")') parsym(k0),Atarget,Starget,
+            write(1,'("# ",a1," + ",a,a3,": ",a17,
+     +        " Recoil Spectrum")') parsym(k0),trim(targetnuclide),
      +        isostring,reacstring(idc)
             write(1,'("# E-incident = ",f10.5)') Einc
             write(1,'("# ")')

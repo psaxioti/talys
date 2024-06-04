@@ -174,7 +174,7 @@ c
      +              norm
   160         continue
             endif
-            if (pespinmodel.eq.3) then
+            if (pespinmodel.ge.3) then
               do 170 parity=-1,1,2
                 do 170 J=0,maxJph
                   xspreeqJP(type,nen,J,parity)=

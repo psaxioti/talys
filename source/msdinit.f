@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : August 11, 2004
+c | Date  : January 24, 2023
 c | Task  : Initialization of MSD model parameters
 c +---------------------------------------------------------------------
 c
@@ -36,11 +36,11 @@ c
       if (Emsdmin.eq.0.or.Emsdmin.ge.Einc) Emsdmin=Einc/5.
       msdbins2=msdbins*2
       dEmsd=(Einc-Emsdmin)/msdbins2
-      do 10 nen=0,msdbins2
+      do nen=0,msdbins2
         Emsd(nen)=Einc-nen*dEmsd
-   10 continue
+      enddo
       Emsd(0)=real(Emsd(0)/specmass(parZ(k0),parN(k0),k0))
       if (.not.flagonestep.and.flagddx) call interangle
       return
       end
-Copyright (C)  2013 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

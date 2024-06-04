@@ -100,12 +100,14 @@ c
 c
 c Pre-equilibrium reactions
 c
+c preeqspindis: subroutine for preequilibrium spin distribution
 c flagpreeq : flag for pre-equilibrium calculation
 c preeq     : subroutine for preequilibrium reactions
 c population: subroutine for processing of pre-equilibrium spectra
 c             into population bins
 c
         if (flagpreeq) then
+          call preeqspindis
           call preeq
           call population
         endif

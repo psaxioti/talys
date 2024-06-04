@@ -9,11 +9,12 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      logical      lexist
-      character*6  fischar
-      character*90 fisfile,hbsfile,c2file
-      integer      Zix,Nix,fislocal,Z,N,A,ia,i,j,il,modz,modn,nbar,istat
-      real         bar1,bar2,hw1,hw2,egs,lbar0,esp,bb,vv,Cbar
+      logical       lexist
+      character*6   fischar
+      character*132 fisfile,hbsfile,c2file
+      integer       Zix,Nix,fislocal,Z,N,A,ia,i,j,il,modz,modn,nbar,
+     +              istat
+      real          bar1,bar2,hw1,hw2,egs,lbar0,esp,bb,vv
 c
 c ****************** Read fission barrier parameters *******************
 c
@@ -118,16 +119,11 @@ c Empirical adjustment of fission barrier to globally fit subactinide
 c fission
 c
       if (fislocal.eq.3) then
-        if (A.le.fislim) then
-          Cbar=0.85
-        else
-          Cbar=1.20
-        endif
         call fisdata
         il=0
         nfisbar(Zix,Nix)=1
         call barsierk(Z,A,il,bar1,egs,lbar0)
-        if (fbarrier(Zix,Nix,1).eq.0.) fbarrier(Zix,Nix,1)=Cbar*bar1
+        if (fbarrier(Zix,Nix,1).eq.0.) fbarrier(Zix,Nix,1)=Cbarrier*bar1
         if (fwidth(Zix,Nix,1).eq.0.) fwidth(Zix,Nix,1)=0.24
       endif
 c
@@ -251,7 +247,7 @@ c
           if (istat.ne.0) goto 410
           if (nfistrhb(Zix,Nix,i).gt.numlev) then
             write(*,'(" TALYS-error: there are more than",i3,
-     +        " head band states in file ",a73)') numlev,hbsfile
+     +        " head band states in file ",a)') numlev,trim(hbsfile)
             write(*,'(" numlev in talys.cmb should be increased")')
             stop
           endif
@@ -282,7 +278,7 @@ c
           if (istat.ne.0) goto 430
           if (nfisc2hb(Zix,Nix,i).gt.numlev) then
             write(*,'(" TALYS-error: there are more than",i3,
-     +        " class 2 states in file ",a73)') numlev,c2file
+     +        " class 2 states in file ",a)') numlev,trim(c2file)
             write(*,'(" numlev in talys.cmb should be increased")')
             stop
           endif

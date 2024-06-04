@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : December 20, 2019
+c | Date  : January 24, 2023
 c | Task  : Nuclear masses
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       logical          lexist,flagduflo
       character*7      masschar
-      character*90     massfile
+      character*132    massfile
       integer          Zix,Z,Nbegin,Nend,Abegin,Aend,ia,N,Nix,A,p,type,
      +                 i,L
       real             exc,b2,b4,gs
@@ -62,7 +62,7 @@ c Ainit      : mass number of initial compound nucleus
 c b2         : beta2
 c b4         : beta4
 c
-c We read both the experimental masses, from Audi-Wapstra (1995), and
+c We read both the experimental masses, from AME2020, and
 c the theoretical masses from the masstable.
 c The default option is to adopt the experimental nuclear mass, when
 c available. We also read the experimental and theoretical mass excess,
@@ -80,16 +80,16 @@ c values are available.
 c Also, with the input option expmass n  the use of experimental
 c masses can be disabled.
 c
-      do 10 Zix=0,maxZ+4
+      do Zix=0,maxZ+4
         Z=Zinit-Zix
-        if (Z.le.0) goto 10
+        if (Z.le.0) cycle
         Nbegin=Ninit-maxN-4
         Nend=Ninit
         Abegin=Z+Nbegin
         Aend=Z+Nend
         masschar=trim(nuc(Z))//'.mass'
         if (flagexpmass) then
-          massfile=trim(path)//'masses/audi/'//masschar
+          massfile=trim(path)//'masses/ame2020/'//masschar
           inquire (file=massfile,exist=lexist)
           if (lexist) then
             open (unit=1,file=massfile,status='old')
@@ -105,7 +105,7 @@ c
           endif
         endif
         if (massmodel.eq.1)
-     +    massfile=trim(path)//'masses/moller/'//masschar
+     +    massfile=trim(path)//'masses/frdm/'//masschar
         if (massmodel.eq.0.or.massmodel.eq.2)
      +    massfile=trim(path)//'masses/hfb/'//masschar
         if (massmodel.eq.3)
@@ -115,7 +115,7 @@ c
           do 35 i=1,72
             if (massdir(i:i).eq.' ') goto 37
             L=L+1
-   35     continue
+   35     enddo
    37     massfile=massdir(1:L)//'/'//masschar
         endif
         inquire (file=massfile,exist=lexist)
@@ -133,33 +133,31 @@ c
           endif
           if (beta2(Zix,Nix,0).eq.0.)  beta2(Zix,Nix,0)=b2
           beta4(Zix,Nix)=b4
-          if (massmodel.gt.1) then
-            gsspin(Zix,Nix)=gs
-            gsparity(Zix,Nix)=p
-          endif
+          gsspin(Zix,Nix)=gs
+          gsparity(Zix,Nix)=p
           goto 40
    50     close (unit=1)
         endif
-   10 continue
+      enddo
       if (massmodel.eq.0) then
         flagduflo=.true.
       else
         flagduflo=.false.
       endif
-      do 60 Zix=0,maxZ+4
-        do 70 Nix=0,maxN+4
+      do Zix=0,maxZ+4
+        do Nix=0,maxN+4
           A=Ainit-Zix-Nix
           if (massnucleus(Zix,Nix).ne.0.) then
             nucmass(Zix,Nix)=massnucleus(Zix,Nix)
             expmexc(Zix,Nix)=(massnucleus(Zix,Nix)-A)*amu
             thmexc(Zix,Nix)=expmexc(Zix,Nix)
-            goto 70
+            cycle
           endif
           if (massexcess(Zix,Nix).ne.0.) then
             expmexc(Zix,Nix)=massexcess(Zix,Nix)
             thmexc(Zix,Nix)=massexcess(Zix,Nix)
             nucmass(Zix,Nix)=A+massexcess(Zix,Nix)/amu
-            goto 70
+            cycle
           endif
           if (flagexpmass.and.expmass(Zix,Nix).ne.0.) then
             nucmass(Zix,Nix)=expmass(Zix,Nix)
@@ -167,8 +165,8 @@ c
             nucmass(Zix,Nix)=thmass(Zix,Nix)
           endif
           if (nucmass(Zix,Nix).eq.0.) flagduflo=.true.
-   70   continue
-   60 continue
+        enddo
+      enddo
 c
 c The target nucleus MUST be present in the masstable. This is to
 c avoid unbound nuclei.
@@ -212,8 +210,8 @@ c
             if (expmass(Zix,Nix).eq.0..and.massmodel.eq.0)
      +        nucmass(Zix,Nix)=thmass1
             if (massmodel.eq.0) thmexc(Zix,Nix)=dumexc(Zix,Nix)
-  120     continue
-  110   continue
+  120     enddo
+  110   enddo
       endif
 c
 c ********************* Reduced and specific masses ********************
@@ -221,15 +219,16 @@ c
 c specmass: specific mass for target nucleus
 c redumass: reduced mass
 c
-      do 210 Zix=0,maxZ+2
-        do 210 Nix=0,maxN+2
-          do 220 type=0,6
-            if (parskip(type)) goto 220
+      do Zix=0,maxZ+2
+        do Nix=0,maxN+2
+          do type=0,6
+            if (parskip(type)) cycle
             specmass(Zix,Nix,type)=nucmass(Zix,Nix)/(nucmass(Zix,Nix)+
      +        parmass(type))
             redumass(Zix,Nix,type)=specmass(Zix,Nix,type)*parmass(type)
-  220     continue
-  210 continue
+          enddo
+        enddo
+      enddo
       return
       end
-Copyright (C)  2016 A.J. Koning, S. Hilaire and S. Goriely
+Copyright (C)  2023 A.J. Koning, S. Hilaire and S. Goriely

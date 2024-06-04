@@ -31,7 +31,7 @@ c
         Eb=Ewkb(nen+1)
         Ta=Twkb(Zix,Nix,nen,ibar)
         Tb=Twkb(Zix,Nix,nen+1,ibar)
-        If (Ta.gt.0.and.Tb.gt.0) then
+        if (Ta.gt.0.and.Tb.gt.0) then
           Ta=log(Ta)
           Tb=log(Tb)
           call pol1(Ea,Eb,Ta,Tb,efis,Tf)

@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : April 7, 2019
+c | Date  : July 8, 2022
 c | Task  : Binary reaction results
 c +---------------------------------------------------------------------
 c
@@ -11,7 +11,7 @@ c
       include "talys.cmb"
       integer type,Zix,Nix,NL,nex,J,parity,nen,Z,N,A,odd
       real    popepsA,factor,Eex,ald,ignatyuk,spindis,xscompall,
-     +        Eaveragesum,frac,term,xsb
+     +        Eaveragesum,frac,term,xsb,spincut,sc
 c
 c * Add direct and pre-equilibrium cross sections to population arrays *
 c
@@ -45,8 +45,8 @@ c
 c Depending on whether the nucleus is even or odd, the quantum number J
 c appearing in the array xspop represents either J or J+0.5.
 c
-      do 10 type=0,6
-        if (parskip(type)) goto 10
+      do type=0,6
+        if (parskip(type)) cycle
         Zix=Zindex(0,0,type)
         Nix=Nindex(0,0,type)
         NL=Nlast(Zix,Nix,0)
@@ -63,7 +63,7 @@ c
      +          xspopexP(Zix,Nix,nex,parity)+term
               popdecay(type,nex,J,parity)=
      +          popdecay(type,nex,J,parity)+term
-              partdecay(type)=partdecay(type)+term
+              partdecay(type,parity)=partdecay(type,parity)+term
             endif
           endif
           xspopex0(type,nex)=xspopex(Zix,Nix,nex)
@@ -99,9 +99,12 @@ c
         if (flagpreeq) then
           if (pespinmodel.le.2) then
             popepsA=popeps/max(5*maxex(Zix,Nix),1)
-            do 30 nex=NL+1,maxex(Zix,Nix)
-              do 40 parity=-1,1,2
-                do 40 J=0,maxJph
+            do nex=NL+1,maxex(Zix,Nix)
+              Eex=Ex(Zix,Nix,nex)
+              ald=ignatyuk(Zix,Nix,Eex,0)
+              sc=spincut(Zix,Nix,ald,Eex,0,0)
+              do parity=-1,1,2
+                do J=0,maxJph
                   if (xspopex(Zix,Nix,nex).gt.popepsA)
      +              sfactor(Zix,Nix,nex,J,parity)=
      +                xspop(Zix,Nix,nex,J,parity)/xspopex(Zix,Nix,nex)
@@ -111,20 +114,19 @@ c
      +                sfactor(Zix,Nix,nex,J,parity)*
      +                preeqpopex(Zix,Nix,nex)
                   else
-                    Eex=Ex(Zix,Nix,nex)
-                    ald=ignatyuk(Zix,Nix,Eex,0)
-                    factor=spindis(Zix,Nix,Eex,ald,real(J),0)*pardis
+                    factor=spindis(sc,real(J))*pardis
                     preeqpop(Zix,Nix,nex,J,parity)=factor*
      +                preeqpopex(Zix,Nix,nex)
                   endif
-   40         continue
-   30       continue
+                enddo
+              enddo
+            enddo
           endif
-          do 50 nex=NL+1,maxex(Zix,Nix)
+          do nex=NL+1,maxex(Zix,Nix)
             xspopex(Zix,Nix,nex)=xspopex(Zix,Nix,nex)+
      +        preeqpopex(Zix,Nix,nex)
-            do 60 parity=-1,1,2
-              do 60 J=0,maxJph
+            do parity=-1,1,2
+              do J=0,maxJph
                 term=preeqpop(Zix,Nix,nex,J,parity)
                 xspop(Zix,Nix,nex,J,parity)=
      +            xspop(Zix,Nix,nex,J,parity)+term
@@ -135,10 +137,11 @@ c
      +              xspopexP(Zix,Nix,nex,parity)+term
                   popdecay(type,nex,J,parity)=
      +              popdecay(type,nex,J,parity)+term
-                  partdecay(type)=partdecay(type)+term
-              endif
-   60       continue
-   50     continue
+                  partdecay(type,parity)=partdecay(type,parity)+term
+                endif
+              enddo
+            enddo
+          enddo
           xspopnuc(Zix,Nix)=xspopnuc(Zix,Nix)+xspreeqtot(type)+
      +      xsgrtot(type)
           xsbinary(type)=xsbinary(type)+xspreeqtot(type)+xsgrtot(type)
@@ -176,12 +179,12 @@ c xsgrsum      : sum over giant resonance cross sections
 c xscompnonel  : total compound non-elastic cross section
 c
         xscompdisctot(type)=0.
-        do 70 nex=0,NL
-          if (type.eq.k0.and.nex.eq.Ltarget) goto 70
+        do nex=0,NL
+          if (type.eq.k0.and.nex.eq.Ltarget) cycle
           xsdisc(type,nex)=xspopex0(type,nex)
           xscompdisc(type,nex)=xsdisc(type,nex)-xsdirdisc(type,nex)
           xscompdisctot(type)=xscompdisctot(type)+xscompdisc(type,nex)
-   70   continue
+        enddo
         xsdisctot(type)=xsdirdisctot(type)+xscompdisctot(type)
         xsdircont(type)=xspreeqtot(type)+xsgrtot(type)
         if (type.eq.0.and.flagracap) then
@@ -189,7 +192,7 @@ c
           xsdircont(type)=xsdircont(type)+xsracapecont
           xspopnuc(Zix,Nix)=xspopnuc(Zix,Nix)+xsracape
           xsbinary(type)=xsbinary(type)+xsracape
-          do 80 nex=0,NL
+          do nex=0,NL
             if (xsracappopex(nex).ne.0.) then
               J=int(jdis(Zix,Nix,nex))
               parity=parlev(Zix,Nix,nex)
@@ -205,15 +208,15 @@ c
      +            xspopexP(Zix,Nix,nex,parity)+term
                 popdecay(type,nex,J,parity)=
      +            popdecay(type,nex,J,parity)+term
-                partdecay(type)=partdecay(type)+term
+                partdecay(type,parity)=partdecay(type,parity)+term
               endif
             endif
-   80     continue
-          do 90 nex=NL+1,maxex(Zix,Nix)
+          enddo
+          do nex=NL+1,maxex(Zix,Nix)
             xspopex(Zix,Nix,nex)=xspopex(Zix,Nix,nex)+
      +        xsracappopex(nex)
-            do 90 parity=-1,1,2
-              do 90 J=0,numJ
+            do parity=-1,1,2
+              do J=0,numJ
                 term=xsracappop(nex,J,parity)
                 xspop(Zix,Nix,nex,J,parity)=xspop(Zix,Nix,nex,J,parity)+
      +            term
@@ -224,15 +227,17 @@ c
      +              xspopexP(Zix,Nix,nex,parity)+term
                   popdecay(type,nex,J,parity)=
      +              popdecay(type,nex,J,parity)+term
-                  partdecay(type)=partdecay(type)+term
+                  partdecay(type,parity)=partdecay(type,parity)+term
                 endif
-   90     continue
+              enddo
+            enddo
+          enddo
         endif
         xsdirect(type)=xsdirdisctot(type)+xsdircont(type)
         if (xscompcont(type).lt.xseps) xscompcont(type)=0.
         xsconttot(type)=xscompcont(type)+xsdircont(type)
         xscompound(type)=xscompdisctot(type)+xscompcont(type)
-   10 continue
+      enddo
       xscompel=xspopex0(k0,Ltarget)
       xscompel6(nin)=xscompel
       xselastot=xselasinc+xscompel
@@ -251,14 +256,14 @@ c
 c This is necessary for exclusive cross sections
 c
       if (flagchannels) then
-        do 110 type=0,6
-          if (parskip(type)) goto 110
+        do type=0,6
+          if (parskip(type)) cycle
           Zix=Zindex(0,0,type)
           Nix=Nindex(0,0,type)
-          do 120 nex=0,maxex(Zix,Nix)
+          do nex=0,maxex(Zix,Nix)
             feedbinary(type,nex)=xspopex(Zix,Nix,nex)
-  120     continue
-  110   continue
+          enddo
+        enddo
         feedbinary(k0,Ltarget)=0.
       endif
 c
@@ -285,16 +290,16 @@ c egrid      : outgoing energy grid
 c Eaverage   : average outgoing energy
 c
       if (flagrecoil.or.flagspec) then
-        do 210 type=0,6
-          if (parskip(type)) goto 210
+        do type=0,6
+          if (parskip(type)) cycle
           binemissum(type)=0.
           Eaveragesum=0.
-          do 220 nen=ebegin(type),nendisc(type)
+          do nen=ebegin(type),nendisc(type)
             binemissum(type)=binemissum(type)+xsbinemis(type,nen)*
      +        deltaE(nen)
             Eaveragesum=Eaveragesum+egrid(nen)*xsbinemis(type,nen)*
      +        deltaE(nen)
-  220     continue
+          enddo
           Zix=Zindex(0,0,type)
           Nix=Nindex(0,0,type)
           NL=Nlast(Zix,Nix,0)
@@ -306,17 +311,17 @@ c
      +        xsbinemis(type,nendisc(type))*frac
           endif
           xsb=binemissum(type)
-          do 230 nex=0,NL
-            if (type.eq.k0.and.nex.eq.Ltarget) goto 230
+          do nex=0,NL
+            if (type.eq.k0.and.nex.eq.Ltarget) cycle
             xsb=xsb+xsdisc(type,nex)
             Eaveragesum=Eaveragesum+xsdisc(type,nex)*eoutdis(type,nex)
-  230     continue
+          enddo
           if (xsb.gt.0.) then
             Eaveragebin(type)=Eaveragesum/xsb
           else
             Eaveragebin(type)=0.
           endif
-  210   continue
+        enddo
       endif
 c
 c ************ Output of population after binary emission **************
@@ -341,21 +346,21 @@ c
         if (flagfission)
      +    write(*,'(" fission  channel",23x,":",es12.5)')
      +    xsbinary(-1)
-        do 310 type=0,6
-          if (parskip(type)) goto 310
+        do type=0,6
+          if (parskip(type)) cycle
           Z=ZZ(0,0,type)
           N=NN(0,0,type)
           A=AA(0,0,type)
           write(*,'(1x,a8," channel to Z=",i3," N=",i3," (",i3,a2,
      +      "):",es12.5)') parname(type),Z,N,A,nuc(Z),xsbinary(type)
-  310   continue
+        enddo
         if (flagspec) then
           write(*,'(/" Binary emission spectra"/)')
           write(*,'("  Energy ",7(2x,a8,2x)/)') (parname(type),type=0,6)
-          do 320 nen=ebegin(0),eendhigh
+          do nen=ebegin(0),eendhigh
             write(*,'(1x,f8.3,7es12.5)') egrid(nen),
      +        (xsbinemis(type,nen),type=0,6)
-  320     continue
+          enddo
         endif
         if (flagspec.and.flagcheck) then
           write(*,'(/" ++++++++++ CHECK OF INTEGRATED ",
@@ -363,25 +368,25 @@ c
           write(*,'(13x,"Continuum cross section  Integrated",
      +      " spectrum  Compound normalization",
      +      " Average emission energy"/)')
-          do 330 type=0,6
-            if (parskip(type)) goto 330
+          do type=0,6
+            if (parskip(type)) cycle
             write(*,'(1x,a8,3(10x,es12.5),10x,f8.3)')
      +        parname(type),
      +        xscompcont(type)+xspreeqtot(type)+xsgrtot(type),
      +        binemissum(type),binnorm(type),Eaveragebin(type)
-  330     continue
+          enddo
         endif
         write(*,'(/" ++++++++++ POPULATION AFTER BINARY EMISSION",
      +    " ++++++++++")')
-        do 340 type=0,6
-          if (parskip(type)) goto 340
+        do type=0,6
+          if (parskip(type)) cycle
           Zix=Zindex(0,0,type)
           Nix=Nindex(0,0,type)
           NL=Nlast(Zix,Nix,0)
           Z=ZZ(0,0,type)
           N=NN(0,0,type)
           A=AA(0,0,type)
-          if (xspopnuc(Zix,Nix).eq.0.) goto 340
+          if (xspopnuc(Zix,Nix).eq.0.) cycle
           odd=mod(A,2)
           write(*,'(/" Population of Z=",i3," N=",i3,
      +      " (",i3,a2,") after binary ",a8," emission:",es12.5)')
@@ -397,12 +402,12 @@ c
           endif
           write(*,'(" bin    Ex    Popul. ",5("   J=",f4.1,"-   J=",
      +      f4.1,"+")/)') (J+0.5*odd,J+0.5*odd,J=0,4)
-          do 350 nex=0,maxex(Zix,Nix)
+          do nex=0,maxex(Zix,Nix)
             write(*,'(1x,i3,f8.3,11es10.3)') nex,Ex(Zix,Nix,nex),
      +        xspopex(Zix,Nix,nex),((xspop(Zix,Nix,nex,J,parity),
      +        parity=-1,1,2),J=0,4)
-  350     continue
-  340   continue
+          enddo
+        enddo
       endif
 c
 c Remove compound elastic scattering from population of target state.

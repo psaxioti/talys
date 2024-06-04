@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : May 21, 2013
+c | Date  : July 8, 2022
 c | Task  : Level density
 c +---------------------------------------------------------------------
 c
@@ -12,10 +12,10 @@ c Note that the parity is not used explicitly for analytical level
 c densities. For those, an equidistant parity distribution is assumed.
 c
       include "talys.cmb"
-      character*80     key
+      character*132    key
       integer          Zix,Nix,parity,ibar,ldmod,jj,nex2
       real             Eex,Rspin,ald,ignatyuk,spindis,factor,pt,ct,
-     +                 Eshift,expo
+     +                 Eshift,expo,sc,spincut
       double precision density,densitytot,eb,ee,ldb,lde,ldtab,cctable
 c
 c ************************** Level density *****************************
@@ -43,8 +43,9 @@ c
       if (Eex.lt.0.) goto 100
       if (ldmod.le.3.or..not.ldexist(Zix,Nix,ibar)) then
         ald=ignatyuk(Zix,Nix,Eex,ibar)
+        sc=spincut(Zix,Nix,ald,Eex,ibar,0)
         density=densitytot(Zix,Nix,Eex,ibar,ldmod)*pardis*
-     +    spindis(Zix,Nix,Eex,ald,Rspin,ibar)
+     +    spindis(sc,Rspin)
       else
 c
 c 4. Tabulated level densities
@@ -65,7 +66,7 @@ c ct           : constant to adjust tabulated level densities
 c pt           : constant to adjust tabulated level densities
 c cctable      : constant to adjust tabulated level densities
 c
-        jj=min(29,int(Rspin))
+        jj=min(numJ-1,int(Rspin))
 c
 c Possible adjustment of final level densities
 c

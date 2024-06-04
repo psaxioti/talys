@@ -67,7 +67,6 @@ c k0        : index of incident particle
 c Atarget   : mass number of target nucleus
 c nuc       : symbol of nucleus
 c Ztarget   : charge number of target nucleus
-c Starget   : symbol of target nucleus
 c Ethresh   : threshold incident energy for residual nucleus
 c numinc    : number of incident energies
 c eninc,Einc: incident energy in MeV
@@ -91,10 +90,10 @@ c
                 if (.not.gamexist(Zcomp,Ncomp,i1,i2)) then
                   gamexist(Zcomp,Ncomp,i1,i2)=.true.
                   open (unit=1,file=gamfile,status='unknown')
-                  write(1,'("# ",a1," + ",i3,a2,
+                  write(1,'("# ",a1," + ",a,
      +              ": Gamma-ray intensity - ",i3,a2,": Level",i3,
      +              " --> Level",i3," - gamma energy ",f11.6)')
-     +              parsym(k0),Atarget,Starget,A,nuc(Z),i1,i2,Egam
+     +              parsym(k0),trim(targetnuclide),A,nuc(Z),i1,i2,Egam
                   write(1,'("# E-initial  =",f11.6," E-final=",f11.6)')
      +              edis(Zcomp,Ncomp,i1),edis(Zcomp,Ncomp,i2)
                   write(1,'("# E-threshold=",es12.5)')

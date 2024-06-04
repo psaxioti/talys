@@ -9,10 +9,11 @@ c
 c ****************** Declarations and common blocks ********************
 c
       include "talys.cmb"
-      integer iz,ia,nex,type,nen,npar,in,ih,it,id,ip,
-     +        ident,idc,iaa,inn
-      real    xsexcpart(0:numpar,numin),sumpost,sumpfns,Esumpfns,E,Eav,
-     +        maxwell,summax,dE,xsc,yZA,yA
+      integer iz,ia,in
+c     integer iz,ia,nex,type,nen,npar,in,ih,it,id,ip,
+c    +        ident,idc,iaa,inn
+c     real    xsexcpart(0:numpar,numin),sumpost,sumpfns,Esumpfns,E,Eav,
+c    +        maxwell,summax,dE,xsc,yZA,yA
 c
 c ********************** Loop over fission fragments *******************
 c

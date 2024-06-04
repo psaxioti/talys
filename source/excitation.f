@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning and Stephane Hilaire
-c | Date  : October 19, 2020
+c | Date  : July 8, 2022
 c | Task  : Excitation energy population
 c +---------------------------------------------------------------------
 c
@@ -14,7 +14,8 @@ c
      +        PexJP(0:numex,0:numJ,-1:1),dE,Eexmin,frac,ald,ignatyuk,
      +        Ea,Eb,Pa,Pb,Rspin,Probex,Prob,spindis,xsinputpop,Eexmax,
      +        Edistlow(0:numpop),Edistup(0:numpop),Eexlow(0:numex),
-     +        Eexup(0:numex),sumPex,factor,sumJP,normJ
+     +        Eexup(0:numex),sumPex,factor,sumJP,normJ,sc,spincut,
+     +        Edistmax
 c
 c ******************** Fill energy bins with population ****************
 c
@@ -31,6 +32,7 @@ c Zcomp    : charge number index for compound nucleus
 c Ncomp    : neutron number index for compound nucleus
 c Ex,Eex   : excitation energy
 c maxex    : maximum excitation energy bin for compound nucleus
+c Edistmax : excitation energy with maximum population
 c AA,A     : mass number of residual nucleus
 c odd      : odd (1) or even (0) nucleus
 c Nlast,NL : last discrete level
@@ -56,6 +58,8 @@ c
 c Write initial population by summing the bins of the input energy
 c grid.
 c
+      Zcomp=0
+      Ncomp=0
       if (.not.flagpopMeV) then
         xsinputpop=0.
         if (npopJ.gt.0) then
@@ -67,9 +71,13 @@ c
     6       continue
     5     continue
         else
+          Edistmax=10.
           do nen=1,npopE
             xsinputpop=xsinputpop+PdistE(nen)
+            if (PdistE(nen).gt.PdistE(nen-1)) Edistmax=EdistE(nen)
           enddo
+          ald=ignatyuk(Zcomp,Ncomp,Edistmax,0)
+          sc=spincut(Zcomp,Ncomp,ald,Edistmax,0,1)
         endif
         write(*,'(/" Total population of input excitation energy grid:",
      +    es12.5/)') xsinputpop
@@ -106,8 +114,6 @@ c
    70 continue
       Edistlow(0)=0.
       Edistup(npopE)=EdistE(npopE)
-      Zcomp=0
-      Ncomp=0
 c
 c Set boundaries of excitation energy bins
 c
@@ -184,17 +190,16 @@ c
             PexJP(nex,J,parity)=Pex(nex)
           else
             if (npopJ.eq.0) then
-              ald=ignatyuk(Zcomp,Ncomp,Eex,0)
               do 210 parity=-1,1,2
                 normJ=0.
                 do 215 J=0,maxJ(Zcomp,Ncomp,nex)
                   Rspin=real(J)+0.5*odd
-                  normJ=normJ+spindis(Zcomp,Ncomp,Eex,ald,Rspin,0)
+                  normJ=normJ+spindis(sc,Rspin)
   215           continue
                 do 220 J=0,maxJ(Zcomp,Ncomp,nex)
                   Rspin=real(J)+0.5*odd
                   PexJP(nex,J,parity)=Pex(nex)*pardis*
-     +              spindis(Zcomp,Ncomp,Eex,ald,Rspin,0)/normJ
+     +              spindis(sc,Rspin)/normJ
   220           continue
   210         continue
             endif
@@ -209,7 +214,6 @@ c
             Pa=PdistE(nen)
             Pb=PdistE(nen+1)
             call pol1(Ea,Eb,Pa,Pb,Eex,Probex)
-            ald=ignatyuk(Zcomp,Ncomp,Eex,0)
           endif
           do 310 parity=-1,1,2
             do 320 J=0,maxJ(Zcomp,Ncomp,nex)
@@ -217,8 +221,7 @@ c
               if (nex.le.NL.and.(jdis(Zcomp,Ncomp,nex).ne.J.or.
      +          parlev(Zcomp,Ncomp,nex).ne.parity)) goto 320
               if (npopJ.eq.0) then
-                Prob=Probex*spindis(Zcomp,Ncomp,Eex,ald,Rspin,0)*
-     +            pardis
+                Prob=Probex*spindis(sc,Rspin)*pardis
               else
                 Pa=PdistJP(nen,J,parity)
                 Pb=PdistJP(nen+1,J,parity)
@@ -274,13 +277,19 @@ c
       if (npopE.eq.1) then
         Eex=EdistE(1)
         nex=maxex(Zcomp,Ncomp)
-        ald=ignatyuk(Zcomp,Ncomp,Eex,0)
         do 510 parity=-1,1,2
+          if (npopJ.eq.0) then
+            normJ=0.
+            do 515 J=0,maxJ(Zcomp,Ncomp,nex)
+              Rspin=real(J)+0.5*odd
+              normJ=normJ+spindis(sc,Rspin)
+  515       continue
+          endif
           do 520 J=0,maxJ(Zcomp,Ncomp,nex)
             if (npopJ.eq.0) then
               Rspin=real(J)+0.5*odd
               xspop(Zcomp,Ncomp,nex,J,parity)=PdistE(1)*
-     +          spindis(Zcomp,Ncomp,Eex,ald,Rspin,0)*pardis
+     +          spindis(sc,Rspin)*pardis/normJ
             else
               xspop(Zcomp,Ncomp,nex,J,parity)=PdistJP(1,J,parity)
             endif
@@ -290,6 +299,8 @@ c
      +        xspopexP(Zcomp,Ncomp,nex,parity)+
      +        xspop(Zcomp,Ncomp,nex,J,parity)
   520     continue
+          xspopnucP(Zcomp,Ncomp,parity)=xspopnucP(Zcomp,Ncomp,parity)+
+     +      xspopexP(Zcomp,Ncomp,nex,parity)
   510   continue
         xspopnuc(Zcomp,Ncomp)=xspopnuc(Zcomp,Ncomp)+
      +    xspopex(Zcomp,Ncomp,nex)

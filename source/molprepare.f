@@ -1,20 +1,21 @@
       subroutine molprepare(tjl,numtjl,st,npmold,xmo,wmo,tav,vnu,
-     +  product,numtr,numinc)
+     +  product,numtr,numinc,WFCfactor)
 c
 c +---------------------------------------------------------------------
 c | Author: Stephane Hilaire
-c | Date  : March 2, 2010
+c | Date  : September 20, 2022
 c | Task  : Preparation of Moldauer width fluctuation correction
 c +---------------------------------------------------------------------
 c
 c ****************** Declarations and common blocks ********************
 c
       implicit none
-      integer          numtjl,npmold,numtr,numinc,i,im
+      integer          numtjl,npmold,numtr,numinc,i,im,WFCfactor
       real             xmo(npmold),wmo(npmold),vnu(numtr),
      +                 product(npmold),x,expo,capt,factor,eps,yy,x1,
-     +                 prod,fxmsqrt,fxmold
-      double precision tjl(0:5,numtr),st,tav(numtr),tgamma
+     +                 prod,fxmsqrt,fxmold,alpha,beta,gamma
+      double precision tjl(0:5,numtr),st,tav(numtr),tgamma,Ta,fT,gT,
+     +                 denom,alpha1,beta1,gamma1,delta1,f
 c
 c **************** Preparation of Moldauer integral ********************
 c
@@ -40,9 +41,47 @@ c Calculation of number of degrees of freedom
 c
 c st : denominator of compound nucleus formula
 c
-      do 30 i=1,numtjl
-        vnu(i)=1.78+real(((tav(i)**1.212)-0.78)*exp(-0.228*st))
-   30 continue
+c WFCfactor: 1 Original Moldauer, Nucl. Phys., A344, 185(1980)
+c            2 Ernebjerg and Herman, AIP Conference Proceedings 
+c              Volume 769 Issue 1 Pages 1233-1236, 
+c              American Institute of Physics, 2005
+c            3 Kawano and Talou, Nuclear Data Sheets 118 (2014) 183–186
+c
+      if (WFCfactor.eq.1) then
+        do 30 i=1,numtjl
+          Ta=tav(i)
+          vnu(i)=min(1.78+real(((Ta**1.212)-0.78)*exp(-0.228*st)),2.)
+   30   continue
+      endif
+      if (WFCfactor.eq.2) then
+        alpha = 0.177
+        beta = 20.337
+        gamma = 3.148
+        do i = 1,numtjl
+          Ta = tav(i)
+          fT = alpha/(1.-Ta**beta)
+          gT = 1.+gamma*Ta*(1.-Ta)
+          denom = 1.+fT*(st**gT)
+          vnu(i) = min(2.-1./denom,2.)
+          vnu(i) = max(vnu(i),1.)
+        enddo
+      endif
+      if (WFCfactor.eq.3) then
+        do i = 1,numtjl
+          Ta = tav(i)
+          alpha1 = 0.0287892*Ta+0.245856
+          beta1 = 1.+2.5*Ta*(1.-Ta)*exp(-2.*st)
+          gamma1 = Ta*Ta-(st-2.*Ta)**2 
+          if (gamma1 > 0. .and. st < 2*Ta) then
+            delta1 = sqrt(gamma1)/Ta
+          else
+            delta1 = 1.
+          endif
+          f = alpha1*(st+Ta)/(1.-Ta)*beta1*delta1
+          denom = 1.+f
+          vnu(i) = 2.-1./denom
+        enddo
+      endif
       vnu(numtjl+1)=1.
 c
 c Loop over integration points

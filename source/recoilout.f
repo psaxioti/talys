@@ -38,7 +38,6 @@ c sumcm     : total residual production in the CM frame
 c xselasinc : total elastic cross section (neutrons only) for incident
 c             channel
 c filerecoil: flag for recoil spectra on separate file
-c Starget   : symbol of target nucleus
 c Einc      : incident energy in MeV
 c
       write(*,'(/" 8. Recoil spectra")')
@@ -83,8 +82,8 @@ c
             write(recfile(14:17), '(i4.4)') int(Einc)
             open (unit=1,file=recfile,status='unknown')
           endif
-          write(1,'("# ",a1," + ",i3,a2,": Recoil spectrum for ",
-     +      i3,a2)') parsym(k0),Atarget,Starget,A,nuc(Z)
+          write(1,'("# ",a1," + ",a,": Recoil spectrum for ",
+     +      i3,a2)') parsym(k0),trim(targetnuclide),A,nuc(Z)
           write(1,'("# E-incident = ",f10.5)') Einc
           write(1,'("# ")')
           write(1,'("# # energies =",i6)') maxenrec+1

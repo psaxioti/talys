@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : January 8, 2021
+c | Date  : March 20, 2022
 c | Task  : Output of gamma-ray strength functions, transmission
 c |         coefficients and cross sections
 c +---------------------------------------------------------------------
@@ -12,9 +12,9 @@ c
       include "talys.cmb"
       character*1  radtype
       character*12 psffile
-      character*25 model
+      character*25 modelE1,modelM1,psfmodel
       integer      Zcomp,Ncomp,i,Z,N,A,l,nen,irad,Npsf,nenb,nene,MM
-      real         Epsf(numen),e,fstrength
+      real         Epsf(numen),e,fstrength,CEgamgam
 c
 c ***** Gamma-ray strength functions and transmission coefficients *****
 c
@@ -31,7 +31,6 @@ c D0        : experimental s-wave resonance spacing in eV
 c dD0       : uncertainty in D0
 c D0theo    : theoretical s-wave resonance spacing
 c swaveth   : theoretical strength function for s-wave
-c gnorm     : gamma normalization factor
 c strength  : model for E1 gamma-ray strength function
 c model     : string for gamma-ray strength function
 c strengthM1: model for M1 gamma-ray strength function
@@ -89,7 +88,7 @@ c
      +  " Theor. total radiative width for l=0:",f15.5," eV")')
      +  gamgam(Zcomp,Ncomp),dgamgam(Zcomp,Ncomp),gamgamth(Zcomp,Ncomp,0)
       write(*,'(53x," Theor. total radiative width for l=0:",f15.5,
-     +  " eV (gnorm=",f6.3,")")') gamgamth(Zcomp,Ncomp,0)*gnorm,gnorm
+     +  " eV")') gamgamth(Zcomp,Ncomp,0)
       write(*,'(53x," Theor. total radiative width for l=1:",f15.5,
      +  " eV")') gamgamth(Zcomp,Ncomp,1)
       write(*,'(" Exp. D0                   =",f10.2," eV +/-",f8.2,
@@ -101,28 +100,27 @@ c
      +  1.e4*swaveth(Zcomp,Ncomp)
       write(*,'(" Average resonance energy  =",f13.2," eV")') 
      +  Eavres*1.e6
-      write(*,'(" Normalization factor      =",f10.5)') gnorm
       write(*,'(/" Incident energy: E[MeV]=",f8.3)') Einc
-      if (strength.eq.1) model="Kopecky-Uhl              "
-      if (strength.eq.2) model="Brink-Axel               "
-      if (strength.eq.3) model="Goriely HFbcs tables     "
-      if (strength.eq.4) model="Goriely HFB tables       "
-      if (strength.eq.5) model="Goriely Hybrid model     "
-      if (strength.eq.6) model="Goriely T-dep. HFB Tables"
-      if (strength.eq.7) model="Goriely T-dep. RMF Tables"
-      if (strength.eq.8) model="Gogny D1M HFB+QRPA Tables"
-      if (strength.eq.9) model="IAEA-CRP SMLO 2019 Tables"
-      if (strength.eq.10) model="BSk27+QRPA 2018 Tables   "
+      if (strength.eq.1) modelE1="Kopecky-Uhl              "
+      if (strength.eq.2) modelE1="Brink-Axel               "
+      if (strength.eq.3) modelE1="Goriely HFbcs tables     "
+      if (strength.eq.4) modelE1="Goriely HFB tables       "
+      if (strength.eq.5) modelE1="Goriely Hybrid model     "
+      if (strength.eq.6) modelE1="Goriely T-dep. HFB Tables"
+      if (strength.eq.7) modelE1="Goriely T-dep. RMF Tables"
+      if (strength.eq.8) modelE1="Gogny D1M HFB+QRPA Tables"
+      if (strength.eq.9) modelE1="IAEA-CRP SMLO 2019 Tables"
+      if (strength.eq.10) modelE1="BSk27+QRPA 2018 Tables   "
       write(*,'(/" Gamma-ray strength function model for E1: ",a25)')
-     +  model
-      if (strengthM1.eq.1) model="RIPL-1                   "
-      if (strengthM1.eq.2) model="RIPL-2                   "
-      if (strengthM1.eq.3) model="IAEA GSF CRP (2018)      "
-      if (strengthM1.eq.4) model="RIPL-2+Scissors Kawano   "
-      if (strengthM1.eq.8) model="Gogny D1M HFB+QRPA Tables"
-      if (strengthM1.eq.10) model="BSk27+QRPA 2018 Tables   "
+     +  modelE1
+      if (strengthM1.eq.1) modelM1="RIPL-1                   "
+      if (strengthM1.eq.2) modelM1="RIPL-2                   "
+      if (strengthM1.eq.3) modelM1="IAEA GSF CRP (2018)      "
+      if (strengthM1.eq.4) modelM1="RIPL-2+Scissors Kawano   "
+      if (strengthM1.eq.8) modelM1="Gogny D1M HFB+QRPA Tables"
+      if (strengthM1.eq.10) modelM1="BSk27+QRPA 2018 Tables   "
       write(*,'(/" Gamma-ray strength function model for M1: ",a25)')
-     +  model
+     +  modelM1
       if (strength.eq.3.or.strength.eq.4.or.strength.ge.6) then
         write(*,'(/" Adjustable parameters for E1: etable=",f10.5,
      +    " ftable=",f10.5," wtable=",f10.5," number of T=",i3)')
@@ -203,32 +201,54 @@ c
         do 40 nen=ebegin(0),eend(0)
           e=egrid(nen)
           write(*,'(1x,f8.3,4es13.5)') e,
-     +      fstrength(Zcomp,Ncomp,0.,e,0,l)*gnorm,
-     +      fstrength(Zcomp,Ncomp,0.,e,1,l)*gnorm,Tjl(0,nen,0,l),
+     +      fstrength(Zcomp,Ncomp,0.,e,0,l),
+     +      fstrength(Zcomp,Ncomp,0.,e,1,l),Tjl(0,nen,0,l),
      +      Tjl(0,nen,1,l)
    40   continue
 c
 c Output on separate files
 c
         if (filepsf.and.l.eq.1) then
+          if (gamgam(Zcomp,Ncomp).gt.0.) then
+            CEgamgam=gamgamth(Zcomp,Ncomp,0)/gamgam(Zcomp,Ncomp)
+          else
+            CEgamgam=0.
+          endif
           do 50 irad=0,1
             psffile='psf000000.E1'
             write(psffile(4:9),'(2i3.3)') Z,A
             if (irad.eq.0) then
               radtype='M'
               MM=strengthM1
+              psfmodel=modelM1
             else
               radtype='E'
               MM=strength
+              psfmodel=modelE1
             endif
             psffile(11:11)=radtype
             open (unit=1,file=psffile,status='replace')
-            write(1,'("#     E      f(",a1,"1)     Model: ",i2)') 
-     +        radtype,MM
+            write(1,'("# ",a1,"1 photon strength function for ",i3,a2)') 
+     +        radtype,A,nuc(Z)
+            write(1,'("# Z          = ",i3)') Z
+            write(1,'("# A          = ",i3)') A
+            write(1,'("# Exp gamgam = ",f10.5," eV +/-",f8.5)')
+     +        gamgam(Zcomp,Ncomp),dgamgam(Zcomp,Ncomp)
+            write(1,'("# Th  gamgam = ",f10.5," eV")') 
+     +        gamgamth(Zcomp,Ncomp,0)
+            write(1,'("# C/E gamgam = ",f10.5)') CEgamgam
+            if (irad.eq.0) then
+              write(1,'("# model      = ",a, " (strengthM1 ",i2,")")') 
+     +          trim(psfmodel),MM
+            else
+              write(1,'("# model      = ",a, " (strength ",i2,")")') 
+     +          trim(psfmodel),MM
+            endif
+            write(1,'("#     E      f(",a1,"1)")') radtype
             do 60 nen=1,Npsf
               e=Epsf(nen)
               write(1,'(1x,f8.3,es13.5)') e,
-     +          fstrength(Zcomp,Ncomp,0.,e,irad,1)*gnorm
+     +          fstrength(Zcomp,Ncomp,0.,e,irad,1)
    60       continue
             close (1)
    50     continue

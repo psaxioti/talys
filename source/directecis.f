@@ -2,7 +2,7 @@
 c
 c +---------------------------------------------------------------------
 c | Author: Arjan Koning
-c | Date  : November 16, 2014
+c | Date  : March 8, 2023
 c | Task  : ECIS calculation of direct cross section
 c +---------------------------------------------------------------------
 c
@@ -112,8 +112,8 @@ c anginc    : angle increment
 c nangle    : number of angles
 c
       flagecisinp=.false.
-      do 10 type=k0,k0
-        if (parskip(type)) goto 10
+      do type=k0,k0
+        if (parskip(type)) cycle
         Zix=Zindex(0,0,type)
         Nix=Nindex(0,0,type)
         A=AA(0,0,type)
@@ -160,12 +160,12 @@ c vibbeta  : vibrational deformation parameter
 c ecisinput: subroutine to create ECIS input file
 c
         vibfactor=1.-max((Einc-200.)/1600.,0.)
-        do 20 i=0,numlev2
-          if (i.eq.0.and.type.eq.k0) goto 20
-          if (deform(Zix,Nix,i).eq.0.) goto 20
-          if (eoutdis(type,i).le.0.) goto 20
+        do i=0,numlev2
+          if (i.eq.0.and.type.eq.k0) cycle
+          if (deform(Zix,Nix,i).eq.0.) cycle
+          if (eoutdis(type,i).le.0.) cycle
           Elevel(2)=edis(Zix,Nix,i)-Q(type)
-          if (eninccm.le.Elevel(2)+0.1*parA(type)) goto 20
+          if (eninccm.le.Elevel(2)+0.1*parA(type)) cycle
           if (odd.eq.0) then
             Jlevel(2)=jdis(Zix,Nix,i)
             Plevel(2)=cparity(parlev(Zix,Nix,i))
@@ -187,7 +187,7 @@ c
           flagecisinp=.true.
           call ecisinput(Zix,Nix,type,Einc,rotational,vibrational,
      +      jlmloc)
-   20   continue
+        enddo
 c
 c 2. Giant resonance states
 c
@@ -198,11 +198,11 @@ c sgn       : +1 for even argument, -1 for odd argument
 c
         if (type.eq.k0) then
           anginc=180./nanglecont
-          do 30 l=0,3
-            do 40 i=1,2
-              if (betagr(l,i).eq.0.) goto 40
+          do l=0,3
+            do i=1,2
+              if (betagr(l,i).eq.0.) cycle
               Elevel(2)=Egrcoll(l,i)
-              if (eninccm.le.Elevel(2)+0.1*parA(type)) goto 40
+              if (eninccm.le.Elevel(2)+0.1*parA(type)) cycle
               Jlevel(2)=real(l)
               iband(2)=1
               Jband(1)=int(Jlevel(2))
@@ -215,12 +215,12 @@ c
               flagecisinp=.true.
               call ecisinput(Zix,Nix,type,Einc,rotational,vibrational,
      +          jlmloc)
-   40       continue
-   30     continue
+            enddo
+          enddo
         endif
-   10 continue
+      enddo
       if (.not.flagecisinp) then
-        close (unit=9)
+        close (unit=9,status=ecisstatus)
         return
       endif
       write(9,'("fin")')
