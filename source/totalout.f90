@@ -67,7 +67,7 @@ subroutine totalout
   implicit none
   character(len=18) :: reaction   ! reaction
   character(len=15) :: col(11)    ! header
-  character(len=15) :: un(11)    ! header
+  character(len=15) :: un(11)     ! header
   character(len=18) :: totfile    ! file with total cross sections
   character(len=80) :: quantity   ! quantity
   character(len=132) :: topline   ! topline
@@ -110,13 +110,13 @@ subroutine totalout
     col(2)='Non-elastic'
     col(3)='Elastic'
     col(4)='Total'
-    col(5)='Compound elast.'
-    col(6)='Shape elastic'
+    col(5)='Compound_elast.'
+    col(6)='Shape_elastic'
     col(7)='Reaction'
-    col(8)='Compound nonel.'
+    col(8)='Compound_nonel.'
     col(9)='Direct'
     col(10)='Preequilibrium'
-    col(11)='Direct capture'
+    col(11)='Direct_capture'
     Ncol=11
     totfile = 'all.tot'//natstring(iso)
     if (nin == Ninclow + 1) then

@@ -42,10 +42,12 @@ subroutine resonancepar(Zix, Nix)
 !
   implicit none
   logical           :: lexist      ! logical to determine existence
+  character(len=4)  :: D0ext       ! help variable
   character(len=6)  :: reschar     ! help variable
   character(len=132):: resfile     ! file with residual production cross sections
   integer           :: A           ! mass number of target nucleus
-  integer           :: ia          ! mass number from abundance table
+  integer           :: iz          ! charge number from table
+  integer           :: ia          ! mass number from table
   integer           :: istat       ! logical for file access
   integer           :: Nix         ! neutron number index for residual nucleus
   integer           :: Nrrf        ! number of resonances
@@ -55,6 +57,7 @@ subroutine resonancepar(Zix, Nix)
   real(sgl)         :: dD0f        ! help variable
   real(sgl)         :: dgamgamf    ! uncertainty in gamgam
   real(sgl)         :: gamgamf     ! experimental total radiative width in eV
+  real(sgl)         :: D0glob
 !
 ! ********** Resonance spacings and total radiative widths *************
 !
@@ -93,6 +96,34 @@ subroutine resonancepar(Zix, Nix)
     close (unit = 2)
   endif
   gamgam(Zix, Nix) = gamgamadjust(Zix, Nix) * gamgam(Zix, Nix)
+!
+! 3. Read global D0 values from theory
+!
+  if (ldmodel(Zix, Nix) == 1 .and. .not.flagcol(Zix, Nix)) D0ext='ld1n'
+  if (ldmodel(Zix, Nix) == 1 .and. flagcol(Zix, Nix)) D0ext='ld1y'
+  if (ldmodel(Zix, Nix) == 2 .and. .not.flagcol(Zix, Nix)) D0ext='ld2n'
+  if (ldmodel(Zix, Nix) == 2 .and. flagcol(Zix, Nix)) D0ext='ld2y'
+  if (ldmodel(Zix, Nix) == 3 .and. .not.flagcol(Zix, Nix)) D0ext='ld3n'
+  if (ldmodel(Zix, Nix) == 3 .and. flagcol(Zix, Nix)) D0ext='ld3y'
+  if (ldmodel(Zix, Nix) == 4) D0ext='ld4'
+  if (ldmodel(Zix, Nix) == 5) D0ext='ld5'
+  if (ldmodel(Zix, Nix) == 6) D0ext='ld6'
+  if (ldmodel(Zix, Nix) == 7) D0ext='ld7'
+  resfile = trim(path)//'resonances/D0global.'//D0ext
+  inquire (file = resfile, exist = lexist)
+  if (lexist) then
+    open (unit = 2, file = resfile, status = 'old', iostat = istat)
+    if (istat /= 0) call read_error(resfile, istat)
+    do
+      read(2, *, iostat = istat) iz, ia, D0glob
+      if (istat == -1) exit
+      if (Z == iz .and. A == ia) then
+        D0global(Zix, Nix) = D0glob
+        dD0global(Zix, Nix) = D0glob
+        exit
+      endif
+    enddo
+  endif
   return
 end subroutine resonancepar
 ! Copyright A.J. Koning 2021

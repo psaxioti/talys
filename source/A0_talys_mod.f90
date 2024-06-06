@@ -6,7 +6,7 @@ module A0_talys_mod
 ! Author    : Arjan Koning
 !
 ! 2021-12-30: Original code
-! 2023-12-29: Current version
+! 2024-05-08: Current version
 !-----------------------------------------------------------------------------------------------------------------------------------
 !
 !-----------------------------------------------------------------------------------------------------------------------------------
@@ -42,6 +42,7 @@ module A0_talys_mod
   integer, parameter :: numenadj=1000                        ! maximum number of energies for adjustable parameters
   integer, parameter :: numlev=40                            ! maximum number of discrete levels
   integer, parameter :: numisom=10                           ! number of isomers
+  integer, parameter :: numresgrid=1000                      ! number of energies on resonance grid
   integer, parameter :: numflux=100                          ! number of integral experiments
   integer, parameter :: numfile=100                          ! maximum number of separate output files
   integer, parameter :: numlev2=200                          ! maximum number of levels
@@ -210,7 +211,7 @@ module A0_talys_mod
   logical                                         :: flagchannels  ! flag for exclusive channel calculation
   logical                                         :: flagEchannel  ! flag for channel energy for emission spectrum
   logical                                         :: flagendf      ! flag for information for ENDF-6 file
-  logical                                         :: flagendfdet   ! flag for detailed ENDF-6 information per cchannel
+  logical                                         :: flagendfdet   ! flag for detailed ENDF-6 information per channel
   logical                                         :: flagendfecis  ! flag for new ECIS calculation for ENDF-6 files
   logical                                         :: flaglabddx    ! flag for calculation of DDX in LAB system
   logical                                         :: flagmassdis   ! flag for calculation of fission fragment mass distribution
@@ -231,7 +232,7 @@ module A0_talys_mod
   logical                                         :: flagrecoil    ! flag for calculation of recoils
   logical                                         :: flagrecoilav  ! flag for average velocity in recoil calculation
   logical                                         :: flagrel       ! flag for relativistic kinematics
-  logical                                         :: flagrpevap    ! flag for eva. of residual products at high inccident energies
+  logical                                         :: flagrpevap    ! flag for eva. of residual products at high incident energies
   character(len=132)                              :: ompenergyfile ! file with energies for OMP calculation (ENDF files only)
 !
 !-----------------------------------------------------------------------------------------------------------------------------------
@@ -279,7 +280,7 @@ module A0_talys_mod
   integer   :: maxN       ! maximal number of neutrons away from initial compound nucleus
   integer   :: maxNrp     ! maximal number of neutrons away from the initial compound nucleus
   integer   :: maxZ       ! maximal number of protons away from initial compound nucleus
-  integer   :: maxZrp     ! maximal number of protons away from the initial comppound nucleus
+  integer   :: maxZrp     ! maximal number of protons away from the initial compound nucleus
   integer   :: nangle     ! number of angles
   integer   :: nanglecont ! number of angles for continuum
   integer   :: nbins0     ! number of continuum excitation energy bins
@@ -308,6 +309,7 @@ module A0_talys_mod
 !
   logical                               :: flagbestbr   ! flag to use only best set of branching ratios
   logical                               :: flagelectron ! flag for application of electron conversion coefficient
+  logical                               :: flagpseudores! flag for using light nuclide discrete levels for resonances
   logical                               :: flaglevels   ! flag for output of discrete level information
   character(len=132), dimension(0:numZ) :: deformfile   ! deformation parameter file
   character(len=132), dimension(0:numZ) :: levelfile    ! discrete level file
@@ -316,6 +318,8 @@ module A0_talys_mod
   integer, dimension(0:numpar)          :: nlevbin      ! number of excited levels for binary nucleus
   integer                               :: nlevmax      ! maximum number of included discrete levels for target nucleus
   integer                               :: nlevmaxres   ! maximum number of included discrete levels for residual nucleus
+  real(sgl), dimension(0:numresgrid)    :: Eresgrid     ! energies on resonance grid
+  real(sgl), dimension(0:numresgrid)    :: resgrid      ! resonance grid
 !
 !-----------------------------------------------------------------------------------------------------------------------------------
 ! Variables for level densities
@@ -742,6 +746,7 @@ module A0_talys_mod
   logical, dimension(2, numelem, numneu, -1:1)        :: fpexist      ! flag for existence of fission product
   logical, dimension(0:numpar)                        :: nubarexist   ! flag for existence of nubar file
   logical, dimension(0:numZ, 0:numN)                  :: fisexist     ! flag for existence of fission cross section
+  logical, dimension(0:numZ, 0:numN)                  :: tfisexist    ! flag for existence of fission transmission coefficients
   logical, dimension(0:numZ,0:numN,0:numlev,0:numlev) :: gamexist     ! flag for existence of gamma production cross section
   logical, dimension(0:numpar,0:numpar,0:numlev)      :: legexist     ! logical to determine existence of Legendre coefficients
   logical, dimension(0:numZ, 0:numN)                  :: recexist     ! flag for existence of recoils
@@ -810,6 +815,7 @@ module A0_talys_mod
 !
   character(len=1), dimension(0:numZ,0:numN,0:numlev,0:numlev) :: bassign     ! flag for assignment of branching ratio
   character(len=18), dimension(0:numZ,0:numN,0:numlev)         :: ENSDF       ! string from original ENSDF discrete level file
+  character(len=1), dimension(0:numZ,0:numN,0:numlev2)         :: eassign     ! flag for assignment of energy
   character(len=1), dimension(0:numZ,0:numN,0:numlev2)         :: jassign     ! flag for assignment of spin
   character(len=1), dimension(0:numZ,0:numN,0:numlev2)         :: passign     ! flag for assignment of parity
   integer, dimension(0:numZ,0:numN,0:numlev,0:numlev)          :: branchlevel ! level to which branching takes place
@@ -862,6 +868,8 @@ module A0_talys_mod
   real(sgl), dimension(0:numZ,0:numN)          :: dgamgam  ! uncertainty in gamgam
   real(sgl)                                    :: Eavres   ! average resonance energy
   real(sgl), dimension(0:numZ, 0:numN)         :: D0theo   ! mean s-wave resonance spacing
+  real(sgl), dimension(0:numZ, 0:numN)         :: D0global ! global mean s-wave resonance spacing
+  real(sgl), dimension(0:numZ, 0:numN)         :: dD0global! uncertainty in global mean s-wave resonance spacing
   real(sgl), dimension(0:numZ, 0:numN)         :: D1theo   ! mean p-wave resonance spacing
   real(sgl), dimension(0:numl)                 :: Dl       ! mean resonance spacing per l value
   real(sgl), dimension(0:numl, 0:numJ)         :: Dlj      ! mean resonance spacing per J,l value
@@ -1266,7 +1274,7 @@ module A0_talys_mod
 !
 ! inversenorm
 !
-  real(sgl), dimension(0:numpar)        :: threshnorm ! normalization factor at trheshold
+  real(sgl), dimension(0:numpar)        :: threshnorm ! normalization factor at threshold
 !
 !-----------------------------------------------------------------------------------------------------------------------------------
 ! Variables for preequilibrium initialization
