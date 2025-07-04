@@ -108,7 +108,8 @@ subroutine fissionout
           call write_target
           call write_reaction(reaction,0.D0,0.D0,0,0)
           call write_residual(Z,A,finalnuclide)
-          call write_datablock(quantity,Ncol,Ninc,col,un)
+          call write_quantity(quantity)
+          call write_datablock(Ncol,Ninc,col,un)
           do nen = 1, Ninclow
             write(1, '(2es15.6)') eninc(nen), 0.
           enddo
@@ -120,6 +121,7 @@ subroutine fissionout
         endif
         write(1, '(2es15.6)') Einc, xsfeed(Zcomp, Ncomp, -1)
         close (unit = 1)
+        call write_outfile(rpfile,flagoutall)
       enddo
     enddo
   endif
@@ -127,7 +129,7 @@ subroutine fissionout
 ! Phenomenological PFNS (Iwamoto model)
 !
   if (pfnsmodel == 1) then
-    call iwamoto(Zinit, Ainit, S(0,0,1), Einc, Tmadjust, Fsadjust, Epfns, NEpfns, x1, x2, x3, Eavpfns(1))
+    call iwamoto(Zinit, Ainit, real(S(0,0,1)), Einc, Tmadjust, Fsadjust, Epfns, NEpfns, x1, x2, x3, Eavpfns(1))
     do nen = 1, NEpfns
       pfns(1,nen) = x1(nen)
       maxpfns(1,nen) = x2(nen)

@@ -147,6 +147,15 @@ subroutine comptarget
 !
   implicit none
   character*132 :: key     ! keyword
+  character(len=3)  :: massstring !  
+  character(len=15) :: col(2*numJ+6)    ! header
+  character(len=15) :: un(2*numJ+6)    ! units
+  character(len=80) :: quantity   ! quantity
+  character(len=6)  :: finalnuclide !
+  character(len=18) :: reaction   ! reaction
+  character(len=132) :: topline    ! topline
+  character(len=80)  :: popfile               ! population file
+  character(len=12)  :: Estr
   logical   :: elastic     ! designator for elastic channel
   integer   :: Ares        ! mass number of residual nucleus
   integer   :: ielas       ! designator for elastic channel
@@ -179,6 +188,9 @@ subroutine comptarget
   integer   :: lprime      ! 2 * l
   integer   :: modl        ! help variable
   integer   :: Ncomp       ! neutron number index for compound nucleus
+  integer            :: Z
+  integer            :: A
+  integer            :: Ncol
   integer   :: nex         ! excitation energy bin of compound nucleus
   integer   :: nexout      ! energy index for outgoing energy
   integer   :: Nix         ! neutron number index for residual nucleus
@@ -261,13 +273,54 @@ subroutine comptarget
 ! isotrans: subroutine for correction factors for isospin forbidden transitions
 !
   call isotrans(Zinit, Ninit)
+!
+! Output of initial population 
+!
   if (flagpop) then
-    write(*, '(/" Isospin factors to reduce emission "/)')
-    do type = 0, 6
-      write(*, '(1x, a8, 1x, f8.5)') parname(type), fiso(type)
+    Z = ZZ(Zcomp, Ncomp, 0)
+    A = AA(Zcomp, Ncomp, 0)
+    massstring='   '
+    write(massstring,'(i3)') A
+    finalnuclide=trim(nuc(Z))//adjustl(massstring)
+    reaction='('//parsym(k0)//',x)'
+    quantity='population'
+    Estr=''
+    write(Estr,'(es12.6)') Einc
+    topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' of '//trim(finalnuclide)//' at '//Estr//' MeV'
+    popfile='initial.pop'
+    write(*, '(/" ++++++++++ INITIAL COMPOUND NUCLEUS FORMATION +++++++++++++++++++++++++++++++",/)')
+    open (unit = 1, file = popfile, status = 'replace')
+    call write_header(topline,source,user,date,oformat)
+    call write_target
+    call write_reaction(reaction,0.D0,0.D0,0,0)
+    call write_real(2,'E-incident [MeV]',Einc)
+    call write_residual(Z,A,finalnuclide)
+    call write_real(2,'Excitation energy [MeV]',Exinc)
+    quantity='Compound nucleus formation'
+    un = ''
+    col(1)='J/P'
+    col(2)='population'
+    un(2) = 'mb'
+    Ncol = 2
+    call write_quantity(quantity)
+    call write_datablock(Ncol,J2end-J2beg+2,col,un)
+    do parity = - 1, 1, 2
+      do J2 = J2beg, J2end, 2
+        J = J2/2
+        write(1, '(5x,f4.1, 1x, a1, 4x, es15.6)') 0.5 * J2, cparity(parity), CNterm(parity, J)
+      enddo
     enddo
-    write(*,'(/" Primary CN decay of Z=",i3," N=",i3," (",i3,a2,") Ex=",f8.3/)') Zinit,Ninit,Ainit,nuc(Zinit),Etotal
-    write(*,'(" JCN PCN Population",7(1x,a8,1x)/)') (parname(type),type=0,6)
+    quantity='Primary compound nucleus decay'
+    un = 'mb'
+    col(1)='J/P'
+    un(1) = ''
+    col(2)='population'
+    do type = 0, 6
+      col(type+3)=parname(type)
+    enddo     
+    Ncol = 9
+    call write_quantity(quantity)
+    call write_datablock(Ncol,J2end-J2beg+2,col,un)
   endif
   do type = -1, 6
     if (adjustTJ(Zcomp, Ncomp, type)) then
@@ -283,7 +336,7 @@ subroutine comptarget
 ! *** Output of flux conservation check of transmission coefficients ***
 !
   if (flagcheck .and. flagwidth) then
-    write(*, '(/" ++++++++++ CHECK OF FLUX CONSERVATION", " OF TRANSMISSION COEFFICIENTS ++++++++++")')
+    write(*, '(/" ++++++++++ CHECK OF FLUX CONSERVATION OF TRANSMISSION COEFFICIENTS ++++++++++",/)')
     if (wmode == 0) write(*, '(" Hauser-Feshbach model"/)')
     if (wmode == 1) write(*, '(" Moldauer model")')
     if (wmode == 2) write(*, '(" HRTW model"/)')
@@ -699,7 +752,7 @@ subroutine comptarget
       enddo
       if (flagpop) then
         rJ = 0.5 * J2
-        write(*,'(f4.1,i4,8es10.3)') rJ,parity,CNterm(parity,J),(partdecaytot(type),type=0,6)
+        write(1,'(5x,f4.1,1x,a1,4x,8es15.6)') rJ,cparity(parity),CNterm(parity,J),(partdecaytot(type),type=0,6)
         if (flagdecay) then
           do type = 0, 6
             if (parskip(type)) cycle
@@ -721,6 +774,20 @@ subroutine comptarget
       endif
     enddo
   enddo
+  if (flagpop) then
+    quantity='Isospin factors to reduce emission'
+    un = ''
+    col(1)='particle'
+    col(2)='isospin factor'
+    Ncol = 2
+    call write_quantity(quantity)
+    call write_datablock(Ncol,7,col,un)
+    do type = 0, 6
+      write(1, '(3x, a8, 4x, es15.6)') parname(type), fiso(type)
+    enddo
+    close(1)
+    call write_outfile(popfile,flagoutall)
+  endif
 !
 ! ************************** Astrophysics ******************************
 !

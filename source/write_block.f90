@@ -162,9 +162,9 @@
 !
 ! ************* Write output block *************************************
 !
-  call write_integer(indent,'Z',Z)
+  if (Z > 0) call write_integer(indent,'Z',Z)
   call write_integer(indent,'A',A)
-  call write_char(indent,'nuclide',trim(nuc))
+  if (Z > 0) call write_char(indent,'nuclide',trim(nuc))
   return
   end
 !Copyright (C)  2023 A.J. Koning
@@ -205,11 +205,33 @@
   return
   end
 !Copyright (C)  2023 A.J. Koning
-  subroutine write_datablock(quantity,Nc,Ne,col,un)
+  subroutine write_quantity(quantity)
 !
 ! +---------------------------------------------------------------------
 ! | Author: Arjan Koning
-! | Date  : August 8, 2023
+! | Date  : February 23, 2025
+! | Task  : Write output block for quantity
+! +---------------------------------------------------------------------
+!
+! ****************** Declarations **************************************
+!
+  implicit none
+  character(len=*) quantity
+  integer          indent
+!
+! ************* Write output block *************************************
+!
+  write(1,'("# quantity:")')
+  indent=2
+  call write_char(indent,'type',trim(quantity))
+  return
+  end
+!Copyright (C)  2025 A.J. Koning
+  subroutine write_datablock(Nc,Ne,col,un)
+!
+! +---------------------------------------------------------------------
+! | Author: Arjan Koning
+! | Date  : February 23, 2025
 ! | Task  : Write output block for data block
 ! +---------------------------------------------------------------------
 !
@@ -224,7 +246,6 @@
   integer            k
   integer            ibeg
   integer            width
-  character(len=*)   quantity
   character(len=*)   col(Nc)
   character(len=*)   un(Nc)
   character(len=15)  word
@@ -233,9 +254,8 @@
 !
 ! ************* Write output block *************************************
 !
-  write(1,'("# datablock:")')
-  indent=2
-  call write_char(indent,'quantity',trim(quantity))
+  write(1,'("#   datablock:")')
+  indent=4
   call write_integer(indent,'columns',Nc)
   call write_integer(indent,'entries',Ne)
   width=15
@@ -371,6 +391,54 @@
     write(fmt(7:8),'(i2)') indent
   endif
   write(1, fmt) trim(key),trim(word)
+  return
+  end
+!Copyright (C)  2023 A.J. Koning
+  subroutine write_outfile(tfile,flagout)
+!
+! +---------------------------------------------------------------------
+! | Author: Arjan Koning
+! | Date  : August 8, 2023
+! | Task  : Write specific output file to main output file
+! +---------------------------------------------------------------------
+!
+! ****************** Declarations **************************************
+!
+  implicit none
+  logical            :: flagout
+  logical            :: lexist
+  character(len=*)   :: tfile
+  character(len=800) :: substring
+  character(len=800) :: string
+  integer            :: istat
+!
+! ************* Write output file **************************************
+!
+  inquire (file = tfile, exist = lexist)
+  if (lexist) then
+    if (flagout) then
+      write(*, '()') 
+      open (unit = 1, file = tfile, status = 'old')
+      do              
+        read(1, '(a)', iostat = istat) string
+        if (istat /= 0) exit
+        if (index(string,'# header') > 0) then
+          do
+            read(1,'(a)') substring 
+            if (substring(1:4) /= '#   ' .and. substring(1:8) /= '# target') then
+              write(*, '(1x, a)') trim(substring)
+              exit
+            endif
+          enddo
+        else
+          write(*, '(1x, a)') trim(string)
+        endif
+      enddo           
+      close (unit = 1)  
+    else            
+      write(*,'("file: ",a)') trim(tfile) 
+    endif           
+  endif           
   return
   end
 !Copyright (C)  2023 A.J. Koning

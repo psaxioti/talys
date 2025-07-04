@@ -14,7 +14,6 @@ subroutine angleout
 !
 ! Variables for output
 !   fileangle       ! designator for angular distributions on separate file
-!   fileelastic     ! flag for elastic angular distribution on separate file
 !   flagblock       ! flag to block spectra, angle and gamma files
 ! Variables for existence libraries
 !   angexist        ! flag for existence of angular distributions
@@ -63,7 +62,7 @@ subroutine angleout
   character(len=2)  :: levelstring
   character(len=21) :: discfile    ! file with elastic scattering angular distribution
   character(len=21) :: legfile     ! file with Legendre coefficients
-  character(len=13) :: Estr
+  character(len=12) :: Estr
   character(len=18) :: reaction   ! reaction
   character(len=132) :: topline    ! topline
   character(len=15) :: col(6)     ! header
@@ -96,167 +95,153 @@ subroutine angleout
 ! 1. Legendre coefficients
 !
   Estr=''
-  write(Estr,'(es13.6)') Einc
+  write(Estr,'(es12.6)') Einc
   write(*, '(/" 8. Discrete state angular distributions")')
   if (flaglegendre) then
     write(*, '(/" 8a1. Legendre coefficients for elastic scattering"/)')
-    write(*, '("   L       Total           Direct         Compound       Normalized"/)')
-    do LL = 0, J2end
-      write(*, '(1x, i3, 4es16.5)') LL, tleg(k0, Ltarget, LL), dleg(k0, Ltarget, LL), cleg(k0, Ltarget, LL), &
- &      tlegnor(k0, Ltarget, LL)
-    enddo
 !
 ! Write results to separate file
 !
-    if (fileelastic) then
-      if (flagblock) then
-        legfile = '  leg.L00'
-        write(legfile(1:2), '(2a1)') parsym(k0), parsym(k0)
-        write(legfile(8:9), '(i2.2)') Ltarget
-        if (.not. legexist(k0, k0, Ltarget)) then
-          legexist(k0, k0, Ltarget) = .true.
-          open (unit=1, file=legfile, status='unknown')
-        else
-          open (unit=1, file=legfile, status='unknown', position='append')
-        endif
-      else
-        legfile = '          leg.L00'
-        write(legfile(1:2), '(2a1)') parsym(k0), parsym(k0)
-        write(legfile(3:10), '(f8.3)') Einc
-        write(legfile(3:6), '(i4.4)') int(Einc)
-        write(legfile(16:17), '(i2.2)') Ltarget
+    if (flagblock) then
+      legfile = '  leg.L00'
+      write(legfile(1:2), '(2a1)') parsym(k0), parsym(k0)
+      write(legfile(8:9), '(i2.2)') Ltarget
+      if (.not. legexist(k0, k0, Ltarget)) then
+        legexist(k0, k0, Ltarget) = .true.
         open (unit=1, file=legfile, status='unknown')
+      else
+        open (unit=1, file=legfile, status='unknown', position='append')
       endif
-      reaction='('//parsym(k0)//',el)'
-      quantity='Legendre coefficients'
-      topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' at '//Estr//' MeV'
-      un = ''
-      col(1)='L'
-      col(2)='Total'
-      col(3)='Direct'
-      col(4)='Compound'
-      col(5)='Normalized'
-      col(6)='ENDF-6'
-      Ncol=6
-      call write_header(topline,source,user,date,oformat)
-      call write_target
-      call write_reaction(reaction,0.D0,0.D0,MF,MT)
-      call write_real(2,'E-incident [MeV]',Einc)
-      call write_datablock(quantity,Ncol,J2end+1,col,un)
-      do LL = 0, J2end
-        write(1, '(i6, 9x, 5es15.6)') LL, tleg(k0, Ltarget, LL), dleg(k0, Ltarget, LL), cleg(k0, Ltarget, LL), &
- &        tlegnor(k0, Ltarget, LL), cleg0(k0, Ltarget, LL)
-      enddo
-      close (unit = 1)
+    else
+      legfile = '          leg.L00'
+      write(legfile(1:2), '(2a1)') parsym(k0), parsym(k0)
+      write(legfile(3:10), '(f8.3)') Einc
+      write(legfile(3:6), '(i4.4)') int(Einc)
+      write(legfile(16:17), '(i2.2)') Ltarget
+      open (unit=1, file=legfile, status='unknown')
     endif
+    reaction='('//parsym(k0)//',el)'
+    quantity='Legendre coefficients'
+    topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' at '//Estr//' MeV'
+    un = ''
+    col(1)='L'
+    col(2)='Total'
+    col(3)='Direct'
+    col(4)='Compound'
+    col(5)='Normalized'
+    col(6)='ENDF-6'
+    Ncol=6
+    call write_header(topline,source,user,date,oformat)
+    call write_target
+    call write_reaction(reaction,0.D0,0.D0,MF,MT)
+    call write_real(2,'E-incident [MeV]',Einc)
+    call write_quantity(quantity)
+    call write_datablock(Ncol,J2end+1,col,un)
+    do LL = 0, J2end
+      write(1, '(i6, 9x, 5es15.6)') LL, tleg(k0, Ltarget, LL), dleg(k0, Ltarget, LL), cleg(k0, Ltarget, LL), &
+ &      tlegnor(k0, Ltarget, LL), cleg0(k0, Ltarget, LL)
+    enddo
+    close (unit = 1)
+    call write_outfile(legfile,flagoutall)
   endif
 !
 ! 2. Angular distributions
 !
   write(*, '(/" 8a2. Elastic scattering angular distribution"/)')
   if (k0 == 1) then
-    write(*, '(" Angle        Total          Direct         Compound"/)')
-    do iang = 0, nangle
-      write(*, '(1x, f5.1, 3es16.5)') angle(iang), discad(k0, Ltarget, iang), directad(k0, Ltarget, iang), compad(k0, Ltarget, iang)
-    enddo
 !
 ! Write results to separate file
 !
-    if (fileelastic) then
-      if (flagblock) then
-        discfile = 'nnang.L00'
-        write(discfile(1:2), '(2a1)') parsym(k0), parsym(k0)
-        write(discfile(8:9), '(i2.2)') Ltarget
-        if (.not. angexist(k0, k0, Ltarget)) then
-          angexist(k0, k0, Ltarget) = .true.
-          open (unit=1, file=discfile, status='unknown')
-        else
-          open (unit=1, file=discfile, status='unknown', position='append')
-        endif
-      else
-        discfile = 'nn        ang.L00'
-        write(discfile(3:10), '(f8.3)') Einc
-        write(discfile(3:6), '(i4.4)') int(Einc)
-        write(discfile(16:17), '(i2.2)') Ltarget
+    if (flagblock) then
+      discfile = 'nnang.L00'
+      write(discfile(1:2), '(2a1)') parsym(k0), parsym(k0)
+      write(discfile(8:9), '(i2.2)') Ltarget
+      if (.not. angexist(k0, k0, Ltarget)) then
+        angexist(k0, k0, Ltarget) = .true.
         open (unit=1, file=discfile, status='unknown')
+      else
+        open (unit=1, file=discfile, status='unknown', position='append')
       endif
-      quantity='angular distribution'
-      reaction='('//parsym(k0)//',el)'
-      topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' at '//Estr//' MeV'
-      col(1)='Angle'
-      un(1)='deg'
-      col(2)='xs'
-      un(2)='mb/sr'
-      col(3)='Direct'
-      un(3)='mb/sr'
-      col(4)='Compound'
-      un(4)='mb/sr'
-      Ncol=4
-      call write_header(topline,source,user,date,oformat)
-      call write_target
-      call write_reaction(reaction,0.D0,0.D0,MF,MT)
-      call write_real(2,'E-incident [MeV]',Einc)
-      call write_datablock(quantity,Ncol,nangle+1,col,un)
-      do iang = 0, nangle
-        write(1, '(4es15.6)') angle(iang), discad(k0, Ltarget, iang), directad(k0, Ltarget, iang), compad(k0, Ltarget, iang)
-      enddo
-      close (unit = 1)
+    else
+      discfile = 'nn        ang.L00'
+      write(discfile(3:10), '(f8.3)') Einc
+      write(discfile(3:6), '(i4.4)') int(Einc)
+      write(discfile(16:17), '(i2.2)') Ltarget
+      open (unit=1, file=discfile, status='unknown')
     endif
-  else
-    write(*, '(" Angle        Total            Direct       Compound       c.s/Rutherford  Nuc+interference"/)')
+    quantity='angular distribution'
+    reaction='('//parsym(k0)//',el)'
+    topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' at '//Estr//' MeV'
+    col(1)='Angle'
+    un(1)='deg'
+    col(2)='xs'
+    un(2)='mb/sr'
+    col(3)='Direct'
+    un(3)='mb/sr'
+    col(4)='Compound'
+    un(4)='mb/sr'
+    Ncol=4
+    call write_header(topline,source,user,date,oformat)
+    call write_target
+    call write_reaction(reaction,0.D0,0.D0,MF,MT)
+    call write_real(2,'E-incident [MeV]',Einc)
+    call write_quantity(quantity)
+    call write_datablock(Ncol,nangle+1,col,un)
     do iang = 0, nangle
-      write(*, '(1x, f5.1, 5es16.5)') angle(iang), max(discad(k0, Ltarget, iang), directad(k0, Ltarget, iang)), &
+      write(1, '(4es15.6)') angle(iang), discad(k0, Ltarget, iang), directad(k0, Ltarget, iang), compad(k0, Ltarget, iang)
+    enddo
+    close (unit = 1)
+    call write_outfile(discfile,flagoutall)
+  else
+!
+! Write results to separate file
+!
+    if (flagblock) then
+      discfile = '  ang.L00'
+      write(discfile(1:2), '(2a1)') parsym(k0), parsym(k0)
+      write(discfile(8:9), '(i2.2)') Ltarget
+      if (.not. angexist(k0, k0, Ltarget)) then
+        angexist(k0, k0, Ltarget) = .true.
+        open (unit=1, file=discfile, status='unknown')
+      else
+        open (unit=1, file=discfile, status='unknown', position='append')
+      endif
+    else
+      discfile = '          ang.L00'
+      write(discfile(1:2), '(2a1)') parsym(k0), parsym(k0)
+      write(discfile(3:10), '(f8.3)') Einc
+      write(discfile(3:6), '(i4.4)') int(Einc)
+      write(discfile(16:17), '(i2.2)') Ltarget
+      open (unit=1, file=discfile, status='unknown')
+    endif
+    quantity='angular distribution'
+    reaction='('//parsym(k0)//',el)'
+    topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' at '//Estr//' MeV'
+    col(1)='Angle'
+    un(1)='deg'
+    col(2)='xs'
+    un(2)='mb/sr'
+    col(3)='Direct'
+    un(3)='mb/sr'
+    col(4)='Compound'
+    un(4)='mb/sr'
+    col(5)='xs/Rutherford'
+    un(5)=''
+    col(6)='Nuc+interfer.'
+    un(6)=''
+    Ncol=6
+    call write_header(topline,source,user,date,oformat)
+    call write_target
+    call write_reaction(reaction,0.D0,0.D0,MF,MT)
+    call write_real(2,'E-incident [MeV]',Einc)
+    call write_quantity(quantity)
+    call write_datablock(Ncol,nangle+1,col,un)
+    do iang = 0, nangle
+      write(1, '(6es15.6)') angle(iang), max(discad(k0, Ltarget, iang), directad(k0, Ltarget, iang)), &
  &      directad(k0, Ltarget, iang), compad(k0, Ltarget, iang), ruth(iang), elasni(iang)
     enddo
-!
-! Write results to separate file
-!
-    if (fileelastic) then
-      if (flagblock) then
-        discfile = '  ang.L00'
-        write(discfile(1:2), '(2a1)') parsym(k0), parsym(k0)
-        write(discfile(8:9), '(i2.2)') Ltarget
-        if (.not. angexist(k0, k0, Ltarget)) then
-          angexist(k0, k0, Ltarget) = .true.
-          open (unit=1, file=discfile, status='unknown')
-        else
-          open (unit=1, file=discfile, status='unknown', position='append')
-        endif
-      else
-        discfile = '          ang.L00'
-        write(discfile(1:2), '(2a1)') parsym(k0), parsym(k0)
-        write(discfile(3:10), '(f8.3)') Einc
-        write(discfile(3:6), '(i4.4)') int(Einc)
-        write(discfile(16:17), '(i2.2)') Ltarget
-        open (unit=1, file=discfile, status='unknown')
-      endif
-      quantity='angular distribution'
-      reaction='('//parsym(k0)//',el)'
-      topline=trim(targetnuclide)//trim(reaction)//' '//trim(quantity)//' at '//Estr//' MeV'
-      col(1)='Angle'
-      un(1)='deg'
-      col(2)='xs'
-      un(2)='mb/sr'
-      col(3)='Direct'
-      un(3)='mb/sr'
-      col(4)='Compound'
-      un(4)='mb/sr'
-      col(5)='xs/Rutherford'
-      un(5)=''
-      col(6)='Nuc+interfer.'
-      un(6)=''
-      Ncol=6
-      call write_header(topline,source,user,date,oformat)
-      call write_target
-      call write_reaction(reaction,0.D0,0.D0,MF,MT)
-      call write_real(2,'E-incident [MeV]',Einc)
-      call write_datablock(quantity,Ncol,nangle+1,col,un)
-      do iang = 0, nangle
-        write(1, '(6es15.6)') angle(iang), max(discad(k0, Ltarget, iang), directad(k0, Ltarget, iang)), &
- &        directad(k0, Ltarget, iang), compad(k0, Ltarget, iang), ruth(iang), elasni(iang)
-      enddo
-      close (unit = 1)
-    endif
+    close (unit = 1)
+    call write_outfile(discfile,flagoutall)
   endif
 !
 ! ************** Inelastic scattering angular distributions ************
@@ -271,11 +256,6 @@ subroutine angleout
     do i = 0, nlev(Zix, Nix)
       if (i == Ltarget) cycle
       if (xsdisc(k0, i) == 0.) cycle
-      write(*, '(/"    Level ", i2/)') i
-      write(*, '("   L       Total           Direct         Compound       Normalized"/)')
-      do LL = 0, J2end
-        write(*, '(1x, i3, 4es16.5)') LL, tleg(k0, i, LL), dleg(k0, i, LL), cleg(k0, i, LL), tlegnor(k0, i, LL)
-      enddo
 !
 ! Write results to separate file
 !
@@ -317,11 +297,13 @@ subroutine angleout
         call write_reaction(reaction,0.D0,0.D0,MF,MT)
         call write_real(2,'E-incident [MeV]',Einc)
         call write_level(0,-1,i,edis(Zix, Nix, i),jdis(Zix, Nix, i),parlev(Zix, Nix, i),0.)
-        call write_datablock(quantity,Ncol,J2end+1,col,un)
+        call write_quantity(quantity)
+        call write_datablock(Ncol,J2end+1,col,un)
         do LL = 0, J2end
           write(1, '(i6, 9x, 5es15.6)') LL, tleg(k0, i, LL), dleg(k0, i, LL), cleg(k0, i, LL), tlegnor(k0, i, LL), cleg0(k0, i, LL)
         enddo
         close (unit = 1)
+        call write_outfile(legfile,flagoutall)
       endif
     enddo
   endif
@@ -332,11 +314,6 @@ subroutine angleout
   do i = 0, nlev(Zix, Nix)
     if (i == Ltarget) cycle
     if (xsdisc(k0, i) == 0.) cycle
-    write(*, '(/"    Level ", i2/)') i
-    write(*, '(" Angle       Total         Direct       Compound"/)')
-    do iang = 0, nangle
-      write(*, '(1x, f5.1, 3es15.6)') angle(iang), discad(k0, i, iang), directad(k0, i, iang), compad(k0, i, iang)
-    enddo
 !
 ! Write results to separate file
 !
@@ -379,11 +356,13 @@ subroutine angleout
       call write_reaction(reaction,0.D0,0.D0,MF,MT)
       call write_real(2,'E-incident [MeV]',Einc)
       call write_level(2,-1,i,edis(Zix, Nix, i),jdis(Zix, Nix, i),parlev(Zix, Nix, i),0.)
-      call write_datablock(quantity,Ncol,nangle+1,col,un)
+      call write_quantity(quantity)
+      call write_datablock(Ncol,nangle+1,col,un)
       do iang = 0, nangle
         write(1, '(4es15.6)') angle(iang), discad(k0, i, iang), directad(k0, i, iang), compad(k0, i, iang)
       enddo
       close (unit = 1)
+      call write_outfile(discfile,flagoutall)
     endif
   enddo
 !
@@ -403,11 +382,6 @@ subroutine angleout
       write(*, '(/" 8c1. Legendre coefficients for (", a1, ",", a1, ")")') parsym(k0), parsym(type)
       do i = 0, nlev(Zix, Nix)
         if (xsdisc(type, i) == 0.) cycle
-        write(*, '(/"    Level ", i2/)') i
-        write(*, '("   L       Total           Direct         Compound       Normalized"/)')
-        do LL = 0, J2end
-          write(*, '(1x, i3, 4es16.5)') LL, tleg(type, i, LL), dleg(type, i, LL), cleg(type, i, LL), tlegnor(type, i, LL)
-        enddo
 !
 ! Write results to separate file
 !
@@ -449,12 +423,14 @@ subroutine angleout
           call write_reaction(reaction,0.D0,0.D0,MF,MT)
           call write_real(2,'E-incident [MeV]',Einc)
           call write_level(2,-1,i,edis(Zix, Nix, i),jdis(Zix, Nix, i),parlev(Zix, Nix, i),0.)
-          call write_datablock(quantity,Ncol,J2end+1,col,un)
+          call write_quantity(quantity)
+          call write_datablock(Ncol,J2end+1,col,un)
           do LL = 0, J2end
             write(1, '(i6, 9x, 5es15.6)') LL, tleg(type, i, LL), dleg(type, i, LL), cleg(type, i, LL), tlegnor(type, i, LL), &
  &            cleg0(type, i, LL)
           enddo
         close (unit = 1)
+        call write_outfile(legfile,flagoutall)
       endif
       enddo
     endif
@@ -464,11 +440,6 @@ subroutine angleout
     write(*, '(/" 8c2. (", a1, ",", a1, ") angular distributions")') parsym(k0), parsym(type)
     do i = 0, nlev(Zix, Nix)
       if (xsdisc(type, i) == 0.) cycle
-      write(*, '(/"    Level ", i2/)') i
-      write(*, '(" Angle      Total          Direct        Compound"/)')
-      do iang = 0, nangle
-        write(*, '(1x, f5.1, 3es15.6)') angle(iang), discad(type, i, iang), directad(type, i, iang), compad(type, i, iang)
-      enddo
 !
 ! Write results to separate file
 !
@@ -511,11 +482,13 @@ subroutine angleout
         call write_reaction(reaction,0.D0,0.D0,MF,MT)
         call write_real(2,'E-incident [MeV]',Einc)
         call write_level(2,-1,i,edis(Zix, Nix, i),jdis(Zix, Nix, i),parlev(Zix, Nix, i),0.)
-        call write_datablock(quantity,Ncol,nangle+1,col,un)
+        call write_quantity(quantity)
+        call write_datablock(Ncol,nangle+1,col,un)
         do iang = 0, nangle
           write(1, '(4es15.6)') angle(iang), discad(type, i, iang), directad(type, i, iang), compad(type, i, iang)
         enddo
         close (unit = 1)
+        call write_outfile(discfile,flagoutall)
       endif
     enddo
   enddo

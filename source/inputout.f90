@@ -5,7 +5,7 @@ subroutine inputout
 !
 ! Author    : Arjan Koning
 !
-! 2023-05-29: Original code
+! 2024-10-25: Original code
 !-----------------------------------------------------------------------------------------------------------------------------------
 !
 ! *** Use data from other modules
@@ -41,11 +41,12 @@ subroutine inputout
 !   flaglabddx      ! flag for calculation of DDX in LAB system
 !   flagmassdis     ! flag for calculation of fission fragment mass yields
 !   flagmicro       ! flag for completely microscopic Talys calculation
-!   flagngfit       ! flag for using fitted nuclear model parameters
+!   flagfit         ! flag for using fitted nuclear model parameters
 !   flagngfit       ! flag for using fitted (n,g) nuclear model parameters
 !   flagnffit       ! flag for using fitted (n,f) nuclear model parameters
 !   flagnnfit       ! flag for using fitted (n,n'), (n,2n) and (n,p) nuclear model parameters
 !   flagnafit       ! flag for using fitted (n,a) nuclear model parameters
+!   flagndfit       ! flag for using fitted (n,d) nuclear model parameters
 !   flagpnfit       ! flag for using fitted (p,n) nuclear model parameters
 !   flaggnfit       ! flag for using fitted (g,n) nuclear model parameters
 !   flagdnfit       ! flag for using fitted (d,n) nuclear model parameters
@@ -335,6 +336,8 @@ subroutine inputout
  &  " parameters")') yesno(flagnnfit)
   write(*, '(" nafit               ", a1, "     flagnafit    flag for using fitted (n,a) nuclear model parameters")') &
  &  yesno(flagnafit)
+  write(*, '(" ndfit               ", a1, "     flagndfit    flag for using fitted (n,d) nuclear model parameters")') &
+ &  yesno(flagndfit)
   write(*, '(" pnfit               ", a1, "     flagpnfit    flag for using fitted (p,n) nuclear model parameters")') &
  &  yesno(flagpnfit)
   write(*, '(" dnfit               ", a1, "     flagdnfit    flag for using fitted (d,n) nuclear model parameters")') &
@@ -399,6 +402,8 @@ subroutine inputout
   write(*, '(" localomp            ", a1, "     flaglocalomp flag for local (y) or global (n) optical model")') yesno(flaglocalomp)
   write(*, '(" dispersion          ", a1, "     flagdisp     flag for dispersive optical model")') yesno(flagdisp)
   write(*, '(" jlmomp              ", a1, "     flagjlm      flag for using semi-microscopic JLM OMP")') yesno(flagjlm)
+  write(*, '(" pruitt              ", a1, "     flagpruitt   identifier for Pruitt parameters for KD03")') pruitt
+  write(*, '(" pruittset         ", i3, "     pruittset    random set for Pruitt et al OMP")') pruittset
   write(*, '(" riplomp             ", a1, "     flagriplomp  flag for RIPL OMP")') yesno(flagriplomp)
   write(*, '(" riplrisk            ", a1, "     flagriplrisk flag for going outside RIPL mass validity range")') yesno(flagriplrisk)
   write(*, '(" optmodall           ", a1, "     flagompall   flag for new optical model calculation for all residual nuclei")') &
@@ -458,8 +463,8 @@ subroutine inputout
     write(*, '(" widthfluc           ", a1, "     flagwidth    flag for width fluctuation calculation")') yesno(flagwidth)
   endif
   write(*, '(" widthmode          ", i2, "     wmode        designator for width fluctuation model")') wmode
-  write(*, '(" WFCfactor          ", i2, "     WFCfactor    enhancement factor for WFC: 1: Original, 2: Ernebjerg and Herman")') &
- &  WFCfactor
+  write(*, '(" WFCfactor          ", i2, "     WFCfactor    enhancement factor for WFC: 1: Original, 2: Ernebjerg and Herman", &
+ &  " 3: Kawano")') WFCfactor
   write(*, '(" compound            ", a1, "     flagcomp     flag for compound nucleus model")') yesno(flagcomp)
   write(*, '(" fullhf              ", a1, "     flagfullhf   ", &
  &  "flag for full spin dependence of transmission coefficients")') yesno(flagfullhf)

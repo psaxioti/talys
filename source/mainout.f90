@@ -6,7 +6,7 @@ subroutine mainout
 ! Author    : Arjan Koning
 !
 ! 2023-12-30: Original code
-! 2024-06-09: Current revision
+! 2025-06-28: Current revision
 !-----------------------------------------------------------------------------------------------------------------------------------
 !
 ! *** Use data from other modules
@@ -69,8 +69,8 @@ subroutine mainout
 !
 ! *************************** Code and version *************************
 !
-  write(*, '(/"    TALYS-2.02 (Version: June 9, 2024)"/)')
-  write(*, '(" Copyright (C) 2024  A.J. Koning, S. Hilaire and S. Goriely"/)')
+  write(*, '(/"    TALYS-2.11 (Version: June 28, 2025)"/)')
+  write(*, '(" Copyright (C) 2025  A.J. Koning, S. Hilaire and S. Goriely"/)')
   write(*, '(" Dimensions - Cross sections: mb, Energies: MeV, Angles: degrees")')
   write(*, '(/" User: ",a)') trim(user)
   write(*, '(" Date: ",a)') trim(date)
@@ -96,7 +96,7 @@ subroutine mainout
  &    cparity(parlev(Zix, Nix, Ltarget)), tau(Zix, Nix, Ltarget)
   endif
   write(*, '(/" Included channels:")')
-  do type = - 1, 6
+  do type = -1, 6
     if (parskip(type)) cycle
     write(*, '(21x, a8)') parname(type)
   enddo
@@ -130,7 +130,7 @@ subroutine mainout
       enddo
     else
       write(*, '(" Parity   Ex ", 11("      J=", i2)/)') (J, J = 0, 10)
-      do parity = - 1, 1, 2
+      do parity = -1, 1, 2
         do i = 1, npopE
           write(*, '(i6,12es10.3)') parity, EdistE(i), (PdistJP(i, J, parity), J = 0, 10)
         enddo
@@ -142,6 +142,7 @@ subroutine mainout
     if (parskip(type)) cycle
     write(*, '(" Q(", a1, ",", a1, "):", f9.5)') parsym(k0), parsym(type), Q(type)
   enddo
+  if (k0 > 1) write(*, '(/," Coulomb barrier:",f9.5)') coulbar(k0)
   if (flagcheck) call arraysize
 !
 ! * Write nuclear structure parameters for target and compound nucleus *
@@ -151,7 +152,7 @@ subroutine mainout
 ! fissionparout: subroutine for output for fission parameters
 !
   if (flaglevels) call levelsout(Zix, Nix)
-  if (flagdensity) call densityout(Zix, Nix)
+  if (flagdensity .or. filedensity) call densityout(Zix, Nix)
   if (flagfisout) call fissionparout(Zix, Nix)
   strucwrite(Zix, Nix) = .true.
   if (parskip(0)) return
@@ -163,4 +164,4 @@ subroutine mainout
   endif
   return
 end subroutine mainout
-! Copyright A.J. Koning 2023
+! Copyright A.J. Koning 2025

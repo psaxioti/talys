@@ -106,12 +106,13 @@
 !
 !
 !
+  write(*,'()')
   headstring=''
   if (Liso == 0) then
     afile = '000.res. '
   else
     afile = '000i.res.'
-    write(afile(4:4), '(a1)') isochar(Liso)
+    write(afile(4:4), '(a1)') isochar(min(Liso,numisom))
   endif
   write(afile(1:3), '(i3.3)') Atarget
   resfile = 'n-'//trim(nuc(Ztarget))//trim(afile)//trim(reslib)

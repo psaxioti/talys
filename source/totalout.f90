@@ -87,8 +87,8 @@ subroutine totalout
   endif
   write(*, '(" Center-of-mass energy: ", f8.3/)') eninccm
   write(*, '(" 1. Total (binary) cross sections"/)')
-  if (k0 == 1) write(*, '(" Total           =", es12.5)') xstotinc
-  if (k0 == 1) write(*, '("   Shape elastic   =", es12.5)') xselasinc
+  if (k0 <= 1) write(*, '(" Total           =", es12.5)') xstotinc
+  if (k0 <= 1) write(*, '("   Shape elastic   =", es12.5)') xselasinc
   write(*, '("   Reaction        =", es12.5)') xsreacinc
   write(*, '("     Compound elastic=", es12.5)') xscompel
   write(*, '("     Non-elastic     =", es12.5)') xsnonel
@@ -97,7 +97,7 @@ subroutine totalout
   if (flagracap) write(*, '("       Direct Capture  =", es12.5)') xsracape
   if (flaggiant) write(*, '("       Giant resonance =", es12.5)') xsgrsum
   write(*, '("       Compound non-el =", es12.5)') xscompnonel
-  if (k0 == 1) write(*, '("     Total elastic   =", es12.5)') xselastot
+  if (k0 <= 1) write(*, '("     Total elastic   =", es12.5)') xselastot
 !
 ! Write results to separate file
 !
@@ -105,7 +105,7 @@ subroutine totalout
     quantity='cross section'
     un = 'mb'
     col(1)='E'
-    col(1)='MeV'
+    un(1)='MeV'
     col(2)='xs'
     col(2)='Non-elastic'
     col(3)='Elastic'
@@ -122,11 +122,12 @@ subroutine totalout
     if (nin == Ninclow + 1) then
       open (unit = 1, file = totfile, status = 'replace')
       reaction='('//parsym(k0)//',all)'
-      topline=trim(targetnuclide)//trim(reaction)//' general '//trim(quantity)//'s [mb]'
+      topline=trim(targetnuclide)//trim(reaction)//' general '//trim(quantity)
       call write_header(topline,source,user,date,oformat)
       call write_target
       call write_reaction(reaction,0.d0,0.d0,0,0)
-      call write_datablock(quantity,Ncol,Ninc,col,un)
+      call write_quantity(quantity)
+      call write_datablock(Ncol,Ninc,col,un)
       do nen = 1, Ninclow
         write(1, '(11es15.6)') eninc(nen), fxsnonel(nen), fxselastot(nen), fxstotinc(nen), fxscompel(nen), &
  &        fxselasinc(nen), fxsreacinc(nen), fxscompnonel(nen), fxsdirdiscsum(nen), fxspreeqsum(nen),fxsracape(nen)
@@ -154,7 +155,8 @@ subroutine totalout
       call write_header(topline,source,user,date,oformat)
       call write_target
       call write_reaction(reaction,0.d0,0.d0,3,1)
-      call write_datablock(quantity,Ncol,Ninc,col,un)
+      call write_quantity(quantity)
+      call write_datablock(Ncol,Ninc,col,un)
       do nen = 1, Ninclow
         write(1, '(2es15.6)') eninc(nen), fxstotinc(nen)
       enddo
@@ -174,7 +176,8 @@ subroutine totalout
       call write_header(topline,source,user,date,oformat)
       call write_target
       call write_reaction(reaction,0.d0,0.d0,3,2)
-      call write_datablock(quantity,Ncol,Ninc,col,un)
+      call write_quantity(quantity)
+      call write_datablock(Ncol,Ninc,col,un)
       do nen = 1, Ninclow
         write(1, '(2es15.6)') eninc(nen), fxselastot(nen)
       enddo
@@ -194,7 +197,8 @@ subroutine totalout
       call write_header(topline,source,user,date,oformat)
       call write_target
       call write_reaction(reaction,0.d0,0.d0,3,3)
-      call write_datablock(quantity,Ncol,Ninc,col,un)
+      call write_quantity(quantity)
+      call write_datablock(Ncol,Ninc,col,un)
       do nen = 1, Ninclow
         write(1, '(2es15.6)') eninc(nen), fxsnonel(nen)
       enddo
@@ -214,7 +218,8 @@ subroutine totalout
       call write_header(topline,source,user,date,oformat)
       call write_target
       call write_reaction(reaction,0.d0,0.d0,0,0)
-      call write_datablock(quantity,Ncol,Ninc,col,un)
+      call write_quantity(quantity)
+      call write_datablock(Ncol,Ninc,col,un)
       do nen = 1, Ninclow
         write(1, '(2es15.6)') eninc(nen), fxsreacinc(nen)
       enddo

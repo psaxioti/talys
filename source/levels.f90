@@ -203,6 +203,7 @@ subroutine levels(Zix, Nix)
 ! The isomeric number is determined.
 !
       do i = 0, nlev2
+        tauripl(Zix, Nix, i) = tau(Zix, Nix, i)
         if (tau(Zix, Nix, i) < isomer) tau(Zix, Nix, i) = 0.
         levnum(Zix, Nix, i) = i
       enddo
@@ -279,7 +280,7 @@ subroutine levels(Zix, Nix)
     else
       Liso = Lisoinp
     endif
-    if (Liso > 0) targetnuclide = trim(targetnuclide0) // isochar(Liso)
+    if (Liso > 0) targetnuclide = trim(targetnuclide0) // isochar(min(Liso,numisom))
   endif
 !
 ! Special treatment for isomers in the continuum. There are about 10 known isomers whose level number is larger than 30.
@@ -288,7 +289,7 @@ subroutine levels(Zix, Nix)
 !
   Lis = Nisomer(Zix, Nix) + 1
   do i = nlevmax2(Zix, Nix), nlev(Zix, Nix) + 1, - 1
-    if (tau(Zix, Nix, i) > isomer .and. isomer > 1.) then
+    if (tau(Zix, Nix, i) > isomer .and. isomer >= 0.1) then
       Lis = Lis - 1
       N = nlev(Zix, Nix) - Nisomer(Zix, Nix) + Lis
       if (Lis >= 0 .and. N >= 0) then
@@ -309,18 +310,18 @@ subroutine levels(Zix, Nix)
 !
 ! Adjust branching ratios for isomeric cross sections
 !
-  if (Lis > 0 .and. Risomer(Zix, Nix) /= 1.) then
+  if (Lis > 0 .and. Risomer(Zix, Nix) /= 1. .and. branchdone(Zix,Nix) == 0) then
     do i = 1, nlev2
       if (tau(Zix,Nix,i) >= isomer) then
         brexist = .false.
         brexist(i) = .true.
-        do j = 1+1, nlev2
+        do j = i+1, nlev2
           do k = 1, nbranch(Zix,Nix,j)
             lbr = branchlevel(Zix,Nix,j,k)
             if (brexist(lbr)) brexist(j) = .true.
           enddo
         enddo   
-        do j = 1+1, nlev2
+        do j = i+1, nlev2
           do k = 1, nbranch(Zix,Nix,j)
             lbr = branchlevel(Zix,Nix,j,k)
             if (brexist(lbr)) branchratio(Zix,Nix,j,k) = Risomer(Zix,Nix) * branchratio(Zix,Nix,j,k)
@@ -339,6 +340,7 @@ subroutine levels(Zix, Nix)
         enddo
       endif
     enddo
+    branchdone(Zix, Nix) = 1
   endif
 !
 ! Extract level information for resonances of light nuclides

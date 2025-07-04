@@ -66,6 +66,7 @@ subroutine input_omppar
 !   w4adjust         ! adjustable factor for OMP (default 1.)
 !   wso1adjust       ! adjustable factor for OMP (default 1.)
 !   wso2adjust       ! adjustable factor for OMP (default 1.)
+!   pruittset        ! random set for Pruitt et al OMP
 ! Constants
 !   parsym            ! symbol of particle
 ! Variables for reading input lines
@@ -166,11 +167,13 @@ subroutine input_omppar
   lwsoadjust = 1.
   aradialcor = 1.
   adepthcor = 1.
+  pruittset = 0
   if (flagjlm) then
     flagspher = .true.
   else
     flagspher = .false.
   endif
+  if (k0 > 2) flagspher = .true.
   riplomp = 0
   flagriplomp= .false.
   if (.not.flagsoukhoinp .and. Atarget > fislim) then
@@ -611,11 +614,16 @@ loop1:  do i = 1, nlines
       endif
       cycle
     endif
+    if (key == 'pruittset') then
+      read(value, * , iostat = istat) pruittset
+      if (istat /= 0) call read_error(line, istat)
+      cycle
+    endif
   enddo Loop1
 !
 ! Apply consistent OMP adjustment factors for Koning-Delaroche and other potentials.
 !
-  do type=1,6
+  do type=0,6
     if ((type == 3 .and. deuteronomp >= 2) .or. (type == 6 .and. alphaomp >= 2)) then
       if (rwadjust(type) == -1.) rwadjust(type) = 1.
       if (awadjust(type) == -1.) awadjust(type) = 1.
